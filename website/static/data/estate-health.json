@@ -1,20 +1,20 @@
 {
   "schema": "visionflow.estate-health/1",
-  "generated_at": "2026-11-19T10:32:23.620Z",
+  "generated_at": "2026-11-20T10:13:46.437Z",
   "generator": {
-    "revision": "a0e49c2794ecc5db586ad7bca8020e3b410cb78a",
-    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44506537154",
+    "revision": "18fe25bbd0cffbb7b1262330dd83bc1d76971793",
+    "workflow_run": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44717359481",
     "collector": "scripts/estate-health.mjs"
   },
   "summary": {
     "repos": 21,
-    "green": 12,
-    "red": 3,
-    "amber": 2,
+    "green": 13,
+    "red": 4,
+    "amber": 0,
     "none": 1,
     "exempt": 1,
     "unreadable": 2,
-    "open_prs": 0,
+    "open_prs": 4,
     "surfaces_ok": 6,
     "surfaces_total": 6
   },
@@ -30,11 +30,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "a0e49c2794ecc5db586ad7bca8020e3b410cb78a",
-        "short": "a0e49c2",
-        "date": "2026-11-18T13:37:33Z",
-        "message": "Merge origin/main (nightly estate-health snapshots) into main",
-        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/a0e49c2794ecc5db586ad7bca8020e3b410cb78a"
+        "sha": "18fe25bbd0cffbb7b1262330dd83bc1d76971793",
+        "short": "18fe25b",
+        "date": "2026-11-19T13:41:53Z",
+        "message": "ci: lint the two Rust tools in scripts/ (#42)",
+        "url": "https://github.com/DreamLab-AI/VisionFlow/commit/18fe25bbd0cffbb7b1262330dd83bc1d76971793"
       },
       "ci": {
         "state": "red",
@@ -50,15 +50,15 @@
             "workflow": "Copyright Source Guard",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44315738380",
-            "updated_at": "2026-11-18T13:38:31Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44536039605",
+            "updated_at": "2026-11-19T13:42:20Z"
           },
           {
             "workflow": "Deploy to GitHub Pages",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44315738526",
-            "updated_at": "2026-11-18T13:39:07Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44536039550",
+            "updated_at": "2026-11-19T13:42:33Z"
           },
           {
             "workflow": "Diagrams-as-code index gate",
@@ -78,8 +78,15 @@
             "workflow": "Nightly estate health",
             "conclusion": "success",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44285072615",
-            "updated_at": "2026-11-18T10:24:47Z"
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44506537154",
+            "updated_at": "2026-11-19T10:32:30Z"
+          },
+          {
+            "workflow": "Rust tool lint",
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/VisionFlow/actions/runs/44536039632",
+            "updated_at": "2026-11-19T13:42:32Z"
           }
         ]
       },
@@ -273,7 +280,7 @@
         "url": "https://github.com/DreamLab-AI/solid-pod-rs/commit/7b81329b93845ffb6b5a1511b9d7d762d4c27d0f"
       },
       "ci": {
-        "state": "amber",
+        "state": "red",
         "runs": [
           {
             "workflow": "ADR ledger",
@@ -284,10 +291,10 @@
           },
           {
             "workflow": "CI",
-            "conclusion": null,
-            "status": "in_progress",
+            "conclusion": "failure",
+            "status": "completed",
             "url": "https://github.com/DreamLab-AI/solid-pod-rs/actions/runs/44504720726",
-            "updated_at": "2026-11-19T10:23:05Z"
+            "updated_at": "2026-11-19T10:50:05Z"
           },
           {
             "workflow": "Release",
@@ -299,7 +306,7 @@
         ]
       },
       "open_prs": 0,
-      "open_issues": 1,
+      "open_issues": 2,
       "release": null,
       "pages": null,
       "notes": []
@@ -315,11 +322,11 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "97d02e1c3f1280b23032b6b6070a3bcedd40f3a6",
-        "short": "97d02e1",
-        "date": "2026-11-17T01:00:40Z",
-        "message": "test(governance): golden files no longer depend on serde_json key order",
-        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/97d02e1c3f1280b23032b6b6070a3bcedd40f3a6"
+        "sha": "ca097f7b828e0ab302efd6537cbbad606f3cc466",
+        "short": "ca097f7",
+        "date": "2026-11-19T10:33:40Z",
+        "message": "fix(ci): clippy unnecessary_map_or in the governance golden test; resolve a rustdoc link",
+        "url": "https://github.com/DreamLab-AI/nostr-rust-forum/commit/ca097f7b828e0ab302efd6537cbbad606f3cc466"
       },
       "ci": {
         "state": "red",
@@ -335,8 +342,8 @@
             "workflow": "CI",
             "conclusion": "failure",
             "status": "completed",
-            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/44504728096",
-            "updated_at": "2026-11-19T10:25:00Z"
+            "url": "https://github.com/DreamLab-AI/nostr-rust-forum/actions/runs/44506812440",
+            "updated_at": "2026-11-19T10:36:31Z"
           },
           {
             "workflow": "Security Audit",
@@ -442,21 +449,21 @@
       "readable": true,
       "default_branch": "main",
       "head": {
-        "sha": "c63fa5649c65b74b7aab221cef4187307c12bdd7",
-        "short": "c63fa56",
-        "date": "2026-11-17T00:53:22Z",
-        "message": "Merge branch 'fix/estate-review-2026-11-15'",
-        "url": "https://github.com/DreamLab-AI/loom/commit/c63fa5649c65b74b7aab221cef4187307c12bdd7"
+        "sha": "cd5dd5658aa8b8f73abbd318c208683b2cc09016",
+        "short": "cd5dd56",
+        "date": "2026-11-19T14:28:51Z",
+        "message": "ci: run clippy on the pinned toolchain (#9)",
+        "url": "https://github.com/DreamLab-AI/loom/commit/cd5dd5658aa8b8f73abbd318c208683b2cc09016"
       },
       "ci": {
-        "state": "amber",
+        "state": "green",
         "runs": [
           {
             "workflow": "Rust contracts",
-            "conclusion": null,
-            "status": "in_progress",
-            "url": "https://github.com/DreamLab-AI/loom/actions/runs/44506183193",
-            "updated_at": "2026-11-19T10:29:52Z"
+            "conclusion": "success",
+            "status": "completed",
+            "url": "https://github.com/DreamLab-AI/loom/actions/runs/44544196857",
+            "updated_at": "2026-11-19T14:44:03Z"
           }
         ]
       },
@@ -740,7 +747,7 @@
           }
         ]
       },
-      "open_prs": 0,
+      "open_prs": 1,
       "open_issues": 0,
       "release": {
         "tag": "v0.1.6",
@@ -818,7 +825,7 @@
           }
         ]
       },
-      "open_prs": 0,
+      "open_prs": 2,
       "open_issues": 0,
       "release": null,
       "pages": null,
@@ -950,7 +957,7 @@
           }
         ]
       },
-      "open_prs": 0,
+      "open_prs": 1,
       "open_issues": 0,
       "release": {
         "tag": "v0.2.0",
@@ -968,7 +975,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 249,
+      "latency_ms": 293,
       "note": null
     },
     {
@@ -977,7 +984,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 216,
+      "latency_ms": 225,
       "note": null
     },
     {
@@ -986,7 +993,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/ld+json",
-      "latency_ms": 225,
+      "latency_ms": 216,
       "note": null
     },
     {
@@ -995,7 +1002,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/json; charset=utf-8",
-      "latency_ms": 244,
+      "latency_ms": 228,
       "note": "classes=9595 pages=9593 nodes=9595"
     },
     {
@@ -1004,7 +1011,7 @@
       "status": 200,
       "ok": true,
       "content_type": "text/html; charset=utf-8",
-      "latency_ms": 390,
+      "latency_ms": 435,
       "note": null
     },
     {
@@ -1013,7 +1020,7 @@
       "status": 200,
       "ok": true,
       "content_type": "application/octet-stream",
-      "latency_ms": 333,
+      "latency_ms": 449,
       "note": null
     }
   ],
