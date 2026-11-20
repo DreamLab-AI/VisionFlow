@@ -1045,7 +1045,6 @@ body.rl-init .rl-inner, body.rl-init .rl-face { transition: none !important; }
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-dim);
-  margin-top: 1.33em;
   margin-bottom: 12px;
 }
 .footer-links a, .footer-links p {

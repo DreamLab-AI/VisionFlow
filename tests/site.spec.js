@@ -140,13 +140,25 @@ test('@perf initial static payload stays within the PRD budget', async ({ page }
   // in-flight, so the network never goes idle however small the payload is.
   // 'load' plus settled fonts covers every stylesheet, script, image and font
   // the first screen needs.
+  // The estate-health data is fetched from script and nothing makes 'load' wait
+  // for it, so wait for it by name: it is part of the payload being budgeted.
+  const estateHealth = page.waitForResponse((response) => /estate-health\.json(\?|$)/.test(response.url()));
   await page.goto('/', { waitUntil: 'load' });
+  await estateHealth;
   await page.evaluate(() => document.fonts.ready);
+
+  // Video is left out of the sum below, which is only sound while no video is
+  // fetched eagerly. Hold that here; the bytes a metadata preload does fetch
+  // (the container index) are not measured by this test.
+  const preloads = await page.locator('video').evaluateAll((videos) => videos.map((video) => video.getAttribute('preload')));
+  expect(preloads.length).toBeGreaterThan(0);
+  for (const preload of preloads) expect(['metadata', 'none']).toContain(preload);
+  expect(await page.locator('video[autoplay]').count()).toBe(0);
 
   const metrics = await page.evaluate(() => {
     const entries = performance.getEntriesByType('navigation').concat(performance.getEntriesByType('resource'));
     // Streamed media is bounded by preload="metadata" and Range requests, not by
-    // the static-payload budget, so it is reported separately and not summed.
+    // the static-payload budget. It is excluded here and not measured.
     const resources = entries
       .filter((entry) => !/\.(mp4|webm)(\?|$)/.test(entry.name))
       .map((entry) => ({
