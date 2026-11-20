@@ -56,13 +56,12 @@ How VisionClaw sees and directs agents: the management API (tasks, status), the 
 
 Between: agentbox, visionclaw.
 
-4 live, 11 unverified, 0 closed.
+3 live, 11 unverified, 1 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| W2-01 (also CONTRACTS-F1, CONTRACTS-F2) | Agent events sent bare; VisionClaw drops them as Malformed | agentbox, visionclaw | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | L-1 | Signed model/mobile session canaries | agentbox, visionclaw | device | open | 2026-11-15 |
 | CONTRACTS-F3 | GET /v1/tasks strips three fields VisionClaw requires, so list_tasks always fails | agentbox, visionclaw | untriaged | open | 2026-11-15 |
 | CONTRACTS-F4 | GET /v1/tasks/:taskId strips taskDir and logFile, which TaskStatus requires | agentbox, visionclaw | untriaged | open | 2026-11-15 |
@@ -91,18 +90,19 @@ How a caller proves who they are across components: NIP-98 request signing, did:
 
 Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website.
 
-6 live, 12 unverified, 3 closed.
+7 live, 12 unverified, 3 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| W3-05 (also 11-08 #1e) | NIP-98 door fails open if its boot step fails | visionclaw, agentbox | engineering | open | 2026-11-15 |
+| W3-05 (also 11-08 #1e) | NIP-98 door fails open if its boot step fails | visionclaw, agentbox | engineering | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
 | AW1-05 (also SP-OIDC-04) | The OIDC DPoP replay cache is a plain LRU and can evict a still-valid proof | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-ID-02 | NIP-98 replay retention not bounded to the acceptance window | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-OIDC-02 | Resource admission never dispatches OIDC/DPoP though challenge advertises it | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-OIDC-03 | DPoP `htu` normalisation lower-cases path and trims slash | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-OIDC-06 | Token `exp == now` and future `nbf` accepted; non-URL WebID falls back to `sub` | solid-pod-rs | untriaged | open | 2026-11-15 |
+| NIP98-STALE-CONFIG | The NIP-98 door reads its allowlist once at start, so a file left by an earlier boot is served until the proxy restarts | agentbox | engineering | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -129,7 +129,7 @@ Where private keys and credentials live, who can read or use them, how they are 
 
 Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 
-5 live, 8 unverified, 0 closed.
+6 live, 8 unverified, 0 closed.
 
 ### Live
 
@@ -140,6 +140,7 @@ Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 | W3-06 | Boot now creates a devuser-owned /run/secrets/ruvector-pg/ inside the role-only secrets mount in both modes, outside the role plan; ADR-2122 records that the activation rehearsal was not re-run with it present. | agentbox | untriaged | open | 2026-11-15 |
 | CD-F9 | Committed plaintext ruvector-postgres credentials | visionclaw | untriaged | open | 2026-11-15 |
 | CODEX-LEG-CONFINE | The Codex audit leg can read any file the cron user can read, and its turn count and spend are not bounded by the budget reservation | agentbox | engineering | open | 2026-11-16 |
+| NIP98-ROLE-READ | Under role isolation the NIP-98 proxy cannot read its own config file, so the door would stay closed | agentbox | engineering | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -407,16 +408,16 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-72 live, 103 unverified, 33 closed.
+70 live, 103 unverified, 36 closed.
 
 ### visionclaw
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | engineering | open | 2026-11-15 |
+| 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | engineering | open | 2026-11-20 |
 | W3-02 | Saved API keys never read back | visionclaw | engineering | open | 2026-11-15 |
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
-| 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | open | 2026-11-15 |
+| 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | fixed on an unmerged branch: merged to VisionClaw main 2026-11-20, awaiting rebuild | 2026-11-20 |
 | ratify: VC 2039/2108 | When VisionClaw branch fix/estate-review-2026-11-15 merges: mark ADR-2039 accepted with its verified commit, and supersede ADR-2108 | visionclaw | engineering | open | 2026-11-16 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
@@ -480,9 +481,6 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #1a | Browsercontainer publishes VNC 5903, MCP 8931, CDP 9222 on 0.0.0.0 | agentbox | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
-| 11-08 #1b | Xvnc runs `-SecurityTypes None` | agentbox | engineering | open | 2026-11-15 |
-| W3-01 (also 11-08 #1d) | Relay consumer admits every signed author when allowlist unset | agentbox | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | cheap: nix-flake-update | Merge bot's `deps/nix-flake-update` | agentbox | owner-act | open | 2026-11-15 |
 | M-4 | Multi-peer delivery accepted/rejected | agentbox | deployment | open | 2026-11-15 |
 | L-2 | Second-model-family traffic canary | agentbox | deployment | open | 2026-11-15 |
@@ -499,7 +497,8 @@ Recorded as open, not re-checked:
 | COV-A-F9 | Derivation says eleven/twelve binaries; actual twelve plus server | agentbox | untriaged | open | 2026-11-15 |
 | COV-A-F10 | Rustdoc omits `GET /rules`; says c2pa 0.90, manifest 0.91 | agentbox | untriaged | open | 2026-11-15 |
 | COV-A-F11 | prose-sanitiser and diagram-ir have no diagram area | agentbox | untriaged | open | 2026-11-15 |
-| JOURNAL-LOCK | Two processes writing the audit journal at once can fork its hash chain: the writer takes no lock | agentbox | engineering | open | 2026-11-16 |
+| JOURNAL-LOCK | Two processes writing the audit journal at once can fork its hash chain: the writer takes no lock | agentbox | engineering | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
+| PODKEY-POLICY | Podkey does not load at Chrome start in the browser sidecar: a default extension block also disables unpacked loading | agentbox | deployment | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
