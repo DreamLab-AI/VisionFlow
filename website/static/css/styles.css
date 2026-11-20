@@ -1719,7 +1719,7 @@ a.substrate-shot:hover {
 }
 .fig.visible .f-pulse { opacity: 1; }
 .figcap { font-size: 0.82rem; color: var(--text-dim); margin: 12px 0 0; max-width: 72ch; }
-.figcap a { color: var(--gold); text-decoration: none; }
+.figcap a { color: var(--gold); text-decoration: underline; text-underline-offset: 2px; }
 .figcap a:hover { color: var(--bright-gold); }
 /* A bare <a> in a section lead had no rule at all, so the user-agent default
    #0000EE won — about 2.3:1 on this ground, under the 3:1 large-text floor.
@@ -1728,7 +1728,7 @@ a.substrate-shot:hover {
    style="color:var(--gold)", which masked the missing rule rather than fixing
    it. Same treatment as .figcap a. Keyboard focus is already covered by the
    global :focus-visible rule, so no separate focus style is needed here. */
-.section-lead a { color: var(--gold); text-decoration: none; }
+.section-lead a { color: var(--gold); text-decoration: underline; text-underline-offset: 2px; }
 .section-lead a:hover { color: var(--bright-gold); }
 
 /* ── Three doors ── */
@@ -1792,7 +1792,7 @@ a.substrate-shot:hover {
 .estate-repo a:hover { color: var(--bright-gold); }
 .estate-meta { display: block; font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; letter-spacing: 0.02em; }
 /* Matches .figcap a; the bare-<a>-in-a-lead case is handled site-wide up there. */
-.estate-stamp a { color: var(--gold); text-decoration: none; }
+.estate-stamp a { color: var(--gold); text-decoration: underline; text-underline-offset: 2px; }
 .estate-stamp a:hover { color: var(--bright-gold); }
 
 .estate-pages, .estate-note-line { line-height: 1.4; }
