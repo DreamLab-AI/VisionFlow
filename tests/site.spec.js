@@ -1,17 +1,28 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from './fixtures/cdp.js';
 
+// Every top-level <section> on the page, in document order.
 const sections = [
   'hero',
+  'questions',
   'problem',
   'evolution',
   'substrates',
+  'dreaming',
+  'guarantees',
+  'immersive',
   'broker',
   'economic',
+  'sidechains',
+  'loom',
   'cases',
   'competitive',
   'scaling',
-  'repos'
+  'doors',
+  'status',
+  'estate',
+  'repos',
+  'contact'
 ];
 
 test('renders the complete VisionFlow landing page', async ({ page }) => {
@@ -22,64 +33,98 @@ test('renders the complete VisionFlow landing page', async ({ page }) => {
 
   await page.goto('/');
   await expect(page).toHaveTitle(/VisionFlow/);
-  await expect(page.getByRole('heading', { name: /Federated Human/i })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Federated Human/i })).toBeVisible();
 
   for (const section of sections) {
-    await expect(page.locator(`#${section}`), `${section} section`).toHaveCount(1);
+    await expect(page.locator(`section#${section}`), `${section} section`).toHaveCount(1);
   }
 
-  await expect(page.locator('#mesh-canvas')).toBeVisible();
-  await expect(page.locator('[id^="particle-canvas-"]')).toHaveCount(4);
+  // The page has one decorative WebGL mesh backdrop (static/js/mesh-webgl.js),
+  // hidden from assistive technology. The earlier #mesh-canvas and four
+  // particle-canvas-* elements were removed in c5ac1da (WASM particles replaced
+  // by the WebGL mesh), so none may reappear.
+  const mesh = page.locator('canvas#mesh-gl');
+  await expect(mesh).toHaveCount(1);
+  await expect(mesh).toHaveAttribute('aria-hidden', 'true');
+  await expect(page.locator('canvas')).toHaveCount(1);
+  await expect(mesh).toHaveClass(/ready/);
   expect(consoleErrors).toEqual([]);
 });
 
 test('navigation exposes all primary page sections', async ({ page }) => {
   await page.goto('/');
 
+  // The desktop bar (#nav-links). The mobile index (#m-index) lists the same
+  // sections again, so the selector is scoped to the bar to keep each count at one.
   const expectedLinks = [
     ['Problem', '#problem'],
-    ['Evolution', '#evolution'],
     ['Substrates', '#substrates'],
+    ['Dreaming', '#dreaming'],
+    ['Guarantees', '#guarantees'],
+    ['Immersive', '#immersive'],
     ['Governance', '#broker'],
-    ['Economics', '#economic'],
-    ['Cases', '#cases'],
+    ['Sidechains', '#sidechains'],
+    ['Contact', '#contact'],
+    ['Grounding', '#loom'],
     ['Landscape', '#competitive'],
-    ['Scaling', '#scaling'],
+    ['Status', '#status'],
     ['Repos', '#repos']
   ];
 
   for (const [name, href] of expectedLinks) {
-    const link = page.locator(`nav a[href="${href}"]`);
+    const link = page.locator(`#nav-links a[href="${href}"]`);
     await expect(link, `${name} nav link`).toHaveCount(1);
     await expect(link).toContainText(name);
+    await expect(page.locator(href), `${name} target`).toHaveCount(1);
   }
 });
 
-test('mobile menu opens and links remain reachable', async ({ page }) => {
+test('mobile index opens, lists every section and navigates', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
 
-  await page.getByRole('button', { name: /toggle navigation/i }).click();
-  await expect(page.locator('#nav-links')).toHaveClass(/open/);
-  await page.locator('nav a[href="#repos"]').click();
+  const toggle = page.getByRole('button', { name: /toggle navigation/i });
+  const overlay = page.locator('#m-index');
+  await expect(overlay).not.toHaveClass(/open/);
+
+  await toggle.click();
+  await expect(overlay).toHaveClass(/open/);
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(overlay.locator('a.m-index-row')).toHaveCount(17);
+
+  await overlay.locator('a[href="#repos"]').click();
+  await expect(overlay).not.toHaveClass(/open/);
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(page).toHaveURL(/#repos$/);
 });
 
-test('plain-language blocks reveal technical detail and reset after scrolling away', async ({ page }) => {
+test('reading switch swaps technical copy for plain English and back', async ({ page }) => {
   await page.goto('/');
 
   const problem = page.locator('#problem');
+  const technical = problem.locator('.rl-face-tech');
+  const plain = problem.locator('.rl-face-plain').first();
   await expect(problem.getByRole('heading', { name: 'Hard problems share a common shape' })).toBeVisible();
-  const block = problem.locator('.translation-block').first();
-  await expect(block.getByText('Teams are connecting AI tools faster')).toBeVisible();
+  await expect(technical.first()).toHaveAttribute('aria-hidden', 'false');
+  await expect(plain).toHaveAttribute('aria-hidden', 'true');
 
-  const toggle = block.locator('.detail-toggle');
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(block.getByText('Climate modelling, drug discovery')).toBeVisible();
+  // The floating pill is CSS-hidden below 768px, where the nav knob replaces it.
+  const narrow = (page.viewportSize()?.width ?? 1280) < 768;
+  const toPlain = narrow ? page.locator('#m-reading') : page.getByRole('button', { name: 'Plain English' });
+  const toTechnical = narrow ? page.locator('#m-reading') : page.getByRole('button', { name: 'Technical' });
 
-  await page.locator('#loom').scrollIntoViewIfNeeded();
-  await expect(block).not.toHaveClass(/show-technical/);
+  await toPlain.click();
+  await expect(page.locator('body')).toHaveClass(/reading-plain/);
+  await expect(plain).toHaveAttribute('aria-hidden', 'false');
+  await expect(technical.first()).toHaveAttribute('aria-hidden', 'true');
+  await expect(problem.getByRole('heading', { name: 'More AI means more coordination, not less' })).toBeVisible();
+  await expect(problem.getByText('Teams are wiring AI tools together faster')).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('vf-reading'))).toBe('plain');
+
+  await toTechnical.click();
+  await expect(page.locator('body')).not.toHaveClass(/reading-plain/);
+  await expect(plain).toHaveAttribute('aria-hidden', 'true');
+  await expect(problem.getByRole('heading', { name: 'Hard problems share a common shape' })).toBeVisible();
 });
 
 test('@a11y has no automatically detectable accessibility violations', async ({ page }) => {
