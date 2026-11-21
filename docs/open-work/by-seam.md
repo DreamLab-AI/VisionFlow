@@ -184,20 +184,19 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-9 live, 4 unverified, 16 closed.
+8 live, 4 unverified, 16 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | owner-decision | open | 2026-11-21 |
-| POD-PARITY | Resume the solid-pod-rs parity push: 264/280 = 94.3% strict at 25f4dfd, below the checker's 95% threshold (6 missing, 10 partial-parity) | solid-pod-rs | engineering | open | 2026-11-21 |
+| POD-PARITY | Resume the solid-pod-rs parity push: 263/280 = 93.9% strict at 73080a4, below the checker's 95% threshold (7 missing, 10 partial-parity) | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-ETAG-HOST-NEGOTIATED | solid-pod-rs: the ETag does not change when a negotiated body depends on the Host header | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-NOTIFY-SOCKET-COST | solid-pod-rs: each open notification socket costs one resolver walk per matching storage event, and behind a reverse proxy the per-peer cap of 16 is 16 sockets in total | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-FORGE-TOKEN-KEY-RACE | solid-pod-rs: the forge token key has a create and read race | solid-pod-rs | engineering | open | 2026-11-21 |
-| SP-ACL-TWIN-CREATE-RACE | solid-pod-rs: two requests can create both container ACL forms at once, because the twin check and the write are separate under `lock_resource` | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-JSONLD-ACL-PLACEHOLDER-BYTEMATCH | solid-pod-rs: the JSON-LD ACL placeholder-host check is a raw byte match, so only the document's author is affected | solid-pod-rs | engineering | open | 2026-11-21 |
 
 ### Recorded as open, not re-checked

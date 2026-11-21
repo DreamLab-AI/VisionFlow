@@ -17,7 +17,7 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 95 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 94 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
 | Closed | 118 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
@@ -69,7 +69,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 4 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 6 | 8 |
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 1 | 4 |
-| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 9 | 4 |
+| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 8 | 4 |
 | [Value transfer](by-seam.md#payments) | sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox | 2 | 8 |
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 3 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
@@ -88,7 +88,7 @@ An item that touches two components is counted under both.
 | agentbox | 16 | 16 | 72 |
 | nostr-rust-forum | 7 | 4 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
-| solid-pod-rs | 14 | 4 | 31 |
+| solid-pod-rs | 13 | 4 | 31 |
 | sidestr-rs | 3 | 1 | 11 |
 | loom | 3 | 2 | 10 |
 | ontomark | 0 | 1 | 12 |
@@ -107,7 +107,7 @@ An item that touches two components is counted under both.
 |---|---|
 | Waiting on an owner decision | 14 |
 | Waiting on an owner act | 11 |
-| Ordinary engineering: can start now | 42 |
+| Ordinary engineering: can start now | 41 |
 | Needs a live deployment | 14 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
