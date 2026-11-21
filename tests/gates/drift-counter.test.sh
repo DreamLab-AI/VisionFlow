@@ -145,22 +145,59 @@ check "gate still passes"  "RESULT: PASS" "$OUT"
 # ── 6. The committed allowlist is green and reads every policed site ─────
 echo
 echo "[6] the committed allowlist passes with no unreadable policed site"
-# This section needs the REAL agentbox checkout at allowlist.json .source_pin
-# (CI sets DRIFT_AGENTBOX_DIR to it). Locally: git fetch the pinned revision
-# into a scratch dir and export DRIFT_AGENTBOX_DIR.
-[[ -n "${DRIFT_AGENTBOX_DIR:-}" ]] || echo "  note: DRIFT_AGENTBOX_DIR unset; [6] needs the pinned agentbox checkout"
-OUT="$(node "$COUNTER" 2>&1)"; RC=$?
-check "reports PASS"        "RESULT: PASS" "$OUT"
-nocheck "no file-missing"   "file-missing" "$OUT"
-nocheck "no site-missing"   "site-missing" "$OUT"
-check "pin verified"        "source pin  : OK" "$OUT"
-check "archived ADR-002 site is read" "docs/archive/adr/ADR-002-ecosystem-alignment-governance.md" "$OUT"
-check "unavailable axis states its exit condition" "resolves when:" "$OUT"
-[[ $RC -eq 0 ]] && ok "exit 0" || bad "exit 0" "got $RC"
+# This section needs the REAL agentbox checkout at allowlist.json .source_pin.
+#   - CI sets DRIFT_AGENTBOX_DIR to it, and this test then uses it unchanged.
+#   - Locally, with DRIFT_AGENTBOX_DIR unset, the test builds the pinned
+#     revision itself: `git clone --shared` from a local agentbox repository
+#     into $SCRATCH (the source is only read; --shared borrows its objects and
+#     writes nothing to it), checked out detached at the pin. Candidates, first
+#     that holds the pinned commit wins: $DRIFT_AGENTBOX_SOURCE, then the
+#     sibling ../agentbox, then /home/devuser/workspace/project/agentbox. (A
+#     worktree under wt/ has a different ../ from the primary checkout, hence
+#     the explicit override and the absolute estate path.)
+#   - If no local repository holds the pinned commit the section is SKIPPED, with
+#     a visible SKIP line and a skip count in the summary; it is never a pass. A
+#     skip is refused when CI is set, so CI cannot lose this check silently.
+PINNED_REV="$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).source_pin.revision)' "$REPO_ROOT/scripts/drift-counter/allowlist.json")"
+SKIP=0
+skip() { SKIP=$((SKIP+1)); printf '  SKIP %s\n     %s\n' "$1" "${2:-}"; }
+SECTION6_ENV=()
+if [[ -z "${DRIFT_AGENTBOX_DIR:-}" ]]; then
+  PINNED_AB=""
+  for cand in "${DRIFT_AGENTBOX_SOURCE:-}" "$REPO_ROOT/../agentbox" "/home/devuser/workspace/project/agentbox"; do
+    [[ -n "$cand" && -d "$cand" ]] || continue
+    git -C "$cand" cat-file -e "${PINNED_REV}^{commit}" 2>/dev/null || continue
+    CLONE="$SCRATCH/pinned-agentbox"
+    if git clone -q --shared --no-checkout "$cand" "$CLONE" 2>/dev/null \
+       && git -C "$CLONE" -c advice.detachedHead=false checkout -q --detach "$PINNED_REV" 2>/dev/null; then
+      PINNED_AB="$CLONE"; echo "  note: using agentbox @ ${PINNED_REV:0:12} cloned (shared, read-only) from $cand"; break
+    fi
+    rm -rf "$CLONE"
+  done
+  if [[ -n "$PINNED_AB" ]]; then
+    SECTION6_ENV=(env "DRIFT_AGENTBOX_DIR=$PINNED_AB")
+  fi
+fi
+if [[ -z "${DRIFT_AGENTBOX_DIR:-}" && ${#SECTION6_ENV[@]} -eq 0 ]]; then
+  if [[ -n "${CI:-}" ]]; then
+    bad "[6] pinned agentbox checkout" "CI is set but DRIFT_AGENTBOX_DIR is not: refusing to skip"
+  else
+    skip "[6] committed allowlist against the pinned agentbox" "no local agentbox repository holds ${PINNED_REV:0:12}; set DRIFT_AGENTBOX_DIR to a checkout at that commit (or DRIFT_AGENTBOX_SOURCE to a repository containing it). NOT a pass."
+  fi
+else
+  OUT="$("${SECTION6_ENV[@]}" node "$COUNTER" 2>&1)"; RC=$?
+  check "reports PASS"        "RESULT: PASS" "$OUT"
+  nocheck "no file-missing"   "file-missing" "$OUT"
+  nocheck "no site-missing"   "site-missing" "$OUT"
+  check "pin verified"        "source pin  : OK" "$OUT"
+  check "archived ADR-002 site is read" "docs/archive/adr/ADR-002-ecosystem-alignment-governance.md" "$OUT"
+  check "unavailable axis states its exit condition" "resolves when:" "$OUT"
+  [[ $RC -eq 0 ]] && ok "exit 0" || bad "exit 0" "got $RC"
+fi
 
 # ── summary ──────────────────────────────────────────────────────────────
 echo
 echo "=================================="
-echo "passed: $PASS   failed: $FAIL"
+echo "passed: $PASS   failed: $FAIL   skipped: $SKIP"
 [[ $FAIL -eq 0 ]] && { echo "DRIFT-COUNTER-TESTS-OK"; exit 0; }
 echo "DRIFT-COUNTER-TESTS-FAIL"; exit 1
