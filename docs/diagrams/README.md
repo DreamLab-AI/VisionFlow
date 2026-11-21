@@ -189,7 +189,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_269 topic files, 2045 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_277 topic files, 2089 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -274,7 +274,7 @@ _269 topic files, 2045 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | ID | Topic | Diagrams | Kinds | Governing | ADRs |
 |----|-------|----------|-------|-----------|------|
 | AB-01 | [Nix flake composition and apply-class gates](agentbox/01-nix-flake-composition.md) | 10 | flowchart, stateDiagram-v2, sequenceDiagram, classDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2006, ADR-2029, ADR-2039, ADR-2080, ADR-2151, ADR-2152, ADR-2154, ADR-2155 |
-| AB-02 | [Boot sequence, supervision tree and readiness](agentbox/02-boot-sequence-and-readiness.md) | 21 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080, ADR-2092, ADR-2104, ADR-2122, ADR-2140, ADR-2144, ADR-2146, ADR-2151, ADR-2153 |
+| AB-02 | [Boot sequence, supervision tree and readiness](agentbox/02-boot-sequence-and-readiness.md) | 21 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080, ADR-2092, ADR-2104, ADR-2122, ADR-2140, ADR-2144, ADR-2146, ADR-2151, ADR-2153, ADR-2210 |
 | AB-03 | [Management API request lifecycle and route table](agentbox/03-management-api-request-lifecycle.md) | 17 | sequenceDiagram, flowchart | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md) | ADR-2005, ADR-2013, ADR-2003 |
 | AB-04 | [Five-slot adapter spine, dispatch middleware and connect lifecycle](agentbox/04-adapter-spine.md) | 16 | flowchart, classDiagram, sequenceDiagram, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2004, ADR-2005, ADR-2035, ADR-2036, ADR-2037, ADR-2064 |
 | AB-05 | [Manifest gate catalogue, vault path authority and the agentbox.sh CLI](agentbox/05-manifest-gates-and-cli.md) | 16 | sequenceDiagram, flowchart, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2003, ADR-2028, ADR-2029, ADR-2034, ADR-2036, ADR-2037, ADR-2038, ADR-2039, ADR-2080, ADR-2091, ADR-2092, ADR-2093, ADR-2094, ADR-2095, ADR-2107, ADR-2108, ADR-2110, ADR-2116, ADR-2118, ADR-2122, ADR-2140, ADR-2142, ADR-2144, ADR-2145, ADR-2146, ADR-2149, ADR-2151, ADR-2152, ADR-2139, ADR-2153, ADR-2154, ADR-2155 |
@@ -282,7 +282,7 @@ _269 topic files, 2045 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | AB-07 | [Daemon classes, argv-boundary reaping, cron and backups](agentbox/07-daemons-reapers-cron-backups.md) | 11 | flowchart, stateDiagram-v2, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2032, ADR-2003, ADR-2039, ADR-2040, ADR-2118, ADR-2131 |
 | AB-08 | [Claude Code hook pipeline and its handlers](agentbox/08-hooks-pipeline.md) | 13 | flowchart, sequenceDiagram | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2015, ADR-2026, ADR-2007, ADR-2068, ADR-2090, ADR-2091, ADR-2093, ADR-2094, ADR-2121, ADR-2144, ADR-2146, ADR-2151 |
 | AB-09 | [MCP registry, boot projector and the server catalogue](agentbox/09-mcp-servers-catalogue.md) | 7 | flowchart, sequenceDiagram, stateDiagram-v2 | [BASELINE-container.md](../../../project/agentbox/docs/BASELINE-container.md) | ADR-2008, ADR-2003, ADR-2039, ADR-2034, ADR-2082, ADR-2085, ADR-2086 |
-| AB-10 | [Ingress — nip98-proxy named operator routes and the session socket](agentbox/10-ingress-nip98-proxy-and-aoe.md) | 13 | flowchart, sequenceDiagram, stateDiagram-v2 | [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md) | ADR-2002, ADR-2009, ADR-2010, ADR-2011, ADR-2013, ADR-2047, ADR-2080, ADR-2153 |
+| AB-10 | [Ingress — nip98-proxy named operator routes and the session socket](agentbox/10-ingress-nip98-proxy-and-aoe.md) | 13 | flowchart, sequenceDiagram, stateDiagram-v2 | [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md) | ADR-2002, ADR-2009, ADR-2010, ADR-2011, ADR-2013, ADR-2047, ADR-2080, ADR-2153, ADR-2210 |
 | AB-11 | [Identity — DID, URN, mandate, authority](agentbox/11-identity-did-mandate-authority.md) | 16 | classDiagram, sequenceDiagram, flowchart, stateDiagram-v2 | [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md) | ADR-2011, ADR-2025, ADR-2027, ADR-2064, ADR-2087 |
 | AB-12 | [tab0-bridge and the interaction plane](agentbox/12-tab0-bridge-and-interaction-plane.md) | 12 | sequenceDiagram, flowchart | [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md) | ADR-2009, ADR-2010, ADR-2011, ADR-2047, ADR-2088, ADR-2151, ADR-2153 |
 | AB-13 | [Nostr — relay, gateway, pod bridge, session mirror](agentbox/13-nostr-relay-gateway-bridge-mirror.md) | 16 | flowchart, sequenceDiagram, classDiagram, stateDiagram-v2 | [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md), [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md) | ADR-2012, ADR-2025, ADR-2026, ADR-2061, ADR-2085, ADR-2105 |
@@ -392,7 +392,7 @@ _269 topic files, 2045 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VW-01 | [Crate composition, modules and the WASM boundary](vowl-wasm/01-crate-composition-and-wasm-boundary.md) | 6 | flowchart, sequenceDiagram | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-02 | [OWL parse → graph model](vowl-wasm/02-owl-parse-to-graph-model.md) | 5 | sequenceDiagram, flowchart | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-03 | [Force layout — Barnes-Hut, SIMD and CSR simulation lifecycle](vowl-wasm/03-force-layout-lifecycle.md) | 9 | sequenceDiagram, flowchart, stateDiagram-v2 | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
-| VW-04 | [JS API surface, examples and downstream consumers](vowl-wasm/04-js-api-examples-and-consumers.md) | 8 | flowchart, sequenceDiagram | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
+| VW-04 | [JS API surface, README usage snippets and downstream consumers](vowl-wasm/04-js-api-examples-and-consumers.md) | 9 | flowchart, sequenceDiagram | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-05 | [Build, test, bench and the npm publish pipeline](vowl-wasm/05-build-test-bench-and-publish.md) | 6 | flowchart | [README.md](../../../vowl-wasm/README.md), [ADR-001-shared-ontology-rendering-contract.md](../../../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md) | vowl-wasm:ADR-001 |
 | VW-06 | [Layout termination, reload state and release retry repairs](vowl-wasm/06-layout-and-release-repairs.md) | 3 | flowchart |  | vowl-wasm:ADR-001 |
 
@@ -525,6 +525,24 @@ _269 topic files, 2045 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | VK-03 | [Bounded execution, receipts and the Deepsec adapter](visioncraft/03-execution-evidence-and-security-adapter.md) | 5 | sequenceDiagram, flowchart | [0001-portable-quality-contract.md](../../../visioncraft/docs/adr/0001-portable-quality-contract.md), [0002-specialist-upstream-boundaries.md](../../../visioncraft/docs/adr/0002-specialist-upstream-boundaries.md), [deepsec.md](../../../visioncraft/skills/visioncraft/references/deepsec.md) | visioncraft:ADR-0001, visioncraft:ADR-0002 |
 | VK-04 | [CI, release and the Sealmap diagram gate](visioncraft/04-ci-release-and-diagram-gates.md) | 4 | flowchart, sequenceDiagram | [README.md](../../../visioncraft/docs/diagrams/README.md), [0001-portable-quality-contract.md](../../../visioncraft/docs/adr/0001-portable-quality-contract.md) | visioncraft:ADR-0001, visioncraft:ADR-0002 |
 | VK-05 | [Browser WebAssembly default and agentbox consumption](visioncraft/05-browser-wasm-default-and-agentbox-consumption.md) | 5 | sequenceDiagram, flowchart | [browser-wasm.md](../../../visioncraft/skills/visioncraft/references/rust/browser-wasm.md), [ecosystem-agentbox.md](../../../visioncraft/skills/visioncraft/references/ecosystem-agentbox.md), [ADR-2165-visioncraft-owns-the-portable-quality-method.md](../../../project/agentbox/docs/adr/ADR-2165-visioncraft-owns-the-portable-quality-method.md), [visioncraft-consumption.md](../../../project/agentbox/docs/developer/visioncraft-consumption.md) | ADR-2165, visioncraft:ADR-0002 |
+
+### prose-sanitiser
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| PS-01 | [The scan pipeline and its exit-code contract](prose-sanitiser/01-the-scan-pipeline-and-exit-codes.md) | 5 | flowchart, sequenceDiagram | [README-CLI.md](../../../prose-sanitiser/README-CLI.md), [README.md](../../../prose-sanitiser/crates/cli/README.md) |  |
+| PS-02 | [The website audit and its SSRF filter](prose-sanitiser/02-the-website-audit-and-its-ssrf-filter.md) | 6 | sequenceDiagram, flowchart | [README-CLI.md](../../../prose-sanitiser/README-CLI.md), [UPSTREAM-DELTA.md](../../../prose-sanitiser/docs/UPSTREAM-DELTA.md) |  |
+| PS-03 | [The server and its auth and Host checks](prose-sanitiser/03-the-server-auth-and-host-checks.md) | 6 | flowchart, sequenceDiagram | [README.md](../../../prose-sanitiser/crates/server/README.md), [CHANGELOG.md](../../../prose-sanitiser/CHANGELOG.md) |  |
+| PS-04 | [Script and model directory resolution](prose-sanitiser/04-script-and-model-directory-resolution.md) | 6 | flowchart, sequenceDiagram | [CHANGELOG.md](../../../prose-sanitiser/CHANGELOG.md), [README.md](../../../prose-sanitiser/crates/server/README.md) |  |
+
+### diagram-ir
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| DI-01 | [The IR and its input parsers](diagram-ir/01-the-ir-and-its-input-parsers.md) | 6 | classDiagram, flowchart, sequenceDiagram | [README.md](../../../diagram-ir/README.md) |  |
+| DI-02 | [Analysis, the Markdown digest and the JSON output](diagram-ir/02-analysis-digest-and-json-output.md) | 5 | sequenceDiagram, flowchart | [README.md](../../../diagram-ir/README.md) |  |
+| DI-03 | [The self-check and motion-template resolution](diagram-ir/03-the-self-check-and-motion-template-resolution.md) | 5 | flowchart, sequenceDiagram | [README.md](../../../diagram-ir/README.md) |  |
+| DI-04 | [Semantic support review](diagram-ir/04-semantic-support-review.md) | 4 | sequenceDiagram, flowchart, stateDiagram-v2 | [README.md](../../../diagram-ir/README.md) |  |
 
 ### estate
 
