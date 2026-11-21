@@ -184,13 +184,13 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-10 live, 4 unverified, 18 closed.
+16 live, 4 unverified, 18 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| POD-PARITY | Resume the solid-pod-rs parity push: 275/286 = 96.2% strict at ae4a1a7, above the checker's 95% threshold (6 missing) | solid-pod-rs | engineering | open | 2026-11-21 |
+| POD-PARITY | Resume the solid-pod-rs parity push: 280/286 = 97.9% strict at 639ce46, above the checker's 95% threshold | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-ETAG-HOST-NEGOTIATED | solid-pod-rs: the ETag does not change when a negotiated body depends on the Host header | solid-pod-rs | engineering | open | 2026-11-21 |
@@ -200,6 +200,12 @@ Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-websi
 | SP-WELLKNOWN-LISTING-DENYLIST | solid-pod-rs: the listing and export filter is a four-prefix deny-list under `/.well-known`, and two listers are unfiltered | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-LEDGER-LOCK-TIMEOUT-403 | solid-pod-rs: a payment-ledger lock timeout surfaces as 403, and minting a POST name can wait up to 64 × 30 s | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-ACL-LAYOUT-RESIDUALS | solid-pod-rs: opt-in ACL layouts: an ACL can be planted before its container exists, a file's own Control grant no longer suffices, and copied relative rules change scope | solid-pod-rs | owner-decision | open | 2026-11-21 |
+| SP-WEBHOOK-NO-SSRF-GUARD | solid-pod-rs: the notifications webhook channel client has no SSRF guard | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-SSRF-NAT64-TEREDO | solid-pod-rs: the core SSRF range check classifies NAT64 and Teredo addresses as public | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-AP-PER-ORIGIN-BOUNDS | solid-pod-rs: ActivityPub bounds count per actor and per exact hostname, not per origin | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-LDP-HTML-SANDBOX | solid-pod-rs: stored HTML is served unsandboxed on the pod origin over LDP (outside the remoteStorage container) | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-REMOTESTORAGE-RESIDUALS | solid-pod-rs: remoteStorage tokens can only be revoked all at once; dot-prefixed names are refused; quota is a separate bucket | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-WEBRTC-FORWARDED-TRUST | solid-pod-rs: with trust-proxy on, the WebRTC per-client cap trusts the proxy's forwarded address | solid-pod-rs | engineering | open | 2026-11-21 |
 
 ### Recorded as open, not re-checked
 
@@ -395,7 +401,7 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-49 live, 102 unverified, 78 closed.
+48 live, 102 unverified, 79 closed.
 
 ### visionclaw
 
@@ -510,7 +516,7 @@ Recorded as open, not re-checked:
 |---|---|---|---|---|---|
 | cheap: forum-tweaks | Delete remote `fix/forum-tweaks-2026-10-22` | nostr-rust-forum | engineering | open | 2026-11-15 |
 | AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
-| FORUM-INTENT-KEY-ORDER | `create_agent_intent_signer` builds its event content with `json!(...).to_string()`, the same build-dependent key order as GOV-CONTENT-KEY-ORDER, for a non-governance kind | nostr-rust-forum | owner-decision | open | 2026-11-21 |
+| FORUM-INTENT-KEY-ORDER | `create_agent_intent_signer` builds its event content with `json!(...).to_string()`, the same build-dependent key order as GOV-CONTENT-KEY-ORDER, for a non-governance kind | nostr-rust-forum | deployment | fixed on an unmerged branch | 2026-11-21 |
 | FORUM-RUMOR-KEY-ORDER | nostr-rust-forum: `gift_wrap.rs` serialises the NIP-59 rumor with build-dependent key order, so seal ciphertext bytes differ by build | nostr-rust-forum | engineering | open | 2026-11-21 |
 
 Recorded as open, not re-checked:
@@ -538,7 +544,6 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | SP-PAR-276 | PATCH should read JSON-LD, HTML islands, Turtle and write back in stored form | solid-pod-rs | engineering | open | 2026-11-21 |
-| SP-PAR-281 | ActivityPub inbox/outbox routed with signed delivery | solid-pod-rs | untriaged | open | 2026-11-15 |
 
 Recorded as open, not re-checked:
 

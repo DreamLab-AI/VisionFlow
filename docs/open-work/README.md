@@ -17,14 +17,14 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 93 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 98 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
-| Closed | 123 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 124 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (24)
+## Waiting on the owner (23)
 
-### Waiting on an owner decision (14)
+### Waiting on an owner decision (13)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -36,7 +36,6 @@ Items are filed by **seam**: the contract between components that would have to 
 | COV-B-F3 | the model engine listens on every host interface with no key | none | loom | owner-decision | open | 2026-11-20 |
 | W4COVC-F5 | Dockerfile fetches WebVOWL war over plain HTTP, no checksum | none | wasmvowl | owner-decision | open | 2026-11-20 |
 | CD-F4 | laya weights fetched at default branch, no revision, no offline flag | none | visionclaw | owner-decision | open | 2026-11-20 |
-| FORUM-INTENT-KEY-ORDER | `create_agent_intent_signer` builds its event content with `json!(...).to_string()`, the same build-dependent key order as GOV-CONTENT-KEY-ORDER, for a non-governance kind | none | nostr-rust-forum | owner-decision | open | 2026-11-21 |
 | WASMVOWL-TOMCAT-EOL | WasmVOWL Dockerfile base image `tomcat:9-jre8-alpine` is end-of-life, and the image still serves upstream WebVOWL | none | wasmvowl | owner-decision | open | 2026-11-20 |
 | SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
@@ -68,14 +67,14 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 4 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 6 | 8 |
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 1 | 4 |
-| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 10 | 4 |
+| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 16 | 4 |
 | [Value transfer](by-seam.md#payments) | sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox | 2 | 8 |
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 3 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
 | [Versions and pins across repositories](by-seam.md#release-pins) | estate | 4 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 3 | 2 |
-| [Inside one component](by-seam.md#none) | one component | 49 | 102 |
+| [Inside one component](by-seam.md#none) | one component | 48 | 102 |
 
 ## By component
 
@@ -87,7 +86,7 @@ An item that touches two components is counted under both.
 | agentbox | 15 | 16 | 72 |
 | nostr-rust-forum | 7 | 4 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
-| solid-pod-rs | 15 | 2 | 31 |
+| solid-pod-rs | 21 | 1 | 31 |
 | sidestr-rs | 2 | 1 | 11 |
 | loom | 3 | 2 | 10 |
 | ontomark | 0 | 1 | 12 |
@@ -104,13 +103,13 @@ An item that touches two components is counted under both.
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 14 |
+| Waiting on an owner decision | 13 |
 | Waiting on an owner act | 10 |
-| Ordinary engineering: can start now | 42 |
-| Needs a live deployment | 14 |
+| Ordinary engineering: can start now | 48 |
+| Needs a live deployment | 15 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
-| Not yet triaged | 3 |
+| Not yet triaged | 2 |
 
 ## Parked
 
