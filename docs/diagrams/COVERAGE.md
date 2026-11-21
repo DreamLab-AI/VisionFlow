@@ -3566,7 +3566,7 @@ Keys are repository-qualified. `estate-unresolved` preserves an unqualified cros
 | `../project/agentbox/lib/podcast-ingest.nix` | [AB-28](agentbox/28-agentbox-services-and-manifest-binary.md) |
 | `../project/agentbox/lib/poker-citizen.nix` | [DW-10](dreamlab-ai-website/10-poker-tables-credit-and-recovery.md) |
 | `../project/agentbox/lib/rune.nix` | [AB-01](agentbox/01-nix-flake-composition.md) |
-| `../project/agentbox/lib/sidestr-agent.nix` | [AB-33](agentbox/33-sidestr-crates.md), [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md) |
+| `../project/agentbox/lib/sidestr-agent.nix` | [AB-33](agentbox/33-sidestr-crates.md), [SR-01](sidestr-rs/01-workspace-oracles-and-live-boundary.md), [SR-04](sidestr-rs/04-hitch-channel-kernel-and-host-gap.md) |
 | `../project/agentbox/lib/sidestr-upstream.nix` | [AB-34](agentbox/34-sidestr-interim-producer-and-mirror.md) |
 | `../project/agentbox/lib/skill-tools.nix` | [AB-28](agentbox/28-agentbox-services-and-manifest-binary.md) |
 | `../project/agentbox/lib/solid-pod-rs.nix` | [AB-42](agentbox/42-custody-callers-and-consumer-pins.md), [ES-01](estate/01-estate-topology.md), [ES-08](estate/08-solid-pod-estate.md), [SP-08](solid-pod-rs/08-federation-notifications-forge-mcp.md), [SP-09](solid-pod-rs/09-ci-release-and-consumer-pins.md) |
