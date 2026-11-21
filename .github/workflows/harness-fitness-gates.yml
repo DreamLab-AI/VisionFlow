@@ -200,6 +200,15 @@ jobs:
         with:
           node-version: '22'
 
+      # open-work.test.sh builds scripts/open-work with `cargo build --locked
+      # --offline` so a developer machine never reaches for the network. A fresh
+      # runner has an empty cargo registry, so offline resolution fails with
+      # "no matching package named `serde_json` found" (red on every push since
+      # the suite was added). Populate the registry here, from the lockfile, while
+      # the runner still has network.
+      - name: Fetch open-work crate sources (the suite builds with --offline)
+        run: cargo fetch --locked --manifest-path scripts/open-work/Cargo.toml
+
       - name: Run every gate regression suite
         env:
           DRIFT_AGENTBOX_DIR: ${{ github.workspace }}/_agentbox
