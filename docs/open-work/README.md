@@ -17,14 +17,14 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 104 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 106 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
-| Closed | 81 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 90 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (23)
+## Waiting on the owner (27)
 
-### Waiting on an owner decision (14)
+### Waiting on an owner decision (16)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -42,8 +42,10 @@ Items are filed by **seam**: the contract between components that would have to 
 | CD-F8 | Second OWL-to-constraint pipeline compiled with no product caller | none | visionclaw | owner-decision | open | 2026-11-20 |
 | SETTINGS-HANDLER-DEAD | The unmounted `src/handlers/settings_handler` module is dead code with latent provider-key leaks if it is ever remounted | none | visionclaw | owner-decision | open | 2026-11-20 |
 | WASMVOWL-TOMCAT-EOL | WasmVOWL Dockerfile base image `tomcat:9-jre8-alpine` is end-of-life, and the image still serves upstream WebVOWL | none | wasmvowl | owner-decision | open | 2026-11-20 |
+| SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | pod-api | solid-pod-rs | owner-decision | open | 2026-11-20 |
+| SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | pod-api | solid-pod-rs | owner-decision | open | 2026-11-20 |
 
-### Waiting on an owner act (9)
+### Waiting on an owner act (11)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -56,6 +58,8 @@ Items are filed by **seam**: the contract between components that would have to 
 | SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | release-pins | solid-pod-rs, agentbox | owner-act | open | 2026-11-20 |
 | ISAAC-RUNNER-TOKEN | `ISAAC_RUNNER_TOKEN` must be set where `isaac-job.js` runs, or Isaac jobs are refused after the next rebuild | none | agentbox | owner-act | open | 2026-11-20 |
 | PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | release-pins | agentbox | owner-act | open | 2026-11-20 |
+| VF-UNPUSHED-SIBLING-STAMPS | VisionFlow diagram topics SR-04, AB-32 and AB-33 are stamped to local unpushed sibling commits; VisionFlow must not be pushed before those repositories | release-pins | visionflow, sidestr-rs, agentbox, visionclaw | owner-act | open | 2026-11-20 |
+| WORKSPACE-ONTOMARK-DANGLING | `/home/devuser/workspace/ontomark-obsidian` is a dangling symlink into `project/target/`; the diagram corpus cites that repository 61 times | none | estate | owner-act | open | 2026-11-20 |
 
 ## By seam
 
@@ -67,12 +71,12 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 6 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 6 | 8 |
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 1 | 4 |
-| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 9 | 4 |
+| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 10 | 4 |
 | [Value transfer](by-seam.md#payments) | sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox | 2 | 8 |
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 3 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
-| [Versions and pins across repositories](by-seam.md#release-pins) | estate | 5 | 15 |
+| [Versions and pins across repositories](by-seam.md#release-pins) | estate | 6 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 3 | 2 |
 | [Inside one component](by-seam.md#none) | one component | 58 | 102 |
 
@@ -82,12 +86,12 @@ An item that touches two components is counted under both.
 
 | Component | Live, on a seam | Live, inside the component | Unverified |
 |---|---|---|---|
-| visionclaw | 15 | 17 | 75 |
-| agentbox | 15 | 17 | 72 |
+| visionclaw | 16 | 17 | 75 |
+| agentbox | 16 | 17 | 72 |
 | nostr-rust-forum | 7 | 3 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
-| solid-pod-rs | 16 | 10 | 31 |
-| sidestr-rs | 2 | 1 | 11 |
+| solid-pod-rs | 17 | 7 | 31 |
+| sidestr-rs | 3 | 1 | 11 |
 | loom | 3 | 2 | 10 |
 | ontomark | 0 | 1 | 12 |
 | visiongraph | 1 | 2 | 10 |
@@ -96,20 +100,20 @@ An item that touches two components is counted under both.
 | codescape | 1 | 1 | 4 |
 | visiontouch-rs | 0 | 0 | 1 |
 | wasmvowl | 0 | 5 | 1 |
-| visionflow | 1 | 3 | 3 |
-| estate | 0 | 0 | 5 |
+| visionflow | 2 | 5 | 3 |
+| estate | 0 | 1 | 5 |
 
 ## Live work by what blocks it
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 14 |
-| Waiting on an owner act | 9 |
-| Ordinary engineering: can start now | 44 |
+| Waiting on an owner decision | 16 |
+| Waiting on an owner act | 11 |
+| Ordinary engineering: can start now | 50 |
 | Needs a live deployment | 14 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
-| Not yet triaged | 13 |
+| Not yet triaged | 5 |
 
 ## Parked
 

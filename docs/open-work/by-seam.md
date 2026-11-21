@@ -89,18 +89,18 @@ How a caller proves who they are across components: NIP-98 request signing, did:
 
 Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website.
 
-6 live, 12 unverified, 4 closed.
+6 live, 12 unverified, 7 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| AW1-05 (also SP-OIDC-04) | The OIDC DPoP replay cache is a plain LRU and can evict a still-valid proof | solid-pod-rs | engineering | fixed on an unmerged branch: solid-pod-rs closeout/2026-11-20 | 2026-11-20 |
-| SP-ID-02 | NIP-98 replay retention not bounded to the acceptance window | solid-pod-rs | engineering | fixed on an unmerged branch: solid-pod-rs closeout/2026-11-20 | 2026-11-20 |
 | SP-OIDC-02 | Resource admission never dispatches OIDC/DPoP though challenge advertises it | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-OIDC-03 | DPoP `htu` normalisation lower-cases path and trims slash | solid-pod-rs | engineering | fixed on an unmerged branch: solid-pod-rs closeout/2026-11-20 | 2026-11-20 |
 | SP-OIDC-06 | Token `exp == now` and future `nbf` accepted; non-URL WebID falls back to `sub` | solid-pod-rs | owner-decision | open | 2026-11-20 |
 | NIP98-STALE-CONFIG | The NIP-98 door reads its allowlist once at start, so a file left by an earlier boot is served until the proxy restarts | agentbox | engineering | open | 2026-11-20 |
+| SP-NIP98-REPLAY-FILL | solid-pod-rs: the NIP-98 replay stores record straight after signature verification and refuse at capacity, so valid unique tokens can fill the store | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-TOKEN-CLOCK-SKEW | solid-pod-rs: token `exp` has zero clock-skew leeway, and DPoP `htm` is compared case-insensitively against RFC 9449 | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-DPOP-UNRECORDED-API | solid-pod-rs: `verify_dpop_proof_unrecorded` is public API whose caller must record the `jti` afterwards, and nothing enforces it | solid-pod-rs | engineering | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -186,21 +186,22 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-9 live, 4 unverified, 7 closed.
+10 live, 4 unverified, 10 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| AW1-01 | The mirror is built with DefaultSsrfCheck, so it refuses the operator's loopback relay that ADR-2010 says it admits | solid-pod-rs | engineering | fixed on an unmerged branch: solid-pod-rs closeout/2026-11-20 | 2026-11-20 |
 | SP-PAR-265 | JSON-LD ACLs should be read by expanded IRI (`@context`, `@vocab`, no `@graph`) | solid-pod-rs | engineering | open | 2026-11-20 |
 | SP-PAR-266 | Unparseable `.acl` body must be refused (400) | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-273 | Insert-only PATCH should need only `acl:Append` | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-PAR-288 | `acl:accessTo`/`default` as absolute or relative IRIs must match | solid-pod-rs | engineering | open | 2026-11-20 |
 | SP-PAR-289 | Relative `acl:agent` WebIDs resolved against the ACL | solid-pod-rs | engineering | open | 2026-11-20 |
 | SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-292 | Forge/mirror need a shutdown hook | solid-pod-rs | untriaged | open | 2026-11-15 |
 | POD-PARITY | Resume the solid-pod-rs parity push: 251/280 = 89.6% strict over 300 rows, below the checker's 95% threshold (15 missing, 14 partial) | solid-pod-rs | engineering | open | 2026-11-16 |
+| SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | solid-pod-rs | owner-decision | open | 2026-11-20 |
+| SP-FORGE-DOTSEG | solid-pod-rs: the forge router's handling of dot segments under `/forge` was not reviewed, and the forge is now the only barrier for those paths | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-MIRROR-WS-REWRITE | solid-pod-rs: the mirror rewrites `ws` to `http` with a case-sensitive first-match `replacen`, so the SSRF check can run on a different host from the one dialled | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | solid-pod-rs | owner-decision | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -334,7 +335,7 @@ What one repository assumes about another's version: crate pins, submodule gitli
 
 Between: estate.
 
-5 live, 15 unverified, 1 closed.
+6 live, 15 unverified, 1 closed.
 
 ### Live
 
@@ -345,6 +346,7 @@ Between: estate.
 | W4COVC-F3 | VC-39 cites codescape at a third revision; coverage script misses the path | codescape, visionclaw | engineering | open | 2026-11-20 |
 | SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | owner-act | open | 2026-11-20 |
 | PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | agentbox | owner-act | open | 2026-11-20 |
+| VF-UNPUSHED-SIBLING-STAMPS | VisionFlow diagram topics SR-04, AB-32 and AB-33 are stamped to local unpushed sibling commits; VisionFlow must not be pushed before those repositories | visionflow, sidestr-rs, agentbox, visionclaw | owner-act | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -397,7 +399,7 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-58 live, 102 unverified, 56 closed.
+58 live, 102 unverified, 59 closed.
 
 ### visionclaw
 
@@ -542,14 +544,11 @@ Recorded as open, not re-checked:
 |---|---|---|---|---|---|
 | ER-29 | Cross-process anchoring locks (three in-process maps) | solid-pod-rs | engineering | open | 2026-11-15 |
 | SP-PAR-275 | Cross-process `.lock` file for writes | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-276 | PATCH should read JSON-LD, HTML islands, Turtle and write back in stored form | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-277 | Stored JSON-LD `@graph` must serve as Turtle on `Accept: text/turtle` | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-278 | NIP-11 relay info at relay URL | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-279 | `/.notifications` route and conditional `Updates-Via` | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-280 | Relay mount flags `--nostr*` | solid-pod-rs | untriaged | open | 2026-11-15 |
+| SP-PAR-276 | PATCH should read JSON-LD, HTML islands, Turtle and write back in stored form | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-PAR-278 | NIP-11 relay info at relay URL | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-PAR-279 | `/.notifications` route and conditional `Updates-Via` | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-PAR-280 | Relay mount flags `--nostr*` | solid-pod-rs | engineering | open | 2026-11-20 |
 | SP-PAR-281 | ActivityPub inbox/outbox routed with signed delivery | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-291 | Dotfile guard must defer to app-plugin prefixes | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-293 | Fail-loud boot on bad plugin | solid-pod-rs | untriaged | open | 2026-11-15 |
 
 Recorded as open, not re-checked:
 
@@ -667,6 +666,8 @@ Recorded as open, not re-checked:
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | visionflow, visiongraph | owner-act | open | 2026-11-15 |
 | CY-A3 | Three green scheduled nights of the estate check | visionflow | engineering | open | 2026-11-15 |
 | VF-SITE-VIDEO-BYTES | VisionFlow website: bytes fetched by `preload="metadata"` video (about 268 KB of container index by one estimate) are excluded from the performance budget test and measured nowhere | visionflow | engineering | open | 2026-11-20 |
+| VF-DIAGRAM-NIP98-DRIFT | VisionFlow diagrams: topic AB-10 and the related NIP-98 proxy topics do not describe the fail-closed proxy or the restart-on-config-change watcher; AB-16 and AB-36 say 36 names for the devuser environment class, it is 38 | visionflow | engineering | open | 2026-11-20 |
+| VF-DRIFT-COUNTER-LOCAL-CI | VisionFlow: `tests/gates/drift-counter.test.sh` fails 2 of 28 checks locally without the agentbox checkout at CI's pinned commit, and the Harness Fitness Gates workflow is red in CI but green locally | visionflow | untriaged | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
@@ -675,6 +676,10 @@ Recorded as open, not re-checked:
 | EST-14 | VisionFlow has two dead diagram scripts, one pointed at a missing file in another repository, and two committed PDF pairs with byte-identical blobs. | visionflow | duplicate | 2026-11-01 |
 
 ### estate
+
+| Id | Item | Components | Blocked by | State | Checked |
+|---|---|---|---|---|---|
+| WORKSPACE-ONTOMARK-DANGLING | `/home/devuser/workspace/ontomark-obsidian` is a dangling symlink into `project/target/`; the diagram corpus cites that repository 61 times | estate | owner-act | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
