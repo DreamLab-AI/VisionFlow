@@ -164,7 +164,7 @@ skip() { SKIP=$((SKIP+1)); printf '  SKIP %s\n     %s\n' "$1" "${2:-}"; }
 SECTION6_ENV=()
 if [[ -z "${DRIFT_AGENTBOX_DIR:-}" ]]; then
   PINNED_AB=""
-  for cand in "${DRIFT_AGENTBOX_SOURCE:-}" "$REPO_ROOT/../agentbox" "/home/devuser/workspace/project/agentbox"; do
+  for cand in "${DRIFT_AGENTBOX_SOURCE:-}" "$REPO_ROOT/../agentbox" "$REPO_ROOT/../project/agentbox"; do
     [[ -n "$cand" && -d "$cand" ]] || continue
     git -C "$cand" cat-file -e "${PINNED_REV}^{commit}" 2>/dev/null || continue
     CLONE="$SCRATCH/pinned-agentbox"
@@ -199,5 +199,9 @@ fi
 echo
 echo "=================================="
 echo "passed: $PASS   failed: $FAIL   skipped: $SKIP"
+if [[ $FAIL -eq 0 && $SKIP -gt 0 ]]; then
+  # Honest locally: nothing failed, but the suite did not run in full.
+  echo "DRIFT-COUNTER-TESTS-INCOMPLETE ($SKIP skipped: see SKIP lines above)"; exit 0
+fi
 [[ $FAIL -eq 0 ]] && { echo "DRIFT-COUNTER-TESTS-OK"; exit 0; }
 echo "DRIFT-COUNTER-TESTS-FAIL"; exit 1

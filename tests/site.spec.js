@@ -134,7 +134,7 @@ test('@a11y has no automatically detectable accessibility violations', async ({ 
 });
 
 test('@perf initial static payload stays within the PRD budget', async ({ page }) => {
-  // Not `networkidle`: the page carries two <video preload="metadata"> elements
+  // Not `networkidle`: the page carries two <video> elements
   // (a scroll-activated backdrop and the immersive demo). Chrome leaves their
   // open-ended `Range: bytes=0-` requests pending, which Playwright counts as
   // in-flight, so the network never goes idle however small the payload is.
@@ -157,8 +157,8 @@ test('@perf initial static payload stays within the PRD budget', async ({ page }
 
   const metrics = await page.evaluate(() => {
     const entries = performance.getEntriesByType('navigation').concat(performance.getEntriesByType('resource'));
-    // Streamed media is bounded by preload="metadata" and Range requests, not by
-    // the static-payload budget. It is excluded here and not measured.
+    // Streamed media is not part of the static-payload budget. It is excluded
+    // here and capped separately by the media-bytes test below.
     const resources = entries
       .filter((entry) => !/\.(mp4|webm)(\?|$)/.test(entry.name))
       .map((entry) => ({
