@@ -331,7 +331,7 @@ What one repository assumes about another's version: crate pins, submodule gitli
 
 Between: estate.
 
-5 live, 15 unverified, 2 closed.
+4 live, 15 unverified, 3 closed.
 
 ### Live
 
@@ -341,7 +341,6 @@ Between: estate.
 | COV-A-F1 | Agentbox builds diagram-ir v0.1.0, not the audited 15cba16 | agentbox | owner-act | open | 2026-11-20 |
 | SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | owner-act | open | 2026-11-21 |
 | PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | agentbox | owner-act | open | 2026-11-20 |
-| VF-UNPUSHED-SIBLING-STAMPS | VisionFlow diagram topics are stamped to local, unpushed sibling commits (SR-04, AB-32, AB-33, the NIP-98 set, prose-sanitiser and diagram-ir); VisionFlow must not be pushed before those repositories | visionflow, sidestr-rs, agentbox, visionclaw | owner-act | open | 2026-11-21 |
 
 ### Recorded as open, not re-checked
 

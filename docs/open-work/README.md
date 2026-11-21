@@ -17,12 +17,12 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 94 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 93 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
-| Closed | 118 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 119 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (25)
+## Waiting on the owner (24)
 
 ### Waiting on an owner decision (14)
 
@@ -43,7 +43,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | VC-API-KEYS-PLAINTEXT-READBACK | VisionClaw: stored provider keys are returned in plaintext to their owner on `GET /api/auth/nostr/api-keys`; whether to return presence flags only is undecided | none | visionclaw | owner-decision | open | 2026-11-21 |
 
-### Waiting on an owner act (11)
+### Waiting on an owner act (10)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -57,7 +57,6 @@ Items are filed by **seam**: the contract between components that would have to 
 | SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | release-pins | solid-pod-rs, agentbox | owner-act | open | 2026-11-21 |
 | ISAAC-RUNNER-TOKEN | `ISAAC_RUNNER_TOKEN` must be set where `isaac-job.js` runs, or Isaac jobs are refused after the next rebuild | none | agentbox | owner-act | open | 2026-11-20 |
 | PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | release-pins | agentbox | owner-act | open | 2026-11-20 |
-| VF-UNPUSHED-SIBLING-STAMPS | VisionFlow diagram topics are stamped to local, unpushed sibling commits (SR-04, AB-32, AB-33, the NIP-98 set, prose-sanitiser and diagram-ir); VisionFlow must not be pushed before those repositories | release-pins | visionflow, sidestr-rs, agentbox, visionclaw | owner-act | open | 2026-11-21 |
 
 ## By seam
 
@@ -74,7 +73,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 3 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
-| [Versions and pins across repositories](by-seam.md#release-pins) | estate | 5 | 15 |
+| [Versions and pins across repositories](by-seam.md#release-pins) | estate | 4 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 3 | 2 |
 | [Inside one component](by-seam.md#none) | one component | 51 | 102 |
 
@@ -84,12 +83,12 @@ An item that touches two components is counted under both.
 
 | Component | Live, on a seam | Live, inside the component | Unverified |
 |---|---|---|---|
-| visionclaw | 15 | 16 | 75 |
-| agentbox | 16 | 16 | 72 |
+| visionclaw | 14 | 16 | 75 |
+| agentbox | 15 | 16 | 72 |
 | nostr-rust-forum | 7 | 4 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
 | solid-pod-rs | 13 | 4 | 31 |
-| sidestr-rs | 3 | 1 | 11 |
+| sidestr-rs | 2 | 1 | 11 |
 | loom | 3 | 2 | 10 |
 | ontomark | 0 | 1 | 12 |
 | visiongraph | 1 | 2 | 10 |
@@ -98,7 +97,7 @@ An item that touches two components is counted under both.
 | codescape | 0 | 0 | 4 |
 | visiontouch-rs | 0 | 1 | 1 |
 | wasmvowl | 0 | 3 | 1 |
-| visionflow | 2 | 5 | 3 |
+| visionflow | 1 | 5 | 3 |
 | estate | 0 | 0 | 5 |
 
 ## Live work by what blocks it
@@ -106,7 +105,7 @@ An item that touches two components is counted under both.
 | Blocked by | Items |
 |---|---|
 | Waiting on an owner decision | 14 |
-| Waiting on an owner act | 11 |
+| Waiting on an owner act | 10 |
 | Ordinary engineering: can start now | 41 |
 | Needs a live deployment | 14 |
 | Needs a device | 4 |
