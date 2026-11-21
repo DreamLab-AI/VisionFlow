@@ -23,6 +23,7 @@
     { "dest": "img/showcase/octave-lab.webp", "why": "showcase figure referenced by index.html" },
     { "dest": "img/showcase/photogrammetry-env.webp", "why": "showcase figure referenced by index.html" },
     { "dest": "img/showcase/telepresence.webp", "why": "showcase figure referenced by index.html" },
+    { "dest": "img/bottleneck-poster.jpg", "why": "poster frame (first frame of video/bottleneck.mp4) for the featured film, which is preload=\"none\" so the page does not fetch the video index on load" },
     { "dest": "video/bottleneck.mp4", "why": "background video source referenced by index.html" },
     { "dest": "video/visionclaw.mp4", "why": "background video source referenced by index.html" }
   ],

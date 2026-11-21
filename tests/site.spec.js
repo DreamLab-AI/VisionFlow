@@ -175,3 +175,45 @@ test('@perf initial static payload stays within the PRD budget', async ({ page }
   expect(metrics.resourceCount).toBeGreaterThan(0);
   expect(metrics.totalBytes).toBeLessThanOrEqual(800 * 1024);
 });
+
+// The static budget above leaves video out, so the bytes the browser fetches
+// for media while the page loads are bounded here instead. They are counted at
+// the protocol level (Network.dataReceived) because a media request is an
+// open-ended Range request that never "finishes", so Playwright's own response
+// and resource-timing entries do not report what was actually read.
+//
+// Measured on 2026-11-21 with the Chrome sidecar, page loaded and left idle for
+// 2 s: with `preload="metadata"` on both videos the browser read about 1.0 MiB
+// from each (2.1 MiB in total on desktop, 1.3 MiB on the mobile project, against
+// a 280 KB page), because Chrome buffers
+// well past the container index. With `preload="none"` (the featured film shows
+// a poster frame instead) it reads nothing. The cap leaves 64 KiB of headroom
+// over that zero, so a return to a metadata preload, or an eager video of any
+// size, fails this test. Playback after a click or after scrolling past the hero
+// is not part of the load window.
+const MEDIA_BYTES_CAP = 64 * 1024;
+
+test('@perf media bytes fetched during load stay within the media cap', async ({ page }) => {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Network.enable');
+  const mediaRequests = new Map();
+  const received = new Map();
+  cdp.on('Network.requestWillBeSent', (event) => {
+    if (/\.(mp4|webm)(\?|$)/.test(event.request.url)) mediaRequests.set(event.requestId, event.request.url);
+  });
+  cdp.on('Network.dataReceived', (event) => {
+    if (mediaRequests.has(event.requestId)) {
+      received.set(event.requestId, (received.get(event.requestId) ?? 0) + event.dataLength);
+    }
+  });
+
+  await page.goto('/', { waitUntil: 'load' });
+  await page.evaluate(() => document.fonts.ready);
+  // Chrome starts a metadata preload shortly after load; give it time to show.
+  await page.waitForTimeout(2000);
+
+  // The measurement is only meaningful while the videos are on the page.
+  expect(await page.locator('video').count()).toBeGreaterThan(0);
+  const mediaBytes = [...received.values()].reduce((total, bytes) => total + bytes, 0);
+  expect(mediaBytes, `media bytes read during load: ${mediaBytes}`).toBeLessThanOrEqual(MEDIA_BYTES_CAP);
+});
