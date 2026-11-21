@@ -4,11 +4,13 @@ title: Boot sequence, supervision tree and readiness
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md
-adrs: [ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080, ADR-2092, ADR-2104, ADR-2122, ADR-2140, ADR-2144, ADR-2146, ADR-2151, ADR-2153]
+adrs: [ADR-2003, ADR-2007, ADR-2028, ADR-2029, ADR-2034, ADR-2063, ADR-2080, ADR-2092, ADR-2104, ADR-2122, ADR-2140, ADR-2144, ADR-2146, ADR-2151, ADR-2153, ADR-2210]
 sources:
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/config/entrypoint-unified.sh
   - ../project/agentbox/config/lib/role-custody.sh
+  - ../project/agentbox/config/lib/nip98-config.sh
+  - ../project/agentbox/config/nip98-proxy/proxy.mjs
   - ../project/agentbox/config/docker-read-proxy.cjs
   - ../project/agentbox/config/role-accounts.json
   - ../project/agentbox/services/nostr-pod-bridge/src/identity_port/mod.rs
@@ -54,7 +56,7 @@ sources:
   - ../project/agentbox/config/registered-commands.txt
   - ../project/agentbox/docs/adr/ADR-2104-direct-control-over-mcp.md
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
-verified_commit: 3a2c59764028e1fd8475abfda61bb3bcefab46d5
+verified_commit: 0693c761c782457066f081b46daf8f7f4ea29e3c
 ---
 ## AB-02.1 boot phases 1-3 — vault resolution, directories, sovereign identity
 ```mermaid
@@ -215,10 +217,10 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant B as [program:bootstrap] Stage B<br/>entrypoint-unified.sh:1461
-    participant AM as agentbox-manifest<br/>entrypoint-unified.sh:2273
+    participant AM as agentbox-manifest<br/>entrypoint-unified.sh:2275
     participant MCP as .mcp.json<br/>entrypoint-unified.sh:1557
     participant FS as rootfs/tmpfs
-    participant RT as runtime-env.sh<br/>entrypoint-unified.sh:4048
+    participant RT as runtime-env.sh<br/>entrypoint-unified.sh:4080
     participant TS as trust-seed.cjs<br/>run once from entrypoint-unified.sh:1818
 
     B-->>B: echo "[7/8] Bootstrapping ruflo plugins..." (entrypoint-unified.sh:1461)
@@ -227,70 +229,71 @@ sequenceDiagram
     Note over B: PRD-018/ADR-036 D6 — read RuVector memory gate flags<br/>via _ab_toml_bool memory_learning.* (entrypoint-unified.sh:1495-1507), fail-open all-off
     B->>MCP: ensure .mcp.json points at ruvector-mcp.cjs with RUVECTOR_PG_HOST/PORT/DATABASE/USER<br/>and RUVECTOR_PG_PASSWORD_FILE, never a password, idempotent (entrypoint-unified.sh:1525-1590)
     B->>MCP: inject RuVector memory gates, including evidence_refs and read_counts (entrypoint-unified.sh:1592-1675)
-    opt browser-gpu sidecar reachable (entrypoint-unified.sh:2248-2249)
-        B->>AM: agentbox-manifest mcp-set-server --name browser-gpu (entrypoint-unified.sh:2251)
+    opt browser-gpu sidecar reachable, its /health answers 200 or 503 while Chrome restarts (entrypoint-unified.sh:2248-2251)
+        B->>AM: agentbox-manifest mcp-set-server --name browser-gpu (entrypoint-unified.sh:2253)
     end
-    B->>AM: agentbox-manifest mcp-reconcile-aqe --provider "$_MR_PROVIDER_ARG" (entrypoint-unified.sh:2273)
-    opt _MR_ENABLED=1 — ADR-041 model routing (entrypoint-unified.sh:2283)
-        B->>AM: run_as_devuser agentbox-manifest model-routing-project --manifest AGENTBOX_CONFIG --workspace WORKSPACE<br/>(entrypoint-unified.sh:2283-2287)
+    B->>AM: agentbox-manifest mcp-reconcile-aqe --provider "$_MR_PROVIDER_ARG" (entrypoint-unified.sh:2275)
+    opt _MR_ENABLED=1 — ADR-041 model routing (entrypoint-unified.sh:2285)
+        B->>AM: run_as_devuser agentbox-manifest model-routing-project --manifest AGENTBOX_CONFIG --workspace WORKSPACE<br/>(entrypoint-unified.sh:2285-2289)
         Note right of AM: projects [model_routing.routes] into every<br/>.agentic-qe/llm-config.json under the workspace,<br/>a runtime file the repository does not track
     end
-    Note over B: ADR-069 — interaction_plane.proxy projected every boot (entrypoint-unified.sh:2331-2342)
-    opt AGENTBOX_CONFIG exists and agentbox-manifest present (entrypoint-unified.sh:2337)
-        B->>AM: agentbox-manifest nip98-config --manifest AGENTBOX_CONFIG --out .agentbox/nip98-proxy-config.json<br/>(entrypoint-unified.sh:2338)
-        B->>FS: chown 1000:1000, chmod 600 nip98-proxy-config.json (entrypoint-unified.sh:2340-2341)
+    Note over B: ADR-069, ADR-2210 — interaction_plane.proxy projected every boot, and never left as an absent file (entrypoint-unified.sh:2333-2352)
+    opt nip98-config.sh readable, else the older direct call (entrypoint-unified.sh:2343,entrypoint-unified.sh:2347-2351)
+        B->>AM: ab_nip98_project sources the helper and calls agentbox-manifest nip98-config --manifest AGENTBOX_CONFIG --out .agentbox/nip98-proxy-config.json<br/>(entrypoint-unified.sh:2345-2346, nip98-config.sh:24)
+        B->>FS: section absent writes the explicit empty config, then chown 1000:1000 and chmod 600 (nip98-config.sh:28-33)
     end
+    Note over B: DEBT - the proxy program starts alongside bootstrap (flake.nix:2877-2883), so it can serve the previous boot's file until this block runs,<br/>and a failed projection leaves that last-good file serving, or no file so the door stays closed (nip98-config.sh:21,nip98-config.sh:27)
     Note over B: hook registration reconciled into root settings.json every boot, each fail-open (|| true)
     B->>FS: decline-recorder on Stop, SubagentStop and UserPromptSubmit when claude_code.floor is on, default on<br/>(entrypoint-unified.sh:2101-2160, ADR-2144)
     B->>FS: voice-paned record on Stop and Notification when voicelink.enabled and record_events<br/>(entrypoint-unified.sh:2162-2204, ADR-2151)
     B->>FS: session-state.cjs hook on UserPromptSubmit, Stop and Notification into root settings.json when<br/>interaction_plane.enabled, pruned when off (entrypoint-unified.sh:1950-1962, ADR-2153)
     B->>FS: Codex config.toml notify line set to session-state.cjs codex, keeping --voice when voicelink records, restored when<br/>off (entrypoint-unified.sh:1927-1946)
-    B->>FS: activity-sink hooks when [integrations.activity_sink] has a usable url (entrypoint-unified.sh:2879-2965, ADR-2146)
-    B->>AM: agentbox-manifest instructions-project, with --managed-out /etc/claude-code/CLAUDE.md when the floor is on,<br/>--no-managed otherwise (entrypoint-unified.sh:3020-3022, ADR-2144)
-    Note over B: ADR-2139 vendor slot — _ab_toml_bool system_one enabled (entrypoint-unified.sh:2674) selects system-one-project<br/>(entrypoint-unified.sh:2677-2687), else sso-project (entrypoint-unified.sh:2704-2706)
-    opt [system_one].enabled and the projection is non-empty (entrypoint-unified.sh:2676, entrypoint-unified.sh:2679)
-        B->>AM: agentbox-manifest system-one-project --format json, then shell and plugin-config (entrypoint-unified.sh:2677,<br/>entrypoint-unified.sh:2685-2687)
-        B->>FS: atomic tmp-and-mv /run/agentbox/system-one.json, the proxy's only config (entrypoint-unified.sh:2682-2683)
+    B->>FS: activity-sink hooks when [integrations.activity_sink] has a usable url (entrypoint-unified.sh:2889-2975, ADR-2146)
+    B->>AM: agentbox-manifest instructions-project, with --managed-out /etc/claude-code/CLAUDE.md when the floor is on,<br/>--no-managed otherwise (entrypoint-unified.sh:3030-3032, ADR-2144)
+    Note over B: ADR-2139 vendor slot — _ab_toml_bool system_one enabled (entrypoint-unified.sh:2684) selects system-one-project<br/>(entrypoint-unified.sh:2687-2697), else sso-project (entrypoint-unified.sh:2714-2716)
+    opt [system_one].enabled and the projection is non-empty (entrypoint-unified.sh:2686, entrypoint-unified.sh:2689)
+        B->>AM: agentbox-manifest system-one-project --format json, then shell and plugin-config (entrypoint-unified.sh:2687,<br/>entrypoint-unified.sh:2695-2697)
+        B->>FS: atomic tmp-and-mv /run/agentbox/system-one.json, the proxy's only config (entrypoint-unified.sh:2692-2693)
     end
-    Note over B: unusable slot writes a disabled stub and falls back to sso-project, so the seal's promised file always exists<br/>(entrypoint-unified.sh:2689-2697)
-    Note over B: RESOLVED — the ontology-bridge MCP registration that used to sit<br/>here (gated ENABLE_ONTOLOGY) is GONE (ADR-2107/2108): agents reach the<br/>corpus only through the vault CLI and the Loom over HTTP (entrypoint-unified.sh:2348-2351)
+    Note over B: unusable slot writes a disabled stub and falls back to sso-project, so the seal's promised file always exists<br/>(entrypoint-unified.sh:2699-2707)
+    Note over B: RESOLVED — the ontology-bridge MCP registration that used to sit<br/>here (gated ENABLE_ONTOLOGY) is GONE (ADR-2107/2108): agents reach the<br/>corpus only through the vault CLI and the Loom over HTTP (entrypoint-unified.sh:2358-2361)
     opt AGENTBOX_TRUST_SEED not 0 and node present (entrypoint-unified.sh:1818)
         B->>TS: node trust-seed.cjs marks workspace root and worktrees trusted, once (entrypoint-unified.sh:1818-1820)
         Note right of TS: DOC-DRIFT resolved — deliberately NOT a SessionStart hook any<br/>more (it walked ~1,170 paths per session start, avg 3.2s, and raced<br/>Claude Code's own ~/.claude.json writes) — hook shim reconcile below prunes<br/>any stale registration
     end
-    Note over B: after the hub projection (see AB-02.17) the claude-flow entry is mirrored into user scope<br/>(entrypoint-unified.sh:3425-3433)
-    B->>AM: agentbox-manifest mcp-mirror-server --from .mcp.json --to ~/.claude/.claude.json --name claude-flow<br/>(entrypoint-unified.sh:3431-3432, mcp.rs:275)
-    B->>FS: RuVector credential scrub - every boot removes any RUVECTOR_PG_CONNINFO or memory.password an earlier boot<br/>left in .mcp.json, ~/.claude.json, Codex config.toml, ~/.claude-flow/config.json and their backups,<br/>atomic rewrite, fail-open (entrypoint-unified.sh:3872-4030)
-    B-->>B: echo "[8/8] Publishing environment hints..." (entrypoint-unified.sh:4035)
-    B->>RT: cat RUNTIME_ENV_FILE=/run/agentbox/runtime-env.sh heredoc (entrypoint-unified.sh:4048-4135)
-    Note right of RT: role_isolation on adds DOCKER_HOST=unix:///run/docker-ro.sock,<br/>the GET-only read proxy, to devuser shells (entrypoint-unified.sh:4043-4046)
-    Note right of RT: exports WORKSPACE, RUVECTOR_PG_HOST/PORT/DATABASE/USER/PASSWORD_FILE (entrypoint-unified.sh:4053-4057),<br/>VAULT_ROOT/PAGES/FORMAT/TUI/WORKING_ROOT/TRANSCRIPTS, AGENTBOX_INTERACTION_PLANE_*,<br/>CUDA_PATH and friends are appended after the heredoc (entrypoint-unified.sh:4181-4191) (see AB-02.11)
-    B->>FS: _ab_quarantine_stale_cargo_bins, ELF bins in WORKSPACE/.cargo/bin whose<br/>/nix/store loader was collected move to .stale-loader/, numbered, never deleted (entrypoint-unified.sh:4144-4162)
-    Note right of FS: ADR-2029 D4 follow-up (2026-10-01) - .cargo/bin outlives rebuilds, so a dead loader<br/>once shadowed baked rune and agentbox-hook. Custody W0 now APPENDS it, devuser shells only,<br/>never root (entrypoint-unified.sh:4128-4130). Loader path read from bytes, nothing executed<br/>(entrypoint-unified.sh:4150-4152)
-    B->>FS: ln -sf RUNTIME_ENV_FILE /etc/profile.d/agentbox-runtime.sh best-effort (entrypoint-unified.sh:4208)
-    B->>FS: cp RUNTIME_ENV_FILE to durable WORKSPACE/.agentbox-runtime-env.sh (entrypoint-unified.sh:4211)
-    B->>FS: write fish conf.d/agentbox-runtime.fish sourcing the env file (entrypoint-unified.sh:4217-4236)
+    Note over B: after the hub projection (see AB-02.17) the claude-flow entry is mirrored into user scope<br/>(entrypoint-unified.sh:3457-3465)
+    B->>AM: agentbox-manifest mcp-mirror-server --from .mcp.json --to ~/.claude/.claude.json --name claude-flow<br/>(entrypoint-unified.sh:3463-3464, mcp.rs:275)
+    B->>FS: RuVector credential scrub - every boot removes any RUVECTOR_PG_CONNINFO or memory.password an earlier boot<br/>left in .mcp.json, ~/.claude.json, Codex config.toml, ~/.claude-flow/config.json and their backups,<br/>atomic rewrite, fail-open (entrypoint-unified.sh:3904-4062)
+    B-->>B: echo "[8/8] Publishing environment hints..." (entrypoint-unified.sh:4067)
+    B->>RT: cat RUNTIME_ENV_FILE=/run/agentbox/runtime-env.sh heredoc (entrypoint-unified.sh:4080-4167)
+    Note right of RT: role_isolation on adds DOCKER_HOST=unix:///run/docker-ro.sock,<br/>the GET-only read proxy, to devuser shells (entrypoint-unified.sh:4075-4078)
+    Note right of RT: exports WORKSPACE, RUVECTOR_PG_HOST/PORT/DATABASE/USER/PASSWORD_FILE (entrypoint-unified.sh:4085-4089),<br/>VAULT_ROOT/PAGES/FORMAT/TUI/WORKING_ROOT/TRANSCRIPTS, AGENTBOX_INTERACTION_PLANE_*,<br/>CUDA_PATH and friends are appended after the heredoc (entrypoint-unified.sh:4213-4223) (see AB-02.11)
+    B->>FS: _ab_quarantine_stale_cargo_bins, ELF bins in WORKSPACE/.cargo/bin whose<br/>/nix/store loader was collected move to .stale-loader/, numbered, never deleted (entrypoint-unified.sh:4176-4194)
+    Note right of FS: ADR-2029 D4 follow-up (2026-10-01) - .cargo/bin outlives rebuilds, so a dead loader<br/>once shadowed baked rune and agentbox-hook. Custody W0 now APPENDS it, devuser shells only,<br/>never root (entrypoint-unified.sh:4160-4162). Loader path read from bytes, nothing executed<br/>(entrypoint-unified.sh:4182-4184)
+    B->>FS: ln -sf RUNTIME_ENV_FILE /etc/profile.d/agentbox-runtime.sh best-effort (entrypoint-unified.sh:4240)
+    B->>FS: cp RUNTIME_ENV_FILE to durable WORKSPACE/.agentbox-runtime-env.sh (entrypoint-unified.sh:4243)
+    B->>FS: write fish conf.d/agentbox-runtime.fish sourcing the env file (entrypoint-unified.sh:4249-4268)
 ```
 
 
 ## AB-02.4 supervision tree — core and identity programs
 ```mermaid
 flowchart TB
-    BOOT["program:bootstrap<br/>flake.nix:2854<br/>no user= line -&gt; runs as root<br/>priority=5 autorestart=false one-shot"]
-    MGMT["program:management-api<br/>flake.nix:2868<br/>user=devuser bind 0.0.0.0:ENV_MANAGEMENT_API_PORT default 9090<br/>priority=20 REQUIRED_FOR_READINESS=true"]
-    CRED["program:claude-cred-sync (ADR-2118)<br/>flake.nix:3511<br/>gate toolchains.claude_code, converges ~/.claude/.credentials.json<br/>both ways with the host bind; exits 0 (stopped) if the bind is absent<br/>user=devuser priority=30 autorestart=unexpected"]
-    SEAL["program:bootstrap-seal<br/>flake.nix:2884<br/>user=devuser priority=99 autorestart=false one-shot<br/>writes /run/agentbox/bootstrap.done, timeout 120s"]
-    SOLID["program:solid-pod<br/>flake.nix:2896<br/>gate sovereign_mesh.enabled and local-solid-rs active<br/>user=devuser priority=30 REQUIRED_FOR_READINESS=true"]
-    HTTPSB["program:https-bridge<br/>flake.nix:2913<br/>gate sovereign_mesh.enabled and https_bridge<br/>user=devuser priority=32<br/>self-signed TLS to plain-HTTP target, https-bridge/https-proxy.js<br/>full cert-provisioning and forwarding flow: see AB-30.4, AB-30.4"]
-    GATERELAY{"podBridgeEnabled? ADR-2003<br/>flake.nix:1866 relayLocal and pod_bridge"}
-    NRELAY1["program:nostr-relay native<br/>flake.nix:2952<br/>bind 127.0.0.1:7777 (AGENTBOX_RELAY_BIND)<br/>user=devuser, ab-identity under role_isolation priority=35 REQUIRED_FOR_READINESS=false"]
-    NRELAY2["program:nostr-relay nostr-rs-relay<br/>flake.nix:2964<br/>config /etc/agentbox/nostr-relay.toml<br/>user=devuser, ab-identity under role_isolation priority=35 REQUIRED_FOR_READINESS=false"]
-    NGW["program:nostr-gateway<br/>flake.nix:2627<br/>user=devuser, ab-gateway under role_isolation priority=234<br/>off switch AGENTBOX_NOSTR_GATEWAY=0"]
-    DRP["program:docker-read-proxy (custody W0)<br/>flake.nix:3017<br/>no user= -&gt; starts root, env -i, binds /run/docker-ro.sock,<br/>then drops itself to uid 65534 plus the socket's group<br/>flag off: one line, exit 0, EXITED is expected priority=20"]
-    SID["program:serve-identity (custody W3)<br/>flake.nix:3039<br/>env -i, nostr-pod-bridge serve-identity, the identity port<br/>user=devuser here, ab-identity in supervisord.roles.conf<br/>flag off: exits 0 without reading a key priority=30"]
-    ISO["/etc/supervisord.roles.conf<br/>flake.nix:4226 agentbox-manifest role-accounts isolate<br/>a pure function of this config and config/role-accounts.json:<br/>only user= and environment= of role programs differ"]
-    TSD["program:tailscaled<br/>flake.nix:2990<br/>gate networking.tailscale, no user= -&gt; root<br/>socket /var/run/tailscale priority=15"]
-    TSU["program:tailscale-up<br/>flake.nix:3005<br/>gate networking.tailscale, no user= -&gt; root<br/>priority=16 autorestart=false one-shot"]
+    BOOT["program:bootstrap<br/>flake.nix:2877<br/>no user= line -&gt; runs as root<br/>priority=5 autorestart=false one-shot"]
+    MGMT["program:management-api<br/>flake.nix:2891<br/>user=devuser bind 0.0.0.0:ENV_MANAGEMENT_API_PORT default 9090<br/>priority=20 REQUIRED_FOR_READINESS=true"]
+    CRED["program:claude-cred-sync (ADR-2118)<br/>flake.nix:3534<br/>gate toolchains.claude_code, converges ~/.claude/.credentials.json<br/>both ways with the host bind; exits 0 (stopped) if the bind is absent<br/>user=devuser priority=30 autorestart=unexpected"]
+    SEAL["program:bootstrap-seal<br/>flake.nix:2907<br/>user=devuser priority=99 autorestart=false one-shot<br/>writes /run/agentbox/bootstrap.done, timeout 120s"]
+    SOLID["program:solid-pod<br/>flake.nix:2919<br/>gate sovereign_mesh.enabled and local-solid-rs active<br/>user=devuser priority=30 REQUIRED_FOR_READINESS=true"]
+    HTTPSB["program:https-bridge<br/>flake.nix:2936<br/>gate sovereign_mesh.enabled and https_bridge<br/>user=devuser priority=32<br/>self-signed TLS to plain-HTTP target, https-bridge/https-proxy.js<br/>full cert-provisioning and forwarding flow: see AB-30.4, AB-30.4"]
+    GATERELAY{"podBridgeEnabled? ADR-2003<br/>flake.nix:1889 relayLocal and pod_bridge"}
+    NRELAY1["program:nostr-relay native<br/>flake.nix:2975<br/>bind 127.0.0.1:7777 (AGENTBOX_RELAY_BIND)<br/>user=devuser, ab-identity under role_isolation priority=35 REQUIRED_FOR_READINESS=false"]
+    NRELAY2["program:nostr-relay nostr-rs-relay<br/>flake.nix:2987<br/>config /etc/agentbox/nostr-relay.toml<br/>user=devuser, ab-identity under role_isolation priority=35 REQUIRED_FOR_READINESS=false"]
+    NGW["program:nostr-gateway<br/>flake.nix:2650<br/>user=devuser, ab-gateway under role_isolation priority=234<br/>off switch AGENTBOX_NOSTR_GATEWAY=0"]
+    DRP["program:docker-read-proxy (custody W0)<br/>flake.nix:3040<br/>no user= -&gt; starts root, env -i, binds /run/docker-ro.sock,<br/>then drops itself to uid 65534 plus the socket's group<br/>flag off: one line, exit 0, EXITED is expected priority=20"]
+    SID["program:serve-identity (custody W3)<br/>flake.nix:3062<br/>env -i, nostr-pod-bridge serve-identity, the identity port<br/>user=devuser here, ab-identity in supervisord.roles.conf<br/>flag off: exits 0 without reading a key priority=30"]
+    ISO["/etc/supervisord.roles.conf<br/>flake.nix:4253 agentbox-manifest role-accounts isolate<br/>a pure function of this config and config/role-accounts.json:<br/>only user= and environment= of role programs differ"]
+    TSD["program:tailscaled<br/>flake.nix:3013<br/>gate networking.tailscale, no user= -&gt; root<br/>socket /var/run/tailscale priority=15"]
+    TSU["program:tailscale-up<br/>flake.nix:3028<br/>gate networking.tailscale, no user= -&gt; root<br/>priority=16 autorestart=false one-shot"]
 
     BOOT -->|"priority 5, runs before 20/30"| MGMT
     BOOT -->|"priority 5, runs before 30"| CRED
@@ -304,50 +307,50 @@ flowchart TB
     ISO -.->|"role_isolation = 1 picks it at exec"| SID
     ISO -.-> NRELAY1
     ISO -.-> NGW
-    DRP -.-> N1["DEBT: the comment still says TODO(custody W1) move into the role registry<br/>lib/role-accounts.nix (flake.nix:3026), but the registry is<br/>config/role-accounts.json and the proxy has no account in it"]
+    DRP -.-> N1["DEBT: the comment still says TODO(custody W1) move into the role registry<br/>lib/role-accounts.nix (flake.nix:3049), but the registry is<br/>config/role-accounts.json and the proxy has no account in it"]
 ```
 
 ## AB-02.6 supervision tree — gated toolchain programs
 ```mermaid
 flowchart TB
-    QGIS["program:qgis-mcp<br/>flake.nix:2570<br/>gate spatial.qgis, TCP proxy to gui-tools-service:9877<br/>user=devuser priority=230"]
-    BLEND["program:blender-mcp<br/>flake.nix:2597<br/>gate spatial.blender, bridges 127.0.0.1:9876 to external GUI sidecar<br/>user=devuser priority=231"]
-    JLAB["program:jupyter-lab<br/>flake.nix:2670<br/>gate data_science.jupyter, bind 0.0.0.0:8888 — RESOLVED ADR-2040,<br/>JUPYTER_TOKEN now minted at boot (see AB-07.9), no longer tokenless<br/>user=devuser priority=232"]
-    IMGM["program:imagemagick-mcp<br/>flake.nix:2927<br/>gate media.imagemagick<br/>user=devuser priority=210"]
-    COMFY["program:comfyui-builtin<br/>flake.nix:3092<br/>gate media.comfyui_builtin, bind 127.0.0.1:8188<br/>user=devuser priority=220"]
-    OPF["program:opf-router<br/>flake.nix:2977<br/>gate privacyFilterEnabled, OPF_PORT default 9092<br/>user=devuser priority=240"]
-    DREAM["program:dream-engine<br/>flake.nix:3115<br/>gate dreamEngineEnabled (flake.nix:1916), LOOM_URL default a LAN address, port 8084<br/>user=devuser priority=230"]
-    SIDEP["program:sidestr-producer<br/>flake.nix:3350<br/>gate sidechain.enabled (flake.nix:424), shipped true (agentbox.toml:1996, re-enabled on recovered validated prefixes after the ENOSPC failure, agentbox.toml:1995) so the producer block is emitted; runs the baked upstream, refuses on a pin mismatch<br/>user=devuser, ab-sidestr-dreamlab under role_isolation priority=260 startretries=5"]
-    SIDEM["program:sidestr-mirror<br/>flake.nix:3368<br/>gate sidechain.mirror, only with enabled (flake.nix:425)<br/>user=devuser priority=261"]
-    SIDEF["program:sidestr-faucet<br/>flake.nix:3385<br/>gate sidechain.faucet, only with enabled (flake.nix:426)<br/>user=devuser, ab-faucet-dreamlab under role_isolation priority=262"]
-    CODES["program:code-server<br/>flake.nix:3068<br/>gate toolchains.code_server, bind 0.0.0.0:8080 — RESOLVED ADR-2040,<br/>auth password with a boot-minted credential (see AB-07.9), not auth none<br/>user=devuser priority=50"]
+    QGIS["program:qgis-mcp<br/>flake.nix:2593<br/>gate spatial.qgis, TCP proxy to gui-tools-service:9877<br/>user=devuser priority=230"]
+    BLEND["program:blender-mcp<br/>flake.nix:2620<br/>gate spatial.blender, bridges 127.0.0.1:9876 to external GUI sidecar<br/>user=devuser priority=231"]
+    JLAB["program:jupyter-lab<br/>flake.nix:2693<br/>gate data_science.jupyter, bind 0.0.0.0:8888 — RESOLVED ADR-2040,<br/>JUPYTER_TOKEN now minted at boot (see AB-07.9), no longer tokenless<br/>user=devuser priority=232"]
+    IMGM["program:imagemagick-mcp<br/>flake.nix:2950<br/>gate media.imagemagick<br/>user=devuser priority=210"]
+    COMFY["program:comfyui-builtin<br/>flake.nix:3115<br/>gate media.comfyui_builtin, bind 127.0.0.1:8188<br/>user=devuser priority=220"]
+    OPF["program:opf-router<br/>flake.nix:3000<br/>gate privacyFilterEnabled, OPF_PORT default 9092<br/>user=devuser priority=240"]
+    DREAM["program:dream-engine<br/>flake.nix:3138<br/>gate dreamEngineEnabled (flake.nix:1939), LOOM_URL default a LAN address, port 8084<br/>user=devuser priority=230"]
+    SIDEP["program:sidestr-producer<br/>flake.nix:3373<br/>gate sidechain.enabled (flake.nix:424), shipped true (agentbox.toml:2028, re-enabled on recovered validated prefixes after the ENOSPC failure, agentbox.toml:2027) so the producer block is emitted; runs the baked upstream, refuses on a pin mismatch<br/>user=devuser, ab-sidestr-dreamlab under role_isolation priority=260 startretries=5"]
+    SIDEM["program:sidestr-mirror<br/>flake.nix:3391<br/>gate sidechain.mirror, only with enabled (flake.nix:425)<br/>user=devuser priority=261"]
+    SIDEF["program:sidestr-faucet<br/>flake.nix:3408<br/>gate sidechain.faucet, only with enabled (flake.nix:426)<br/>user=devuser, ab-faucet-dreamlab under role_isolation priority=262"]
+    CODES["program:code-server<br/>flake.nix:3091<br/>gate toolchains.code_server, bind 0.0.0.0:8080 — RESOLVED ADR-2040,<br/>auth password with a boot-minted credential (see AB-07.9), not auth none<br/>user=devuser priority=50"]
 
-    SO1["program:system-one-proxy (ADR-2139)<br/>flake.nix:3260<br/>gate system_one.enabled (flake.nix:417), typed-decision proxy (loopback; configured 0.0.0.0:8094 on the docker networks when system_one.network, agentbox.toml:916-917, live with the next image),<br/>reads only /run/agentbox/system-one.json, vendor keys from env<br/>user=devuser priority=60 autorestart=unexpected"]
-    SEO["program:seo-watch-cron<br/>flake.nix:3307<br/>gate seo_watch.enabled (flake.nix:410), supercronic over the website repo crontab<br/>user=devuser priority=250"]
-    TGC["program:target-gc (ADR-2138)<br/>flake.nix:3599<br/>gate resources.target_gc.enabled (flake.nix:345), idle Cargo target sweeper<br/>user=devuser priority=246"]
+    SO1["program:system-one-proxy (ADR-2139)<br/>flake.nix:3283<br/>gate system_one.enabled (flake.nix:417), typed-decision proxy (loopback; configured 0.0.0.0:8094 on the docker networks when system_one.network, agentbox.toml:916-917, live with the next image),<br/>reads only /run/agentbox/system-one.json, vendor keys from env<br/>user=devuser priority=60 autorestart=unexpected"]
+    SEO["program:seo-watch-cron<br/>flake.nix:3330<br/>gate seo_watch.enabled (flake.nix:410), supercronic over the website repo crontab<br/>user=devuser priority=250"]
+    TGC["program:target-gc (ADR-2138)<br/>flake.nix:3622<br/>gate resources.target_gc.enabled (flake.nix:345), idle Cargo target sweeper<br/>user=devuser priority=246"]
     OPF -.->|"privacy filter mode gate"| DREAM
     SIDEP -->|"block files"| SIDEM
     SIDEP -->|"local producer"| SIDEF
-    DREAM -.->|"ZAI_ANTHROPIC_API_KEY inherited from PID1; the memory DB password is read from<br/>the 0600 file named by RUVECTOR_PG_PASSWORD_FILE, flake.nix:3110-3114"| RVNOTE["note: secrets never written<br/>into generated supervisor text"]
-    UCRON["program:user-cron<br/>flake.nix:3281<br/>gate user_cron.enabled (flake.nix:411), shipped true (agentbox.toml:1280), supercronic over<br/>~/workspace/.local/etc/agentbox/user.crontab, idle until the file exists<br/>user=devuser priority=250"]
+    DREAM -.->|"ZAI_ANTHROPIC_API_KEY inherited from PID1; the memory DB password is read from<br/>the 0600 file named by RUVECTOR_PG_PASSWORD_FILE, flake.nix:3133-3137"| RVNOTE["note: secrets never written<br/>into generated supervisor text"]
+    UCRON["program:user-cron<br/>flake.nix:3304<br/>gate user_cron.enabled (flake.nix:411), shipped true (agentbox.toml:1312), supercronic over<br/>~/workspace/.local/etc/agentbox/user.crontab, idle until the file exists<br/>user=devuser priority=250"]
 ```
 
 ## AB-02.7 supervision tree — desktop stack and interaction plane
 ```mermaid
 flowchart TB
     GATESTACK{"desktop.stack ADR-2003<br/>flake.nix:301-302, Nix if/else-if/else"}
-    HYPR["program:hyprland<br/>flake.nix:2747<br/>user=devuser priority=40"]
-    XWAY["program:xwayland-session<br/>flake.nix:2761<br/>user=devuser priority=41"]
-    WAYVNC["program:wayvnc<br/>flake.nix:2772<br/>bind 0.0.0.0:5901 user=devuser priority=42"]
-    XORG["program:xorg-nvidia<br/>flake.nix:2783<br/>no user= -&gt; root priority=40"]
-    I3A["program:i3wm xorg-nvidia branch<br/>flake.nix:2793<br/>user=devuser priority=41"]
-    X11VNC["program:x11vnc<br/>flake.nix:2804<br/>bind 0.0.0.0:5901 user=devuser priority=42"]
-    XVNC["program:xvnc<br/>flake.nix:2815<br/>rfbport 5901, SecurityTypes None, user=devuser (flake.nix:2817) priority=40"]
-    I3B["program:i3wm i3-x11 default branch<br/>flake.nix:2825<br/>user=devuser priority=41"]
-    SESS["program:agentbox-sessions<br/>flake.nix:3129<br/>gate interaction_plane.enabled (flake.nix:521), no TCP listener, unix socket /run/agentbox-sessions/sessions.sock<br/>user=devuser priority=47 startsecs=5"]
-    NIP98["program:nip98-proxy<br/>flake.nix:3142<br/>bind 0.0.0.0:9096, named operator routes only, unknown routes 404 (proxy.mjs)<br/>user=devuser, ab-ingress under role_isolation priority=46"]
-    TAB0["program:tab0-bridge<br/>flake.nix:3172<br/>gate sovereign_mesh.enabled<br/>user=devuser priority=236"]
-    TMUX["program:tmux-autostart<br/>flake.nix:3185<br/>user=devuser priority=95 autorestart=false one-shot"]
+    HYPR["program:hyprland<br/>flake.nix:2770<br/>user=devuser priority=40"]
+    XWAY["program:xwayland-session<br/>flake.nix:2784<br/>user=devuser priority=41"]
+    WAYVNC["program:wayvnc<br/>flake.nix:2795<br/>bind 0.0.0.0:5901 user=devuser priority=42"]
+    XORG["program:xorg-nvidia<br/>flake.nix:2806<br/>no user= -&gt; root priority=40"]
+    I3A["program:i3wm xorg-nvidia branch<br/>flake.nix:2816<br/>user=devuser priority=41"]
+    X11VNC["program:x11vnc<br/>flake.nix:2827<br/>bind 0.0.0.0:5901 user=devuser priority=42"]
+    XVNC["program:xvnc<br/>flake.nix:2838<br/>rfbport 5901, SecurityTypes None, user=devuser (flake.nix:2840) priority=40"]
+    I3B["program:i3wm i3-x11 default branch<br/>flake.nix:2848<br/>user=devuser priority=41"]
+    SESS["program:agentbox-sessions<br/>flake.nix:3152<br/>gate interaction_plane.enabled (flake.nix:521), no TCP listener, unix socket /run/agentbox-sessions/sessions.sock<br/>user=devuser priority=47 startsecs=5"]
+    NIP98["program:nip98-proxy<br/>flake.nix:3165<br/>bind 0.0.0.0:9096, named operator routes only, unknown routes 404 (proxy.mjs), environment NIP98_PROXY_REQUIRE_CONFIG=1 at flake.nix:3169 so an absent config file refuses every identity, and a changed one exits 0 for a restart (proxy.mjs:1112-1115)<br/>user=devuser, ab-ingress under role_isolation priority=46"]
+    TAB0["program:tab0-bridge<br/>flake.nix:3195<br/>gate sovereign_mesh.enabled<br/>user=devuser priority=236"]
+    TMUX["program:tmux-autostart<br/>flake.nix:3208<br/>user=devuser priority=95 autorestart=false one-shot"]
 
     GATESTACK -->|"hyprland-wayland"| HYPR --> XWAY --> WAYVNC
     GATESTACK -->|"xorg-nvidia"| XORG --> I3A --> X11VNC
@@ -361,21 +364,21 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as supervisord PID1<br/>flake.nix:2839 supervisord section nodaemon=true
-    participant BOOT as program:bootstrap<br/>flake.nix:2854 no user= line means root
-    participant MGMT as program:management-api<br/>flake.nix:2868 user=devuser flake.nix:2871 priority=20 flake.nix:2875
-    participant SOLID as program:solid-pod<br/>flake.nix:2896 user=devuser flake.nix:2899 priority=30 flake.nix:2903
+    participant SV as supervisord PID1<br/>flake.nix:2862 supervisord section nodaemon=true
+    participant BOOT as program:bootstrap<br/>flake.nix:2877 no user= line means root
+    participant MGMT as program:management-api<br/>flake.nix:2891 user=devuser flake.nix:2894 priority=20 flake.nix:2898
+    participant SOLID as program:solid-pod<br/>flake.nix:2919 user=devuser flake.nix:2922 priority=30 flake.nix:2926
     participant SEAL as program:bootstrap-seal<br/>agentbox/config/seal-bootstrap.sh priority=99
     participant SC as supervisorctl status<br/>seal-bootstrap.sh:100
 
     Note over SV: supervisord itself inherits root from the exec'd<br/>entrypoint-unified.sh Stage A (entrypoint-unified.sh:1299)
-    SV->>BOOT: spawn priority=5 flake.nix:2860, environment AGENTBOX_BOOTSTRAP_STAGE=B (flake.nix:2856)
+    SV->>BOOT: spawn priority=5 flake.nix:2883, environment AGENTBOX_BOOTSTRAP_STAGE=B (flake.nix:2879)
     Note right of BOOT: no user= line — Stage B (phases 6-8) runs as ROOT,<br/>needed for chown/mkdir under devuser volumes
-    SV->>MGMT: spawn priority=20 flake.nix:2875, user=devuser (flake.nix:2871)
-    SV->>SOLID: spawn priority=30, user=devuser, gated sovereign_mesh.enabled (flake.nix:2894-2896)
+    SV->>MGMT: spawn priority=20 flake.nix:2898, user=devuser (flake.nix:2894)
+    SV->>SOLID: spawn priority=30, user=devuser, gated sovereign_mesh.enabled (flake.nix:2917-2919)
     Note over SV: every program below priority=99 launches in ascending<br/>priority order but does not block on prior RUNNING state
     Note over SV,BOOT: RESOLVED ADR-2063 (2026-09-05) - a program that needs a file Stage B writes later<br/>waits for it with a bounded timeout instead of crashing into FATAL (see AB-02.17)
-    SV->>SEAL: spawn priority=99 last, user=devuser (flake.nix:2886-2891)
+    SV->>SEAL: spawn priority=99 last, user=devuser (flake.nix:2909-2914)
     SEAL->>SEAL: _required_programs() awk-scans /etc/supervisord.conf<br/>for AGENTBOX_REQUIRED_FOR_READINESS=true blocks (seal-bootstrap.sh:42-72)
     loop poll every 2s up to BOOTSTRAP_SEAL_TIMEOUT=120s (seal-bootstrap.sh:96-115)
         SEAL->>SC: supervisorctl status <program> for each required program
@@ -396,46 +399,46 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant O as Orchestrator/probe
-    participant R as management-api routes<br/>server.js:469 /ready, server.js:582 /health
+    participant R as management-api routes<br/>server.js:473 /ready, server.js:601 /health
     participant BS as bootstrapState<br/>server.js:58-66 fs watch of BOOTSTRAP_SENTINEL
-    participant ML as adapters/manifest-loader<br/>server.js:505
-    participant AH as adapterHealth map<br/>server.js:512
-    participant FS as fs.promises.access<br/>server.js:529-535
+    participant ML as adapters/manifest-loader<br/>server.js:512
+    participant AH as adapterHealth map<br/>server.js:519
+    participant FS as fs.promises.access<br/>server.js:536-542
 
     O->>R: GET /ready
     R->>BS: read bootstrapState.completed (poll every 2s of /run/agentbox/bootstrap.done, server.js:77)
     alt bootstrap.done sentinel absent
-        R->>R: missing.push('bootstrap.done sentinel') (server.js:499)
+        R->>R: missing.push('bootstrap.done sentinel') (server.js:506)
     end
-    R->>ML: loadManifest() (server.js:505)
-    Note over R: 2. Adapter health — every non-off slot must be healthy (server.js:502)
-    loop for slot, impl in manifestAdapters (server.js:510)
+    R->>ML: loadManifest() (server.js:512)
+    Note over R: 2. Adapter health — every non-off slot must be healthy (server.js:509)
+    loop for slot, impl in manifestAdapters (server.js:517)
         alt impl === 'off'
-            R->>R: continue (server.js:511)
-        else adapterHealth[slot] !== 'healthy' (server.js:512)
-            R->>R: missing.push adapter:<slot> not healthy (server.js:513)
+            R->>R: continue (server.js:518)
+        else adapterHealth[slot] !== 'healthy' (server.js:519)
+            R->>R: missing.push adapter:<slot> not healthy (server.js:520)
         end
     end
-    Note over R: 3. Required filesystem paths (server.js:517)
-    R->>FS: access WORKSPACE, /var/lib/ruvector (server.js:522)
-    opt manifestAdapters.pods === local-solid-rs (server.js:524)
-        R->>R: add integrations.solid_pod_rs.storage_root to requiredPaths (server.js:524-527)
+    Note over R: 3. Required filesystem paths (server.js:524)
+    R->>FS: access WORKSPACE, /var/lib/ruvector (server.js:529)
+    opt manifestAdapters.pods === local-solid-rs (server.js:531)
+        R->>R: add integrations.solid_pod_rs.storage_root to requiredPaths (server.js:531-534)
     end
-    opt sovereign_mesh.publish_agent_events === true (server.js:541)
-        alt NOSTR_RELAYS env empty (server.js:544)
-            R->>R: missing.push publish_agent_events but NOSTR_RELAYS empty (server.js:545)
+    opt sovereign_mesh.publish_agent_events === true (server.js:548)
+        alt NOSTR_RELAYS env empty (server.js:551)
+            R->>R: missing.push publish_agent_events but NOSTR_RELAYS empty (server.js:552)
         end
     end
-    alt missing.length greater than 0 (server.js:561)
-        R-->>O: 503 ready:false reason, missing[] (server.js:562-568)
+    alt missing.length greater than 0 (server.js:578)
+        R-->>O: 503 ready:false reason, missing[], degraded[], components (server.js:579-585)
     else
-        R-->>O: 200 ready:true since bootstrapState.since, degraded[] (server.js:571-576)
+        R-->>O: 200 ready:true since bootstrapState.since, degraded[], components such as elevation_publisher (server.js:589-595, server.js:568-573)
     end
 
     rect rgb(240,240,240)
-    Note over O,R: /health (server.js:582-620) is human-inspection-only —<br/>note field at server.js:618 says "Use /ready for orchestrator readiness probes"
+    Note over O,R: /health (server.js:601-639) is human-inspection-only —<br/>note field at server.js:637 says "Use /ready for orchestrator readiness probes"
     O->>R: GET /health
-    R-->>O: 200 status ok/degraded, uptime, adapters map, adapter_failures and adapter_failure_files<br/>(a failure class and a file path per slot, never error text), degraded_count (server.js:609-619)
+    R-->>O: 200 status ok/degraded, uptime, adapters map, adapter_failures and adapter_failure_files<br/>(a failure class and a file path per slot, never error text), degraded_count (server.js:628-638)
     end
 ```
 
@@ -457,43 +460,43 @@ stateDiagram-v2
 
     note right of Exited
         one-shot class autorestart=false
-        program bootstrap flake.nix:2854, startsecs=0 at flake.nix:2859
-        program bootstrap-seal flake.nix:2884, startsecs=0 at flake.nix:2889, timeout 120s at flake.nix:2891
-        program tailscale-up flake.nix:3005, startsecs=0 at flake.nix:3011
-        program tmux-autostart flake.nix:3185, startsecs=0 at flake.nix:3191
+        program bootstrap flake.nix:2877, startsecs=0 at flake.nix:2882
+        program bootstrap-seal flake.nix:2907, startsecs=0 at flake.nix:2912, timeout 120s at flake.nix:2914
+        program tailscale-up flake.nix:3028, startsecs=0 at flake.nix:3034
+        program tmux-autostart flake.nix:3208, startsecs=0 at flake.nix:3214
     end note
     note right of Running
         DOC-DRIFT most programs set no startretries in flake.nix
         and rely on the supervisord built-in default startretries=3, autorestart=true
-        e.g. management-api flake.nix:2868, nostr-relay flake.nix:2952 and flake.nix:2964
-        exceptions agentbox-mcp-hub startretries=2 at flake.nix:3547,
-        system-one-proxy startretries=30 at flake.nix:3267
-        and sidestr-producer startretries=5 at flake.nix:3357, a pin mismatch stops at FATAL
+        e.g. management-api flake.nix:2891, nostr-relay flake.nix:2975 and flake.nix:2987
+        exceptions agentbox-mcp-hub startretries=2 at flake.nix:3570,
+        system-one-proxy startretries=30 at flake.nix:3290
+        and sidestr-producer startretries=5 at flake.nix:3380, a pin mismatch stops at FATAL
     end note
     note left of Starting
         startsecs varies by program
-        agentbox-sessions flake.nix:3129, startsecs=5 at flake.nix:3136
-        nip98-proxy flake.nix:3142, startsecs=3 at flake.nix:3149
-        code-server flake.nix:3068, startsecs=5 at flake.nix:3086
-        xwayland-session flake.nix:2761, startsecs=5 at flake.nix:2767
+        agentbox-sessions flake.nix:3152, startsecs=5 at flake.nix:3159
+        nip98-proxy flake.nix:3165, startsecs=3 at flake.nix:3172
+        code-server flake.nix:3091, startsecs=5 at flake.nix:3109
+        xwayland-session flake.nix:2784, startsecs=5 at flake.nix:2790
     end note
 ```
 
 ## AB-02.11 tmux-autostart window layout
 ```mermaid
 flowchart TB
-    START["program:tmux-autostart<br/>flake.nix:3185, priority=95<br/>runs config/tmux-autostart.sh"]
-    ENV["fish conf.d/agentbox-runtime.fish<br/>entrypoint-unified.sh:4217-4236<br/>sources RUNTIME_ENV_FILE, fallback to durable copy<br/>every new tmux window's fish shell sources it on start"]
+    START["program:tmux-autostart<br/>flake.nix:3208, priority=95<br/>runs config/tmux-autostart.sh"]
+    ENV["fish conf.d/agentbox-runtime.fish<br/>entrypoint-unified.sh:4249-4268<br/>sources RUNTIME_ENV_FILE, fallback to durable copy<br/>every new tmux window's fish shell sources it on start"]
     W0["window 0 Claude<br/>tmux-autostart.sh:291<br/>tab0-bridge injection target<br/>CLAUDE_CONFIG_DIR=/home/devuser/.claude (tmux-autostart.sh:292), AGENTBOX_PROFILE=tab0 (tmux-autostart.sh:294)"]
     W1["window 1 Agent<br/>tmux-autostart.sh:317<br/>agent execution workspace"]
     W2["window 2 Services<br/>tmux-autostart.sh:324<br/>supervisorctl status (tmux-autostart.sh:325)"]
     W3["window 3 Build<br/>tmux-autostart.sh:330"]
     W4["window 4 Logs<br/>tmux-autostart.sh:338<br/>supervisorctl tail -f management-api (tmux-autostart.sh:339), split pane"]
-    W5["window 5 System<br/>tmux-autostart.sh:345<br/>systemscape restart loop (tmux-autostart.sh:351), split with btm/htop"]
-    W6["window 6 VNC<br/>tmux-autostart.sh:364<br/>host shell, X display one, port 5901 status"]
-    W7["window 7 Git<br/>tmux-autostart.sh:377<br/>git status in PROJECT dir"]
-    W8["window 8 Sessions<br/>tmux-autostart.sh:385<br/>agentbox-sessions pick (tmux-autostart.sh:386-387) or a disabled notice (tmux-autostart.sh:389),<br/>attach lands here when the binary exists (tmux-autostart.sh:442-443)"]
-    W9["window 9 Notes<br/>tmux-autostart.sh:102 _notes_window, called tmux-autostart.sh:398<br/>ADR-2029 Rune markdown TUI over vault"]
+    W5["window 5 System<br/>tmux-autostart.sh:345<br/>systemscape restart loop (tmux-autostart.sh:374) after waiting for a mounted hosts file (tmux-autostart.sh:358-369), split with btm/htop"]
+    W6["window 6 VNC<br/>tmux-autostart.sh:387<br/>host shell, X display one, port 5901 status"]
+    W7["window 7 Git<br/>tmux-autostart.sh:400<br/>git status in PROJECT dir"]
+    W8["window 8 Sessions<br/>tmux-autostart.sh:408<br/>agentbox-sessions pick (tmux-autostart.sh:409-410) or a disabled notice (tmux-autostart.sh:412),<br/>attach lands here when the binary exists (tmux-autostart.sh:465-466)"]
+    W9["window 9 Notes<br/>tmux-autostart.sh:102 _notes_window, called tmux-autostart.sh:421<br/>ADR-2029 Rune markdown TUI over vault"]
 
     START --> W0 --> W1 --> W2 --> W3 --> W4 --> W5 --> W6 --> W7 --> W8 --> W9
 
@@ -582,7 +585,7 @@ sequenceDiagram
         W-->>SP: echo credential-free confirmation line (zai.sh:159)
         W->>C: exec claude "$@" (zai.sh:160)
     end
-    Note over W: DOC-DRIFT (confirmed still open) — agentbox/docs/BASELINE-container.md:333<br/>still says ADR-2007 is partial and the wrapper host assertion is substring-based —<br/>code (zai.sh:114-128, _provider-url.sh) has since implemented full URL parsing,<br/>closed 2026-09-05 per the code's own ADR-2007 closeout comments
+    Note over W: DOC-DRIFT (confirmed still open) — agentbox/docs/BASELINE-container.md:342<br/>still says ADR-2007 is partial and the wrapper host assertion is substring-based —<br/>code (zai.sh:114-128, _provider-url.sh) has since implemented full URL parsing,<br/>closed 2026-09-05 per the code's own ADR-2007 closeout comments
 ```
 
 ## AB-02.14 VAULT env propagation — resolve to PID1 to supervised programs
@@ -609,13 +612,13 @@ sequenceDiagram
     end
     VR->>PID1: exec supervisord inherits VAULT_ROOT/REPO/PAGES/FORMAT/TUI/WORKING/TRANSCRIPTS (entrypoint-unified.sh:1299)
     PID1->>PROG: every program child inherits PID1 env at spawn, no VAULT_* set per-program in flake.nix
-    Note over PID1,PROG: exceptions since custody W0 and W3 - docker-read-proxy and serve-identity<br/>start through env -i and see only the variables named on their command line<br/>(flake.nix:3028, flake.nix:3053)
+    Note over PID1,PROG: exceptions since custody W0 and W3 - docker-read-proxy and serve-identity<br/>start through env -i and see only the variables named on their command line<br/>(flake.nix:3051, flake.nix:3076)
 ```
 
 ## AB-02.16 seccomp profile — supplemental denylist
 ```mermaid
 flowchart TB
-    COMPOSE["docker-compose.yml:127-129<br/>security_opt no-new-privileges:true<br/>seccomp=./config/seccomp-agentbox.json"]
+    COMPOSE["docker-compose.yml:128-130<br/>security_opt no-new-privileges:true<br/>seccomp=./config/seccomp-agentbox.json"]
     PROFILE["seccomp-agentbox.json<br/>config/seccomp-agentbox.json<br/>defaultAction SCMP_ACT_ALLOW"]
     SOCK["rule 1: socket syscall<br/>args index0 value38 SCMP_CMP_EQ<br/>action SCMP_ACT_ERRNO"]
     DENY["rule 2: 46 named syscalls<br/>action SCMP_ACT_ERRNO"]
@@ -634,37 +637,37 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant SV as supervisord PID1
-    participant HUB as program:agentbox-mcp-hub<br/>flake.nix:3539 priority=205 (flake.nix:3548)
+    participant HUB as program:agentbox-mcp-hub<br/>flake.nix:3562 priority=205 (flake.nix:3571)
     participant WAIT as wait_for_config<br/>services/agentbox-mcp/src/hub/mod.rs:252
-    participant BOOT as program:bootstrap Stage B<br/>config/entrypoint-unified.sh:3396
+    participant BOOT as program:bootstrap Stage B<br/>config/entrypoint-unified.sh:3428
     participant FS as /run/agentbox/mcp-hub.json
 
-    SV->>HUB: spawn priority=205 while Stage B is still in phase 7, file absent (flake.nix:3548)
-    HUB->>WAIT: agentbox-mcp hub --wait-config-secs 120 (flake.nix:3540, default in agentbox-mcp/src/main.rs:59)
+    SV->>HUB: spawn priority=205 while Stage B is still in phase 7, file absent (flake.nix:3571)
+    HUB->>WAIT: agentbox-mcp hub --wait-config-secs 120 (flake.nix:3563, default in agentbox-mcp/src/main.rs:59)
     loop poll every 500 ms (hub/mod.rs:287), log every 15 s (hub/mod.rs:284)
         WAIT->>FS: path.exists
     end
-    BOOT->>FS: agentbox-manifest mcp-hub-project writes mcp-hub.json (entrypoint-unified.sh:3396-3399)
-    BOOT->>FS: chown 1000:1000 and chmod 600 the projection (entrypoint-unified.sh:3405-3406)
-    BOOT->>SV: supervisorctl status agentbox-mcp-hub (entrypoint-unified.sh:3413)
+    BOOT->>FS: agentbox-manifest mcp-hub-project writes mcp-hub.json (entrypoint-unified.sh:3428-3431)
+    BOOT->>FS: chown 1000:1000 and chmod 600 the projection (entrypoint-unified.sh:3437-3438)
+    BOOT->>SV: supervisorctl status agentbox-mcp-hub (entrypoint-unified.sh:3445)
     alt RUNNING, waiting or serving an older config
-        BOOT->>SV: supervisorctl restart agentbox-mcp-hub (entrypoint-unified.sh:3416)
+        BOOT->>SV: supervisorctl restart agentbox-mcp-hub (entrypoint-unified.sh:3448)
     else FATAL, EXITED, STOPPED or BACKOFF
-        BOOT->>SV: supervisorctl start agentbox-mcp-hub (entrypoint-unified.sh:3419)
+        BOOT->>SV: supervisorctl start agentbox-mcp-hub (entrypoint-unified.sh:3451)
     end
-    BOOT->>FS: then agentbox-manifest mcp-mirror-server copies the final claude-flow entry into ~/.claude/.claude.json, idempotent, fail-open (entrypoint-unified.sh:3425-3433)
+    BOOT->>FS: then agentbox-manifest mcp-mirror-server copies the final claude-flow entry into ~/.claude/.claude.json, idempotent, fail-open (entrypoint-unified.sh:3457-3465)
     alt config present before the timeout
         WAIT-->>HUB: Ok, HubConfig::load then serve on loopback port 9720 (hub/mod.rs:297-298)
         HUB->>HUB: a non-loopback bind is refused, not downgraded (hub/mod.rs:300-301)
     else 120 s elapsed
         WAIT-->>SV: error naming the projection and the gate, then bail (hub/mod.rs:259-282)
-        Note over SV,HUB: startsecs=130 is LONGER than the wait (flake.nix:3546),<br/>so the exit is a FAILED START, retried startretries=2 (flake.nix:3547)<br/>and then parked FATAL by autorestart=unexpected (flake.nix:3545)
+        Note over SV,HUB: startsecs=130 is LONGER than the wait (flake.nix:3569),<br/>so the exit is a FAILED START, retried startretries=2 (flake.nix:3570)<br/>and then parked FATAL by autorestart=unexpected (flake.nix:3568)
     end
     Note over HUB,FS: INVARIANT - the hub is loopback-only and never published (hub/mod.rs:300)
     Note over SV,BOOT: ADR-2104 - the old unbounded 600 s wait under autorestart=true made<br/>supervisorctl status read RUNNING for three days over a port never bound,<br/>docs/adr/ADR-2104-direct-control-over-mcp.md:23
 ```
 
-**Invariant:** a hub that never receives its projection now fails the start rather than idling, because `startsecs=130` outlives the 120 s wait (`../project/agentbox/flake.nix:3546`, `../project/agentbox/services/agentbox-mcp/src/main.rs:59`).
+**Invariant:** a hub that never receives its projection now fails the start rather than idling, because `startsecs=130` outlives the 120 s wait (`../project/agentbox/flake.nix:3569`, `../project/agentbox/services/agentbox-mcp/src/main.rs:59`).
 
 **Debt:** nine MCP servers are hub-routed and exactly one has a call site in this repository, so a silent hub cost nothing that was noticed for three days (`../project/agentbox/docs/adr/ADR-2104-direct-control-over-mcp.md:30`).
 
@@ -672,14 +675,14 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as supervisord<br/>flake.nix:3129
+    participant SV as supervisord<br/>flake.nix:3152
     participant D as agentbox-sessions daemon<br/>services/agentbox-sessions/src/main.rs:156
     participant P as Plane<br/>services/agentbox-sessions/src/plane.rs:328
     participant R as reconcile decide<br/>services/agentbox-sessions/src/reconcile.rs:65
     participant WT as worktree ensure<br/>services/agentbox-sessions/src/worktree.rs:80
-    participant TM as tmux server<br/>services/agentbox-sessions/src/tmux.rs:132
+    participant TM as tmux server<br/>services/agentbox-sessions/src/tmux.rs:183
 
-    SV->>D: spawn program:agentbox-sessions, user=devuser, startsecs 5, priority 47 (flake.nix:3132, flake.nix:3136-3137)
+    SV->>D: spawn program:agentbox-sessions, user=devuser, startsecs 5, priority 47 (flake.nix:3155, flake.nix:3159-3160)
     alt interaction_plane.enabled is false
         D-->>SV: one line and exit 0, no restart loop (agentbox-sessions/src/main.rs:160-161)
     end
@@ -689,7 +692,7 @@ sequenceDiagram
     D->>WT: reap_legacy() once, AoE leftovers under PROJECT-worktrees (agentbox-sessions/src/main.rs:189, worktree.rs:238)
     loop each cfg.interval (agentbox-sessions/src/main.rs:195, agentbox-sessions/src/main.rs:203)
         D->>P: reconcile_once(false) (plane.rs:328)
-        P->>TM: list sessions, only those carrying @agentbox-sessions=1 are owned (tmux.rs:21)
+        P->>TM: list sessions, only those carrying @agentbox-sessions=1 are owned (tmux.rs:23)
         P->>R: decide(wanted fingerprint, seen pane, dirty, restarts) (plane.rs:357)
         alt no session for the seed
             R-->>P: Create, no dirty or backoff check (reconcile.rs:66)
@@ -718,9 +721,9 @@ sequenceDiagram
     Note over D,TM: the reaper removes a legacy worktree only when clean, no commit beyond main and every ignored path regenerable (worktree.rs:278)
 ```
 
-**Invariant:** ownership is a marker, not a name: only sessions carrying `@agentbox-sessions=1` are ever recreated, so `agentbox:0` (tab0), a leftover `aoe_*` session and operator sessions are never touched, and a worktree seed holding work in progress is held rather than recreated (`../project/agentbox/services/agentbox-sessions/src/tmux.rs:21`, `../project/agentbox/services/agentbox-sessions/src/reconcile.rs:67-69`, `../project/agentbox/services/agentbox-sessions/src/reconcile.rs:82-86`).
+**Invariant:** ownership is a marker, not a name: only sessions carrying `@agentbox-sessions=1` are ever recreated, so `agentbox:0` (tab0), a leftover `aoe_*` session and operator sessions are never touched, and a worktree seed holding work in progress is held rather than recreated (`../project/agentbox/services/agentbox-sessions/src/tmux.rs:23`, `../project/agentbox/services/agentbox-sessions/src/reconcile.rs:67-69`, `../project/agentbox/services/agentbox-sessions/src/reconcile.rs:82-86`).
 **Invariant:** trust seeding moved into the daemon: `trust::seed` writes the root store, every wrapper-profile store that already exists and the Codex config (`../project/agentbox/services/agentbox-sessions/src/trust.rs:34-39`, `../project/agentbox/services/agentbox-sessions/src/trust.rs:102`), while `trust-seed.cjs` still writes only the root store and an existing profile store (`config/hooks/trust-seed.cjs:78-86`, `config/hooks/trust-seed.cjs:91-95`).
-**Acceptance boundary:** ADR-2153 remains accepted, partial and live (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Its 14 November source check records worktree adoption and passing offline tests, without a new live provider round trip (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:28-30`); its 15 November check finds only a SystemScape comment changed in `tmux-autostart.sh`, with the session-plane commands and tmux ownership unchanged and the live round trip again not rerun (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:19-26`). The old profile records were archived and the mount removed from source; deleting the host volume remains an operator step after the rebuild (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:48-52`).
+**Acceptance boundary:** ADR-2153 remains accepted, partial and live (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Its 14 November source check records worktree adoption and passing offline tests, without a new live provider round trip (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:65-67`); its 15 November check finds only a SystemScape comment changed in `tmux-autostart.sh`, with the session-plane commands and tmux ownership unchanged and the live round trip again not rerun (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:56-63`). The old profile records were archived and the mount removed from source; deleting the host volume remains an operator step after the rebuild (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:85-89`).
 
 ## AB-02.19 session-provision.mjs run-as-script guard — realpath fix carried over from the AoE seeder
 ```mermaid
@@ -754,8 +757,8 @@ flowchart TB
     RO -.-> NOTE2["router is its own program (config/harness-wrappers/router.sh)<br/>EXTERNAL: the router.sh console itself and its wiring are owned by AB-29"]
 ```
 
-- `Contract::kind` resolves each `[[interaction_plane.session_seeds]]` slug that has a `config/harness-wrappers/<slug>.sh` and a `claude` or `custom:<slug>` tool to the `wrapper` template (`../project/agentbox/services/agentbox-sessions/src/contract.rs:72-76`), so the `router` seed (`tool = "custom:router"`, `../project/agentbox/agentbox.toml:2262`) launches exactly like `openrouter` and `zai`.
-- **Residual comment drift:** `agentbox.toml` still says `custom:router` is "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2262`). The wrapper now correctly names the native session plane (`../project/agentbox/config/harness-wrappers/router.sh:5-8`); see AB-29 for its launch flow.
+- `Contract::kind` resolves each `[[interaction_plane.session_seeds]]` slug that has a `config/harness-wrappers/<slug>.sh` and a `claude` or `custom:<slug>` tool to the `wrapper` template (`../project/agentbox/services/agentbox-sessions/src/contract.rs:72-76`), so the `router` seed (`tool = "custom:router"`, `../project/agentbox/agentbox.toml:2294`) launches exactly like `openrouter` and `zai`.
+- **Residual comment drift:** `agentbox.toml` still says `custom:router` is "resolved by the seeder's WRAPPER_SLUGS" (`../project/agentbox/agentbox.toml:2294`). The wrapper now correctly names the native session plane (`../project/agentbox/config/harness-wrappers/router.sh:5-8`); see AB-29 for its launch flow.
 
 ## AB-02.22 bootstrap.done now means the promised projections exist (ADR-2104)
 ```mermaid
@@ -765,7 +768,7 @@ sequenceDiagram
     participant CP as _check_projections<br/>seal-bootstrap.sh:152
     participant AM as agentbox-manifest toml-bool<br/>seal-bootstrap.sh:147
     participant FS as /run/agentbox
-    participant RDY as GET /ready<br/>management-api/server.js:469
+    participant RDY as GET /ready<br/>management-api/server.js:473
 
     SEAL->>CP: after every AGENTBOX_REQUIRED_FOR_READINESS program is RUNNING
     Note over CP: rows are gate:path pairs, default<br/>resources.mcp_hub.enabled:/run/agentbox/mcp-hub.json and<br/>system_one.enabled:/run/agentbox/system-one.json (ADR-2139)<br/>seal-bootstrap.sh:141
@@ -795,35 +798,35 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant B as program:bootstrap Stage B<br/>config/entrypoint-unified.sh:3794
+    participant B as program:bootstrap Stage B<br/>config/entrypoint-unified.sh:3826
     participant RS as reconcile-skills.sh<br/>scripts/reconcile-skills.sh:18
     participant PR as project-skill-roots.mjs<br/>scripts/project-skill-roots.mjs:61
     participant RA as reconcile-agents.sh<br/>scripts/reconcile-agents.sh:52 SUPERSEDED_BASE
     participant RC as reconcile-commands.sh<br/>scripts/reconcile-commands.sh:33 SUPERSEDED_BASE
     participant FS as host-mounted config roots
 
-    B->>RS: CLAUDE_SKILLS_DIR ~/.claude/skills, manifest registered-skills.txt (entrypoint-unified.sh:3791-3794)
+    B->>RS: CLAUDE_SKILLS_DIR ~/.claude/skills, manifest registered-skills.txt (entrypoint-unified.sh:3823-3826)
     RS->>FS: symlink each registered name to the baked tree (reconcile-skills.sh:63-67)
-    B->>RS: second pass for Codex, ~/.codex/skills with codex-registered-skills.txt (entrypoint-unified.sh:3800-3810)
-    B->>PR: SKILL_ROOT_TARGETS workspace and workspace/project (entrypoint-unified.sh:3823-3831)
+    B->>RS: second pass for Codex, ~/.codex/skills with codex-registered-skills.txt (entrypoint-unified.sh:3832-3842)
+    B->>PR: SKILL_ROOT_TARGETS workspace and workspace/project (entrypoint-unified.sh:3855-3863)
     PR->>FS: retire an unregistered non-overlay dir to an IN-ROOT .superseded (project-skill-roots.mjs:131)
-    B->>RA: AGENT_ROOT_TARGETS plus registered-agents.txt (entrypoint-unified.sh:3847-3853)
+    B->>RA: AGENT_ROOT_TARGETS plus registered-agents.txt (entrypoint-unified.sh:3879-3885)
     RA->>FS: retire a vendor-marked or category-filed agent to SUPERSEDED_BASE, OUTSIDE every scanned root (reconcile-agents.sh:212,218)
     RA->>FS: KEPT unmanaged - a flat hand-written agent with no vendor marker is reported, not retired (reconcile-agents.sh:220)
     Note over RA,RC: RESOLVED — the sidecar used to be an in-root .superseded/, but Claude Code<br/>scans agent/command roots recursively including dot-dirs, so 93 retired agents and<br/>139 retired commands were STILL loading as `.superseded:*` — both reconcilers now<br/>retire OUTSIDE every root (an agentbox-superseded dir beside the primary root's<br/>parent) and migrate any legacy in-root sidecar out on every boot, self-healing<br/>(reconcile-agents.sh:19-24,200 / reconcile-commands.sh:19-22,79-105)
-    B->>RC: COMMAND_ROOT_TARGETS three roots, registered-commands.txt (entrypoint-unified.sh:3865-3870)
+    B->>RC: COMMAND_ROOT_TARGETS three roots, registered-commands.txt (entrypoint-unified.sh:3897-3902)
     RC->>FS: prune-only sweep, kept names stay, the rest move to SUPERSEDED_BASE (reconcile-commands.sh:127)
-    Note over B,FS: every reconciler is fail-open with a trailing true,<br/>so a broken registry never blocks the boot (entrypoint-unified.sh:3794, entrypoint-unified.sh:3852, entrypoint-unified.sh:3868)
+    Note over B,FS: every reconciler is fail-open with a trailing true,<br/>so a broken registry never blocks the boot (entrypoint-unified.sh:3826, entrypoint-unified.sh:3884, entrypoint-unified.sh:3900)
 ```
 
 **What it shows.** The four boot-phase reconcilers that make the visible skill, agent and command sets a function of checked-in manifests rather than of whatever a vendor installer last dumped into the host mounts.
-**Why it is this way.** ADR-2092: the agent roots were ungoverned, so `ruflo init` and `aqe init --auto` accreted 97 agents across two roots, 74 duplicated and 37 byte-divergent, with the nested root shadowing the user root (`config/entrypoint-unified.sh:3833-3841`).
+**Why it is this way.** ADR-2092: the agent roots were ungoverned, so `ruflo init` and `aqe init --auto` accreted 97 agents across two roots, 74 duplicated and 37 byte-divergent, with the nested root shadowing the user root (`config/entrypoint-unified.sh:3865-3873`).
 
 **Invariant:** retirement is always to a recoverable sidecar, never a delete, in all three reconcilers — for agents and commands that sidecar now sits OUTSIDE every scanned root (`../project/agentbox/scripts/reconcile-agents.sh:94-105`, `../project/agentbox/scripts/reconcile-commands.sh:13-14`).
 
 **Invariant:** a hand-written agent placed flat in the root with no vendor marker is preserved and reported, so experiments survive the sweep (`../project/agentbox/scripts/reconcile-agents.sh:220`).
 
-**Debt:** the registries are four separate manifests in three formats (13 agents, 1 command, 22 Claude skills and 17 Codex skills; the entrypoint comment still says it "links the 12 registered agents", `config/entrypoint-unified.sh:3842`), with the skill counts taken from `skills/registered-skills.txt` and `skills/codex-registered-skills.txt`, each reconciled by its own script with its own retirement rules (`../project/agentbox/agents/registered-agents.txt:1`, `../project/agentbox/config/registered-commands.txt:1`).
+**Debt:** the registries are four separate manifests in three formats (13 agents, 1 command, 22 Claude skills and 17 Codex skills; the entrypoint comment still says it "links the 12 registered agents", `config/entrypoint-unified.sh:3874`), with the skill counts taken from `skills/registered-skills.txt` and `skills/codex-registered-skills.txt`, each reconciled by its own script with its own retirement rules (`../project/agentbox/agents/registered-agents.txt:1`, `../project/agentbox/config/registered-commands.txt:1`).
 
 ## AB-02.24 the role_isolation boot branch — one image, two supervisor configs (ADR-2122)
 ```mermaid
@@ -862,19 +865,19 @@ flowchart TB
     OFF -.-> SIDOFF["serve-identity and docker-read-proxy print one line and exit 0<br/>identity_port/mod.rs:95-98, docker-read-proxy.cjs:144-146"]
 ```
 
-**What it shows.** The single decision the custody change adds to the boot: `[security].role_isolation` is read once in Stage A and exported, and it selects between today's boot and the isolated one. Both supervisor configs, the role accounts and the delivery plan ship in every image, so the supervisor branch is chosen at boot; the devuser sudo drop, however, is baked from the flag at build time (`../project/agentbox/flake.nix:4261-4268`), so the flag is rebuild-class end to end: an image built off and booted on reports `degraded:devuser-sudo` until rebuilt (see the Drift below). The PATH sanitiser and the Stage B one-shot guard sit outside the branch and apply in both modes.
+**What it shows.** The single decision the custody change adds to the boot: `[security].role_isolation` is read once in Stage A and exported, and it selects between today's boot and the isolated one. Both supervisor configs, the role accounts and the delivery plan ship in every image, so the supervisor branch is chosen at boot; the devuser sudo drop, however, is baked from the flag at build time (`../project/agentbox/flake.nix:4288-4295`), so the flag is rebuild-class end to end: an image built off and booted on reports `degraded:devuser-sudo` until rebuilt (see the Drift below). The PATH sanitiser and the Stage B one-shot guard sit outside the branch and apply in both modes.
 **Why it is this way.** The custody design (ADR-2122, X-1 step 1) closes three bypasses: root running devuser-planted code, devuser driving the host Docker daemon, and role secrets inherited by every process from PID 1. The first is closed unconditionally. The other two change what devuser can do, so they sit behind a flag that ships off until the owner's boot rehearsal passes. Per-role detail, the identity port and the rehearsal are in AB-36.
 
-**Invariant:** root's boot PATH holds only `/nix/store` entries and the image's fixed system directories, in both modes, so a binary planted in the devuser-owned workspace cargo bin can no longer run as root (`../project/agentbox/config/entrypoint-unified.sh:175`, `../project/agentbox/config/entrypoint-unified.sh:190`). The cargo bin reaches devuser shells only, appended (`../project/agentbox/config/entrypoint-unified.sh:4130`).
+**Invariant:** root's boot PATH holds only `/nix/store` entries and the image's fixed system directories, in both modes, so a binary planted in the devuser-owned workspace cargo bin can no longer run as root (`../project/agentbox/config/entrypoint-unified.sh:175`, `../project/agentbox/config/entrypoint-unified.sh:190`). The cargo bin reaches devuser shells only, appended (`../project/agentbox/config/entrypoint-unified.sh:4162`).
 
 **Invariant:** Stage B runs once per container start: a `supervisorctl start bootstrap` replay finds `stage-b.claimed` already made and exits 0 without running anything, and a missing or squatted guard directory makes Stage B refuse (`../project/agentbox/config/entrypoint-unified.sh:229-233`, `config/entrypoint-unified.sh:1328-1332`).
 
-**Invariant:** devuser is not a member of group `root`, unconditionally: the baked group file now reads `root:x:0:` with no members, and undoing it needs a rebuild (`../project/agentbox/flake.nix:4253`).
+**Invariant:** devuser is not a member of group `root`, unconditionally: the baked group file now reads `root:x:0:` with no members, and undoing it needs a rebuild (`../project/agentbox/flake.nix:4280`).
 
 **Invariant (under role_isolation):** no ROLE variable is in PID 1's environment when supervisord starts, so no supervised program inherits a signing key. The capture writes each to a 0400 file and unsets it, and a final scrub logs and unsets any that reappear (`../project/agentbox/config/entrypoint-unified.sh:382`, `../project/agentbox/config/entrypoint-unified.sh:1298`). With the flag off both functions return at their first line, and PID 1 still carries every `.env` key.
 
 **Invariant (under role_isolation):** the entrypoint does not widen the host Docker socket for devuser (`../project/agentbox/config/entrypoint-unified.sh:609`). With the flag off it still runs `chmod o+rw` on every boot.
 
-**Debt:** `[program:docker-read-proxy]` has no `user=` and drops privilege itself. Its comment still names a W1 follow-up to move it into `lib/role-accounts.nix` with its own account (`flake.nix:3026-3027`), but the role registry W1 shipped is `config/role-accounts.json` (`../project/agentbox/config/role-accounts.json:3`), and it has no row for the proxy.
+**Debt:** `[program:docker-read-proxy]` has no `user=` and drops privilege itself. Its comment still names a W1 follow-up to move it into `lib/role-accounts.nix` with its own account (`flake.nix:3049-3050`), but the role registry W1 shipped is `config/role-accounts.json` (`../project/agentbox/config/role-accounts.json:3`), and it has no row for the proxy.
 
-**Drift:** `docs/BASELINE-container.md:112` calls `[security].role_isolation` boot-class, but the manifest catalogue entry is `apply_class: 'rebuild'` (`management-api/lib/system-manifest.js:97-99`) and the entrypoint comment says rebuild-class since ER-9 because the devuser sudo drop is baked (`config/entrypoint-unified.sh:314`, `flake.nix:4261-4268`).
+**Drift:** `docs/BASELINE-container.md:115` calls `[security].role_isolation` boot-class, but the manifest catalogue entry is `apply_class: 'rebuild'` (`management-api/lib/system-manifest.js:97-99`) and the entrypoint comment says rebuild-class since ER-9 because the devuser sudo drop is baked (`config/entrypoint-unified.sh:314`, `flake.nix:4288-4295`).

@@ -21,6 +21,8 @@ sources:
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/utils/agent-event-publisher.js
   - ../project/agentbox/management-api/lib/audit-chain.js
+  - ../project/agentbox/management-api/lib/journal-lock.js
+  - ../project/agentbox/management-api/lib/journal-append.js
   - ../project/agentbox/management-api/lib/failure-taxonomy.js
   - ../project/agentbox/management-api/lib/execution-journal.js
   - ../project/agentbox/management-api/observability/metrics.js
@@ -55,7 +57,7 @@ sources:
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/flake.nix
   - ../project/agentbox/scripts/agentbox-config-validate.js
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 0693c761c782457066f081b46daf8f7f4ea29e3c
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -100,8 +102,8 @@ sequenceDiagram
     Boot->>Routes: app.register(routes/llm-marketplace)<br/>server.js:425
     Boot->>Routes: app.register(routes/dream)<br/>server.js:429
     Boot->>Routes: app.register(routes/exec-record), POST /v1/exec/record, ADR-2071 Phase 1<br/>server.js:434, called operator-gated at server.js:433 but carries no requireOperator, see Tension below
-    Boot->>App: app.get /livez /ready /health /health/pods /v1/meta /metrics /<br/>server.js:438-792
-    Note over App: ADR-2003 management-api (server.js included) is a flake.nix npm derivation built into the image (flake.nix:894-897),<br/>not a runtime install, and not generated from agentbox.toml (see AB-02.1 for the surrounding boot phases)
+    Boot->>App: app.get /livez /ready /health /health/pods /v1/meta /metrics /<br/>server.js:438-811
+    Note over App: ADR-2003 management-api (server.js included) is a flake.nix npm derivation built into the image (flake.nix:907-910),<br/>not a runtime install, and not generated from agentbox.toml (see AB-02.1 for the surrounding boot phases)
 ```
 
 **Tension:** `POST /v1/exec/record` is described as "operator-gated" (`../project/agentbox/management-api/server.js:433`, `../project/agentbox/management-api/routes/exec-record.js:6-7`), but the only gate is the global `preValidation` auth hook (`../project/agentbox/management-api/server.js:235-276`). The route attaches no `requireOperator` preHandler, unlike `routes/mandate.js` (`../project/agentbox/management-api/routes/mandate.js:311`). In `hybrid` or `nip98` mode any NIP-98-verified signer passes `authMiddleware` (`../project/agentbox/management-api/middleware/auth.js:194-199`), so any authenticated principal can append to the journal, not only the operator.
@@ -111,62 +113,62 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Start as start()<br/>server.js:917
+    participant Start as start()<br/>server.js:936
     participant Manifest as loadManifest<br/>adapters/manifest-loader.js
     participant App as fastify app
     participant Adapters as resolveAdapters<br/>adapters/index.js
 
-    Start->>Manifest: loadManifest()<br/>server.js:922
+    Start->>Manifest: loadManifest()<br/>server.js:941
     alt manifest file missing
-        Manifest-->>Start: ManifestNotFound<br/>server.js:925-927
+        Manifest-->>Start: ManifestNotFound<br/>server.js:944-946
         Start->>Start: manifest = {} all-off defaults
     end
-    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:948
-    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:949
+    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:967
+    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:968
     Note over Start,Adapters: see AB-04.1 for slot to implementation resolution detail
-    Start->>App: middleware/linked-data createEncoder ALWAYS runs and decorates linkedData,<br/>linked_data.enabled only changes the log level on success or failure<br/>server.js:955-977
-    Start->>App: register routes/uri-resolver always mounted<br/>server.js:986
-    Start->>App: register routes/chain (self-gates 503 when sidechain off)<br/>server.js:999
-    Start->>App: register routes/chain-payments, POST /v1/chain/pay with spend-policy in rail mode<br/>server.js:1012
-    Start->>App: register routes/system logger manifest adapters execution snapshot<br/>server.js:1029-1040
-    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:1057-1058
-    Start->>App: register routes/kg-elevation self-gates on sovereign_mesh.kg_elevation<br/>server.js:1072
-    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1094-1102
+    Start->>App: middleware/linked-data createEncoder ALWAYS runs and decorates linkedData,<br/>linked_data.enabled only changes the log level on success or failure<br/>server.js:974-996
+    Start->>App: register routes/uri-resolver always mounted<br/>server.js:1005
+    Start->>App: register routes/chain (self-gates 503 when sidechain off)<br/>server.js:1018
+    Start->>App: register routes/chain-payments, POST /v1/chain/pay with spend-policy in rail mode<br/>server.js:1031
+    Start->>App: register routes/system logger manifest adapters execution snapshot<br/>server.js:1048-1059
+    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:1076-1077
+    Start->>App: build the elevation publisher only when sovereign_mesh.kg_elevation is on, then register routes/kg-elevation, which self-gates and reports the publisher on /ready<br/>server.js:1091-1095, server.js:568-573
+    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1116-1124
     opt project_tracking.enabled true
-        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1104-1111
+        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1126-1133
     end
     alt sovereign_mesh.multi_user.enabled true
-        Start->>App: register routes/admin-users<br/>server.js:1133-1135
+        Start->>App: register routes/admin-users<br/>server.js:1155-1157
     else disabled default
-        Start->>Start: /admin/users/* not mounted<br/>server.js:1145
+        Start->>Start: /admin/users/* not mounted<br/>server.js:1167
     end
-    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1155-1158
-    Start->>App: register routes/well-known x402 discovery<br/>server.js:1178
-    Start->>App: buildAuthorityConsumer + buildAuthorityJournal + buildAuthorityGate, decorate authorityDenyJournal authorityConsumer authorityGate<br/>server.js:1197-1229
-    Start->>App: bootReceiptPublisher over the same deny journal (boot flush, then one per minute), decorate governanceReceiptPublisher, stop on close<br/>server.js:1223-1227
-    Note over Start: fallback to governance-decision-waiter.awaitDecision when the authority consumer is null (server.js:1211-1213)
-    Start->>App: register routes/beads<br/>server.js:1243
-    Start->>App: register routes/mandate<br/>server.js:1254
-    Start->>App: register routes/sessions-boundary<br/>server.js:1264
-    Start->>App: register routes/approvals<br/>server.js:1274
-    Start->>App: register routes/briefing with processManager, ADR-2072<br/>server.js:1289
-    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1346-1352
-    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1362-1378
+    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1177-1180
+    Start->>App: register routes/well-known x402 discovery<br/>server.js:1200
+    Start->>App: buildAuthorityConsumer + buildAuthorityJournal + buildAuthorityGate, decorate authorityDenyJournal authorityConsumer authorityGate<br/>server.js:1219-1251
+    Start->>App: bootReceiptPublisher over the same deny journal (boot flush, then one per minute), decorate governanceReceiptPublisher, stop on close<br/>server.js:1245-1249
+    Note over Start: fallback to governance-decision-waiter.awaitDecision when the authority consumer is null (server.js:1233-1235)
+    Start->>App: register routes/beads<br/>server.js:1265
+    Start->>App: register routes/mandate<br/>server.js:1276
+    Start->>App: register routes/sessions-boundary<br/>server.js:1286
+    Start->>App: register routes/approvals<br/>server.js:1296
+    Start->>App: register routes/briefing with processManager, ADR-2072<br/>server.js:1311
+    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1368-1374
+    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1384-1400
     Note over Start,Adapters: see AB-04.6 connectAdapters per-slot deadline detail, not re-drawn here
     opt AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE true
-        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1385-1386, server.js:1429-1447
+        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1407-1408, server.js:1451-1469
     end
     opt junkiejarvisEnabled(manifest)
-        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1468-1487
+        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1490-1509
     end
-    Start->>Start: headroom.init(logger) decorate headroom or null<br/>server.js:1504-1512
-    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1516-1518
-    Start->>App: app.listen port PORT host HOST<br/>server.js:1521
+    Start->>Start: headroom.init(logger) decorate headroom or null<br/>server.js:1526-1534
+    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1538-1540
+    Start->>App: app.listen port PORT host HOST<br/>server.js:1543
     Note over Start: MANAGEMENT_API_PORT default 9090 (server.js:45) HOST default 0.0.0.0 (server.js:50)<br/>compose publishes 127.0.0.1 9090 9090 only
     Note over Start: agentbox main b9e0ea9a8 (S-3) leaves the 0.0.0.0 bind alone and instead makes the two readers of X-Agentbox-Pubkey (agent-event-auth and action-plane resolveAgentDid)<br/>honour it only from a loopback TCP peer (lib/agent-event-auth.js:98-106, :116-117, AGENTBOX_PROXY_PEERS overrides the peer list), so a cross-container<br/>MANAGEMENT_API_KEY holder can no longer assert an identity through it. The auth gate itself never reads the header, see AB-10.14
 ```
 
-**Drift:** the route tables AB-03.6 to AB-03.11 do not draw four mounted surfaces: `routes/status` (`../project/agentbox/management-api/server.js:348`), `routes/chain` (`../project/agentbox/management-api/server.js:999`), `routes/chain-payments` (`../project/agentbox/management-api/server.js:1012`) and `routes/briefing` (`../project/agentbox/management-api/server.js:1289`). The topic is a partial route census, not the complete one its title implies.
+**Drift:** the route tables AB-03.6 to AB-03.11 do not draw four mounted surfaces: `routes/status` (`../project/agentbox/management-api/server.js:348`), `routes/chain` (`../project/agentbox/management-api/server.js:1018`), `routes/chain-payments` (`../project/agentbox/management-api/server.js:1031`) and `routes/briefing` (`../project/agentbox/management-api/server.js:1311`). The topic is a partial route census, not the complete one its title implies.
 
 ## AB-03.3 generic request lifecycle — Fastify hook phases, auth and validation failure
 
@@ -283,7 +285,7 @@ sequenceDiagram
         end
     end
     end
-    Note over RO,RA: ADR-2013 — 9096 is the ONE LAN-published ingress door<br/>(docker-compose.yml:47, sanctioned check-ports-loopback.mjs:94) — 9090 management API is loopback-only (docker-compose.yml:48)
+    Note over RO,RA: ADR-2013 — 9096 is the ONE LAN-published ingress door<br/>(docker-compose.yml:48, sanctioned check-ports-loopback.mjs:101) — 9090 management API is loopback-only (docker-compose.yml:49)
 ```
 
 ## AB-03.6 route table (a) — system, status, well-known, uri-resolver, meta probes
@@ -292,16 +294,16 @@ sequenceDiagram
 flowchart TD
     subgraph probes["public probes — auth-skip allowlist server.js:237-273"]
         A1["GET /livez<br/>server.js:438"] --> H1["event-loop-alive only<br/>server.js:453"]
-        A2["GET /ready<br/>server.js:469"] --> H2["bootstrap+adapters+paths check, 503 with missing list<br/>server.js:494-577"]
-        A3["GET /health<br/>server.js:582"] --> H3["adapterHealth snapshot plus adapter_failures<br/>server.js:608-619"]
-        A4["GET /health/pods<br/>server.js:625"] --> H4["probePodHealth<br/>server.js:121-185"]
-        A5["GET /v1/meta<br/>server.js:646"] --> H5["image_hash + adapter contract versions<br/>server.js:673-688"]
-        A6["GET /metrics<br/>server.js:692"] --> H6["metrics.register.metrics<br/>server.js:705"]
-        A7["GET /<br/>server.js:709"] --> H7["endpoint index<br/>server.js:727-790"]
+        A2["GET /ready<br/>server.js:473"] --> H2["bootstrap+adapters+paths check, 503 with missing list<br/>server.js:501-596"]
+        A3["GET /health<br/>server.js:601"] --> H3["adapterHealth snapshot plus adapter_failures<br/>server.js:627-638"]
+        A4["GET /health/pods<br/>server.js:644"] --> H4["probePodHealth<br/>server.js:121-185"]
+        A5["GET /v1/meta<br/>server.js:665"] --> H5["image_hash + adapter contract versions<br/>server.js:692-707"]
+        A6["GET /metrics<br/>server.js:711"] --> H6["metrics.register.metrics<br/>server.js:724"]
+        A7["GET /<br/>server.js:728"] --> H7["endpoint index<br/>server.js:746-809"]
     end
     subgraph sysroutes["routes/system.js — authed, always mounted"]
         B1["GET /v1/system<br/>routes/system.js:44"] --> HB1["buildSystemView + buildExecutionCoverage<br/>routes/system.js:58-61"]
-        B2["GET /v1/system/audit-chain<br/>routes/system.js:65"] --> HB2["auditChain.verifyFiles(?days=N)<br/>routes/system.js:85-93 see AB-03.12"]
+        B2["GET /v1/system/audit-chain<br/>routes/system.js:65"] --> HB2["auditChain.verifyFiles(files, complete unless ?days=N)<br/>routes/system.js:87-93 see AB-03.12"]
     end
     subgraph wellknown["public discovery"]
         C1["GET /.well-known/x402.json<br/>routes/well-known.js:64"] --> HC1["cached manifest or 404<br/>routes/well-known.js:34-52,90-95"]
@@ -320,10 +322,10 @@ flowchart TD
 flowchart TD
     subgraph tasks["routes/tasks.js"]
         T1["POST /v1/tasks<br/>tasks.js:16<br/>guard costGate tasks.js:43"] --> TH1["dispatchTaskSpawn via action plane<br/>tasks.js:8, no unjournalled spawn :76"]
-        T2["GET /v1/tasks/:taskId<br/>tasks.js:107"] --> TH2["getTaskStatus<br/>tasks.js:148"]
-        T3["GET /v1/tasks<br/>tasks.js:163"] --> TH3["getActiveTasks<br/>tasks.js:192"]
-        T4["DELETE /v1/tasks/:taskId<br/>tasks.js:203"] --> TH4["stopTask<br/>tasks.js:244"]
-        T5["GET /v1/tasks/:taskId/logs/stream<br/>tasks.js:273"] --> TH5["log tail<br/>tasks.js:316"]
+        T2["GET /v1/tasks/:taskId<br/>tasks.js:107"] --> TH2["getTaskStatus<br/>tasks.js:151"]
+        T3["GET /v1/tasks<br/>tasks.js:166"] --> TH3["getActiveTasks<br/>tasks.js:200"]
+        T4["DELETE /v1/tasks/:taskId<br/>tasks.js:211"] --> TH4["stopTask<br/>tasks.js:252"]
+        T5["GET /v1/tasks/:taskId/logs/stream<br/>tasks.js:281"] --> TH5["log tail<br/>tasks.js:324"]
     end
     subgraph beads["routes/beads.js — self-gates 503 when beads adapter off"]
         B1["GET /v1/beads<br/>beads.js:93"] --> BH1["list beads via adapter"]
@@ -338,8 +340,8 @@ flowchart TD
         P1["GET /v1/projects<br/>projects.js:106"] --> PH1["tracker.list"]
         P2["GET /v1/projects/:id<br/>projects.js:146"] --> PH2["tracker.get"]
         P3["GET /v1/projects/:id/activity<br/>projects.js:185"] --> PH3["git commit activity"]
-        P4["POST /v1/projects/scan<br/>projects.js:233"] --> PH4["tracker.scan<br/>boot scan server.js:1106-1107"]
-        P5["POST /v1/projects/:id/primer<br/>projects.js:274"] --> PH5["PrimerGenerator — server.js:1089"]
+        P4["POST /v1/projects/scan<br/>projects.js:233"] --> PH4["tracker.scan<br/>boot scan server.js:1128-1129"]
+        P5["POST /v1/projects/:id/primer<br/>projects.js:274"] --> PH5["PrimerGenerator — server.js:1111"]
         P6["POST /v1/projects/:id/publish<br/>projects.js:327"] --> PH6["kind-30841 nostr digest publish"]
     end
 ```
@@ -355,7 +357,8 @@ flowchart TD
         M4["GET /v1/memory<br/>memory.js:288"] --> MH4["list memory keys"]
     end
     subgraph kg["routes/kg-elevation.js — self-gates on sovereign_mesh.kg_elevation"]
-        K1["POST /v1/kg-elevation/scan<br/>kg-elevation.js:77<br/>guard verifyAgentEventRequest kg-elevation.js:114"] --> KH1["scan personal KG via memory adapter<br/>ADR-2116 gateElevation before federation — see AB-03.18<br/>emit LINK beams + ontology-propose descriptor"]
+        K1["POST /v1/kg-elevation/scan<br/>kg-elevation.js:97<br/>guard verifyAgentEventRequest kg-elevation.js:134"] --> KH1["scan personal KG via memory adapter<br/>ADR-2116 gateElevation before federation — see AB-03.18<br/>emit LINK beams + ontology-propose descriptor"]
+        K2["GET /v1/kg-elevation/federation<br/>kg-elevation.js:86<br/>publisher status: gate, configured, skipped, failed"]
     end
     subgraph lo["routes/linked-objects.js — viewer.mountPath, auth-skip for /lo/*"]
         L1["GET /lo/*<br/>linked-objects.js:133"] --> LH1["static viewer bundle — no auth (server.js:251-253)"]
@@ -389,7 +392,7 @@ flowchart TD
         E8["GET /v1/agent-events/status<br/>agent-events.js:828"] --> EH8["forwarder status"]
     end
     subgraph au["routes/admin-users.js — mounted only if sovereign_mesh.multi_user.enabled"]
-        AU1["POST /admin/users/provision<br/>admin-users.js:138"] --> AUH1["501 stub — see PRD-007 (server.js:1140)"]
+        AU1["POST /admin/users/provision<br/>admin-users.js:138"] --> AUH1["501 stub — see PRD-007 (server.js:1162)"]
         AU2["POST /admin/users/:pubkey/git-init<br/>admin-users.js:196"] --> AUH2["501 stub"]
         AU3["POST /admin/users/:pubkey/suspend<br/>admin-users.js:230"] --> AUH3["501 stub"]
         AU4["POST /admin/users/:pubkey/archive<br/>admin-users.js:246"] --> AUH4["501 stub"]
@@ -456,7 +459,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph vi["routes/voice-intent.js — WS7, mandate-gated"]
-        VI1["POST /v1/voice-intent<br/>voice-intent.js:85"] --> VIH1["transcript to agent intent<br/>optional Jev interpret after the speaker, mandate and target checks, off by default,<br/>422 clarification-needed holds a doubted intent (voice-intent.js:227-229)<br/>dispatch signed 31402, or 503 dispatch-unavailable when no dispatcher is wired (voice-intent.js:237-241;<br/>dispatcher built by buildVoiceIntentDispatcher server.js:878, :1057)"]
+        VI1["POST /v1/voice-intent<br/>voice-intent.js:85"] --> VIH1["transcript to agent intent<br/>optional Jev interpret after the speaker, mandate and target checks, off by default,<br/>422 clarification-needed holds a doubted intent (voice-intent.js:227-229)<br/>dispatch signed 31402, or 503 dispatch-unavailable when no dispatcher is wired (voice-intent.js:237-241;<br/>dispatcher built by buildVoiceIntentDispatcher server.js:897, :1076)"]
     end
     subgraph bb["routes/broker-bridge.js — G6"]
         BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:316"] --> BBH1["enrichment review inbox"]
@@ -486,40 +489,52 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Adapter as LocalJsonlEventsAdapter.dispatch<br/>adapters/events/local-jsonl.js:61
+    participant Adapter as LocalJsonlEventsAdapter.dispatch<br/>adapters/events/local-jsonl.js:64
+    participant Lock as journalLock.withLock<br/>lib/journal-lock.js:149
     participant Chain as audit-chain.js<br/>lib/audit-chain.js
-    participant Disk as YYYY-MM-DD.jsonl<br/>adapters/events/local-jsonl.js:114
+    participant Disk as YYYY-MM-DD.jsonl<br/>adapters/events/local-jsonl.js:102
     participant Sys as GET /v1/system/audit-chain<br/>routes/system.js:65
 
-    Note over Adapter,Chain: hash = SHA256(prev_hash || canonical_json(record minus prev_hash,hash))<br/>lib/audit-chain.js:6 and :68-72
-    Adapter->>Chain: _initChain — readTail(dir) on first dispatch<br/>local-jsonl.js:122-127, audit-chain.js:195-229
-    Chain->>Disk: scan files newest first, walk lines backward, skip torn lines<br/>audit-chain.js:198-226
+    Note over Adapter,Chain: hash = SHA256(prev_hash || canonical_json(record minus prev_hash,hash))<br/>lib/audit-chain.js:6 and :79-83
+    Adapter->>Adapter: dispatch calls _commit(event), then notifies in-process subscribers<br/>local-jsonl.js:68, local-jsonl.js:129
+    Adapter->>Lock: without an injected appendFn the whole read-tail, hash, append span runs under the cross-process O_EXCL lock<br/>local-jsonl.js:139, journal-lock.js:12
+    Adapter->>Adapter: re-read the tail only when the file inode and size differ from this instance's last write<br/>local-jsonl.js:141-144, local-jsonl.js:178
+    Adapter->>Chain: _initChain — readTail(dir)<br/>local-jsonl.js:112-117, audit-chain.js:409-443
+    Chain->>Disk: scan files newest first, walk lines backward, skip torn lines<br/>audit-chain.js:416-440
     alt a chained tail record found
-        Disk-->>Chain: {prevHash record.hash, seq record.seq+1}<br/>audit-chain.js:216-219
+        Disk-->>Chain: {prevHash record.hash, seq record.seq+1}<br/>audit-chain.js:430-433
     else legacy or empty tail
-        Disk-->>Chain: {prevHash GENESIS_HASH, seq 0}<br/>audit-chain.js:200,222,228
+        Disk-->>Chain: {prevHash GENESIS_HASH, seq 0}<br/>audit-chain.js:414,436,442
     end
-    Adapter->>Adapter: build record {ts,session_id,execution_id,kind,payload,seq}<br/>local-jsonl.js:66-73
-    Adapter->>Chain: hashRecord(prevHash, record)<br/>local-jsonl.js:75, audit-chain.js:68-72
-    Adapter->>Disk: append JSON line, only advance chain state on success<br/>local-jsonl.js:76-78,134-140
+    Adapter->>Adapter: _build the record {ts,session_id,execution_id,kind,payload,seq}, prev_hash, then hashRecord<br/>local-jsonl.js:162-174, audit-chain.js:79-83
+    Adapter->>Lock: lock.assertHeld, so a stalled holder that was taken over never appends<br/>local-jsonl.js:146
+    Adapter->>Disk: appendLine, chain state advances only on success<br/>local-jsonl.js:147-150, journal-append.js:37
+    Note over Adapter: a failed lock or append leaves the chain where it was, logs to stderr, and the event still reaches in-process subscribers<br/>local-jsonl.js:152-156
     Note over Adapter: session_urn threads execution-journal envelopes into this same chain — see AB-03.14
 
-    Sys->>Chain: verifyFiles(files sorted by name)<br/>routes/system.js:78, :85, audit-chain.js:148-186
+    Sys->>Chain: verifyFiles(files sorted by name, complete true unless days is set)<br/>routes/system.js:78, :87, audit-chain.js:286
+    Chain->>Chain: load boundaries.json beside the journal, a missing file means none, an invalid one fails the verification<br/>audit-chain.js:296-300, audit-chain.js:318-320
     loop per file in order
-        Chain->>Chain: verifyLines — recompute hashRecord per line, compare prev_hash and hash<br/>audit-chain.js:89-138
-        alt unchained record before any chain started
-            Chain-->>Chain: legacy_prefix++ tolerated<br/>audit-chain.js:113-117
+        Chain->>Chain: verifyLines — recompute hashRecord per line, compare prev_hash and hash<br/>audit-chain.js:162-254
+        alt unparseable line
+            Chain-->>Chain: accepted only on an exact file, line and sha256 match with a declared boundary, then checking resumes at the next record on its own stored prev_hash<br/>audit-chain.js:187-203, audit-chain.js:214-232
+        else unchained record before any chain started
+            Chain-->>Chain: legacy_prefix++ tolerated<br/>audit-chain.js:208-210
         else prev_hash mismatch
-            Chain-->>Sys: ok false reason splice — broken_at index<br/>audit-chain.js:120-122
+            Chain-->>Sys: ok false reason splice — broken_at index<br/>audit-chain.js:236
         else hash mismatch
-            Chain-->>Sys: ok false reason edit — content altered<br/>audit-chain.js:123-126
+            Chain-->>Sys: ok false reason edit — content altered<br/>audit-chain.js:240
         end
     end
-    Chain-->>Sys: {ok, checked, legacy_prefix, tail_hash, broken_at}<br/>audit-chain.js:148-186
+    Chain-->>Sys: {ok, status, summary, checked, legacy_prefix, tail_hash, broken_at, boundaries, continuity}<br/>audit-chain.js:308-312, audit-chain.js:389
+    opt a declared boundary matches nothing
+        Chain-->>Sys: ok false, a complete verification also counts entries for files outside the set<br/>audit-chain.js:376-385
+    end
     opt result.ok is false
-        Sys->>Sys: logger.warn audit-chain.broken<br/>routes/system.js:87
+        Sys->>Sys: logger.warn audit-chain.broken<br/>routes/system.js:89
     end
     Note over Chain: INVARIANT deletion at the tail is the one tamper mode a bare hash chain cannot see (lib/audit-chain.js:14-16)
+    Note over Chain: DEBT a declared boundary proves nothing across the torn line - the verifier says continuity cannot be proved and re-anchors on the next record, audit-chain.js:222-229
 ```
 
 ## AB-03.13 lib/failure-taxonomy.js — MAST classifier on agent-events failure returns
@@ -613,13 +628,14 @@ sequenceDiagram
     participant H as routes/mandate.js POST /v1/mandate<br/>mandate.js:310
 
     rect rgb(232,244,255)
-    Note over Cli,Proxy: LAN-published trust boundary — the ONE ingress door (ADR-2013, docker-compose.yml:47)
+    Note over Cli,Proxy: LAN-published trust boundary — the ONE ingress door (ADR-2013, docker-compose.yml:48)
     Cli->>Proxy: HTTPS request to /mgmt/v1/mandate, NIP-98 kind-27235 Authorization header
-    Proxy->>Proxy: verify the NIP-98 header with NostrBridge.verifyNip98<br/>proxy.mjs:577
-    Proxy->>Proxy: /mgmt/ route strips its prefix (proxy.mjs:304-310) and re-attaches the<br/>NIP-98 Authorization verbatim for the upstream to re-verify (proxy.mjs:886-892)
+    Proxy->>Proxy: verify the NIP-98 header with NostrBridge.verifyNip98<br/>proxy.mjs:597
+    Proxy->>Proxy: pubkeyAllowed refuses every key while the boot config file is pending, ADR-2210, and any validly signed key off a non-empty allowlist, pubkey_not_allowed<br/>proxy.mjs:183-185, proxy.mjs:610-611
+    Proxy->>Proxy: /mgmt/ route strips its prefix (proxy.mjs:324-330) and re-attaches the<br/>NIP-98 Authorization verbatim for the upstream to re-verify (proxy.mjs:906-912)
     end
     rect rgb(240,255,235)
-    Note over App,H: loopback-only surface — 127.0.0.1 9090 9090 (docker-compose.yml:48)
+    Note over App,H: loopback-only surface — 127.0.0.1 9090 9090 (docker-compose.yml:49)
     Proxy->>App: POST /v1/mandate, Authorization Nostr base64-event, x-agentbox-pubkey, body JSON
     App->>App: addContentTypeParser buffers body into request.rawBody<br/>middleware/auth.js:263-279
     App->>PreVal: preValidation phase<br/>server.js:235
@@ -644,9 +660,9 @@ sequenceDiagram
     App->>App: onResponse records http_request_duration_seconds<br/>server.js:214-221, observability/metrics.js:58
 ```
 
-**Drift:** the earlier panel drew this write ending in an events-adapter dispatch (`mandate.created`, hash-chained into the JSONL log). `createSignedMandate` dispatches nothing to the events slot. It signs a kind-30078, or warns and keeps the mandate unsigned, and saves a local registry entry (`../project/agentbox/management-api/routes/mandate.js:191-231`). The panel also had the proxy forwarding `/mgmt/v1/mandate`, but the `/mgmt/` route strips its prefix (`../project/agentbox/config/nip98-proxy/proxy.mjs:304-310`).
+**Drift:** the earlier panel drew this write ending in an events-adapter dispatch (`mandate.created`, hash-chained into the JSONL log). `createSignedMandate` dispatches nothing to the events slot. It signs a kind-30078, or warns and keeps the mandate unsigned, and saves a local registry entry (`../project/agentbox/management-api/routes/mandate.js:191-231`). The panel also had the proxy forwarding `/mgmt/v1/mandate`, but the `/mgmt/` route strips its prefix (`../project/agentbox/config/nip98-proxy/proxy.mjs:324-330`).
 
-**Open:** source does not show that the forwarded NIP-98 header verifies a second time at the management API. The proxy forwards the caller's header verbatim after stripping `/mgmt/` (`../project/agentbox/config/nip98-proxy/proxy.mjs:886-892`). The API rebuilds the URL from the stripped path (`../project/agentbox/management-api/middleware/auth.js:73`). `verifyNip98` accepts only an exact or suffix match of the signed `u` tag against that URL (`../project/agentbox/mcp/servers/nostr-bridge.js:545-546`). A tag that keeps `/mgmt/` is not a suffix match of the stripped URL, so this path may answer 401. Only a runtime request through `/mgmt/` on port 9096 can settle it.
+**Open:** source does not show that the forwarded NIP-98 header verifies a second time at the management API. The proxy forwards the caller's header verbatim after stripping `/mgmt/` (`../project/agentbox/config/nip98-proxy/proxy.mjs:906-912`). The API rebuilds the URL from the stripped path (`../project/agentbox/management-api/middleware/auth.js:73`). `verifyNip98` accepts only an exact or suffix match of the signed `u` tag against that URL (`../project/agentbox/mcp/servers/nostr-bridge.js:550-551`). A tag that keeps `/mgmt/` is not a suffix match of the stripped URL, so this path may answer 401. Only a runtime request through `/mgmt/` on port 9096 can settle it.
 
 ## AB-03.16 middleware/*.js inventory — which routes and hooks actually consume each file
 
@@ -657,11 +673,11 @@ flowchart LR
     C["middleware/payment-gate.js<br/>paymentGate"] --> C1["preHandler on POST /v1/comfyui/workflow<br/>routes/comfyui.js:10,74"]
     D["middleware/privacy-filter.js<br/>ADR-008 layer 2"] --> D1["marker and assertion helpers imported by routes/memory.js<br/>memory.js:25-28"]
     D --> D2["wrapWithPrivacyFilter wraps every adapter dispatch<br/>see AB-04.4/AB-04.5, not re-drawn here"]
-    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["createEncoder always runs in start(); surfaces gated by linked_data.enabled<br/>server.js:955-977"]
-    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1155-1158"]
+    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["createEncoder always runs in start(); surfaces gated by linked_data.enabled<br/>server.js:974-996"]
+    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1177-1180"]
     F["middleware/spend-policy.js<br/>spendPolicy factory"] --> F1["required by routes/chain-payments.js:34,<br/>rail-mode hook built at chain-payments.js:146"]
     G["middleware/consumer-payer.js<br/>resolveSidestr"] --> G1["required by routes/chain-payments.js:35"]
-    F1 --> R["POST /v1/chain/pay, mounted in start()<br/>server.js:1012"]
+    F1 --> R["POST /v1/chain/pay, mounted in start()<br/>server.js:1031"]
     G1 --> R
     Note1["no other routes/*.js or server.js require them; scripts/agentbox-config-validate.js<br/>only checks payments.consumer coherence for spend-policy, it does not import it"]
 ```
@@ -673,15 +689,15 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant K as POST /v1/kg-elevation/scan<br/>routes/kg-elevation.js:77
+    participant K as POST /v1/kg-elevation/scan<br/>routes/kg-elevation.js:97
     participant G as gateElevation<br/>lib/elevation-stage.js:226
     participant Val as validateStandalone<br/>lib/elevation-stage.js:187
     participant Vault as runVaultPropose<br/>lib/ontology-propose.js
     participant Pub as elevationPublisher<br/>lib/elevation-publisher.js
 
-    K->>K: extractProposals(entries) builds candidates<br/>kg-elevation.js:157-170
+    K->>K: extractProposals(entries) builds candidates<br/>kg-elevation.js:177-190
     loop per candidate p
-        K->>G: gateElevation(p, {env})<br/>kg-elevation.js:182
+        K->>G: gateElevation(p, {env})<br/>kg-elevation.js:202
         G->>G: resolveRelationTargets, then renderStagedPage — status draft, sources id origin<br/>lib/elevation-stage.js:238, :244, :131-177
         alt a relation target unresolved, render fails, or two pages collide
             G-->>K: {proposable false, blocked true, stage_issues}<br/>lib/elevation-stage.js:239-253, :286-298
@@ -696,11 +712,11 @@ sequenceDiagram
                 G-->>K: outcome — proposable equals not blocked<br/>lib/elevation-stage.js:280
             end
         end
-        K->>K: p.patch_proposal, p.blockers, p.stage_issues, p.propose_error<br/>kg-elevation.js:183-186
+        K->>K: p.patch_proposal, p.blockers, p.stage_issues, p.propose_error<br/>kg-elevation.js:203-206
     end
     opt outcome.blocked
-        K->>K: logger.debug kg-elevation.blocked — not federated<br/>kg-elevation.js:188-194
+        K->>K: logger.debug kg-elevation.blocked — not federated<br/>kg-elevation.js:208-214
     end
-    K->>Pub: every candidate still emits its LINK beam, only unblocked ones are published<br/>kg-elevation.js:217, :229-233
+    K->>Pub: every candidate still emits its LINK beam, only unblocked ones are published<br/>kg-elevation.js:237, :249-253
     Note over G: DANGLING_LINK is the one issue code the gate tolerates standalone<br/>every relation target is dangling in a one-page scratch repo by construction (lib/elevation-stage.js:23-28, :47)
 ```

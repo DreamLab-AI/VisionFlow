@@ -1,6 +1,6 @@
 ---
 id: VW-04
-title: JS API surface, examples and downstream consumers
+title: JS API surface, README usage snippets and downstream consumers
 area: vowl-wasm
 governing:
   - ../vowl-wasm/README.md
@@ -16,6 +16,9 @@ sources:
   - ../vowl-wasm/README.md
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
   - ../vowl-wasm/tests/ngg1_wasm.test.mjs
+  - ../vowl-wasm/examples/barnes_hut_benchmark.rs
+  - ../vowl-wasm/Cargo.toml
+  - ../WasmVOWL/modern/package.json
   - ../vowl-wasm/src/interaction/mod.rs
   - ../vowl-wasm/.github/workflows/ci.yml
   - ../visionGraph/publishing-tools/WasmVOWL/modern/package.json
@@ -23,7 +26,7 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/protocol.ts
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts
-verified_commit: {vowl-wasm: f04ff27209a0350e926d5a8a183fe0eb8c416604, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1}
+verified_commit: {vowl-wasm: f04ff27209a0350e926d5a8a183fe0eb8c416604, visiongraph: d8277151a1404b456b5c7206187f7e4b50f25be1, wasmvowl: 3541105ae2fee133e41de87f0604b807f8623f50}
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](06-layout-and-release-repairs.md). Historical probe receipts retain their original revisions; source references were refreshed on 14 November 2026 after reviewing the plain-array loader, documentation and lint changes. The successor states the repaired contracts and acceptance boundaries.
@@ -108,6 +111,7 @@ sequenceDiagram
 ```
 - The worker resolves exported names "permissively (snake_case per Rust, with camelCase fallbacks)" (physics.worker.ts:33-37 comment) — it does not assume `wasm-bindgen`'s `js_name` renaming is exhaustive, a defensive stance against this crate's binding surface.
 - Drag pinning is optional on the worker side: `pinNode`, `unpinNode` and `reheat` are bound with `optionalMethod` (physics.worker.ts:126-128) and the message handlers return silently when the loaded package lacks them. The package supplies them from 0.2.2 (the worker's own comment says `vowl-wasm ≥ 0.2.2`, physics.worker.ts:50); a pin that succeeds wakes the layout to `DRAG_ALPHA` 0.3 and an unpin to `RELEASE_ALPHA` 0.1 (physics.worker.ts:212-225, physics.worker.ts:309-321).
+- The standalone WasmVOWL viewer is a second consumer and pins an older release: its `modern/package.json` installs the v0.1.1 tarball under the same package name (`../WasmVOWL/modern/package.json:19`), against the 0.2.3 tarball visionGraph installs, and nothing in either repository's cited files reconciles the two pins.
 - Cross-repo dependency direction: visionGraph installs the 0.2.3 GitHub release tarball under the package name `@dreamlab-ai/vowl-wasm`, rather than resolving that version from npm (publishing-tools/WasmVOWL/modern/package.json:25, publishing-tools/WasmVOWL/modern/package-lock.json:598-603). The npm publication of 0.2.2 failed; see VW-05.3 and the [1 November release assessment](../../estate-review/2026-11-01-vowl-ingest-and-release.md).
 
 - **Failure boundary:** `loadScope` changes generation/count before validating bytes (physics.worker.ts:271-295). After a rejected tier, a later Start can publish old positions under the new generation. Caller `nodeCount` is not checked against the loaded tier. `isMainToWorker` only checks an object with a string `type` (protocol.ts:195-200), so unchecked non-finite parameter messages reach CSR configuration. These are host-adapter gaps, not guarantees supplied by the codec.
@@ -153,3 +157,20 @@ flowchart TB
 **What it shows.** `loadArrays` accepts a graph already held in memory without NGG1 encoding. Invalid input leaves the preceding graph intact; the built-WASM regression checks both the error and retained counts (`tests/ngg1_wasm.test.mjs:100-130`).
 
 **Why it is this way.** Validation happens before the array copies and simulation replacement, so malformed input produces a JavaScript exception instead of reaching a simulation assertion (`src/bindings/explorer.rs:105-124`). This source review does not establish which downstream deployment includes the new export.
+
+## VW-04.10 Where the usage examples live — README snippets and one native Rust example
+```mermaid
+flowchart TB
+    README["README.md usage blocks, the only JavaScript examples the repository carries"] --> RSU["Rust usage<br/>README.md:52-74"]
+    README --> JSU["JavaScript: load, simulate, statistics<br/>README.md:78-89<br/>calls loadOntology, initSimulation, runSimulation, getStatistics, getMetadata, see VW-04.1"]
+    README --> POS["Reading positions back: getNodeIds once, then getNodePositions per frame<br/>README.md:98-108<br/>or writePositionsInto into a caller buffer, README.md:114-118, see VW-04.2"]
+    README --> WRK["NggExplorer for a rendering worker<br/>README.md:125-141, see VW-04.6"]
+    README --> NGG["decodeNgg1, encodeNgg1, ngg1Constants<br/>README.md:229-241, see VW-04.8"]
+    EX["examples/barnes_hut_benchmark.rs, native Rust, not JavaScript<br/>run with cargo run --release --example barnes_hut_benchmark<br/>examples/barnes_hut_benchmark.rs:3, Cargo.toml:131-132"]
+    EX --> BENCH["times the exact O(n squared) force pass against Barnes-Hut at theta 0.5, 0.9 and 1.2, for 100 to 2000 nodes, ten iterations each<br/>examples/barnes_hut_benchmark.rs:60-67, examples/barnes_hut_benchmark.rs:89-90, examples/barnes_hut_benchmark.rs:110"]
+    DEBT["DEBT: Cargo.toml:20 excludes /examples/*.html from the published package, but the repository tracks no HTML or JavaScript example,<br/>so a JS consumer's only worked code is the README snippets. No file under tests/ reads README.md, and the one built-WASM test covers NGG1 round trips, tests/ngg1_wasm.test.mjs:1-3"]
+    README --- DEBT
+    EX --- DEBT
+```
+**What it shows.** The topic's examples are README code blocks plus one Cargo example. The Cargo example is a native benchmark of the layout force pass and exercises none of the JavaScript surface drawn in VW-04.1.
+**Why it is this way.** The crate documents its frozen JS surface through README snippets (README.md:154-155) and keeps its one `examples/` file as a layout benchmark. Why no JavaScript example was added is not recorded in the files cited here.

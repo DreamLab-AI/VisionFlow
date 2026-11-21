@@ -10,6 +10,7 @@ governing:
 adrs: [agentbox:ADR-2153, agentbox:ADR-2042, agentbox:ADR-2098, agentbox:ADR-2101, agentbox:ADR-2033, agentbox:ADR-2002, agentbox:ADR-2009, agentbox:ADR-2010, agentbox:ADR-2011, agentbox:ADR-2013, agentbox:ADR-2026]
 sources:
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
+  - ../project/agentbox/config/lib/nip98-config.sh
   - ../project/agentbox/management-api/lib/pod-signer.js
   - ../project/agentbox/management-api/lib/agent-identity.js
   - ../project/agentbox/management-api/lib/agent-event-auth.js
@@ -36,7 +37,7 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
+verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 0693c761c782457066f081b46daf8f7f4ea29e3c}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
@@ -54,12 +55,12 @@ flowchart TB
     end
     subgraph agentbox["agentbox host processes"]
         PROXY["nip98-proxy  port 9096<br/>agentbox/config/nip98-proxy/proxy.mjs:19"]
-        NBB["NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js:500"]
+        NBB["NostrBridge.verifyNip98<br/>agentbox/mcp/servers/nostr-bridge.js:505"]
         PS["pod-signer buildPodNip98<br/>agentbox/management-api/lib/pod-signer.js:70"]
         AGID["agent-identity loadOrMint<br/>agentbox/management-api/lib/agent-identity.js:128"]
         AEA["agent-event-auth verifyAgentEventRequest<br/>agentbox/management-api/lib/agent-event-auth.js:135"]
-        GW["nostr-gateway SESSION_CLIENT<br/>agentbox/config/nostr-gateway/gateway.cjs:123"]
-        MGMT["management-api /mgmt/ upstream<br/>agentbox/config/nip98-proxy/proxy.mjs:304"]
+        GW["nostr-gateway SESSION_CLIENT<br/>agentbox/config/nostr-gateway/gateway.cjs:128"]
+        MGMT["management-api /mgmt/ upstream<br/>agentbox/config/nip98-proxy/proxy.mjs:324"]
     end
     subgraph sessions["agentbox-sessions (ADR-2153)<br/>unix socket only, no TCP listener"]
         SESS["daemon: socket 0660 in ab-sessions, uid from SO_PEERCRED<br/>checked against the ACL before any request is read<br/>agentbox/services/agentbox-sessions/src/api.rs:74"]
@@ -77,8 +78,10 @@ flowchart TB
     NIV -. "XR presence Schnorr(nonce||ts)<br/>NOT NIP-98" .-> NB
     MAC -- "Authorization: Bearer api_key<br/>management_api_client.rs:305" --> PROXY
     PROXY -- "NIP-98 kind-27235<br/>proxy-verified" --> NBB
-    PROXY -- "X-Agentbox-Pubkey<br/>injected, never trusted inbound<br/>proxy.mjs:878" --> MGMT
-    GW -- "op create / send as uid 961 (ab-gateway)<br/>gateway.cjs:436" --> SESS
+    PROXY -- "X-Agentbox-Pubkey<br/>injected, never trusted inbound<br/>proxy.mjs:898" --> MGMT
+    DOORN["INVARIANT ADR-2210 fail closed: the door refuses every identity while its boot config is absent or unreadable,<br/>and a signed key off a non-empty allowlist, pubkey_not_allowed - proxy.mjs:183-185<br/>DEBT the previous boot allow-list is served from proxy start until the config is re-projected,<br/>and indefinitely if projection fails - agentbox/config/lib/nip98-config.sh:26-27, see AB-10.2"]
+    PROXY -.- DOORN
+    GW -- "op create / send as uid 961 (ab-gateway)<br/>gateway.cjs:472" --> SESS
     SESS -- "POST /v1/sessions/boundary<br/>boundary.rs:86" --> MGMT
     PS -- "NIP-98 kind-27235<br/>buildNip98Header" --> POD
     AEA -- "NIP-98 kind-27235<br/>AGENTBOX_AGENT_EVENT_AUTH=nip98" --> NBB
@@ -94,7 +97,7 @@ flowchart TB
 
 **Debt:** the stamp's strength is the same-UID boundary of the agentbox container, because any process inside it reaches management-api over loopback (TODO-unified X-1; `agentbox/management-api/lib/agent-event-auth.js:36-39`).
 
-**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its port 9095 listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and port 9096 forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on port 9095 (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:313`); `partial` stays because the all-seed acceptance gap remains open (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:316`).
+**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its port 9095 listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and port 9096 forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on port 9095 (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:350`); `partial` stays because the all-seed acceptance gap remains open (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:353`).
 
 **Open (PROPOSED 2026-10-30, not implemented):** VisionClaw's identity-authority record now carries a Proposed room-admission section (ADR-2157, ADR-2160, ADR-2161): a `RoomAdmission` port after the presence handshake, fed by the home relay's signed NIP-29 39002 member list, and a single agentbox-held node federation key that VisionClaw never holds (`docs/IDENTITY-authority-chain.md`, section "Proposed"). Today the handshake alone admits a DID to any room, and the diagrams here describe only that shipped path.
 
@@ -267,7 +270,7 @@ sequenceDiagram
 ```
 
 Encrypted forum zones (ADR-2016, INGRESS-identity.md item 10): zone-key grants (rumor kind 21453) and signed NIP-171 epoch tickets (kind 1014, `../project/agentbox/management-api/lib/zone-keys.js:54-56`, `../project/agentbox/docs/INGRESS-identity.md:295-299`), gating and
-admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `../project/agentbox/config/nostr-gateway/gateway.cjs:689`), not here.
+admin-relay retry live in AB-12.11 and AB-13.5 (`zone-keys.js`, `../project/agentbox/config/nostr-gateway/gateway.cjs:725`), not here.
 
 The 2026-09-07 source closeout makes opaque session issuance, lookup and refresh
 conditional on `VISIONCLAW_LEGACY_SESSIONS=1/true`, default off. Browser REST signs

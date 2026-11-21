@@ -39,7 +39,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 0693c761c782457066f081b46daf8f7f4ea29e3c
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -477,8 +477,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Event["31403 from relay"] --> Verify["authority-consumer.js:259 handleInboundDecision<br/>signature verification and responder allowlist"]
-    Verify --> Reference["governance-correlation.js:21 responseMatchesRequest<br/>one unambiguous e reference to signed request"]
+    Event["31403 from relay"] --> Verify["authority-consumer.js:265 handleInboundDecision<br/>signature verification and responder allowlist"]
+    Verify --> Reference["governance-correlation.js:22 responseMatchesRequest<br/>one unambiguous e reference to signed request"]
     Reference --> Match{"Known request and optional case/panel agree?"}
     Match -->|yes| Resolve["Resolve only matching waiters<br/>cache verified response under request ID"]
     Match -->|no| Drop["No approval and no fallback by case or panel"]
@@ -634,7 +634,7 @@ Note over AEA,RT: RESOLVED ADR-2044 (was DIVERGENCE) — DEFAULT_POLICY flipped 
             alt header present and well-formed
                 PVP-->>AEA: pubkey
                 AEA-->>RT: {ok true, did "did:nostr:<pubkey>", pubkey} agent-event-auth.js:193-194
-                Note over AEA,PVP: this path trusts the SOLE identity ingress at port 9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header, see AB-10.3.<br/>INVARIANT: the header counts only from a loopback TCP peer, peerIsProxy accepts 127.0.0.1, ::1,<br/>::ffff:127.0.0.1 or AGENTBOX_PROXY_PEERS and fails closed with no socket (agent-event-auth.js:98-105)
+                Note over AEA,PVP: this path trusts the SOLE identity ingress at port 9096 (nip98-proxy) to have<br/>already verified the caller and stripped/re-injected the header, see AB-10.3.<br/>INVARIANT: the header counts only from a loopback TCP peer, peerIsProxy accepts 127.0.0.1, ::1,<br/>::ffff:127.0.0.1 or AGENTBOX_PROXY_PEERS and fails closed with no socket (agent-event-auth.js:98-105)<br/>The door itself refuses a validly signed key that is off a non-empty allowlist, and refuses every key while its boot config file is absent or unreadable, ADR-2210 (proxy.mjs:183-185). See AB-10.2
             else header absent or malformed
                 PVP-->>AEA: null
                 AEA-->>RT: {ok false, status 401, error "NIP-98 Authorization header required"} agent-event-auth.js:197
@@ -722,7 +722,7 @@ sequenceDiagram
     AI->>KF: writeFileSync mode 0o600 then chmodSync 0o600 (agent-identity.js:164-166)
     KF-->>AI: readable only by this uid
     BOOT->>BR: load bridge identity from AGENTBOX_BRIDGE_SK_FILE, legacy environment fallback remains
-    BOOT->>PX: RESOLVED ADR-2027 (2026-09-05, partial) — break-glass bearer now checks<br/>breakGlassNotExpired() and breakGlassScopeAllows() before granting, and every<br/>use/refusal is audited by token fingerprint (proxy.mjs:529-568, both bounds<br/>default-OFF and opt-in) — see AB-10.3
+    BOOT->>PX: RESOLVED ADR-2027 (2026-09-05, partial) — break-glass bearer now checks<br/>breakGlassNotExpired() and breakGlassScopeAllows() before granting, and every<br/>use/refusal is audited by token fingerprint (proxy.mjs:549-588, both bounds<br/>default-OFF and opt-in) — see AB-10.3
     end
     rect rgb(255,240,240)
     Note over ADR,PX: STILL PROPOSED AND NOT ACTIVE — the ADR-2027 requirements below have no code behind them
@@ -731,5 +731,5 @@ sequenceDiagram
     ADR-->>AI: rotation cadence, revocation procedure, named custodian, maximum response window — every row is UNCONFIRMED
     end
 Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row. Since 2026-10-03 the same<br/>doc also carries a generated prompt-egress register (46 routes at this revision, devuser-class<br/>credentials under Q8) - it catalogues egress routes, it does not settle custody<br/>
-Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2581) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
+Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2613) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
 ```
