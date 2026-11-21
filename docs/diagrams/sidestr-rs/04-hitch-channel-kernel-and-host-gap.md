@@ -30,7 +30,7 @@ sources:
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: fdeab5dc36a859b3b881d7d587af067c88795217, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
+verified_commit: {sidestr-rs: 04804c890c08dc8bbfbd797e17828abb725e55da, visionflow: fdeab5dc36a859b3b881d7d587af067c88795217, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
 ---
 
 ## For developers
@@ -39,7 +39,7 @@ verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionfl
 
 ## For the business
 
-Hitch gives two sidestr users fast off-chain updates and a one-hop hub path. It is Lightning-shaped but cannot connect to Lightning peers. Version 0.2.0 closes a hole in which a party could cheat with its own penalty path. It also takes over the money-bearing reactions to a channel being closed on the chain: punishing an old state and claiming what is owed. Any channel opened with the earlier version has to be closed with that version. The agent supplies host code for funding, relay transport, storage, watching and broadcasts. A current deployed open/pay/close receipt is not established here, and the watcher needs a genesis-identity check before activation acceptance.
+Hitch gives two sidestr users fast off-chain updates and a one-hop hub path. It is Lightning-shaped but cannot connect to Lightning peers. Version 0.2.0 closes a hole in which a party could cheat with its own penalty path. It also takes over the money-bearing reactions to a channel being closed on the chain: punishing an old state and claiming what is owed. Any channel opened with the earlier version has to be closed with that version. The agent supplies host code for funding, relay transport, storage, watching and broadcasts. A current deployed open/pay/close receipt is not established here, and the watcher now refuses a source that is not the chain the document names. What activation acceptance still lacks is a retained open, pay and close receipt.
 
 ## SR-04.1 Channel transaction boundary and the two-party revocation key
 
@@ -92,8 +92,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    SNAP["ChannelSnapshot v2, wallet key material<br/>sidestr-hitch/src/protocol/snapshot.rs:22"] --> RESTORE["restore checks keys, states and signatures<br/>sidestr-hitch/src/protocol/snapshot.rs:244"]
-    RESTORE --> TXID["DEBT: close and claim checks use txid only<br/>sidestr-hitch/src/protocol/snapshot.rs:341-353"]
+    SNAP["ChannelSnapshot v2, wallet key material<br/>sidestr-hitch/src/protocol/snapshot.rs:28"] --> RESTORE["restore checks keys, states and signatures<br/>sidestr-hitch/src/protocol/snapshot.rs:250"]
+    RESTORE --> TXID["DEBT: close and claim checks use txid only<br/>sidestr-hitch/src/protocol/snapshot.rs:347-359"]
     RESTORE --> MISSING["Missing prior reveals require resync<br/>sidestr-hitch/src/protocol/machine.rs:523"]
     FINAL["Finalised incoming update<br/>sidestr-hitch/src/route.rs:275"] --> DECIDE{"Invoice or route decision<br/>sidestr-hitch/src/route.rs:303"}
     DECIDE --> SETTLE["Settle or fail by amount, paid status<br/>and HTLC block expiry"]
@@ -103,9 +103,9 @@ flowchart TB
     ENDPOINT["Current agent host uses non-hub router<br/>sidestr-agent/src/hitch/host.rs:680"] --> DECIDE
 ```
 
-**What it shows.** Version 2 snapshots contain signing keys, revocation secrets and preimages; restore checks key relationships and retained signatures, but recorded closes/claims are checked only by transaction ID (`../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:22`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:244`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:341-353`). The pure router settles invoices or records a forward before returning its action, with fee and both-channel timeout deductions; the embedding host must persist/reload those records (`../sidestr-rs/sidestr-hitch/src/route.rs:198`, `../sidestr-rs/sidestr-hitch/src/route.rs:248`, `../sidestr-rs/sidestr-hitch/src/route.rs:303`). The present agent host constructs a non-hub router, and its payee lookup supplies no invoice Unix-expiry filter (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:680`, `../sidestr-rs/sidestr-agent/src/hitch/host.rs:1676-1683`).
+**What it shows.** Version 2 snapshots contain signing keys, revocation secrets and preimages; restore checks key relationships and retained signatures, but recorded closes/claims are checked only by transaction ID (`../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:28`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:250`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:347-359`). The pure router settles invoices or records a forward before returning its action, with fee and both-channel timeout deductions; the embedding host must persist/reload those records (`../sidestr-rs/sidestr-hitch/src/route.rs:198`, `../sidestr-rs/sidestr-hitch/src/route.rs:248`, `../sidestr-rs/sidestr-hitch/src/route.rs:303`). The present agent host constructs a non-hub router, and its payee lookup supplies no invoice Unix-expiry filter (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:680`, `../sidestr-rs/sidestr-agent/src/hitch/host.rs:1676-1683`).
 
-**Why it is this way.** Save-before-send is a host obligation; the machine itself performs no IO (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:30`). Missing prior reveals block normal updates and are requested through sync, while snapshots with an awaiting final revocation remain valid recovery states (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:523`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:647`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1205`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:326`).
+**Why it is this way.** Save-before-send is a host obligation; the machine itself performs no IO (`../sidestr-rs/sidestr-hitch/src/protocol/mod.rs:30`). Missing prior reveals block normal updates and are requested through sync, while snapshots with an awaiting final revocation remain valid recovery states (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:523`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:647`, `../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1205`, `../sidestr-rs/sidestr-hitch/src/protocol/snapshot.rs:332`).
 
 **Debt:** [Native recovery checks](../../estate-review/2026-11-01-sidestr-hitch-recovery.md) reproduce damaged-witness rebroadcasts and missing-secret close classification that persists after a late reveal; snapshot acceptance alone does not establish protection. Invoice wall-clock expiry policy and durable hub integration remain explicit acceptance tasks.
 
@@ -115,15 +115,15 @@ flowchart TB
 flowchart TB
     SPEND["host sees funding spent<br/>sidestr-hitch/src/protocol/chain.rs:176"] --> CLS{"classify against coop close,<br/>own commitment, every signed<br/>commitment of theirs"}
     CLS -->|"revoked state of theirs"| PEN["penalty on revocable to_local and HTLC outputs<br/>sidestr-hitch/src/protocol/chain.rs:276-306"]
-    CLS -->|"unrevoked close"| AFTER["after_close: claim to_local after delay,<br/>HTLC with preimage, offered HTLC after expiry<br/>sidestr-hitch/src/protocol/chain.rs:364"]
+    CLS -->|"unrevoked close"| AFTER["after_close: claim to_local after delay,<br/>HTLC with preimage, offered HTLC after expiry<br/>sidestr-hitch/src/protocol/chain.rs:368"]
     PEN --> WATCH
-    AFTER --> WATCH["watch_outputs: preimage read from witness,<br/>unspent claims retried when elapsed blocks exceed six<br/>sidestr-hitch/src/protocol/chain.rs:578"]
+    AFTER --> WATCH["watch_outputs: preimage read from witness,<br/>unspent claims retried when elapsed blocks exceed six<br/>sidestr-hitch/src/protocol/chain.rs:582"]
     REORG["un_spend after reorganisation<br/>sidestr-hitch/src/protocol/chain.rs:333"] --> BACK{"Local close already published?"}
     BACK -->|yes| AGAIN["Keep closed-out state; return close again"]
     BACK -->|no| PREV["Restore prior status, which may be open"]
 ```
 
-**What it shows.** Chain handling moved into the kernel in 0.2.0. `on_spend` classifies a funding spend and answers a revoked close with penalties on revocable to_local and HTLC outputs; `after_close` claims what this peer is owed; `watch_outputs` follows every output, reads a preimage from the other side's HTLC claim and republishes an unconfirmed claim; `un_spend` clears followed claims and restores the preceding status, which can be open if no local close was published (`../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:176`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:364`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:578`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:333`). The machine's own tick takes a claimable HTLC to the chain `delay + CLAIM_MARGIN` blocks before expiry (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1306`).
+**What it shows.** Chain handling moved into the kernel in 0.2.0. `on_spend` classifies a funding spend and answers a revoked close with penalties on revocable to_local and HTLC outputs; `after_close` claims what this peer is owed; `watch_outputs` follows every output, reads a preimage from the other side's HTLC claim and republishes an unconfirmed claim; `un_spend` clears followed claims and restores the preceding status, which can be open if no local close was published (`../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:176`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:368`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:582`, `../sidestr-rs/sidestr-hitch/src/protocol/chain.rs:333`). The machine's own tick takes a claimable HTLC to the chain `delay + CLAIM_MARGIN` blocks before expiry (`../sidestr-rs/sidestr-hitch/src/protocol/machine.rs:1306`).
 
 **Why it is this way.** Hitch's peer does these steps itself; keeping them in the sans-IO machine means a host only supplies the chain lookups and broadcasts the returned transactions. The independent Hitch/schema oracle checks selected protocol-run broadcasts only with its configured checkouts (`../sidestr-rs/sidestr-hitch/tests/oracle.rs:58-66`, `../sidestr-rs/sidestr-hitch/tests/oracle.rs:358`). A separate chain suite always runs native checks; optional siding replay and the consensus-oracle feature add separate judges (`../sidestr-rs/sidestr-hitch/tests/chain_consensus.rs:404-418`, `../sidestr-rs/sidestr-hitch/tests/chain_consensus.rs:876-900`).
 
@@ -135,12 +135,13 @@ flowchart TB
     HOST --> IO["Funding, relay transport,<br/>broadcast and scheduler"]
     HOST --> STO["Atomic snapshot store<br/>also public without cli on Unix<br/>../sidestr-rs/sidestr-agent/src/hitch/mod.rs:36"]
     HOST --> WATCH["ChainFollower<br/>hashes, signatures and links<br/>trusts transaction validity"]
-    WATCH --> GAP["Missing genesis pin enforcement<br/>same-signer foreign genesis accepted<br/>../sidestr-rs/sidestr-agent/src/hitch/follow.rs:121-140"]
+    WATCH --> PIN["RESOLVED at sidestr-rs 04804c89: genesis pin held from the chain document<br/>a foreign genesis is refused when planned and when applied<br/>../sidestr-rs/sidestr-agent/src/hitch/follow.rs:124-152"]
+    HOST --> NEXT["A refused index is that source's fault, so the host tries the next source<br/>../sidestr-rs/sidestr-agent/src/hitch/host.rs:2242-2251"]
     HOST --> GATE["Open/pay/close and recovery receipt<br/>still needed for activation acceptance"]
 ```
 
-**What it shows.** The host is implemented, not missing (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:647`). It loads a spend-key binding and state, drives funding and kind-23600 transport, and watches/broadcasts channel actions. Unix storage remains available without the CLI feature (`../sidestr-rs/sidestr-agent/src/hitch/mod.rs:36`). The watcher intentionally does not validate transactions, but it also drops the document's genesis pin (`../sidestr-rs/sidestr-agent/src/hitch/follow.rs:133`); [native scenarios](../../estate-review/evidence/2026-11-01/crate-boundary/follower-probe.json) reproduce same-signer foreign-genesis acceptance and replacement at fork zero.
+**What it shows.** The host is implemented, not missing (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:647`). It loads a spend-key binding and state, drives funding and kind-23600 transport, and watches/broadcasts channel actions. Unix storage remains available without the CLI feature (`../sidestr-rs/sidestr-agent/src/hitch/mod.rs:36`). The watcher intentionally does not validate transactions. Since 04804c89 it keeps the document's `genesisHash` as a pin: `plan` refuses an index whose first entry is another hash and `apply` refuses a block 0 that hashes to another (`../sidestr-rs/sidestr-agent/src/hitch/follow.rs:141-148`, `../sidestr-rs/sidestr-agent/src/hitch/follow.rs:202-209`, `../sidestr-rs/sidestr-agent/src/hitch/follow.rs:302-308`). A document without a `genesisHash`, such as a chain sealed before 0.0.5, follows as before (`../sidestr-rs/sidestr-agent/src/hitch/follow.rs:616-620`). At the earlier stamp [native scenarios](../../estate-review/evidence/2026-11-01/crate-boundary/follower-probe.json) reproduced same-signer foreign-genesis acceptance and replacement at fork zero; the refusal is covered by `a_genesis_the_document_pins_is_the_only_one_followed` (`../sidestr-rs/sidestr-agent/src/hitch/follow.rs:601-621`).
 
-**Why it is this way.** Kernel actions stay separate from host side effects. Binding checks protect the spend identity (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:652`), while chain identity needs its own enforced anchor at the watch boundary. The broadcast maturity guard is implemented (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:484`, `../sidestr-rs/sidestr-agent/src/hitch/host.rs:1028`). Script compatibility and a running faucet do not prove channel service acceptance.
+**Why it is this way.** Kernel actions stay separate from host side effects. Binding checks protect the spend identity (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:652`), and the watch boundary now anchors chain identity to the pinned genesis, with the host moving to the next source when an index is refused (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:2242-2251`). The broadcast maturity guard is implemented (`../sidestr-rs/sidestr-agent/src/hitch/host.rs:484`, `../sidestr-rs/sidestr-agent/src/hitch/host.rs:1028`). Script compatibility and a running faucet do not prove channel service acceptance.
 
-**Open:** pin the watched genesis; exercise open, pay, close, restart and reorganisation with retained receipts. No deployed channel exploit or completed activation is claimed.
+**Open:** exercise open, pay, close, restart and reorganisation with retained receipts. No deployed channel exploit or completed activation is claimed.
