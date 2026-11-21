@@ -74,13 +74,13 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'sealmap', 'codescape', 'visioncraft', 'estate']);
+const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'sealmap', 'codescape', 'visioncraft', 'prose-sanitiser', 'diagram-ir', 'estate']);
 // Areas imported from a repository's own narrative corpus (the diagrams-as-code
 // skill dialect: "For developers" / "For the business" sections and register
 // paragraphs around each diagram). The diagrams-only prose limit does not apply
 // to them; instead every `path:line` in their prose is cite-checked exactly as a
 // diagram's is, so the narrative is never less verified than the diagrams.
-const NARRATIVE_AREAS = new Set(['sealmap', 'dream-engine']);
+const NARRATIVE_AREAS = new Set(['sealmap', 'dream-engine', 'prose-sanitiser', 'diagram-ir']);
 const SKIP_DIRS = new Set(['hero', 'archive', 'rendered', 'src', 'upgraded', 'regen-2026-06-14', 'triptych-src', '.claude-flow', 'node_modules']);
 const SKIP_FILES = new Set(['README.md', 'COVERAGE.md']);
 // Hand-written, non-topic files an area may carry beside its topics.
@@ -347,7 +347,7 @@ const REPO_PREFIXES = [
   { key: 'diagram-ir', prefix: '../diagram-ir/' },
   { key: 'visionflow', prefix: '' },
 ];
-const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' , 'visiontouch-rs': 'visiontouch-rs', sealmap: 'sealmap', codescape: 'codescape', visioncraft: 'visioncraft' };
+const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' , 'visiontouch-rs': 'visiontouch-rs', sealmap: 'sealmap', codescape: 'codescape', visioncraft: 'visioncraft', 'prose-sanitiser': 'prose-sanitiser', 'diagram-ir': 'diagram-ir' };
 function repoOf(p) {
   const clean = p.replace(/^\.\//, '');
   for (const r of REPO_PREFIXES) if (r.prefix && clean.startsWith(r.prefix)) return { key: r.key, rel: clean.slice(r.prefix.length), abs: path.join(repoRoot, r.prefix) };

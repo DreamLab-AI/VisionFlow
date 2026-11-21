@@ -1,6 +1,6 @@
 # Diagrams as code
 
-Machine-readable diagrams for the VisionFlow estate: the single diagram corpus for every estate member. The area directories cover sixteen repositories; estate topics also cover shared services and supporting repositories. Revision labels declare the source baseline and are not automatic semantic verification. The [2026-09-07 audit](../estate-review/2026-09-07-estate-audit.md) records source findings, working-tree hashes and evidence limits. Sequence diagrams first; no narrative —
+Machine-readable diagrams for the VisionFlow estate: the single diagram corpus for every estate member. The area directories cover eighteen repositories; estate topics also cover shared services and supporting repositories. Revision labels declare the source baseline and are not automatic semantic verification. The [2026-09-07 audit](../estate-review/2026-09-07-estate-audit.md) records source findings, working-tree hashes and evidence limits. Sequence diagrams first; no narrative —
 every fact lives inside a diagram as a participant `path:line`, a message, or a `Note`. The two exceptions are
 the narrative areas below. This tree lives in the estate canon (VisionFlow) so that cross-repo edges are
 first-class; it was moved here from VisionClaw `docs/diagrams` on 2026-09-07 (history there up to 4d1a698e7),
@@ -12,7 +12,9 @@ diagrams-as-code skill dialect: "For developers" and "For the business" sections
 `**Debt:**` register paragraphs around each diagram, with `path:line` citations in the prose. The
 diagrams-only prose limit does not apply to those areas. Their prose is cite-checked exactly as diagrams are:
 each paragraph, list item and table row is one unit, a bare `:N` continues the last path in its own unit,
-and a range split across two code spans (`` `P:a`-`b` ``) is one range. New areas are diagrams-only.
+and a range split across two code spans (`` `P:a`-`b` ``) is one range. `prose-sanitiser/` and `diagram-ir/`, added on
+2026-11-21, are written in the same dialect from the start (their repositories have no corpus of their own), so they are
+narrative areas too. Any other new area is diagrams-only.
 
 All `sources:` / `governing:` paths are relative to the VisionFlow repo root and reach sibling checkouts through
 the local layout in [`docs/architecture/repository-map.md`](../architecture/repository-map.md) (`../project`,
@@ -35,10 +37,13 @@ fragment) and resolve by suffix against the file's own `sources:`.
 | `sidestr-rs/NN-*.md` | `SR-NN` | sidestr-rs — Rust sidechain port: reference-oracle ladder, assets and markets, EVM overlay, Hitch channels, reserve attestation (`../sidestr-rs`) |
 | `visiontouch-rs/NN-*.md` | `VT-NN` | visiontouch-rs — haptic device study: clean-room method, transport, SDK and force guard, calibration (`../visiontouch-rs`, private) |
 | `sealmap/NN-*.md` | `SM-NN` | sealmap — code maps and review evidence for diagrams-as-code corpora: symbol model, extraction, Mermaid writers, corpus and seals, delivery, dense projection. Moved here from the repository on 2026-11-05 (narrative area) (`../sealmap`) |
+| `prose-sanitiser/NN-*.md` | `PS-NN` | prose-sanitiser — de-slop and provenance-strip toolkit: scan pipeline and exit-code contract, website audit and SSRF filter, server with auth and Host checks, script and model directory resolution. Narrative area, written for the corpus on 2026-11-21 (`../prose-sanitiser`) |
+| `diagram-ir/NN-*.md` | `DI-NN` | diagram-ir — the diagram intermediate representation: IR and input parsers with the draw.io caps, rendering, template resolution. Narrative area, written for the corpus on 2026-11-21 (`../diagram-ir`) |
 | `codescape/NN-*.md` | `CS-NN` | Codescape — code-graph 3D view: crates and licence split, ingest → model → layout, server and presence, deploy contract. VisionClaw's view of it is `VC-39`, `VC-42`, `VC-43` (`../codescape`) |
 | `visioncraft/NN-*.md` | `VK-NN` | VisionCraft — expectation-driven development method and skill: contracts, method lifecycle, evidence adapters, CI and release, browser-WASM default and agentbox consumption (`../visioncraft`) |
 | `estate/NN-*.md` | `ES-NN` | cross-repo and infrastructure interfaces; `verified_commit` is a `{repo: sha}` map |
 | `COVERAGE.md` | | generated inverted indexes: diagram → file, ADR → files, governing doc → files, source path → files |
+| `REGISTER-prose-sanitiser.md`, `REGISTER-diagram-ir.md` | | register markers (`**Tension:**`, `**Debt:**`, `**Drift:**`, `**Open:**`, `**Invariant:**`) collected from each new narrative area by the diagrams-as-code skill's collector, as `REGISTER-visionclaw.md` is for VisionClaw; this tree's own generator collects none. Regenerate by running that collector over the area directory alone |
 | `hero/` | | marketing hero images and their Mermaid → Nano Banana pipeline; not part of the coverage tree |
 | `rendered/` | | mmdc SVG output, gitignored, regenerable |
 | `<area>/DECISIONS-TIMELINE.md` | | hand-written decision history a narrative area brought with it; not a topic file |
