@@ -30,15 +30,16 @@ The shape of governance events (kinds 31400 to 31405): panel definitions, propos
 
 Between: nostr-rust-forum, agentbox, visionclaw.
 
-3 live, 3 unverified, 0 closed.
+4 live, 3 unverified, 0 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | visionclaw | owner-decision | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
-| FORUM-PRIORITY-TAG | The forum relay parses the proposal priority tag as a number, so every label becomes 50, while the forum client and core crate use labels | nostr-rust-forum | engineering | open | 2026-11-16 |
-| GOV-CONTENT-KEY-ORDER | Governance event content built from free-form JSON (for example a proposal's `fields`) is serialised in a key order that depends on whether serde_json's preserve_order feature is unified into the build, so the same event can get a different id in different builds | nostr-rust-forum, visionclaw, agentbox | engineering | open | 2026-11-17 |
+| FORUM-PRIORITY-TAG | The forum relay parses the proposal priority tag as a number, so every label becomes 50, while the forum client and core crate use labels | nostr-rust-forum | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting forum release and deploy | 2026-11-20 |
+| GOV-CONTENT-KEY-ORDER | Governance event content built from free-form JSON (for example a proposal's `fields`) is serialised in a key order that depends on whether serde_json's preserve_order feature is unified into the build, so the same event can get a different id in different builds | nostr-rust-forum, visionclaw, agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting forum release and deploy | 2026-11-20 |
+| GOV-KEY-ORDER-ADOPTION | VisionClaw and agentbox have not adopted the governance content key-order rule: agentbox has JSON.stringify sites to sort and must re-copy the contract; VisionClaw needs a new nostr-bbs-core release and pin bump | visionclaw, agentbox, nostr-rust-forum | engineering | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -56,15 +57,13 @@ How VisionClaw sees and directs agents: the management API (tasks, status), the 
 
 Between: agentbox, visionclaw.
 
-3 live, 11 unverified, 1 closed.
+1 live, 11 unverified, 3 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | L-1 | Signed model/mobile session canaries | agentbox, visionclaw | device | open | 2026-11-15 |
-| CONTRACTS-F3 | GET /v1/tasks strips three fields VisionClaw requires, so list_tasks always fails | agentbox, visionclaw | untriaged | open | 2026-11-15 |
-| CONTRACTS-F4 | GET /v1/tasks/:taskId strips taskDir and logFile, which TaskStatus requires | agentbox, visionclaw | untriaged | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
 
@@ -90,18 +89,17 @@ How a caller proves who they are across components: NIP-98 request signing, did:
 
 Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website.
 
-7 live, 12 unverified, 3 closed.
+6 live, 12 unverified, 4 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| W3-05 (also 11-08 #1e) | NIP-98 door fails open if its boot step fails | visionclaw, agentbox | engineering | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
-| AW1-05 (also SP-OIDC-04) | The OIDC DPoP replay cache is a plain LRU and can evict a still-valid proof | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-ID-02 | NIP-98 replay retention not bounded to the acceptance window | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-OIDC-02 | Resource admission never dispatches OIDC/DPoP though challenge advertises it | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-OIDC-03 | DPoP `htu` normalisation lower-cases path and trims slash | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-OIDC-06 | Token `exp == now` and future `nbf` accepted; non-URL WebID falls back to `sub` | solid-pod-rs | untriaged | open | 2026-11-15 |
+| AW1-05 (also SP-OIDC-04) | The OIDC DPoP replay cache is a plain LRU and can evict a still-valid proof | solid-pod-rs | engineering | fixed on an unmerged branch: solid-pod-rs closeout/2026-11-20 | 2026-11-20 |
+| SP-ID-02 | NIP-98 replay retention not bounded to the acceptance window | solid-pod-rs | engineering | fixed on an unmerged branch: solid-pod-rs closeout/2026-11-20 | 2026-11-20 |
+| SP-OIDC-02 | Resource admission never dispatches OIDC/DPoP though challenge advertises it | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-OIDC-03 | DPoP `htu` normalisation lower-cases path and trims slash | solid-pod-rs | engineering | fixed on an unmerged branch: solid-pod-rs closeout/2026-11-20 | 2026-11-20 |
+| SP-OIDC-06 | Token `exp == now` and future `nbf` accepted; non-URL WebID falls back to `sub` | solid-pod-rs | owner-decision | open | 2026-11-20 |
 | NIP98-STALE-CONFIG | The NIP-98 door reads its allowlist once at start, so a file left by an earlier boot is served until the proxy restarts | agentbox | engineering | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
@@ -135,12 +133,12 @@ Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| X-1 | Same-UID boundary; per-role accounts and `/run/secrets` | agentbox | engineering | open | 2026-11-15 |
-| N-6 | Key-custody surfaces on shared UID | agentbox, sidestr-rs | engineering | open | 2026-11-15 |
-| W3-06 | Boot now creates a devuser-owned /run/secrets/ruvector-pg/ inside the role-only secrets mount in both modes, outside the role plan; ADR-2122 records that the activation rehearsal was not re-run with it present. | agentbox | untriaged | open | 2026-11-15 |
-| CD-F9 | Committed plaintext ruvector-postgres credentials | visionclaw | untriaged | open | 2026-11-15 |
-| CODEX-LEG-CONFINE | The Codex audit leg can read any file the cron user can read, and its turn count and spend are not bounded by the budget reservation | agentbox | engineering | open | 2026-11-16 |
-| NIP98-ROLE-READ | Under role isolation the NIP-98 proxy cannot read its own config file, so the door would stay closed | agentbox | engineering | open | 2026-11-20 |
+| X-1 | Same-UID boundary; per-role accounts and `/run/secrets` | agentbox | deployment | open | 2026-11-20 |
+| N-6 | Key-custody surfaces on shared UID | agentbox, sidestr-rs | deployment | open | 2026-11-20 |
+| W3-06 | Boot now creates a devuser-owned /run/secrets/ruvector-pg/ inside the role-only secrets mount in both modes, outside the role plan; ADR-2122 records that the activation rehearsal was not re-run with it present. | agentbox | deployment | open | 2026-11-20 |
+| CD-F9 | Committed plaintext ruvector-postgres credentials | visionclaw | owner-act | open | 2026-11-20 |
+| CODEX-LEG-CONFINE | The Codex audit leg can read any file the cron user can read, and its turn count and spend are not bounded by the budget reservation | agentbox | deployment | open | 2026-11-20 |
+| NIP98-ROLE-READ | Under role isolation the NIP-98 proxy cannot read its own config file, so the door would stay closed | agentbox | deployment | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -163,14 +161,13 @@ Zone membership, encryption of zone and inbox messages, key grants and their led
 
 Between: nostr-rust-forum, dreamlab-ai-website, agentbox.
 
-2 live, 4 unverified, 0 closed.
+1 live, 4 unverified, 1 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | nostr-rust-forum | owner-act | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
-| W2-02 | forum ADR-2027 describes an inbox-key relay change that is not on main | nostr-rust-forum | untriaged | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
 
@@ -189,22 +186,19 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-12 live, 4 unverified, 4 closed.
+9 live, 4 unverified, 7 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| AW1-01 | The mirror is built with DefaultSsrfCheck, so it refuses the operator's loopback relay that ADR-2010 says it admits | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-ACL-REVIEW-01 | [HIGH] Git clone exposes private child resources with only pod-root Read | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-ACL-REVIEW-03 | [MEDIUM] Proxy forwards X-Upstream-Authorization across cross-origin and HTTPS->HTTP redirects | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-ACL-REVIEW-04 | [MEDIUM] /.well-known/apps publishes per-pod manifest.json bypassing WAC | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-265 | JSON-LD ACLs should be read by expanded IRI (`@context`, `@vocab`, no `@graph`) | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-266 | Unparseable `.acl` body must be refused (400) | solid-pod-rs | untriaged | open | 2026-11-15 |
+| AW1-01 | The mirror is built with DefaultSsrfCheck, so it refuses the operator's loopback relay that ADR-2010 says it admits | solid-pod-rs | engineering | fixed on an unmerged branch: solid-pod-rs closeout/2026-11-20 | 2026-11-20 |
+| SP-PAR-265 | JSON-LD ACLs should be read by expanded IRI (`@context`, `@vocab`, no `@graph`) | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-PAR-266 | Unparseable `.acl` body must be refused (400) | solid-pod-rs | engineering | open | 2026-11-20 |
 | SP-PAR-273 | Insert-only PATCH should need only `acl:Append` | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-288 | `acl:accessTo`/`default` as absolute or relative IRIs must match | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-289 | Relative `acl:agent` WebIDs resolved against the ACL | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | untriaged | open | 2026-11-15 |
+| SP-PAR-288 | `acl:accessTo`/`default` as absolute or relative IRIs must match | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-PAR-289 | Relative `acl:agent` WebIDs resolved against the ACL | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | engineering | open | 2026-11-20 |
 | SP-PAR-292 | Forge/mirror need a shutdown hook | solid-pod-rs | untriaged | open | 2026-11-15 |
 | POD-PARITY | Resume the solid-pod-rs parity push: 251/280 = 89.6% strict over 300 rows, below the checker's 95% threshold (15 missing, 14 partial) | solid-pod-rs | engineering | open | 2026-11-16 |
 
@@ -225,17 +219,14 @@ Anything that moves or records value: pay routes, the teller and credit ledger, 
 
 Between: sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox.
 
-5 live, 8 unverified, 0 closed.
+2 live, 8 unverified, 3 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| N-10 | Correct the ecosystem map: sidestr is running with development paused; adoption of its capabilities is parked | sidestr-rs, agentbox | engineering | open | 2026-11-15 |
-| SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SIDESTR-F1 | No remediation had landed for any of the 25 open sidestr rows since the audit pin 814b9e54 | sidestr-rs | untriaged | open | 2026-11-15 |
-| SIDESTR-F3 | Snapshot module doc says "checked in full on restore"; witnesses are not checked (H1/H3) | sidestr-rs | untriaged | open | 2026-11-15 |
-| SIDESTR-F5 | Operator README says the txbt4 table ships disabled; shipped config enables it | sidestr-rs | untriaged | open | 2026-11-15 |
+| SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | solid-pod-rs | owner-decision | open | 2026-11-20 |
+| SIDESTR-F1 | No remediation had landed for any of the 25 open sidestr rows since the audit pin 814b9e54 | sidestr-rs | untriaged | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -258,17 +249,15 @@ How the ontology travels: authored pages, the build that turns them into publish
 
 Between: visiongraph, ontomark, loom, visionclaw, agentbox.
 
-5 live, 15 unverified, 1 closed.
+3 live, 15 unverified, 3 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| AW1-09 | `/ontology/derived` gated `power_user` only (Loom ADR-135 D7) | visionclaw, loom | engineering | open | 2026-11-15 |
+| AW1-09 | `/ontology/derived` gated `power_user` only (Loom ADR-135 D7) | visionclaw, loom | owner-decision | open | 2026-11-20 |
 | EA-05 | Matching bundle/server generations (loom/visionGraph) | loom, visiongraph | deployment | open | 2026-11-15 |
 | D-1 | Seven-day observation window with daily recall receipts | visionclaw, loom | external | open | 2026-11-15 |
-| AW1-11 | The Rust reload port carries a bundle's declared content digest but never compares it, contrary to ADR-141 decision 6 | loom, visionclaw | untriaged | open | 2026-11-15 |
-| CONTRACTS-F12 | Loom reads ontology scaffold bundles with ontomark-compile 0.1.1 while the corpus is built by ontomark 0.7.0 | loom, ontomark | untriaged | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
 
@@ -345,16 +334,17 @@ What one repository assumes about another's version: crate pins, submodule gitli
 
 Between: estate.
 
-4 live, 15 unverified, 0 closed.
+5 live, 15 unverified, 1 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | S-6 | Podkey pin re-pin | visionclaw | external | open | 2026-11-15 |
-| AW1-02 | agentbox pins solid-pod-rs 76ab7aab, which predates the SP-GIT-02 publication repair | agentbox, solid-pod-rs | untriaged | open | 2026-11-15 |
-| COV-A-F1 | Agentbox builds diagram-ir v0.1.0, not the audited 15cba16 | agentbox | untriaged | open | 2026-11-15 |
-| W4COVC-F3 | VC-39 cites codescape at a third revision; coverage script misses the path | codescape, visionclaw | untriaged | open | 2026-11-15 |
+| COV-A-F1 | Agentbox builds diagram-ir v0.1.0, not the audited 15cba16 | agentbox | owner-act | open | 2026-11-20 |
+| W4COVC-F3 | VC-39 cites codescape at a third revision; coverage script misses the path | codescape, visionclaw | engineering | open | 2026-11-20 |
+| SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | owner-act | open | 2026-11-20 |
+| PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | agentbox | owner-act | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
 
@@ -384,7 +374,7 @@ The autonomous nightly run as it touches other repositories: what it reads to ju
 
 Between: dream-engine, agentbox, visionflow.
 
-4 live, 2 unverified, 1 closed.
+3 live, 2 unverified, 2 closed.
 
 ### Live
 
@@ -393,7 +383,6 @@ Between: dream-engine, agentbox, visionflow.
 | M-5 | Completed live nightly receipt with sibling HEAD evidence | dream-engine, agentbox | deployment | open | 2026-11-15 |
 | DR-1 | Complete nightly agent-runtime journey | dream-engine, agentbox | deployment | open | 2026-11-15 |
 | N-13 | Dream governance: first rebuilt-engine night receipt; ledger silent since 10-24 | dream-engine, visionflow | deployment | open | 2026-11-15 |
-| COMPARE-F6 | This re-confirms DE-F2 at the pin; it is not a new defect. enable_automerge receives no evaluated SHA. It runs `gh pr ready` and then `gh pr merge --auto --squash` without `--match-head-commit`, the option dream-forge-an | dream-engine | untriaged | open | 2026-11-15 |
 
 ### Recorded as open, not re-checked
 
@@ -408,34 +397,29 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-70 live, 103 unverified, 36 closed.
+58 live, 102 unverified, 56 closed.
 
 ### visionclaw
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | engineering | open | 2026-11-20 |
-| W3-02 | Saved API keys never read back | visionclaw | engineering | open | 2026-11-15 |
+| W3-02 | Saved API keys never read back | visionclaw | engineering | open | 2026-11-20 |
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
 | 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | fixed on an unmerged branch: merged to VisionClaw main 2026-11-20, awaiting rebuild | 2026-11-20 |
-| ratify: VC 2039/2108 | When VisionClaw branch fix/estate-review-2026-11-15 merges: mark ADR-2039 accepted with its verified commit, and supersede ADR-2108 | visionclaw | engineering | open | 2026-11-16 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
-| L-3 | Clamp-fire receipt | visionclaw | engineering | open | 2026-11-15 |
+| L-3 | Clamp-fire receipt | visionclaw | deployment | open | 2026-11-20 |
 | L-4 | Failure-path telemetry liveness | visionclaw | deployment | open | 2026-11-15 |
 | L-6 | Amethyst/Amber mobile session | visionclaw | device | open | 2026-11-15 |
 | CY-C | Bring-up runbook for a clean machine (was: fresh-host runbook and Trust letter) | visionclaw | engineering | open | 2026-11-15 |
-| CD-F1 | AppState EventBus has handlers but no publisher; coordinator has no caller | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F2 | File-backed EventStore constructed, never appended | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F3 | Isaac runner `POST /v1/jobs` unauthenticated | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F4 | laya weights fetched at default branch, no revision, no offline flag | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F5 | openjev config comment cites absent `tests/test_vendor.py` | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F6 | `bin/jss.js` and its tests remain; `src/server.js` does not exist | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F7 | Compose says process-manager dials claude-zai-service:9600; it does not | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F8 | Second OWL-to-constraint pipeline compiled with no product caller | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F10 | `SemanticService::new` takes one argument but tests pass two; CI skips root tests | visionclaw | untriaged | open | 2026-11-15 |
-| CD-F11 | Orphan `voice_tag_integration_test.rs` included by no module | visionclaw | untriaged | open | 2026-11-15 |
+| CD-F1 | AppState EventBus has handlers but no publisher; coordinator has no caller | visionclaw | owner-decision | open | 2026-11-20 |
+| CD-F2 | File-backed EventStore constructed, never appended | visionclaw | owner-decision | open | 2026-11-20 |
+| CD-F3 | Isaac runner `POST /v1/jobs` unauthenticated | visionclaw | engineering | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
+| CD-F4 | laya weights fetched at default branch, no revision, no offline flag | visionclaw | owner-decision | open | 2026-11-20 |
+| CD-F8 | Second OWL-to-constraint pipeline compiled with no product caller | visionclaw | owner-decision | open | 2026-11-20 |
 | CD-F12 | VEX bundle self-digests unsigned; no workflow signs it | visionclaw | untriaged | open | 2026-11-15 |
+| SETTINGS-HANDLER-DEAD | The unmounted `src/handlers/settings_handler` module is dead code with latent provider-key leaks if it is ever remounted | visionclaw | owner-decision | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
@@ -486,19 +470,16 @@ Recorded as open, not re-checked:
 | L-2 | Second-model-family traffic canary | agentbox | deployment | open | 2026-11-15 |
 | ER-17 | SONA 384-dim | agentbox | external | open | 2026-11-15 |
 | RUSTSEC-0387 residue | `age 0.12.1` to p256 0.13 to crypto-bigint 0.5.5 in agentbox secret-backup; sidestr-evm k256 0.13 | agentbox, sidestr-rs | external | open | 2026-11-15 |
-| W3-04 | The licensing document says scripts/ci/check-crate-licensing.sh enforces the rule that sidestr crates come from crates.io only. The script checks only each crate's own package fields and licence files and never inspects | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F2 | draw.io path has no node/edge cap; 64 MiB per page unbounded in total | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F3 | Manifest says slop has no filesystem access; it reads files uncapped | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F4 | Unreadable file reads as a clean scan | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F5 | Harness scripts dir falls back to cwd `skills/prose-sanitiser` | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F6 | Self-check prefers cwd `./skills/diagram-design/...` template | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F7 | Server bearer key optional and compared with `==` | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F8 | `is_global` SSRF filter misses NAT64, 6to4, Teredo | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F9 | Derivation says eleven/twelve binaries; actual twelve plus server | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F10 | Rustdoc omits `GET /rules`; says c2pa 0.90, manifest 0.91 | agentbox | untriaged | open | 2026-11-15 |
-| COV-A-F11 | prose-sanitiser and diagram-ir have no diagram area | agentbox | untriaged | open | 2026-11-15 |
-| JOURNAL-LOCK | Two processes writing the audit journal at once can fork its hash chain: the writer takes no lock | agentbox | engineering | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
-| PODKEY-POLICY | Podkey does not load at Chrome start in the browser sidecar: a default extension block also disables unpacked loading | agentbox | deployment | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
+| COV-A-F2 | draw.io path has no node/edge cap; 64 MiB per page unbounded in total | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
+| COV-A-F3 | Manifest says slop has no filesystem access; it reads files uncapped | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
+| COV-A-F4 | Unreadable file reads as a clean scan | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
+| COV-A-F5 | Harness scripts dir falls back to cwd `skills/prose-sanitiser` | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
+| COV-A-F6 | Self-check prefers cwd `./skills/diagram-design/...` template | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
+| COV-A-F7 | Server bearer key optional and compared with `==` | agentbox | owner-decision | open | 2026-11-20 |
+| COV-A-F8 | `is_global` SSRF filter misses NAT64, 6to4, Teredo | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
+| COV-A-F10 | Rustdoc omits `GET /rules`; says c2pa 0.90, manifest 0.91 | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
+| COV-A-F11 | prose-sanitiser and diagram-ir have no diagram area | agentbox | engineering | open | 2026-11-20 |
+| ISAAC-RUNNER-TOKEN | `ISAAC_RUNNER_TOKEN` must be set where `isaac-job.js` runs, or Isaac jobs are refused after the next rebuild | agentbox | owner-act | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
@@ -533,6 +514,7 @@ Recorded as open, not re-checked:
 |---|---|---|---|---|---|
 | cheap: forum-tweaks | Delete remote `fix/forum-tweaks-2026-10-22` | nostr-rust-forum | engineering | open | 2026-11-15 |
 | AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
+| FORUM-INTENT-KEY-ORDER | `create_agent_intent_signer` builds its event content with `json!(...).to_string()`, the same build-dependent key order as GOV-CONTENT-KEY-ORDER, for a non-governance kind | nostr-rust-forum | engineering | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
@@ -559,7 +541,6 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | ER-29 | Cross-process anchoring locks (three in-process maps) | solid-pod-rs | engineering | open | 2026-11-15 |
-| AW1-03 | LwsCidVerifier never rejects an old or future iat | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-PAR-275 | Cross-process `.lock` file for writes | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-PAR-276 | PATCH should read JSON-LD, HTML islands, Turtle and write back in stored form | solid-pod-rs | untriaged | open | 2026-11-15 |
 | SP-PAR-277 | Stored JSON-LD `@graph` must serve as Turtle on `Accept: text/turtle` | solid-pod-rs | untriaged | open | 2026-11-15 |
@@ -592,12 +573,6 @@ Recorded as open, not re-checked:
 
 ### sidestr-rs
 
-| Id | Item | Components | Blocked by | State | Checked |
-|---|---|---|---|---|---|
-| SIDESTR-F2 | `un_spend` rustdoc says channel never goes back to open; code restores the previous status | sidestr-rs | untriaged | open | 2026-11-15 |
-| SIDESTR-F4 | sidestr-core crate doc says "not no_std"; CI step is labelled "no std" | sidestr-rs | untriaged | open | 2026-11-15 |
-| SIDESTR-F6 | TODO-unified N-10 says "Hitch has no host" though the host module exists | sidestr-rs | untriaged | open | 2026-11-15 |
-
 Recorded as open, not re-checked:
 
 | Id | Item | Components | Kind | Last recorded |
@@ -609,9 +584,7 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | X-5 | OWL/RDF vs flat retrieval experiment (loom PRD-028) | loom | external | open | 2026-11-15 |
-| COV-B-F1 | the SPARQL write-verb clamp refuses ordinary label searches | loom | untriaged | open | 2026-11-15 |
-| COV-B-F2 | a non-ASCII Xinference error body can abort the façade | loom | untriaged | open | 2026-11-15 |
-| COV-B-F3 | the model engine listens on every host interface with no key | loom | untriaged | open | 2026-11-15 |
+| COV-B-F3 | the model engine listens on every host interface with no key | loom | owner-decision | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
@@ -630,7 +603,7 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ER-18 | ontomark NGG2 relation codes/resolvers | ontomark | engineering | open | 2026-11-15 |
+| ER-18 | ontomark NGG2 relation codes/resolvers | ontomark | owner-decision | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
@@ -667,13 +640,7 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| W4COVC-F1 | `?server=` redirects REST, WebSockets and PTT mic audio to any origin | codescape | untriaged | open | 2026-11-15 |
-
-Recorded as open, not re-checked:
-
-| Id | Item | Components | Kind | Last recorded |
-|---|---|---|---|---|
-| W4COVC-F2 | LLM answer string unbounded and returned even on failed validation | codescape | finding | 2026-11-03 |
+| CODESCAPE-F2-HANDLER-TEST | codescape: the server-side test for the capped model answer covers the helper, not the handler branch; needs a mock Loom backend | codescape | engineering | open | 2026-11-20 |
 
 ### visiontouch-rs
 
@@ -687,11 +654,11 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| W4COVC-F4 | Root `postinstall`/`test` call grunt with no root Gruntfile | wasmvowl | untriaged | open | 2026-11-15 |
-| W4COVC-F5 | Dockerfile fetches WebVOWL war over plain HTTP, no checksum | wasmvowl | untriaged | open | 2026-11-15 |
-| W4COVC-F6 | Tests README documents non-existent scripts; suite points at absent `src/` | wasmvowl | untriaged | open | 2026-11-15 |
-| W4COVC-F7 | VW-04 promises examples, cites no `examples/` file | wasmvowl | untriaged | open | 2026-11-15 |
-| W4COVC-F8 | CI never runs the viewer's browser test | wasmvowl | untriaged | open | 2026-11-15 |
+| W4COVC-F5 | Dockerfile fetches WebVOWL war over plain HTTP, no checksum | wasmvowl | owner-decision | open | 2026-11-20 |
+| W4COVC-F7 | VW-04 promises examples, cites no `examples/` file | wasmvowl | engineering | open | 2026-11-20 |
+| W4COVC-F8 | CI never runs the viewer's browser test | wasmvowl | engineering | open | 2026-11-20 |
+| WASMVOWL-TOMCAT-EOL | WasmVOWL Dockerfile base image `tomcat:9-jre8-alpine` is end-of-life, and the image still serves upstream WebVOWL | wasmvowl | owner-decision | open | 2026-11-20 |
+| WASMVOWL-MODERN-TESTS | WasmVOWL `modern/` test suite fails on master (60 of 79 tests), so root `npm test` is red | wasmvowl | engineering | open | 2026-11-20 |
 
 ### visionflow
 
@@ -699,6 +666,7 @@ Recorded as open, not re-checked:
 |---|---|---|---|---|---|
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | visionflow, visiongraph | owner-act | open | 2026-11-15 |
 | CY-A3 | Three green scheduled nights of the estate check | visionflow | engineering | open | 2026-11-15 |
+| VF-SITE-VIDEO-BYTES | VisionFlow website: bytes fetched by `preload="metadata"` video (about 268 KB of container index by one estimate) are excluded from the performance budget test and measured nowhere | visionflow | engineering | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
