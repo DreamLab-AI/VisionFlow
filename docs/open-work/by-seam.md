@@ -89,18 +89,16 @@ How a caller proves who they are across components: NIP-98 request signing, did:
 
 Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website.
 
-6 live, 12 unverified, 7 closed.
+4 live, 12 unverified, 11 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| SP-OIDC-02 | Resource admission never dispatches OIDC/DPoP though challenge advertises it | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-OIDC-06 | Token `exp == now` and future `nbf` accepted; non-URL WebID falls back to `sub` | solid-pod-rs | owner-decision | open | 2026-11-20 |
 | NIP98-STALE-CONFIG | The NIP-98 door reads its allowlist once at start, so a file left by an earlier boot is served until the proxy restarts | agentbox | engineering | open | 2026-11-20 |
-| SP-NIP98-REPLAY-FILL | solid-pod-rs: the NIP-98 replay stores record straight after signature verification and refuse at capacity, so valid unique tokens can fill the store | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-TOKEN-CLOCK-SKEW | solid-pod-rs: token `exp` has zero clock-skew leeway, and DPoP `htm` is compared case-insensitively against RFC 9449 | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-DPOP-UNRECORDED-API | solid-pod-rs: `verify_dpop_proof_unrecorded` is public API whose caller must record the `jti` afterwards, and nothing enforces it | solid-pod-rs | engineering | open | 2026-11-20 |
+| SP-NIP98-REPLAY-FILL | solid-pod-rs: the NIP-98 replay stores record straight after signature verification and refuse at capacity, so valid unique tokens can fill the store | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-WEBID-SCHEME-ONLY | solid-pod-rs: `extract_webid` judges a WebID by an http or https prefix only, and `verify_webid_issuer_binding` has no caller | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-WELLKNOWN-OIDC-ISSUER | solid-pod-rs: `/.well-known/solid` still publishes `solid_oidc_issuer` although resource routes honour no OIDC token | solid-pod-rs | engineering | open | 2026-11-21 |
 
 ### Recorded as open, not re-checked
 
@@ -186,22 +184,20 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-10 live, 4 unverified, 10 closed.
+8 live, 4 unverified, 17 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| SP-PAR-265 | JSON-LD ACLs should be read by expanded IRI (`@context`, `@vocab`, no `@graph`) | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-266 | Unparseable `.acl` body must be refused (400) | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-288 | `acl:accessTo`/`default` as absolute or relative IRIs must match | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-289 | Relative `acl:agent` WebIDs resolved against the ACL | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | engineering | open | 2026-11-20 |
-| POD-PARITY | Resume the solid-pod-rs parity push: 251/280 = 89.6% strict over 300 rows, below the checker's 95% threshold (15 missing, 14 partial) | solid-pod-rs | engineering | open | 2026-11-16 |
-| SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | solid-pod-rs | owner-decision | open | 2026-11-20 |
-| SP-FORGE-DOTSEG | solid-pod-rs: the forge router's handling of dot segments under `/forge` was not reviewed, and the forge is now the only barrier for those paths | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-MIRROR-WS-REWRITE | solid-pod-rs: the mirror rewrites `ws` to `http` with a case-sensitive first-match `replacen`, so the SSRF check can run on a different host from the one dialled | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | solid-pod-rs | owner-decision | open | 2026-11-20 |
+| POD-PARITY | Resume the solid-pod-rs parity push: 264/280 = 94.3% strict at 25f4dfd, below the checker's 95% threshold (6 missing, 10 partial-parity) | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | solid-pod-rs | owner-decision | open | 2026-11-21 |
+| SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | solid-pod-rs | owner-decision | open | 2026-11-21 |
+| SP-ETAG-HOST-NEGOTIATED | solid-pod-rs: the ETag does not change when a negotiated body depends on the Host header | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-NOTIFY-SOCKET-COST | solid-pod-rs: each open notification socket costs one resolver walk per matching storage event, and behind a reverse proxy the per-peer cap of 16 is 16 sockets in total | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-FORGE-TOKEN-KEY-RACE | solid-pod-rs: the forge token key has a create and read race | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-ACL-TWIN-CREATE-RACE | solid-pod-rs: two requests can create both container ACL forms at once, because the twin check and the write are separate under `lock_resource` | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-JSONLD-ACL-PLACEHOLDER-BYTEMATCH | solid-pod-rs: the JSON-LD ACL placeholder-host check is a raw byte match, so only the document's author is affected | solid-pod-rs | engineering | open | 2026-11-21 |
 
 ### Recorded as open, not re-checked
 
@@ -226,7 +222,7 @@ Between: sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox.
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | solid-pod-rs | owner-decision | open | 2026-11-20 |
+| SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SIDESTR-F1 | No remediation had landed for any of the 25 open sidestr rows since the audit pin 814b9e54 | sidestr-rs | untriaged | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
@@ -335,7 +331,7 @@ What one repository assumes about another's version: crate pins, submodule gitli
 
 Between: estate.
 
-6 live, 15 unverified, 1 closed.
+5 live, 15 unverified, 2 closed.
 
 ### Live
 
@@ -343,10 +339,9 @@ Between: estate.
 |---|---|---|---|---|---|
 | S-6 | Podkey pin re-pin | visionclaw | external | open | 2026-11-15 |
 | COV-A-F1 | Agentbox builds diagram-ir v0.1.0, not the audited 15cba16 | agentbox | owner-act | open | 2026-11-20 |
-| W4COVC-F3 | VC-39 cites codescape at a third revision; coverage script misses the path | codescape, visionclaw | engineering | open | 2026-11-20 |
-| SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | owner-act | open | 2026-11-20 |
+| SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | owner-act | open | 2026-11-21 |
 | PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | agentbox | owner-act | open | 2026-11-20 |
-| VF-UNPUSHED-SIBLING-STAMPS | VisionFlow diagram topics SR-04, AB-32 and AB-33 are stamped to local unpushed sibling commits; VisionFlow must not be pushed before those repositories | visionflow, sidestr-rs, agentbox, visionclaw | owner-act | open | 2026-11-20 |
+| VF-UNPUSHED-SIBLING-STAMPS | VisionFlow diagram topics are stamped to local, unpushed sibling commits (SR-04, AB-32, AB-33, the NIP-98 set, prose-sanitiser and diagram-ir); VisionFlow must not be pushed before those repositories | visionflow, sidestr-rs, agentbox, visionclaw | owner-act | open | 2026-11-21 |
 
 ### Recorded as open, not re-checked
 
@@ -399,29 +394,28 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-58 live, 102 unverified, 59 closed.
+51 live, 102 unverified, 76 closed.
 
 ### visionclaw
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | engineering | open | 2026-11-20 |
-| W3-02 | Saved API keys never read back | visionclaw | engineering | open | 2026-11-20 |
+| 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | owner-act | open | 2026-11-21 |
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
 | 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | fixed on an unmerged branch: merged to VisionClaw main 2026-11-20, awaiting rebuild | 2026-11-20 |
-| X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-15 |
+| X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-21 |
 | X-4 | Upgrade rehearsal built, never run | visionclaw, agentbox | owner-act | open | 2026-11-15 |
 | L-3 | Clamp-fire receipt | visionclaw | deployment | open | 2026-11-20 |
 | L-4 | Failure-path telemetry liveness | visionclaw | deployment | open | 2026-11-15 |
 | L-6 | Amethyst/Amber mobile session | visionclaw | device | open | 2026-11-15 |
 | CY-C | Bring-up runbook for a clean machine (was: fresh-host runbook and Trust letter) | visionclaw | engineering | open | 2026-11-15 |
-| CD-F1 | AppState EventBus has handlers but no publisher; coordinator has no caller | visionclaw | owner-decision | open | 2026-11-20 |
-| CD-F2 | File-backed EventStore constructed, never appended | visionclaw | owner-decision | open | 2026-11-20 |
 | CD-F3 | Isaac runner `POST /v1/jobs` unauthenticated | visionclaw | engineering | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
 | CD-F4 | laya weights fetched at default branch, no revision, no offline flag | visionclaw | owner-decision | open | 2026-11-20 |
-| CD-F8 | Second OWL-to-constraint pipeline compiled with no product caller | visionclaw | owner-decision | open | 2026-11-20 |
 | CD-F12 | VEX bundle self-digests unsigned; no workflow signs it | visionclaw | untriaged | open | 2026-11-15 |
-| SETTINGS-HANDLER-DEAD | The unmounted `src/handlers/settings_handler` module is dead code with latent provider-key leaks if it is ever remounted | visionclaw | owner-decision | open | 2026-11-20 |
+| VC-NOSTR-KEYS-REDIS-ORDER | VisionClaw: with the `redis` feature (off by default), two quick API-key saves can persist in reverse order, losing the later key after a restart | visionclaw | engineering | open | 2026-11-21 |
+| VC-API-KEYS-NO-LIMITS | VisionClaw: `ApiKeysRequest` has no length limit on each key field and stores a whitespace-only string as a key | visionclaw | engineering | open | 2026-11-21 |
+| VC-API-KEYS-PLAINTEXT-READBACK | VisionClaw: stored provider keys are returned in plaintext to their owner on `GET /api/auth/nostr/api-keys`; whether to return presence flags only is undecided | visionclaw | owner-decision | open | 2026-11-21 |
+| VC-ORPHAN-TEST-DIRS | VisionClaw: `tests/actors/` and `tests/api/` are not cargo targets and are never compiled, and two files in them still name the deleted `EventBus` | visionclaw | engineering | open | 2026-11-21 |
 
 Recorded as open, not re-checked:
 
@@ -480,7 +474,6 @@ Recorded as open, not re-checked:
 | COV-A-F7 | Server bearer key optional and compared with `==` | agentbox | owner-decision | open | 2026-11-20 |
 | COV-A-F8 | `is_global` SSRF filter misses NAT64, 6to4, Teredo | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
 | COV-A-F10 | Rustdoc omits `GET /rules`; says c2pa 0.90, manifest 0.91 | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
-| COV-A-F11 | prose-sanitiser and diagram-ir have no diagram area | agentbox | engineering | open | 2026-11-20 |
 | ISAAC-RUNNER-TOKEN | `ISAAC_RUNNER_TOKEN` must be set where `isaac-job.js` runs, or Isaac jobs are refused after the next rebuild | agentbox | owner-act | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
@@ -516,7 +509,8 @@ Recorded as open, not re-checked:
 |---|---|---|---|---|---|
 | cheap: forum-tweaks | Delete remote `fix/forum-tweaks-2026-10-22` | nostr-rust-forum | engineering | open | 2026-11-15 |
 | AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
-| FORUM-INTENT-KEY-ORDER | `create_agent_intent_signer` builds its event content with `json!(...).to_string()`, the same build-dependent key order as GOV-CONTENT-KEY-ORDER, for a non-governance kind | nostr-rust-forum | engineering | open | 2026-11-20 |
+| FORUM-INTENT-KEY-ORDER | `create_agent_intent_signer` builds its event content with `json!(...).to_string()`, the same build-dependent key order as GOV-CONTENT-KEY-ORDER, for a non-governance kind | nostr-rust-forum | owner-decision | open | 2026-11-21 |
+| FORUM-RUMOR-KEY-ORDER | nostr-rust-forum: `gift_wrap.rs` serialises the NIP-59 rumor with build-dependent key order, so seal ciphertext bytes differ by build | nostr-rust-forum | engineering | open | 2026-11-21 |
 
 Recorded as open, not re-checked:
 
@@ -542,12 +536,9 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ER-29 | Cross-process anchoring locks (three in-process maps) | solid-pod-rs | engineering | open | 2026-11-15 |
-| SP-PAR-275 | Cross-process `.lock` file for writes | solid-pod-rs | untriaged | open | 2026-11-15 |
-| SP-PAR-276 | PATCH should read JSON-LD, HTML islands, Turtle and write back in stored form | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-278 | NIP-11 relay info at relay URL | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-279 | `/.notifications` route and conditional `Updates-Via` | solid-pod-rs | engineering | open | 2026-11-20 |
-| SP-PAR-280 | Relay mount flags `--nostr*` | solid-pod-rs | engineering | open | 2026-11-20 |
+| ER-29 | Cross-process anchoring locks (three in-process maps) | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-PAR-275 | Cross-process `.lock` file for writes | solid-pod-rs | untriaged | open | 2026-11-21 |
+| SP-PAR-276 | PATCH should read JSON-LD, HTML islands, Turtle and write back in stored form | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-PAR-281 | ActivityPub inbox/outbox routed with signed delivery | solid-pod-rs | untriaged | open | 2026-11-15 |
 
 Recorded as open, not re-checked:
@@ -635,13 +626,11 @@ Recorded as open, not re-checked:
 | COV-E-F1 | The module header says nights are stored as vectors in an RVF container for HNSW recall when RuVector is installed. In fact `openMemory` always builds `FlatMemory`, and with `backend: 'ruvector-rvf'` it overwrites the la | dream-engine | finding | 2026-11-03 |
 | COV-E-F2 | `load` turns any read or JSON parse failure into an empty list (:81-83). The next `remember` then persists that list over the file (:99-100 → :91). | dream-engine | finding | 2026-11-03 |
 
-### codescape
+### visiontouch-rs
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| CODESCAPE-F2-HANDLER-TEST | codescape: the server-side test for the capped model answer covers the helper, not the handler branch; needs a mock Loom backend | codescape | engineering | open | 2026-11-20 |
-
-### visiontouch-rs
+| VISIONTOUCH-VIEWER-BROWSER-TEST-CI | visiontouch-rs: CI never runs the workspace viewer's browser test | visiontouch-rs | engineering | open | 2026-11-21 |
 
 Recorded as open, not re-checked:
 
@@ -654,10 +643,8 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | W4COVC-F5 | Dockerfile fetches WebVOWL war over plain HTTP, no checksum | wasmvowl | owner-decision | open | 2026-11-20 |
-| W4COVC-F7 | VW-04 promises examples, cites no `examples/` file | wasmvowl | engineering | open | 2026-11-20 |
-| W4COVC-F8 | CI never runs the viewer's browser test | wasmvowl | engineering | open | 2026-11-20 |
 | WASMVOWL-TOMCAT-EOL | WasmVOWL Dockerfile base image `tomcat:9-jre8-alpine` is end-of-life, and the image still serves upstream WebVOWL | wasmvowl | owner-decision | open | 2026-11-20 |
-| WASMVOWL-MODERN-TESTS | WasmVOWL `modern/` test suite fails on master (60 of 79 tests), so root `npm test` is red | wasmvowl | engineering | open | 2026-11-20 |
+| WASMVOWL-LOADONTOLOGY-FILTERS | WasmVOWL: `loadOntology` does not re-apply the active filters when it loads without a clear | wasmvowl | engineering | open | 2026-11-21 |
 
 ### visionflow
 
@@ -665,9 +652,9 @@ Recorded as open, not re-checked:
 |---|---|---|---|---|---|
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | visionflow, visiongraph | owner-act | open | 2026-11-15 |
 | CY-A3 | Three green scheduled nights of the estate check | visionflow | engineering | open | 2026-11-15 |
-| VF-SITE-VIDEO-BYTES | VisionFlow website: bytes fetched by `preload="metadata"` video (about 268 KB of container index by one estimate) are excluded from the performance budget test and measured nowhere | visionflow | engineering | open | 2026-11-20 |
-| VF-DIAGRAM-NIP98-DRIFT | VisionFlow diagrams: topic AB-10 and the related NIP-98 proxy topics do not describe the fail-closed proxy or the restart-on-config-change watcher; AB-16 and AB-36 say 36 names for the devuser environment class, it is 38 | visionflow | engineering | open | 2026-11-20 |
-| VF-DRIFT-COUNTER-LOCAL-CI | VisionFlow: `tests/gates/drift-counter.test.sh` fails 2 of 28 checks locally without the agentbox checkout at CI's pinned commit, and the Harness Fitness Gates workflow is red in CI but green locally | visionflow | untriaged | open | 2026-11-20 |
+| VF-SITE-PLAYWRIGHT-NO-CI | VisionFlow: no workflow runs the Playwright suite, so the site tests and the media-byte cap run only locally | visionflow | engineering | open | 2026-11-21 |
+| VF-SITE-POSTER-WEBP | VisionFlow: the featured-film poster is a 114 KB eagerly loaded JPEG; WebP would roughly halve it | visionflow | engineering | open | 2026-11-21 |
+| VF-DIAGRAM-SIDECAR-PORT-DRIFT | VisionFlow diagrams: ES-01, ES-09 and AB-06 still describe the sidecar ports as sanctioned LAN publishes, but they publish on a loopback default now | visionflow | engineering | open | 2026-11-21 |
 
 Recorded as open, not re-checked:
 
@@ -676,10 +663,6 @@ Recorded as open, not re-checked:
 | EST-14 | VisionFlow has two dead diagram scripts, one pointed at a missing file in another repository, and two committed PDF pairs with byte-identical blobs. | visionflow | duplicate | 2026-11-01 |
 
 ### estate
-
-| Id | Item | Components | Blocked by | State | Checked |
-|---|---|---|---|---|---|
-| WORKSPACE-ONTOMARK-DANGLING | `/home/devuser/workspace/ontomark-obsidian` is a dangling symlink into `project/target/`; the diagram corpus cites that repository 61 times | estate | owner-act | open | 2026-11-20 |
 
 Recorded as open, not re-checked:
 
