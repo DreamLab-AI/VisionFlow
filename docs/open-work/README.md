@@ -20,7 +20,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | Live | 93 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
-| Closed | 119 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 123 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
 ## Waiting on the owner (24)
 
@@ -32,7 +32,6 @@ Items are filed by **seam**: the contract between components that would have to 
 | ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | governance-events | visionclaw | owner-decision | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | ER-18 | ontomark NGG2 relation codes/resolvers | none | ontomark | owner-decision | open | 2026-11-20 |
 | SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | payments | solid-pod-rs | owner-decision | open | 2026-11-21 |
-| SP-PAR-290 | Container ACL at `<container>/.acl` | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | COV-A-F7 | Server bearer key optional and compared with `==` | none | agentbox | owner-decision | open | 2026-11-20 |
 | COV-B-F3 | the model engine listens on every host interface with no key | none | loom | owner-decision | open | 2026-11-20 |
 | W4COVC-F5 | Dockerfile fetches WebVOWL war over plain HTTP, no checksum | none | wasmvowl | owner-decision | open | 2026-11-20 |
@@ -42,6 +41,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | VC-API-KEYS-PLAINTEXT-READBACK | VisionClaw: stored provider keys are returned in plaintext to their owner on `GET /api/auth/nostr/api-keys`; whether to return presence flags only is undecided | none | visionclaw | owner-decision | open | 2026-11-21 |
+| SP-ACL-LAYOUT-RESIDUALS | solid-pod-rs: opt-in ACL layouts: an ACL can be planted before its container exists, a file's own Control grant no longer suffices, and copied relative rules change scope | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 
 ### Waiting on an owner act (10)
 
@@ -68,14 +68,14 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 4 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 6 | 8 |
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 1 | 4 |
-| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 8 | 4 |
+| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 10 | 4 |
 | [Value transfer](by-seam.md#payments) | sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox | 2 | 8 |
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 3 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
 | [Versions and pins across repositories](by-seam.md#release-pins) | estate | 4 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 3 | 2 |
-| [Inside one component](by-seam.md#none) | one component | 51 | 102 |
+| [Inside one component](by-seam.md#none) | one component | 49 | 102 |
 
 ## By component
 
@@ -87,7 +87,7 @@ An item that touches two components is counted under both.
 | agentbox | 15 | 16 | 72 |
 | nostr-rust-forum | 7 | 4 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
-| solid-pod-rs | 13 | 4 | 31 |
+| solid-pod-rs | 15 | 2 | 31 |
 | sidestr-rs | 2 | 1 | 11 |
 | loom | 3 | 2 | 10 |
 | ontomark | 0 | 1 | 12 |
@@ -106,11 +106,11 @@ An item that touches two components is counted under both.
 |---|---|
 | Waiting on an owner decision | 14 |
 | Waiting on an owner act | 10 |
-| Ordinary engineering: can start now | 41 |
+| Ordinary engineering: can start now | 42 |
 | Needs a live deployment | 14 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
-| Not yet triaged | 4 |
+| Not yet triaged | 3 |
 
 ## Parked
 

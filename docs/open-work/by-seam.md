@@ -184,20 +184,22 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-8 live, 4 unverified, 16 closed.
+10 live, 4 unverified, 18 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | owner-decision | open | 2026-11-21 |
-| POD-PARITY | Resume the solid-pod-rs parity push: 263/280 = 93.9% strict at 73080a4, below the checker's 95% threshold (7 missing, 10 partial-parity) | solid-pod-rs | engineering | open | 2026-11-21 |
+| POD-PARITY | Resume the solid-pod-rs parity push: 275/286 = 96.2% strict at ae4a1a7, above the checker's 95% threshold (6 missing) | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-ETAG-HOST-NEGOTIATED | solid-pod-rs: the ETag does not change when a negotiated body depends on the Host header | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-NOTIFY-SOCKET-COST | solid-pod-rs: each open notification socket costs one resolver walk per matching storage event, and behind a reverse proxy the per-peer cap of 16 is 16 sockets in total | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-FORGE-TOKEN-KEY-RACE | solid-pod-rs: the forge token key has a create and read race | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-JSONLD-ACL-PLACEHOLDER-BYTEMATCH | solid-pod-rs: the JSON-LD ACL placeholder-host check is a raw byte match, so only the document's author is affected | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-WELLKNOWN-LISTING-DENYLIST | solid-pod-rs: the listing and export filter is a four-prefix deny-list under `/.well-known`, and two listers are unfiltered | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-LEDGER-LOCK-TIMEOUT-403 | solid-pod-rs: a payment-ledger lock timeout surfaces as 403, and minting a POST name can wait up to 64 × 30 s | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-ACL-LAYOUT-RESIDUALS | solid-pod-rs: opt-in ACL layouts: an ACL can be planted before its container exists, a file's own Control grant no longer suffices, and copied relative rules change scope | solid-pod-rs | owner-decision | open | 2026-11-21 |
 
 ### Recorded as open, not re-checked
 
@@ -393,7 +395,7 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-51 live, 102 unverified, 76 closed.
+49 live, 102 unverified, 78 closed.
 
 ### visionclaw
 
@@ -535,8 +537,6 @@ Recorded as open, not re-checked:
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| ER-29 | Cross-process anchoring locks (three in-process maps) | solid-pod-rs | engineering | open | 2026-11-21 |
-| SP-PAR-275 | Cross-process `.lock` file for writes | solid-pod-rs | untriaged | open | 2026-11-21 |
 | SP-PAR-276 | PATCH should read JSON-LD, HTML islands, Turtle and write back in stored form | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-PAR-281 | ActivityPub inbox/outbox routed with signed delivery | solid-pod-rs | untriaged | open | 2026-11-15 |
 
