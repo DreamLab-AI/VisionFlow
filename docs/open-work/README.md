@@ -17,14 +17,14 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 94 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 95 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
-| Closed | 119 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 118 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (24)
+## Waiting on the owner (25)
 
-### Waiting on an owner decision (13)
+### Waiting on an owner decision (14)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -32,6 +32,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | ER-7 | VisionClaw proposals now conform to the forum contract on a branch. Open: which risk tier and task properties each builder declares (concept elevation, decision elevation, voice command) | governance-events | visionclaw | owner-decision | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | ER-18 | ontomark NGG2 relation codes/resolvers | none | ontomark | owner-decision | open | 2026-11-20 |
 | SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | payments | solid-pod-rs | owner-decision | open | 2026-11-21 |
+| SP-PAR-290 | Container ACL at `<container>/.acl` | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | COV-A-F7 | Server bearer key optional and compared with `==` | none | agentbox | owner-decision | open | 2026-11-20 |
 | COV-B-F3 | the model engine listens on every host interface with no key | none | loom | owner-decision | open | 2026-11-20 |
 | W4COVC-F5 | Dockerfile fetches WebVOWL war over plain HTTP, no checksum | none | wasmvowl | owner-decision | open | 2026-11-20 |
@@ -68,7 +69,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 4 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 6 | 8 |
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 1 | 4 |
-| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 8 | 4 |
+| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 9 | 4 |
 | [Value transfer](by-seam.md#payments) | sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox | 2 | 8 |
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 3 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
@@ -87,7 +88,7 @@ An item that touches two components is counted under both.
 | agentbox | 16 | 16 | 72 |
 | nostr-rust-forum | 7 | 4 | 28 |
 | dreamlab-ai-website | 0 | 0 | 8 |
-| solid-pod-rs | 13 | 4 | 31 |
+| solid-pod-rs | 14 | 4 | 31 |
 | sidestr-rs | 3 | 1 | 11 |
 | loom | 3 | 2 | 10 |
 | ontomark | 0 | 1 | 12 |
@@ -104,7 +105,7 @@ An item that touches two components is counted under both.
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 13 |
+| Waiting on an owner decision | 14 |
 | Waiting on an owner act | 11 |
 | Ordinary engineering: can start now | 42 |
 | Needs a live deployment | 14 |

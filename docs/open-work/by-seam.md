@@ -184,12 +184,13 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-8 live, 4 unverified, 17 closed.
+9 live, 4 unverified, 16 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
+| SP-PAR-290 | Container ACL at `<container>/.acl` | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | POD-PARITY | Resume the solid-pod-rs parity push: 264/280 = 94.3% strict at 25f4dfd, below the checker's 95% threshold (6 missing, 10 partial-parity) | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | solid-pod-rs | owner-decision | open | 2026-11-21 |
