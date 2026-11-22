@@ -15,10 +15,12 @@ sources:
   - ../dreamlab-ai-website/docs/BASELINE-architecture.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
   - ../dreamlab-ai-website/forum-config/Cargo.toml
+  - ../dreamlab-ai-website/forum-config/Cargo.lock
+  - ../dreamlab-ai-website/docs/adr/ADR-2002-split-hosting-pages-workers.md
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: f934e26f949f3b95171544ec8ec5bcfd7679f593
+verified_commit: 567bed67f54c2be66edf7e1333442f9458294241
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -28,7 +30,7 @@ flowchart TB
     REPO --> FCFG["forum-config/ overlay<br/>branding, zones, CF resource ids, kit pin<br/>CLAUDE.md:5-11"]
     REPO --> DOCS["docs/ — BASELINE, IDENTITY-zones,<br/>adr, api, security, deployment"]
     FCFG -. "cloned at KIT_REF" .-> KIT["nostr-rust-forum kit<br/>forum client, BBS client, 5 Workers<br/>see NF-*"]
-    REPO -. "published crates" .-> CRATES["Published kit crates<br/>core, config, mesh, rate-limit<br/>=1.0.0-beta.19<br/>forum-config/Cargo.toml:50-53"]
+    REPO -. "published crates" .-> CRATES["Published kit crates<br/>core, config, mesh, rate-limit<br/>=1.0.0-beta.20<br/>forum-config/Cargo.toml:50-53"]
     REPO -. "poker route" .-> POKER["/community/table<br/>practice + two asset tables<br/>DREAM and BLAKES7 house seats<br/>dreamlab.toml:320"]
 ```
 - "What this repo is" (BASELINE-architecture.md:35-41): a thin operator overlay — the forum source, Nostr crates, and five Workers all live upstream; this repo carries only the React site, `forum-config/`, and docs.
@@ -43,9 +45,9 @@ flowchart LR
     ORIGIN --> TBL["/community/table  poker route<br/>practice + DREAM and BLAKES7 tables<br/>dreamlab.toml:320"]
     LEGACY["/bbs"] -. "legacy client redirect" .-> BBS
 ```
-- **Drift:** `BASELINE-architecture.md:140-142` records that the README says "Two SPAs, one origin" while the deploy ships a third client at `/community/bbs/` (`deploy.yml:335`); the README has since been rewritten and now states "three independently built frontends" (`README.md:54`), so that divergence entry describes a README that no longer exists, and `CLAUDE.md:14` still reads "static dual-SPA".
+- **Drift:** `BASELINE-architecture.md:146-148` records that the README says "Two SPAs, one origin" while the deploy ships a third client at `/community/bbs/` (`deploy.yml:335`); the README has since been rewritten and now states "three independently built frontends" (`README.md:54`), so that divergence entry describes a README that no longer exists, and `CLAUDE.md:14` still reads "static dual-SPA".
 - The forum client also carries the poker table at `/community/table` (ADR-2009, kit ADR-2020): a practice table plus DREAM and BLAKES7 tables with separate configured house seats (`dreamlab.toml:320`). The baseline paragraph names only DREAM (`BASELINE-architecture.md:54-58`); DW-10 covers current credit, recovery and receipt boundaries.
-- All three are static assets after build; React gets Vite build variables, forum/BBS get a `window.__ENV__` block injected by `sed` at deploy time (BASELINE-architecture.md:66-70).
+- All three are static assets after build; React gets Vite build variables, forum/BBS get a `window.__ENV__` block injected by `sed` at deploy time (BASELINE-architecture.md:68-72).
 
 ## DW-01.3 Deploy topology — GitHub Pages primary, Cloudflare Pages gated off
 ```mermaid
@@ -58,26 +60,34 @@ flowchart TB
     CFGATE -->|yes| CFPAGES["cloudflare/wrangler-action<br/>pages deploy dist/ --project-name=dreamlab-ai"]
     CFGATE -->|no, default| CFOFF["Cloudflare Pages step does not run"]
 ```
-- **Drift:** the baseline's first divergence says `README.md` frames the site as a "dual-SPA Cloudflare-edge deployment" (`BASELINE-architecture.md:135-139`); the README now says "GitHub Pages: one origin" (`README.md:43`) and the only surviving "dual-SPA" wording is `CLAUDE.md:14`. The origin is GitHub Pages, Cloudflare only hosts the backend Workers (five: auth, pod, relay, search, preview — `forum-config/src/workers.rs:155-172`), and Cloudflare Pages is opt-in behind an explicit repo variable (`BASELINE-architecture.md:82`).
-- INVARIANT: GitHub Pages is the origin of record for `dreamlab-ai.com` until DNS is re-cut; the Cloudflare Pages step must stay gated behind that repo variable (BASELINE-architecture.md:173-175, Invariant 4).
+- **Drift:** the baseline's first divergence says `README.md` frames the site as a "dual-SPA Cloudflare-edge deployment" (`BASELINE-architecture.md:141-145`); the README now says "GitHub Pages: one origin" (`README.md:43`) and the only surviving "dual-SPA" wording is `CLAUDE.md:14`. The origin is GitHub Pages, Cloudflare only hosts the backend Workers (five: auth, pod, relay, search, preview — `forum-config/src/workers.rs:155-172`), and Cloudflare Pages is opt-in behind an explicit repo variable (`BASELINE-architecture.md:82`).
+- INVARIANT: GitHub Pages is the origin of record for `dreamlab-ai.com` until DNS is re-cut; the Cloudflare Pages step must stay gated behind that repo variable (BASELINE-architecture.md:180-182, Invariant 4).
 - The branded custom domains for those Workers (`relay./api./pods./search./preview.dreamlab-ai.com`) are the documented end-state but are **not provisioned in DNS** — the client instead talks to raw `*.workers.dev` hosts baked into the build env (`deploy.yml:49-61`; verified 2026-06-09 `ERR_NAME_NOT_RESOLVED`, not re-checked as of 2026-08-31) — shipping the branded domains baked in previously severed every client API call (BASELINE-architecture.md:91-97).
 
-## DW-01.5 The dual-pin rule — four locations that must move together
+## DW-01.5 The pin rule — one kit SHA at four sites, one crate version beside it
 ```mermaid
 flowchart TB
-    A["1. KIT_REF<br/>.github/workflows/deploy.yml:130"] --- SHA["6064622dbb1a7cc1ba2d072109f9e3e8a96157df"]
-    B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:44"] --- SHA
-    C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:20"] --- SHA
-    D["4. rev pin, resolved version<br/>forum-config/Cargo.toml:50-53"] --- VER["1.0.0-beta.19"]
-    SHA -.->|"CANONICAL_KIT_SHA"| REC["kit-compatibility-record.md:30"]
-    VER -.->|"CANONICAL_KIT_VERSION"| REC2["kit-compatibility-record.md:31"]
+    RULE["dual-pin rule, four sites move together<br/>CLAUDE.md:246-255"]
+    subgraph SHAT["SHA track: the kit source the clients and workers build from"]
+        A["1. KIT_REF<br/>.github/workflows/deploy.yml:130"] --- SHA["3c48e2656d7cabefa894a59b827f5f0d3a8b32b7<br/>kit main, tag v1.0.0-beta.21-rc.2<br/>kit-compatibility-record.md:26"]
+        B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:44"] --- SHA
+        C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:20"] --- SHA
+        D["4. CANONICAL_KIT_SHA<br/>kit-compatibility-record.md:30"] --- SHA
+    end
+    subgraph VERT["Library track: the crates forum-config links"]
+        E["four exact = pins, no git rev<br/>forum-config/Cargo.toml:50-53"] --- VER["1.0.0-beta.20 from crates.io<br/>Cargo.lock:959-962 registry source + checksum"]
+        F["CANONICAL_KIT_VERSION<br/>kit-compatibility-record.md:31"] --- VER
+        G["RESOLVED lines x4<br/>kit-compatibility-record.md:82-85"] --- VER
+    end
+    RULE --> SHAT
+    RULE -.->|"crates move only when the kit publishes<br/>CLAUDE.md:257-261"| VERT
+    SHA -.->|"runs ahead of the published crates by design<br/>BASELINE-architecture.md:117-125"| VER
 ```
-- `workers-deploy.yml` fires on `forum-config/Cargo.lock` and `KIT_REF` changes precisely so a kit re-pin never ships a new client against old workers — the client/worker skew that "wiped the forum on 2026-06-15" (BASELINE-architecture.md:121-124).
-- **Drift:** `BASELINE-architecture.md:117` records `KIT_REF = ea7d95e7ca70833217ab543fee91b8344304a32d` ("the kit commit that released 1.0.0-beta.16", `BASELINE-architecture.md:119`) while the live pins (`deploy.yml:130`, `workers-deploy.yml:44`, `rust-ci.yml:20`, `kit-compatibility-record.md:30`) are now `6064622dbb1a7cc1ba2d072109f9e3e8a96157df`, the commit tagged `v1.0.0-beta.19`, the first pin since beta.16 that moves all four library crates (`forum-config/Cargo.toml:50-53`, `kit-compatibility-record.md:31`). The governing doc's crate-version line (`BASELINE-architecture.md:110`) still reads `=1.0.0-beta.16`, so both its version and its SHA are behind. All four pin sites and the compatibility record agree with each other.
-- **Drift:** the README's pin sentence still reads kit source `8a5cf81…` (`README.md:65`) one repin behind the three pin sites; the older "Live pin `2d693ed2…` (beta.6)" and `631c09f…` sentences are gone.
-- The pin-site comments do not restate release notes or the kit version: `rust-ci.yml:18-19`, `deploy.yml:126-129` and `workers-deploy.yml:41-43` defer provenance to the compatibility record, which pin-parity checks against the exact SHA, and `deploy.yml:129` records that the prose rots on every repin.
-- **Drift:** the deployment row's SHA column and the machine-readable field now agree at `6064622` (`kit-compatibility-record.md:26,30`). The History table, however, still marks `931898a` (tag `v1.0.0-beta.10`) as "Current (canonical — matches `CANONICAL_KIT_SHA` above and the `KIT_REF` pins)" (`kit-compatibility-record.md:359`), nine tagged releases behind (beta.10 to beta.19). pin-parity compares only the SHA, so this does not fail the gate.
-- INVARIANT: the machine-readable pin lives in exactly one place the gate reads — `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` in `kit-compatibility-record.md:30-31` — and every other site is compared against it, which is why the surrounding comments can rot without the gate noticing.
+- `workers-deploy.yml` fires on `forum-config/Cargo.lock` and its own file, which holds `KIT_REF`, so a kit re-pin never ships a new client against old workers — the client/worker skew that "wiped the forum on 2026-06-15" (BASELINE-architecture.md:127-130, `workers-deploy.yml:13-20`).
+- **Drift (closed):** the governing doc now records `KIT_REF = 3c48e26…` and `=1.0.0-beta.20` (`BASELINE-architecture.md:110,118`), equal to every pin site; it had lagged at `ea7d95e` and beta.16. `CLAUDE.md:246-261` replaced the old fourth site (the `rev` pins in `Cargo.toml`) with `CANONICAL_KIT_SHA`; the attribution of that check is in DW-05.8.
+- DOC-DRIFT: the git-rev wording outlived the rule. `deploy.yml:122-125` and `workers-deploy.yml:14-15,38-39` still tie `KIT_REF` to a rev in `Cargo.lock`, the record says the SHA is compared against "Cargo revs" (`kit-compatibility-record.md:34-36`) and its bump procedure still says re-pin the four `rev=` (`kit-compatibility-record.md:365-366`), and Invariant 1 still binds `KIT_REF` to the crate version (`BASELINE-architecture.md:170-173`), against its own pin paragraph (`BASELINE-architecture.md:120-123`). The lockfile has no git source: all four crates resolve from the registry (`Cargo.lock:945-948,959-962`).
+- **Drift:** the README still names kit source `8a5cf81…` (`README.md:65`), several repins behind `3c48e26`. The record's History table still marks `931898a` (tag `v1.0.0-beta.10`) "Current (canonical…)" (`kit-compatibility-record.md:375`). pin-parity compares only the SHA field, so neither fails the gate.
+- INVARIANT: the machine-readable pin lives in one place the gate reads, `CANONICAL_KIT_SHA` / `CANONICAL_KIT_VERSION` (`kit-compatibility-record.md:30-31`). The pin-site comments defer provenance to it rather than restating versions (`rust-ci.yml:18-19`, `deploy.yml:126-129`, `workers-deploy.yml:40-43`), which is why surrounding prose can rot without the gate noticing.
 
 ## DW-01.6 Deploy job sequence — clone kit, build three frontends, merge, inject, deploy
 ```mermaid
@@ -101,7 +111,7 @@ sequenceDiagram
     BB->>PG: dist/community/bbs/ merged, rebrand step, 404 shims
 ```
 - Since `d3ecd05` (2026-10-02) the deploy also fires on a lockfile-only change: `package-lock.json` joined the push path filter (`deploy.yml:13-28`), so a dependency bump that touches nothing else still republishes the site. The same filter now carries `scripts/**` (`deploy.yml:27`, comment `deploy.yml:21-26`) since the postbuild prerender and discovery check (DW-02.3) and the content generators run in the build, so a generator-only commit rebuilds and ships; the checkout also takes full history (`fetch-depth: 0`, `deploy.yml:156-160`) because the sitemap `<lastmod>` is each page's last commit.
-- Supply-chain hardening: every tool the deploy job downloads (Trunk, binaryen/`wasm-opt`, Tailwind CLI) is pinned to an exact version **and** SHA256-verified before use, because this job carries the Cloudflare API token (BASELINE-architecture.md:128-130, `deploy.yml:41-48`).
+- Supply-chain hardening: every tool the deploy job downloads (Trunk, binaryen/`wasm-opt`, Tailwind CLI) is pinned to an exact version **and** SHA256-verified before use, because this job carries the Cloudflare API token (BASELINE-architecture.md:134-137, `deploy.yml:41-48`).
 - The injected payload has grown since ADR-2015/ADR-2016 shipped: `SIDESTR_WALLET:'on'` (deploy.yml:90) gates the testnet4 wallet nav/tip UI, `SIDESTR_CHAINS_JSON` (deploy.yml:95) lists the two sidestr chains (kit ADR-2021), `ENCRYPTION_ENABLED:'true'` (deploy.yml:106) is the zone E2EE master switch, `ZONE_CONFIG_JSON` (deploy.yml:107) marks zones 2-4 `encrypted:true` with zone4 carrying `agent_keys:true`, and `POKER:'on'` + `POKER_CONFIG_JSON` (deploy.yml:101-102) gate and parameterise the poker table — see DW-03/DW-04 for the zone model and encryption detail this step only injects.
 
 - The React build gained one more public input, `VITE_MONITOR_PUBKEY` (`deploy.yml:80`, passed to the React build at `deploy.yml:187`): the nightly inbox-watch co-recipient to whom every contact, signup and chat message is also wrapped, because the relay serves a kind-1059 wrap only to its addressee (`deploy.yml:75-79`); ADR-2011 names that key the `website-info` identity (DW-04). It is another hand-synced mirror (DW-03). `workers-deploy.yml` now retries its post-deploy `/health` probe three times because a worker's Durable Object is cold straight after a deploy (`workers-deploy.yml:367-370`).
@@ -118,7 +128,7 @@ stateDiagram-v2
     HardLoad --> BbsRedirect: path is /bbs or /bbs/*
     BbsRedirect --> BbsServed: replaced with /community/bbs/ directly (single-screen terminal)
 ```
-- "SPA deep links depend on a 404-redirect shim" is called out as load-bearing in the Known-divergences section, not incidental (BASELINE-architecture.md:156-159, `deploy.yml:367-397`, `291-301`).
+- "SPA deep links depend on a 404-redirect shim" is called out as load-bearing in the Known-divergences section, not incidental (BASELINE-architecture.md:163-166, `deploy.yml:367-397`, `291-301`).
 - The React pickup script is deliberately external (`public/spa-redirect.js`), not an inline `<script>`, because `index.html`'s CSP (`script-src 'self'`, no `'unsafe-inline'`) would block an injected inline script — exactly the bug class that broke `/workshops` deep links (`deploy.yml:399-402`, the comment above the "Deploy" step).
 
 ## DW-01.8 EXTERNAL — estate authority map beyond this repo
@@ -126,8 +136,9 @@ stateDiagram-v2
 flowchart LR
     DW["dreamlab-ai-website<br/>this area"] -->|"clones at KIT_REF"| NF["nostr-rust-forum kit<br/>EXTERNAL, see NF-*"]
     DW -->|"crates.io consumption"| NF
-    DW -->|"CF Tunnel, native pod card"| AB["agentbox native solid-pod-rs<br/>EXTERNAL, see AB-*"]
+    DW -->|"CF Tunnel, native pod card<br/>DIVERGENCE: advertised, host has no DNS record<br/>ADR-2002-split-hosting-pages-workers.md:130"| AB["agentbox native solid-pod-rs<br/>EXTERNAL, see AB-*"]
     DW -->|"BrokerActor governance publisher,<br/>visionclaw-server admin key<br/>forum-config/dreamlab.toml:275"| VC["VisionClaw server<br/>EXTERNAL, see VC-*"]
     DW -->|"junkiejarvis website chat bridge"| AB
 ```
 - `visionclaw-server` is a governance publisher pubkey shared with the forum's primary admin pubkey — see DW-03/DW-04 for the identity implications and IDENTITY-zones.md. The `[governance].agent_pubkeys` list this repo authors is at `forum-config/dreamlab.toml:264,275-277`; the ecosystem statement itself is at `CLAUDE.md:17`.
+- DIVERGENCE: the native pod tier is a third plane beside the two ADR-2002 decides. `[native_pod] enabled = true` points at `pods-native.dreamlab-ai.com` (`dreamlab.toml:253-258`), which had no DNS record when ADR-2002's open item was written on 2026-11-22 (NXDOMAIN, not re-checked here), so the Pod Browser's mesh card cannot reach it; the item is parked by the owner (`ADR-2002-split-hosting-pages-workers.md:130-146`, `BASELINE-architecture.md:156-159`). The overlay side, and why `enabled = false` alone may not hide the card, is DW-03.8.

@@ -20,9 +20,10 @@ sources:
   - ../dreamlab-ai-website/scripts/lib/website-info.mjs
   - ../dreamlab-ai-website/scripts/seed/provision-website-info.mjs
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
+  - ../dreamlab-ai-website/docs/adr/ADR-2002-split-hosting-pages-workers.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
-verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {dreamlab-ai-website: 567bed67f54c2be66edf7e1333442f9458294241, nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
@@ -35,9 +36,10 @@ flowchart TB
     KEY --> METHODS["auth methods offered by the upstream kit:<br/>WebAuthn PRF passkeys, NIP-07 extension, raw private key"]
     METHODS --> KEY
 ```
-- INVARIANT (`IDENTITY-zones.md:175-177`): identity in the shipped surface is the raw 64-hex secp256k1 pubkey; any move to emit or require a Multikey/DID document is a code change and a new ADR, not a docs edit.
+- INVARIANT (`IDENTITY-zones.md:176-178`): identity in the shipped surface is the raw 64-hex secp256k1 pubkey; any move to emit or require a Multikey/DID document is a code change and a new ADR, not a docs edit.
 - DOC-DRIFT within this repo's OWN docs: `docs/security/AUTHENTICATION.md` (`## NIP-98 HTTP Authentication`, line 200) documents NIP-98 as the upstream kit auth-worker's HTTP-API scheme (passkey/session auth to REST endpoints) — a genuinely different protocol from the NIP-42 relay-challenge flow this repo's own `src/lib/nostr.ts` implements for DM transport. `IDENTITY-zones.md:34-35`'s claim that "the string NIP-98 appears nowhere in nostr.ts" is true and specific to that one file; it does not mean NIP-98 is absent from the deployed system.
-- DIVERGENCE: legacy ADR-027's `did:nostr`/Multikey document form is docs-only — `fe70102` is not a commit hash, it is the Multikey encoding prefix itself (base16-multibase `f` + secp256k1-pub multicodec varint `e701` + compressed-point `02`, `IDENTITY-zones.md:46-49`); the two commits that landed it (`d62ab40`, `8d942d7`) touched only docs and JSON-LD, and the binding spec they cite (`ADR-125-did-nostr-multikey-convergence.md`) does not exist in this repo — it is kit-owned. ADR-027 is archived as "Deferred — kit-owned" (`IDENTITY-zones.md:56`); treat any claim that this repo emits `did:nostr` Multikey documents as false until a code path produces one (`IDENTITY-zones.md:162-164`).
+- DIVERGENCE: the second, git-enabled pod backend advertised to `zone2/3/4` (`IDENTITY-zones.md:148-151`, `dreamlab.toml:253-256`) is not reachable: its host had no DNS record when ADR-2002's open item was written on 2026-11-22, parked by the owner (`ADR-2002-split-hosting-pages-workers.md:130-139`). The standard Workers-tier pod is unaffected (`ADR-2002-split-hosting-pages-workers.md:141`); see DW-03.12.
+- DIVERGENCE: legacy ADR-027's `did:nostr`/Multikey document form is docs-only — `fe70102` is not a commit hash, it is the Multikey encoding prefix itself (base16-multibase `f` + secp256k1-pub multicodec varint `e701` + compressed-point `02`, `IDENTITY-zones.md:46-49`); the two commits that landed it (`d62ab40`, `8d942d7`) touched only docs and JSON-LD, and the binding spec they cite (`ADR-125-did-nostr-multikey-convergence.md`) does not exist in this repo — it is kit-owned. ADR-027 is archived as "Deferred — kit-owned" (`IDENTITY-zones.md:56`); treat any claim that this repo emits `did:nostr` Multikey documents as false until a code path produces one (`IDENTITY-zones.md:163-165`).
 
 ## DW-04.3 Talk-to-AI — client-side Nostr DM, not an HTTP chat endpoint
 ```mermaid
@@ -60,8 +62,8 @@ sequenceDiagram
     DM->>R: publishMonitorCopy: second wrap to VITE_MONITOR_PUBKEY,<br/>best-effort, only after OK-true<br/>src/lib/nostr.ts:352, 729-741
     OPEN--)FAB: reply readable only from open relays<br/>the agent (junkiejarvis) also publishes to
 ```
-- INVARIANT (`IDENTITY-zones.md:182-183`): the Talk-to-AI reply-relay set must remain a subset of the agent's own publish fan-out, or replies are never seen.
-- **Drift (corrected):** an earlier reading said request/reply correlation was not yet built. The DM transport still carries no protocol-level correlation (the agent's reply rumor has no `e` tag), but the client now mints its own request id per question and binds replies to it, so a late or out-of-order reply resolves the turn it names or none (`AIChatFab.tsx:51-56`; `requestId` at `AIChatFab.tsx:435-441`); `ChatMessage.lateForQuestion` labels a late answer (`AIChatFab.tsx:9-19`). The estate closeout note still asks to "Preserve sender verification while adding request/reply correlation and verifying real agent fan-out" (`IDENTITY-zones.md:208`); agent-side correlation is outside this repo.
+- INVARIANT (`IDENTITY-zones.md:183-184`): the Talk-to-AI reply-relay set must remain a subset of the agent's own publish fan-out, or replies are never seen.
+- **Drift (corrected):** an earlier reading said request/reply correlation was not yet built. The DM transport still carries no protocol-level correlation (the agent's reply rumor has no `e` tag), but the client now mints its own request id per question and binds replies to it, so a late or out-of-order reply resolves the turn it names or none (`AIChatFab.tsx:51-56`; `requestId` at `AIChatFab.tsx:435-441`); `ChatMessage.lateForQuestion` labels a late answer (`AIChatFab.tsx:9-19`). The estate closeout note still asks to "Preserve sender verification while adding request/reply correlation and verifying real agent fan-out" (`IDENTITY-zones.md:209`); agent-side correlation is outside this repo.
 
 ## DW-04.4 NIP-42 AUTH — lazy challenge-response on publish
 ```mermaid
@@ -88,19 +90,21 @@ sequenceDiagram
 ## DW-04.5 Anonymous website ingress — threat register
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1087
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1135
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1142
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1175
     A["Write-auth mode gate, then gift-wrap admission<br/>configured ingress or whitelisted recipient"]
     %% Source: ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:282
     A --> B["Operator docs flag spam risk<br/>IP and structural limits, client validation"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2453-2457
-    A --> C["Deletion supports author or privileged caller<br/>no gift-wrap recipient-only path here"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2949-2955
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3379
+    A --> C["Member kind-5 refused unless every target is theirs<br/>recipient path for a wrap only with RECIPIENT_KEYS_ENABLED,<br/>unset in this deployment"]
     %% Source: ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:284
     A --> D["Docs flag model-cost abuse<br/>client throttling and operator kill switch"]
     %% Source: ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md:3
     %% Source: ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md:13
     A --> E["Overlay enables advisory TypeSafe calls<br/>rationale local-only restriction is opt-in"]
 ```
+- Since kit #94 (in `KIT_REF` `3c48e26`, code-identical to the pinned `af4f0d5`) a member's kind-5 is refused whole unless every target is their own stored event, a wrap addressed to one of their recipient keys, or an id they already deleted; sealed originals are moderator-only (`nip_handlers.rs:2949-2955`). The wrap branch needs `recipient_keys_enabled()`, the exact string `"true"` in `RECIPIENT_KEYS_ENABLED` (`nip_handlers.rs:3379,2389-2391`), which neither `relay-worker.wrangler.toml` nor any workflow here sets, so in this deployment a wrap's recipient still cannot delete it.
 - Admission is mode-dependent: the consumed kit checks session authentication before recipient admission, requiring AUTH in `nip42` mode; configured ingress or a whitelist row can admit the recipient. The operator document's unconditional no-AUTH/whitelist-only wording is stale. The prior panel recorded successful Worker deploy run `41028875471` on 30 October, with credential checks for search and relay but no auth-secret receipt. That observation remains historical; this pass reads configuration and does not redeploy or recheck Worker secrets.
 - Federation posture: single relay today; kind 1059 is already in `dreamlab.toml [mesh].federated_kinds` (see DW-03), so this surface is "federation-ready by construction" though the mesh transport itself is designed, not shipped.
 
@@ -145,4 +149,4 @@ flowchart TB
 - **Open:** the registry's `registered_by` is the agentbox operator key that signs the registration while the roster says `operator-jjohare`; ADR-2011 leaves that gap open until the kit exports config to the registry (`docs/adr/ADR-2011-website-information-identity.md:75-76`).
 - **Drift (repaired at source 2026-11-03, adoption not evidenced):** at the previous stamp (`0e15728`) ADR-2011 said the watch reports missing registry/whitelist rows, but configuration-backed ingress and merged disclosure could keep its checks green after row loss, and the provisioner skipped registration whenever the merged response merely listed the key. The website now requires the disclosure's explicit `registered` flag in both the nightly check and the provisioner (`scripts/lib/website-info.mjs:83`, `scripts/lib/website-info.mjs:89`, `scripts/seed/provision-website-info.mjs:97`, `scripts/seed/provision-website-info.mjs:119`), and the forum disclosure marks a registry row `registered: true` and a config-merged ingress entry `registered: false` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:57`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs:88`). ADR-2011's 2026-11-03 repair evidence records that the fix needs the matching forum response deployed, that an older response now fails the registry check, and that no provisioning or live messaging was performed (`docs/adr/ADR-2011-website-information-identity.md:26-37`). DW-09 and the [dated review](../../estate-review/2026-11-01-website-information-and-inbox.md) trace the consumed kit and reproduce the earlier consumer behaviour.
 - **Open:** ADR-2011 now points at a 2026-11-02 dated source reconciliation of the external review that supplements the decision without changing its status (`docs/adr/ADR-2011-website-information-identity.md:20-24`); ADR-2011 records no deployment of a forum revision that serves the `registered` field, so the repair is source-complete and adoption-pending.
-- The old cryptographic-impossibility wording in DW-04.5 was too broad: current NIP-59 recommends recipient-authorised deletion, whereas the inspected kit deletion handler permits author matching or privileged deletion. The dated review separates protocol capability from this implementation; no deletion was executed.
+- The old cryptographic-impossibility wording in DW-04.5 was too broad: current NIP-59 recommends recipient-authorised deletion. The kit now has that branch, but behind the unset recipient-keys flag (DW-04.5), so the deployed relay still allows only author or privileged deletion of a wrap. The dated review separates protocol capability from this implementation; no deletion was executed.

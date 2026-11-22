@@ -29,7 +29,10 @@ sources:
   - ../dreamlab-ai-website/forum-config/deploy/search-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/preview-worker.wrangler.toml
   - ../dreamlab-ai-website/forum-config/deploy/migrations/001_init.sql
-verified_commit: f934e26f949f3b95171544ec8ec5bcfd7679f593
+  - ../dreamlab-ai-website/docs/adr/ADR-2002-split-hosting-pages-workers.md
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/pod_browser.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
+verified_commit: {dreamlab-ai-website: 567bed67f54c2be66edf7e1333442f9458294241, nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## DW-03.1 The four-zone model plus the encryption master gate
@@ -44,9 +47,9 @@ flowchart TB
     TOML -.->|projected| RELAY["relay ZONE_CONFIG + ENCRYPTION_ENABLED [vars]<br/>server enforcement"]
     TOML -.->|projected| CLIENT["client window.__ENV__.ZONE_CONFIG<br/>rendering"]
 ```
-- INVARIANT (`IDENTITY-zones.md:178-179`): `required_cohorts` must stay dual-accept (zone id + legacy slug) until every legacy slug grant is migrated, or locked-zone members lose access — dropping either arm collapsed legacy members to welcome-only in a 2026-07-20 regression (`dreamlab.toml:116-119` comment).
-- DOC-DRIFT: `IDENTITY-zones.md`'s invariant "only `zone3` is encrypted" (`IDENTITY-zones.md:180-181`) no longer holds — `zone2`/`zone3`/`zone4` all carry `encrypted = true` (`dreamlab.toml:123,137,148`) and `zone4` additionally sets `agent_keys = true` (`dreamlab.toml:149`); the new `[encryption].enabled` gate is the actual global override (`dreamlab.toml:33-37`) and is itself a hand-synced mirror — see DW-03.6 M7.
-- **Drift:** `IDENTITY-zones.md` still records that the README markets locked "Friends, Family, and DreamLab" zones although the config has no `friends` zone — the second zone is `minimoonoir` (`IDENTITY-zones.md:154-157`, `dreamlab.toml:112-115`) — and that "Public MiniMooNoir landing" is misleading because `minimoonoir` (`zone2`) is `visibility = "locked"` (`IDENTITY-zones.md:158-161`, `dreamlab.toml:107,121`). The rewritten README now lists the public **Welcome** zone and locked **Minimoonoir**, **Family** and **DreamLab** zones (`dreamlab-ai-website/README.md:69`) and mentions Friends only in captions of earlier screenshots (`dreamlab-ai-website/README.md:99-101`), so the divergence entry outlives the README text it describes.
+- INVARIANT (`IDENTITY-zones.md:179-180`): `required_cohorts` must stay dual-accept (zone id + legacy slug) until every legacy slug grant is migrated, or locked-zone members lose access — dropping either arm collapsed legacy members to welcome-only in a 2026-07-20 regression (`dreamlab.toml:116-119` comment).
+- DOC-DRIFT: `IDENTITY-zones.md`'s invariant "only `zone3` is encrypted" (`IDENTITY-zones.md:181-182`) no longer holds — `zone2`/`zone3`/`zone4` all carry `encrypted = true` (`dreamlab.toml:123,137,148`) and `zone4` additionally sets `agent_keys = true` (`dreamlab.toml:149`); the new `[encryption].enabled` gate is the actual global override (`dreamlab.toml:33-37`) and is itself a hand-synced mirror — see DW-03.6 M7.
+- **Drift:** `IDENTITY-zones.md` still records that the README markets locked "Friends, Family, and DreamLab" zones although the config has no `friends` zone — the second zone is `minimoonoir` (`IDENTITY-zones.md:155-158`, `dreamlab.toml:112-115`) — and that "Public MiniMooNoir landing" is misleading because `minimoonoir` (`zone2`) is `visibility = "locked"` (`IDENTITY-zones.md:159-162`, `dreamlab.toml:107,121`). The rewritten README now lists the public **Welcome** zone and locked **Minimoonoir**, **Family** and **DreamLab** zones (`dreamlab-ai-website/README.md:69`) and mentions Friends only in captions of earlier screenshots (`dreamlab-ai-website/README.md:99-101`), so the divergence entry outlives the README text it describes.
 - DOC-DRIFT: `dreamlab_zone_names()` (`branding.rs:40-42`) documents a legacy 3-zone naming scheme (`home`/`members`/`private` displayed as `Lobby`/`DreamLab`/`MiniMooNoir`) predating this four-zone model; its only caller is its own unit test (`branding.rs:65-71`) — not `workers.rs`, `lib.rs`, or any deploy step — so it is dead code describing a superseded scheme.
 - The branding overlay matches the authored TOML: `dreamlab_branding()` sets `node_name` to `MINIMOONOIR` and `logo_url` to `/brand/mark.svg` (`branding.rs:17,28`), the values `dreamlab.toml:82,86` author, and a unit test pins the pair so the programmatic mirror cannot diverge again (`branding.rs:54-63`; dream-cycle candidate `5dbf18b`, 2026-10-02). The golden-field mark replaced the earlier state in which the overlay returned `None` because `/assets/logo.svg` was a 404.
 - The earlier **Drift** on the BBS logo is closed: `BBS_LOGO_URL` is now `https://dreamlab-ai.com/brand/mark.svg` (`deploy.yml:120`), injected as `window.__ENV__.LOGO_URL` (`deploy.yml:360`), agreeing with the overlay and TOML in asset though not in form (absolute URL in the deploy env, root-relative path in `dreamlab.toml:86` and `branding.rs:17`); `BBS_NODE_NAME` (`deploy.yml:116`) still agrees.
@@ -82,7 +85,7 @@ flowchart TB
 ```
 - **Drift:** `forum-config/README.md:18` says "Three trust domains" while its own diagram draws four (`forum-config/README.md:22-38`) and `IDENTITY-zones.md:86-87` says four.
 - All entities carry `authorised_by` naming the human operator `operator-jjohare` (`forum-config/README.md`, `IDENTITY-zones.md:86-87`); admin pubkeys are static (`[admin].mode = "static"`, `dreamlab.toml:39-40`), not resolved from D1.
-- DOC-DRIFT: `authorised_by` is authored in `[[agents]]` but not rendered — the kit renders the authorising principal from server-side D1 `agent_registry.registered_by`, and `ForumConfig` does not parse the `[[agents]]` table at all (`IDENTITY-zones.md:168-171`, `dreamlab.toml` `[[agents]]` comment).
+- DOC-DRIFT: `authorised_by` is authored in `[[agents]]` but not rendered — the kit renders the authorising principal from server-side D1 `agent_registry.registered_by`, and `ForumConfig` does not parse the `[[agents]]` table at all (`IDENTITY-zones.md:169-172`, `dreamlab.toml` `[[agents]]` comment).
 - **Drift:** `[[agents]]` has grown from seven to eleven — `poker-citizen`, `poker-coach` and `poker-citizen-blakes7` joined for the poker table (`dreamlab.toml:386-405`, ADR-2009/kit ADR-2021) and `website-info` (ADR-2011) is labelled with `cohorts = []` because the `agent` cohort would receive the zone4 key (`dreamlab.toml:407-412`) — but `IDENTITY-zones.md:89` still reads "Seven agents and three test users". Three recipients are also declared under `[[ingress]]` (`dreamlab.toml:421-441`), which `forum-config/tests/ingress_mirror.rs:24-58` holds equal to the relay's `INGRESS_RECIPIENTS` var.
 
 ## DW-03.4 Open, staged: the admin/governance key split
@@ -242,3 +245,23 @@ flowchart TB
 - 24 `CREATE TABLE IF NOT EXISTS` statements, run against the `dreamlab-auth` D1 database via `auth-worker.wrangler.toml:18` `migrations_dir = "migrations"` — this file is the only `.sql` file in the repo.
 - **Open:** the relay worker's own D1, `dreamlab-relay` (`relay-worker.wrangler.toml:74-77`), declares no `migrations_dir` in this overlay, so its schema is authored in kit code this repo does not carry; the `NostrRelayDO` Durable Object is a separate SQLite-backed class (`relay-worker.wrangler.toml:84-86`). An earlier reading conflated the D1 database with the Durable Object's storage.
 - `moderation_actions`/`mod_reports` back `docs/api/MODERATION_API.md`'s kind 30910-30914 projections (see DW-06.5); `whitelist` (`001_init.sql:266`) and `members` (`001_init.sql:160`) are created in `dreamlab-auth`, while the governing security doc reads `whitelist.is_admin` from the relay D1 (DW-04.6) — **Open:** which copy the kit's admin resolution reads cannot be settled from this repo; `nip98_replay` backs the replay-protection binding shared across all four HTTP workers (DW-03.9/DW-03.10).
+
+## DW-03.12 Native pod tier — authored in the TOML, gated by secrets, host unreachable
+```mermaid
+flowchart TB
+    TOML["[native_pod] enabled = true<br/>base_url pods-native.dreamlab-ai.com, cohorts zone2-4<br/>dreamlab.toml:253-258"]
+    SCHEMA["kit config crate parses the table<br/>nostr-bbs-config/src/schema.rs:51"]
+    GHSEC["GH secret NATIVE_POD_URL<br/>baked into the forum build<br/>deploy.yml:248"]
+    CARD["Pod Browser mesh card<br/>rendered only when NATIVE_POD_URL is non-empty<br/>pod_browser.rs:128,999"]
+    CFSEC["auth-worker CF secrets NATIVE_POD_URL, NATIVE_POD_ADMIN_KEY<br/>set-worker-secrets.yml:23,45, optional at deploy<br/>workers-deploy.yml:318"]
+    PROV["/api/native-pod/provision<br/>503 when unset<br/>auth-worker.wrangler.toml:86-89"]
+    HOST["pods-native.dreamlab-ai.com via CF Tunnel<br/>DIVERGENCE: no DNS record on 2026-11-22<br/>ADR-2002-split-hosting-pages-workers.md:138-143"]
+    TOML --> SCHEMA
+    TOML -.->|"value copied by hand, no mirror check"| GHSEC
+    TOML -.->|"value copied by hand"| CFSEC
+    GHSEC --> CARD --> HOST
+    CFSEC --> PROV --> HOST
+```
+- DIVERGENCE: the tier is advertised but unreachable; ADR-2002 records the missing DNS record as observed on 2026-11-22 (not re-checked here) and the owner has parked it (`ADR-2002-split-hosting-pages-workers.md:130-146`).
+- **Open:** ADR-2002's second remedy is `[native_pod] enabled = false` (`ADR-2002-split-hosting-pages-workers.md:156-158`). At kit `af4f0d5` the card's only gate found is the build variable (`pod_browser.rs:128-131,997-999`) and the auth worker reads its own secrets (`auth-worker.wrangler.toml:93-98`); no reader of `enabled` beyond the schema turned up, so flipping it may leave the card shown. Untested; emptying the `NATIVE_POD_URL` build secret is the gate the code shows.
+- **Debt:** none of the three copies is in the `config-mirrors.mjs` set; the auth-worker comment is the only record that its secret equals `base_url` (`auth-worker.wrangler.toml:89-91`).
