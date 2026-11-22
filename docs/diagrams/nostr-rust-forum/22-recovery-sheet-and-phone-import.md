@@ -16,7 +16,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs
-verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
+verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
 ## For developers
@@ -119,15 +119,15 @@ NF-20 documents the missing registration proof and incompatible list parser. Thi
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1054
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1094
     A["Receive signed device-authored event"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1121
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1161
     B["Resolve effective principal for policy<br/>selected kinds use owner lookup"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1552
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1618
     C["Pass original event to save_event"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:73
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:118
     D["Serialise original tags<br/>store original pubkey and signature"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1554
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1620
     E["Broadcast original event after successful save"]
     A --> B --> C --> D
     C -->|save succeeds| E

@@ -13,7 +13,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## For developers
@@ -32,7 +32,7 @@ A lost-phone control needs a working device list and a measurable point at which
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:100
     A["Auth worker reads its own setting"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2570
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3735
     B["Relay worker reads its own setting"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs:64
     C["Shared rule: exact string true only"]
@@ -100,17 +100,17 @@ At the earlier stamp SQL tests reproduced reactivation, transfer and a principal
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2057
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2140
     A["Verify NIP-42 challenge and signed event"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2069
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2152
     B["Set session authed_pubkey to raw author"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs:334
     C["Persist raw public key for hibernation"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2614
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3779
     D["Later effective_pubkey applies feature gate"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2596
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3761
     E["Registry query selects only revoked = 0"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:974
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1006
     F["No mapping: retain raw public key<br/>no explicit revoked-key rejection here"]
     A --> B --> C
     B --> D --> E --> F
@@ -122,17 +122,17 @@ Owner mapping is cached between the later lookup and D1. Revoking a mapping does
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2216
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2338
     A["Owner lookup caches positive and negative results"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:73
     B["Reuse entry while age is less than 60 seconds"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:526
     C["Auth worker revokes database row<br/>no relay cache invalidation here"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2160
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2275
     D["Resolved viewer context keeps<br/>owner, cohorts and admin flags"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1883
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1961
     E["Request loop reuses the same context<br/>while awaiting per-event checks"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2221
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2343
     F["Expired next lookup refreshes mapping<br/>lookup failure becomes negative cache"]
     A --> B --> D --> E
     C -. does not clear existing context .-> D
@@ -145,17 +145,17 @@ Native fixtures retain owner mapping at t=159 after a t=100 fill and drop it at 
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1121
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1161
     A["Non-gift-wrap event resolves owner<br/>for membership and trust checks"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1226
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1258
     B["Write admin status uses raw event author"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2165
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2280
     C["Read context checks admin status<br/>on the resolved owner"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2114
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2201
     D["Owner admin flag permits private-zone reads"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2138
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2241
     E["Sealed-DM filter stays bound to<br/>raw authenticated public key"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1914
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1992
     F["Read activity is charged to raw session key"]
     A --> B
     C --> D
