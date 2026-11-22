@@ -4,7 +4,7 @@ title: Membership lifecycle, cohort grants and admin consistency
 area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md
-adrs: [ADR-2014]
+adrs: [ADR-2014, ADR-2016, ADR-2033]
 sources:
   - ../nostr-rust-forum/docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/whitelist_sql.rs
@@ -18,12 +18,14 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/admin.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs
+verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## For developers
 
-The dynamic admin split and invite revoke/cohort findings have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-292-device-lifecycle-and-dynamic-administration-settle-at-their-owners). The dynamic admin split and invite cohort findings are marked resolved at the re-verified stamp 6064622; other membership findings remain separate.
+The dynamic admin split and invite revoke/cohort findings have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-292-device-lifecycle-and-dynamic-administration-settle-at-their-owners). The dynamic admin split and invite cohort findings are marked resolved at the re-verified stamp 6064622; other membership findings remain separate. Re-verified at af4f0d5: the user purge now writes NIP-09 event tombstones (NF-25.5) and the Add User form now sends zone keys (NF-25.7); nothing else in these sources changed.
 
 [The membership audit](../../estate-review/2026-11-01-forum-membership-lifecycle.md) records 37 selected native cases and seven extracted-SQL scenarios. The pager uses the actual Rust implementation with synthetic pages. SQL cases exercise chosen schedules on SQLite, without running the async Worker handlers or live D1. Consolidation below is proposed, not deployed.
 
@@ -117,7 +119,13 @@ flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/mod.rs:488
     A["Relay deletion must succeed"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:199
-    B["DELETE whitelist row<br/>no removed-state tombstone"]
+    B["DELETE whitelist row<br/>no removed-state membership record"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:224-231
+    B2["delete_events only: NIP-09 tombstones for the author's rows,<br/>then DELETE events and profiles, fail-open"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:268-270
+    B3["reply and audit row carry tombstoned only when a purge ran"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/mod.rs:487
+    B4["TENSION: the client checks only for an error and never reads tombstoned"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/mod.rs:506
     C["Primary pod deprovision<br/>failure logs a warning"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/mod.rs:524
@@ -125,9 +133,13 @@ flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/mod.rs:533
     E["UI reports Deleted<br/>refetch is best effort"]
     A --> B --> C --> D --> E
+    B -.-> B2 --> B3 -.-> B4
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:233
+    OPEN1["OPEN, kit O17 / KF-16: the purge tombstones and deletes by pubkey only,<br/>so device-key and gift-wrap rows are neither tombstoned nor deleted"]
+    B2 -.-> OPEN1
 ```
 
-The storage fixture can grant a new row after deletion. It establishes missing tombstone enforcement, without demonstrating unauthorised re-admission or exercising pod deletion.
+The storage fixture can grant a new row after deletion. It establishes missing removed-state enforcement, without demonstrating unauthorised re-admission or exercising pod deletion. The NIP-09 tombstones added at da08b53 and db6ddfc are event-level: they stop a re-admitted member re-publishing purged events (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:221-223`), not re-admission itself, and no route removes one short of `reset-db` (kit O15 / KF-14, NF-08.10).
 
 ## NF-25.6 Consolidation remains a proposed migration
 
@@ -148,3 +160,33 @@ flowchart TB
 ```
 
 The bounded route/migration inventory finds no proposed relay membership module, table or unified endpoint. Phase 1's shared whitelist SQL and DDL exist. Copying a past expiry to a past suspension while declaring the member active needs a defined denial-preserving rule before migration equivalence can be claimed.
+
+## NF-25.7 Both admin allocation paths send zone keys
+
+```mermaid
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/admin.rs:568
+    ADD["Add User form captures AutoGrant, since 071e78c"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/admin.rs:608-613
+    ADDOK["after add_to_whitelist_signer succeeds:<br/>after_allocation for the new pubkey"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/admin.rs:643
+    EDIT["Members cohort editor captures AutoGrant"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/admin.rs:654-656
+    EDITOK["after update_cohorts_signer succeeds and a cohort was added:<br/>after_allocation"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:323-328
+    NONE["capture is None with no encrypted zone<br/>or no zone-key store: nothing sent"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:456
+    ALLOC["after_allocation narrows the grant run to that one pubkey"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:428-433
+    RUN["explicit admin action: never-granted targets are approved,<br/>not held for the first-grant confirmation"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:362
+    ROSTER["grants are planned from a fresh whitelist roster read"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:466-470
+    FAIL["a failed grant is a toast: retry from Admin, Encryption"]
+    ADD --> ADDOK --> ALLOC
+    EDIT --> EDITOK --> ALLOC
+    ADD -.-> NONE
+    ALLOC --> RUN --> ROSTER --> FAIL
+```
+
+Before 071e78c only the cohort editor sent keys, so a member added through the form with an encrypted-zone cohort waited for an admin's manual sweep. Both paths now share one client-side grant run; the whitelist write and the key grant remain separate steps, and a grant failure does not undo the membership.
