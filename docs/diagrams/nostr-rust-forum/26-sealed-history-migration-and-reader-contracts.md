@@ -71,11 +71,14 @@ flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:566
     F["Mismatch gives Failed<br/>even when migrator can open the inner event"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-zone-migrate/src/engine.rs:611
-    K["NEW seal guard: refuse unless the zone's current key matches the<br/>highest observed zk epoch and pubkey of its live posts"]
+    K["Since 6064622, seal guard: refuse unless the zone's current key matches the<br/>highest observed zk epoch and pubkey of its live posts"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-zone-migrate/src/engine.rs:224
     S["Checked per zone before anything is sealed<br/>adoption and verify are unchanged"]
     A --> O --> I --> V
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-zone-migrate/src/engine.rs:604
+    DB["DEBT authors' FOLLOW-UP: a zone with no live encrypted post is refused,<br/>blocking FIRST encryption of an all-plaintext zone until an opt-in lands"]
     K --> S
+    K -.-> DB
     S -. binds new envelopes only .-> R
     R --> F
     V -. mismatched admin envelope .-> F
@@ -207,7 +210,7 @@ flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3396
     O18["DEBT kit O18, KF-18: a migrator who lost admin leaves<br/>envelopes, any current admin's envelope is removable"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:17
-    O25["OPEN kit O25, KF-27: the client cannot identify TL3<br/>moderators, so their deletions hide nothing client-side"]
+    O25["OPEN kit O25, KF-27: the client cannot identify TL3<br/>moderators, so on a restored sealed original<br/>their deletions hide nothing client-side"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs:180
     O25B["check-whitelist isAdmin reads whitelist.is_admin only<br/>whitelist.rs:135"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:184

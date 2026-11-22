@@ -55,10 +55,10 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant C as Client socket
-    participant DO as handle_auth<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2124
+    participant DO as NostrRelayDO, handle_auth<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2124
     participant EV as evaluate_auth_event<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:195
 
-    DO-->>C: AUTH challenge (per-session, unpredictable)
+    DO-->>C: AUTH challenge at connect (per-session, unpredictable) - see NF-11.2
     C->>DO: ["AUTH", kind-22242 event]
     DO->>DO: allowed set = RELAY_URL plus RELAY_URL_ALIASES, canonicalised, explicit config only nip_handlers.rs:2131
     DO->>EV: event, expected_challenge, allowed_relay_urls, now, max_skew nip_handlers.rs:2140
@@ -484,7 +484,7 @@ flowchart TB
     Q -->|"rows"| CLS --> FOR
     FOR -->|"foreign"| WRAP
     WRAP -->|"not theirs"| OTH
-    WRAP -->|"theirs"| SEAL
+    WRAP -->|"theirs: target excused"| OK
     FOR -->|"no row"| SEAL
     SEAL -->|"yes"| SR
     SEAL -->|"no"| TOMB
