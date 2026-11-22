@@ -202,15 +202,15 @@ flowchart TB
 ```mermaid
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2963
-    O19["OPEN kit O19, KF-19: an author cannot delete their own migrated post<br/>the member gate refuses every sealed original"]
+    O19["OPEN NF-10 O19, KF-19: an author cannot delete their own migrated post<br/>the member gate refuses every sealed original"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:870
     O19B["The purge's row-author tombstone exists<br/>but the classifier reads the sealed flag first"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:121
     DEAD["For a new kind 5 the client's author branch is reachable<br/>only when the author is also admin or TL3"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3396
-    O18["DEBT kit O18, KF-18: a migrator who lost admin leaves<br/>envelopes, any current admin's envelope is removable"]
+    O18["DEBT NF-10 O18, KF-18: a migrator who lost admin leaves<br/>envelopes, any current admin's envelope is removable"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:17
-    O25["OPEN kit O25, KF-27: the client cannot identify TL3<br/>moderators, so on a restored sealed original<br/>their deletions hide nothing client-side"]
+    O25["OPEN NF-10 O25, KF-27: the client cannot identify TL3<br/>moderators, so on a restored sealed original<br/>their deletions hide nothing client-side"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs:180
     O25B["check-whitelist isAdmin reads whitelist.is_admin only<br/>whitelist.rs:135"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:184

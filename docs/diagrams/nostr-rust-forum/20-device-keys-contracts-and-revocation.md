@@ -13,6 +13,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/index.html
 verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
@@ -42,6 +44,15 @@ flowchart TB
     E["Auth on, relay off: no owner remap"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs:128
     F["Relay on, auth off: mappings honoured<br/>device API including revoke is unavailable"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/devices.rs:93
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:360
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:148
+    G["Recovery sheet and Settings read the browser flag<br/>device_keys_enabled"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/index.html:63-67
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/index.html:73-75
+    H["GAP: the kit ships an empty window.__ENV__ placeholder<br/>that the operator's deploy pipeline must replace;<br/>no in-crate file sets DEVICE_KEYS_ENABLED"]
+    G --> D
+    H -.-> G
     A --> C
     B --> C
     A -. can differ .-> B

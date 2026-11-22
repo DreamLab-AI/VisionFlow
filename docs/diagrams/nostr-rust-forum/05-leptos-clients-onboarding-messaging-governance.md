@@ -644,7 +644,7 @@ sequenceDiagram
     C->>L: answered is authed only when every REQ sent was answered and the last went out after AUTH receipt.rs:109 nostr-bbs-forum-client/src/relay.rs:1385
     C->>C: on_receipt(authed) feeds the page receipts in NF-05.20 nostr-bbs-forum-client/src/relay.rs:1395
     C->>C: kit #98: the answer clock starts when the REQ frame leaves the paced queue, not when it is queued nostr-bbs-forum-client/src/relay.rs:318 receipt.rs:262
-    C->>L: timer fires: still queued or under 8 s on the wire, re-check later receipt.rs:245 nostr-bbs-forum-client/src/relay.rs:1159; no longer the latest REQ, nothing receipt.rs:121
+    C->>L: timer fires: still queued or under 8 s on the wire, re-check later receipt.rs:245 nostr-bbs-forum-client/src/relay.rs:1159 - no longer the latest REQ, nothing receipt.rs:121
     C->>L: 8 s on the wire unanswered: on_watch says Settled, Resend or GiveUp after 2 re-sends receipt.rs:138 receipt.rs:50 receipt.rs:55
     C->>R: Resend: CLOSE the old wire id, REQ under a fresh one nostr-bbs-forum-client/src/relay.rs:1185 nostr-bbs-forum-client/src/relay.rs:1209
 
