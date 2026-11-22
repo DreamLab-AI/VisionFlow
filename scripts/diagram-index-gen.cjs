@@ -537,7 +537,9 @@ function citeCheck(topics) {
   // the SAME line/label (`proxy.mjs:100<br/>verify :340`); with no path on the
   // line it is unresolvable (or a port) and is reported as such. Previously
   // bare cites were never resolved and never checked (23 % of all citations).
-  const BARE_RE = /(^|[^A-Za-z0-9_./:-]):(\d+)(?:\s*-\s*(\d+))?(?![\d.])/g;
+  // The lookahead keeps `:1.2` (a version, a decimal) out, but must not reject a
+  // citation that ends a sentence (`…at :936.`): that skipped real line numbers.
+  const BARE_RE = /(^|[^A-Za-z0-9_./:-]):(\d+)(?:\s*-\s*(\d+))?(?!\d|\.\d)/g;
   for (const t of topics) {
     CURRENT_TOPIC = t;
     for (const d of [...t.diagrams, ...(t.prose || [])]) {
