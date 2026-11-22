@@ -12,7 +12,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/js/push.js
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## For developers
@@ -143,7 +143,7 @@ Worker fixtures reproduce visible-login suppression, rejected display after drai
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:1181
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:1657
     A["Five-minute cron invokes trailing flush"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/push.rs:783
     B["Select at most 100 due devices<br/>old undrained counts and sequence gap"]
