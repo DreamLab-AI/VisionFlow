@@ -66,7 +66,9 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/upload.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs
-  - ../nostr-rust-forum/docs/diagrams/00-anomaly-register.md
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/section.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/grant_backlog.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/pod_client.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/theme.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/category.rs
@@ -74,7 +76,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md
   - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
   - ../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md
-verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
+verified_commit: fd31193090a29471972bd408e07a7e5b8654f087
 ---
 
 ## NF-05.1 Forum client boot and the FORUM_BASE discipline
@@ -142,6 +144,7 @@ flowchart LR
     N2["The zone-slug aliases are declared last so the static routes out-score them; a slug is only valid<br/>if it resolves in the live ZONE_CONFIG nostr-bbs-forum-client/src/pages/category.rs:103"]
     N3["The member and admin governance views are separate ROUTES bound to separate components -<br/>see NF-06.10"]
     N4["/go/:event_id resolves a bare event id to its topic and lands the reader on it - see NF-05.15 for<br/>the deep-link walk and NF-05.6 for the tombstone/zone-decrypt gate it shares with normal ingest"]
+    N5["DEBT: three auth gates are written out by hand - AuthGatedChannel nostr-bbs-forum-client/src/app.rs:1471, AuthGatedDmList nostr-bbs-forum-client/src/app.rs:1498,<br/>AuthGatedDmChat nostr-bbs-forum-client/src/app.rs:1525 - each the same body as the auth_gated! macro nostr-bbs-forum-client/src/app.rs:1566-1594 that the other<br/>thirteen gated pages use nostr-bbs-forum-client/src/app.rs:1596-1608"]
 ```
 
 ## NF-05.3 Passkey identity — register, log in, derive
@@ -221,29 +224,29 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as RelayConnection<br/>nostr-bbs-forum-client/src/relay.rs:262
+    participant C as RelayConnection<br/>nostr-bbs-forum-client/src/relay.rs:266
     participant R as relay-worker
 
-    C->>R: connect nostr-bbs-forum-client/src/relay.rs:444
-    R-->>C: open: new conn_gen, auth flags reset nostr-bbs-forum-client/src/relay.rs:497
-    C->>R: queued non-REQ frames flushed, every subscription REQ replayed and counted anonymous nostr-bbs-forum-client/src/relay.rs:514 nostr-bbs-forum-client/src/relay.rs:526
-    C->>C: authenticated cleared BEFORE state = Connected nostr-bbs-forum-client/src/relay.rs:553
-    C->>R: REQ subscription, counted in its ledger only when the socket is open nostr-bbs-forum-client/src/relay.rs:644 nostr-bbs-forum-client/src/relay.rs:681
-    R-->>C: EVENT nostr-bbs-forum-client/src/relay.rs:1238
-    C->>C: verify_event_strict BEFORE dispatch nostr-bbs-forum-client/src/relay.rs:1262
-    R-->>C: EOSE, credited only under the current wire id nostr-bbs-forum-client/src/relay.rs:1290 nostr-bbs-forum-client/src/relay.rs:1303
-    C->>R: EVENT publish, held while the socket is open but AUTH unresolved nostr-bbs-forum-client/src/relay.rs:754 nostr-bbs-forum-client/src/relay.rs:780
-    R-->>C: OK, an AUTH reply is routed to on_auth_ok, see NF-05.18 nostr-bbs-forum-client/src/relay.rs:1384 nostr-bbs-forum-client/src/relay.rs:1395
-    R-->>C: AUTH challenge nostr-bbs-forum-client/src/relay.rs:1424
-    C->>R: signed kind-22242 AUTH response, recorded as pending_auth nostr-bbs-forum-client/src/relay.rs:1438 nostr-bbs-forum-client/src/relay.rs:1459
-    C->>R: CLOSE nostr-bbs-forum-client/src/relay.rs:738
-    C->>R: COUNT (NIP-45), kept pending and re-sent once AUTH is accepted nostr-bbs-forum-client/src/relay.rs:720 nostr-bbs-forum-client/src/relay.rs:945 nostr-bbs-forum-client/src/relay.rs:1174
-    R-->>C: COUNT answer nostr-bbs-forum-client/src/relay.rs:1335
+    C->>R: connect nostr-bbs-forum-client/src/relay.rs:453
+    R-->>C: open: new conn_gen, auth flags reset nostr-bbs-forum-client/src/relay.rs:506
+    C->>R: queued non-REQ frames flushed, every subscription REQ replayed and counted anonymous nostr-bbs-forum-client/src/relay.rs:525 nostr-bbs-forum-client/src/relay.rs:537
+    C->>C: authenticated cleared BEFORE state = Connected nostr-bbs-forum-client/src/relay.rs:564
+    C->>R: REQ subscription, counted in its ledger only when the socket is open nostr-bbs-forum-client/src/relay.rs:655 nostr-bbs-forum-client/src/relay.rs:692
+    R-->>C: EVENT nostr-bbs-forum-client/src/relay.rs:1318
+    C->>C: verify_event_strict BEFORE dispatch nostr-bbs-forum-client/src/relay.rs:1342
+    R-->>C: EOSE, credited only under the current wire id nostr-bbs-forum-client/src/relay.rs:1370 nostr-bbs-forum-client/src/relay.rs:1383
+    C->>R: EVENT publish, held while the socket is open but AUTH unresolved nostr-bbs-forum-client/src/relay.rs:770 nostr-bbs-forum-client/src/relay.rs:796
+    R-->>C: OK, an AUTH reply is routed to on_auth_ok, see NF-05.18 nostr-bbs-forum-client/src/relay.rs:1464 nostr-bbs-forum-client/src/relay.rs:1475
+    R-->>C: AUTH challenge nostr-bbs-forum-client/src/relay.rs:1504
+    C->>R: signed kind-22242 AUTH response, recorded as pending_auth nostr-bbs-forum-client/src/relay.rs:1518 nostr-bbs-forum-client/src/relay.rs:1539
+    C->>R: CLOSE nostr-bbs-forum-client/src/relay.rs:749
+    C->>R: COUNT (NIP-45), kept pending and re-sent once AUTH is accepted nostr-bbs-forum-client/src/relay.rs:731 nostr-bbs-forum-client/src/relay.rs:961 nostr-bbs-forum-client/src/relay.rs:1254
+    R-->>C: COUNT answer nostr-bbs-forum-client/src/relay.rs:1415
 
-    Note over C: INVARIANT: the client re-verifies every inbound event's id and Schnorr signature - it does not trust the relay nostr-bbs-forum-client/src/relay.rs:1262
-    Note over C: publish_with_ack registers a callback for the relay's OK, then sends or holds the frame like publish nostr-bbs-forum-client/src/relay.rs:795
-    Note over C: Every send is paced to at most 8 frames a second, below the relay's per-IP cap nostr-bbs-forum-client/src/relay.rs:46 nostr-bbs-forum-client/src/relay.rs:286
-    Note over C: OPEN O22 / KF-24: a post made while the socket is CLOSED goes to pending_messages nostr-bbs-forum-client/src/relay.rs:824<br/>and is flushed on reopen BEFORE AUTH nostr-bbs-forum-client/src/relay.rs:514, where the relay refuses it auth-required
+    Note over C: INVARIANT: the client re-verifies every inbound event's id and Schnorr signature - it does not trust the relay nostr-bbs-forum-client/src/relay.rs:1342
+    Note over C: publish_with_ack registers a callback for the relay's OK, then sends or holds the frame like publish nostr-bbs-forum-client/src/relay.rs:811
+    Note over C: Every send is paced to at most 8 frames a second, below the relay's per-IP cap nostr-bbs-forum-client/src/relay.rs:46 nostr-bbs-forum-client/src/relay.rs:290
+    Note over C: OPEN O22 / KF-24: a post made while the socket is CLOSED goes to pending_messages nostr-bbs-forum-client/src/relay.rs:840<br/>and is flushed on reopen BEFORE AUTH nostr-bbs-forum-client/src/relay.rs:525, where the relay refuses it auth-required
 ```
 
 ## NF-05.6 Derived, never accumulated — the counting invariant
@@ -267,10 +270,11 @@ flowchart TB
     EVS --> UNREAD
 
     N1["INVARIANT ADR-091: post counts are NEVER stored as an independent field - a mutable counter drifts<br/>against deletions and replaceable events channels.rs:68"]
-    N2["admits_message is the single admission predicate for the broad sync, ensure_subscribed and the deep-link replay<br/>channels.rs:267 channels.rs:720 channels.rs:737. insert_message is the only path that ADDS to channel_messages.<br/>The other mutations only remove or rewrite: apply_deletion folds a kind-5 per deleter channels.rs:194 tombstones.rs:164,<br/>remove_message for the reader's own delete channels.rs:243, the empty-EOSE reset channels.rs:478, and redecrypt,<br/>which re-admits a restored original zone_crypto/store.rs:463"]
+    N2["admits_message is the single admission predicate for the broad sync, ensure_subscribed and the deep-link replay<br/>channels.rs:267 channels.rs:720 channels.rs:737. insert_message is the only path that ADDS to channel_messages.<br/>The other mutations only remove or rewrite: apply_deletion folds a kind-5 per deleter channels.rs:194 tombstones.rs:164,<br/>remove_message for the reader's own delete channels.rs:243, the empty-EOSE reset channels.rs:478, and redecrypt,<br/>which re-admits a restored original zone_crypto/store.rs:502"]
     N3["The same discipline is applied to notifications - unread is derived, not incremented<br/>notifications.rs:271. init_sync opens NO subscription of its own,<br/>and is idempotent behind a synced flag notifications.rs:483"]
-    N4["OPEN O25 / KF-27: the client cannot identify TL3 moderators tombstones.rs:17-19, and the isAdmin it asks for<br/>signer_admin.rs:108 is the whitelist row's is_admin alone whitelist.rs:135 whitelist.rs:180, while the relay's own<br/>admin test also honours static ADMIN_PUBKEYS auth.rs:181. O13 / KF-17, relay half per the kit register, not re-read<br/>here: an ordinary post honours every deleter tombstones.rs:7-10, so a claim the relay accepts on an id it never stored hides it"]
-    N5["Kit #81: the sync filters are split so kind-5s cannot crowd out channels or other zones - channels 40 and 41,<br/>deletions, reactions and one kind-42 filter per zone plus a catch-all, each with an explicit limit 1000<br/>channels.rs:1006 channels.rs:1021 channels.rs:1042 channels.rs:963. The broad message sync starts only once the<br/>channel list has an authenticated answer or its deadline passed nostr-bbs-forum-client/src/app.rs:903 lookup.rs:140"]
+    N4["OPEN O25 / KF-27: the client cannot identify TL3 moderators tombstones.rs:17-19, and the isAdmin it asks for<br/>signer_admin.rs:108 is the whitelist row's is_admin alone whitelist.rs:135 whitelist.rs:180, while the relay's own<br/>admin test also honours static ADMIN_PUBKEYS auth.rs:181. O13 / KF-17, relay half in NF-10.14, not re-read<br/>here: an ordinary post honours every deleter tombstones.rs:7-10, so a claim the relay accepts on an id it never stored hides it"]
+    N5["Kit #81: the sync filters are split so kind-5s cannot crowd out channels or other zones - channels 40 and 41,<br/>deletions, reactions and one kind-42 filter per zone plus a catch-all, each with an explicit limit 1000<br/>channels.rs:1006 channels.rs:1021 channels.rs:1042 channels.rs:963. The broad message sync starts only once the<br/>channel list has an authenticated answer or its deadline passed nostr-bbs-forum-client/src/app.rs:903 lookup.rs:260,<br/>because start_msg_sync builds its per-zone filters from the channels known at that instant and the pre-AUTH answer<br/>omits Hidden-zone channels nostr-bbs-forum-client/src/app.rs:887-892; the deadline is armed at relay connect nostr-bbs-forum-client/src/app.rs:896-897"]
+    N6["DEBT, two kind-42 subscriptions write one store: the broad start_msg_sync channels.rs:560 and the per-channel<br/>ensure_subscribed channels.rs:693 both pass admits_message and insert_message, which dedups by id channels.rs:807-809.<br/>The broad one is per-zone #e filters plus a catch-all with no #e message_sync_filters channels.rs:1042 channels.rs:1076,<br/>so a deep-linked channel's history can arrive twice - overlapping authority and redundant relay traffic, not a count error"]
 ```
 
 ## NF-05.7 Config projection into the browser
@@ -290,7 +294,7 @@ flowchart TB
     ZC --> COH
 
     N1["The client renders what the config describes; the relay is the real boundary enforcing the SAME<br/>JSON - see NF-08.1 and NF-08.2"]
-    N2["ANOMALY O8 re-verified and STILL LIVE: relay.rs reads window.__ENV__ inline<br/>nostr-bbs-forum-client/src/relay.rs:1537 instead of calling the shared window_env helper, and the two<br/>resolvers' hardcoded fallbacks DIVERGE - nostr-bbs-forum-client/src/relay.rs:30 versus utils/relay_url.rs:13"]
+    N2["ANOMALY O8 re-verified and STILL LIVE: relay.rs reads window.__ENV__ inline<br/>nostr-bbs-forum-client/src/relay.rs:1617 instead of calling the shared window_env helper, and the two<br/>resolvers' hardcoded fallbacks DIVERGE - nostr-bbs-forum-client/src/relay.rs:30 versus utils/relay_url.rs:13"]
     N3["ANOMALY O7 CLOSED: settings no longer hardcodes example.test - it imports the onboarding modal's NIP05_HOST, which is baked from NOSTR_BBS_NIP05_DOMAIN, so the two cannot drift<br/>nostr-bbs-forum-client/src/pages/settings.rs:35, nostr-bbs-forum-client/src/components/onboarding_modal.rs:59"]
 ```
 
@@ -316,6 +320,8 @@ sequenceDiagram
     R-->>S: positive-only ready callback recovery_sheet.rs:303 signup.rs:647
     S->>A: finish confirms backup and applies remember preference signup.rs:309
     Note over R,S: Print failure and unticked acknowledgement do not reset parent readiness<br/>Advanced override is intentional signup.rs:674
+    Note over S,W: DEBT O8: provision_pod has three near-identical copies - signup.rs:176-204, settings.rs:2024-2052<br/>and provision_pod_signer pod_client.rs:49-78. Settings provisions again on a 403 or 404 settings.rs:658-659<br/>after upload_to_pod_signer has already provisioned and retried on either pod_client.rs:38-40
+    Note over S,W: RESOLVED F-10: settings imports only the username helpers from onboarding_modal settings.rs:18-21,<br/>and the OnboardingModal component is recorded as removed dead code onboarding_modal.rs:187-193
 ```
 
 [The recovery review](../../estate-review/2026-11-01-forum-recovery-and-connect.md) and NF-22 distinguish attempted output, local import and relay acceptance. This signup path generates a local key; it is not the passkey ceremony in NF-05.3. The downloaded HTML interpolates unescaped display text and differs from the screen's optional device/sweep sections. Fragment-only navigation excludes the key from the HTTP request, but does not prove WASM-only custody or successful history clearing.
@@ -346,7 +352,7 @@ sequenceDiagram
     B->>B: a failure is surfaced through state.error, not swallowed dm/mod.rs:1249-1257
 
     Note over A: INVARIANT a single wrap is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so the sender can neither decrypt nor find it, and sent history kept vanishing dm/mod.rs:626-630
-    Note over B: ADR-2016: a zone-key grant rides the SAME gift-wrap transport (kind 1059) as a DM. Core refuses the grant's rumor kind before unwrap can succeed, so dispatch never needs a kind check of its own - dm/mod.rs:1231-1235, zone_crypto/mod.rs:93
+    Note over B: ADR-2016: a zone-key grant rides the SAME gift-wrap transport (kind 1059) as a DM. Core refuses the grant's rumor kind before unwrap can succeed, so dispatch never needs a kind check of its own - dm/mod.rs:1231-1235, zone_crypto/mod.rs:94
     Note over B: The gift-wrap half CANNOT be narrowed to one partner relay-side, so it fetches the whole wrap inbox and selects the conversation locally after unwrapping - the price NIP-59 sender anonymity charges dm/mod.rs:965-969
     Note over B: The realtime window is widened by GIFT_WRAP_LOOKBACK_SECS because NIP-59 randomises the outer created_at into the PAST - a since equals now subscription would skip a message sent this second dm/mod.rs:997 dm/mod.rs:976-984
     Note over B: Tier 0 (ADR-2023): a layout-level incoming watcher subscribes to the account's own gift-wrap inbox, unwraps each wrap not yet announced and raises a DM notification, because the per-page DMStore only subscribes while a DM screen is open dm/mod.rs:1116 dm/mod.rs:1144
@@ -362,7 +368,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    THREAD["thread reply - kind 42 e-tagging the topic root<br/>nostr-bbs-forum-client/src/pages/thread.rs:1023<br/>edit/delete via kind 5 thread.rs:1091"]
+    THREAD["thread reply - kind 42 e-tagging the topic root<br/>nostr-bbs-forum-client/src/pages/thread.rs:1043<br/>edit/delete via kind 5 thread.rs:1111"]
     CHAN["channel message - kind 42<br/>nostr-bbs-forum-client/src/pages/channel.rs:835"]
     EVENTS["calendar - kind 31923 events, 31925 RSVPs<br/>nostr-bbs-forum-client/src/pages/events.rs:137 events.rs:195"]
     SEARCH["global search - kind-40 channel names over the relay<br/>global_search.rs:467 plus NIP-50 text search over kind-42<br/>global_search.rs:725-760, worker as semantic layer/fallback<br/>global_search.rs:360. A hit links to /go/:event_id, not /chat/:channel - see NF-05.2 and NF-05.15"]
@@ -520,7 +526,7 @@ sequenceDiagram
     participant MJ as MessageJumpPage<br/>nostr-bbs-forum-client/src/pages/message_jump.rs:102
     participant R as relay
     participant CS as ChannelStore
-    participant TP as ThreadPage<br/>nostr-bbs-forum-client/src/pages/thread.rs:377
+    participant TP as ThreadPage<br/>nostr-bbs-forum-client/src/pages/thread.rs:379
 
     U->>MJ: navigate to /go/:event_id (search hit, or any shared link)
     MJ->>R: subscribe ids=[event_id] message_jump.rs:147-153
@@ -531,12 +537,12 @@ sequenceDiagram
     MJ->>MJ: resolve the topic's zone via section_to_zone message_jump.rs:194-202
     MJ->>TP: navigate to /forums/:zone/:section/:topic?focus=:id, replace=true message_jump.rs:203-208
 
-    TP->>TP: landing_target - focus post if loaded, else the newest reply thread.rs:267-283
-    TP->>TP: scroll_into_view + flash, re-applied while replies stream in for LANDING_SETTLE_MS=2500ms thread.rs:207 thread.rs:689 thread.rs:298
+    TP->>TP: landing_target - focus post if loaded, else the newest reply thread.rs:269-285
+    TP->>TP: scroll_into_view + flash, re-applied while replies stream in for LANDING_SETTLE_MS=2500ms thread.rs:209 thread.rs:709 thread.rs:300
 
     Note over MJ: If an ancestor is still streaming in, topic_root_of returns None and the Effect simply<br/>re-runs on the next store update - no retry loop, no timer message_jump.rs:85-98 message_jump.rs:189
     Note over MJ: RESOLVE_TIMEOUT_MS=6000: if the topic can never be resolved (unscoped channel, withheld<br/>parent, relay timeout) the page falls back to the single-note view /view/:id instead of hanging message_jump.rs:32 message_jump.rs:157-162
-    Note over TP: The 2.5s settle window exists because a reply can still be en route when the page first<br/>paints, re-landing during that window is what keeps the reader ON the target post thread.rs:206-207
+    Note over TP: The 2.5s settle window exists because a reply can still be en route when the page first<br/>paints, re-landing during that window is what keeps the reader ON the target post thread.rs:208-209
 ```
 
 ## NF-05.16 Zone encryption depends on resolved policy and locally held keys
@@ -547,19 +553,19 @@ sequenceDiagram
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:798
     G["Gate on, relay authenticated and this identity's keys loaded<br/>start member grant sync once per sign-in"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:752
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:753
     V["Verify wrap and seal, unwrap private rumor<br/>admin authority and key-pair validation"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:799
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:852
     K["Persist as this identity's row<br/>a different key for the slot is refused, see NF-27.6"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1244
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1304
     W["Resolve channel zone before writing<br/>unknown mapping passes plaintext through"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1248
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1308
     E["Mapped encrypted zone uses the send key: highest held,<br/>never one pending delivery, no key means refuse and retain draft"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:580
     T["Incoming event passes tombstone check<br/>then decrypt or keep placeholder"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:622
     I["Check restored original ID against tombstones<br/>insert with ID deduplication"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:462
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:501
     R["Later key arrival reopens cached events<br/>ReadCache applies deletion predicate and deduplication"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:799
     O["Gate off stops grant sync<br/>already held keys can still decrypt"]
@@ -618,30 +624,32 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as RelayConnection<br/>nostr-bbs-forum-client/src/relay.rs:262
+    participant C as RelayConnection<br/>nostr-bbs-forum-client/src/relay.rs:266
     participant L as ReqLedger<br/>nostr-bbs-forum-client/src/relay/receipt.rs:71
     participant R as relay-worker
 
-    C->>R: AUTH frame, pending_auth recorded, answer timer armed nostr-bbs-forum-client/src/relay.rs:1459 nostr-bbs-forum-client/src/relay.rs:1471
-    R-->>C: OK for the AUTH event id nostr-bbs-forum-client/src/relay.rs:1395
-    C->>C: classify_auth_ok decides Accepted, Retry or Rejected receipt.rs:272 nostr-bbs-forum-client/src/relay.rs:960
+    C->>R: AUTH frame, pending_auth recorded, answer timer armed nostr-bbs-forum-client/src/relay.rs:1539 nostr-bbs-forum-client/src/relay.rs:1551
+    R-->>C: OK for the AUTH event id nostr-bbs-forum-client/src/relay.rs:1475
+    C->>C: classify_auth_ok decides Accepted, Retry or Rejected receipt.rs:318 nostr-bbs-forum-client/src/relay.rs:976
     alt Accepted
-        C->>L: replay_after_auth: every REQ counted as authenticated nostr-bbs-forum-client/src/relay.rs:1161 nostr-bbs-forum-client/src/relay.rs:1166
-        C->>R: every REQ and pending COUNT re-sent, held writes flushed, paced nostr-bbs-forum-client/src/relay.rs:1174 nostr-bbs-forum-client/src/relay.rs:1199
-        C->>C: authenticated set true only now nostr-bbs-forum-client/src/relay.rs:1210
+        C->>L: replay_after_auth: every REQ counted as authenticated nostr-bbs-forum-client/src/relay.rs:1229 nostr-bbs-forum-client/src/relay.rs:1234
+        C->>R: every REQ and pending COUNT re-sent, held writes flushed, paced nostr-bbs-forum-client/src/relay.rs:1254 nostr-bbs-forum-client/src/relay.rs:1279
+        C->>C: authenticated set true only now nostr-bbs-forum-client/src/relay.rs:1290
     else rate-limited, below AUTH_RETRY_LIMIT 3
-        C->>R: same AUTH frame re-sent after 1 s times attempts nostr-bbs-forum-client/src/relay.rs:978 receipt.rs:42
+        C->>R: same AUTH frame re-sent after 1 s times attempts nostr-bbs-forum-client/src/relay.rs:994 receipt.rs:42
     else rejected, unsigned, or stalled
-        C->>C: refuse_auth: auth_note set, held writes released so each OK false reaches its callback nostr-bbs-forum-client/src/relay.rs:1018 nostr-bbs-forum-client/src/relay.rs:1006
+        C->>C: refuse_auth: auth_note set, held writes released so each OK false reaches its callback nostr-bbs-forum-client/src/relay.rs:1034 nostr-bbs-forum-client/src/relay.rs:1022
     end
-    R-->>C: EOSE under the current wire id nostr-bbs-forum-client/src/relay.rs:1303
-    C->>L: answered is authed only when every REQ sent was answered and the last went out after AUTH receipt.rs:109 nostr-bbs-forum-client/src/relay.rs:1305
-    C->>C: on_receipt(authed) feeds the page receipts in NF-05.20 nostr-bbs-forum-client/src/relay.rs:1315
-    C->>L: no answer within 8 s: on_watch says Settled, Resend or GiveUp after 2 re-sends receipt.rs:131 receipt.rs:50 receipt.rs:55
-    C->>R: Resend: CLOSE the old wire id, REQ under a fresh one nostr-bbs-forum-client/src/relay.rs:1133 nostr-bbs-forum-client/src/relay.rs:1142
+    R-->>C: EOSE under the current wire id nostr-bbs-forum-client/src/relay.rs:1383
+    C->>L: answered is authed only when every REQ sent was answered and the last went out after AUTH receipt.rs:109 nostr-bbs-forum-client/src/relay.rs:1385
+    C->>C: on_receipt(authed) feeds the page receipts in NF-05.20 nostr-bbs-forum-client/src/relay.rs:1395
+    C->>C: kit #98: the answer clock starts when the REQ frame leaves the paced queue, not when it is queued nostr-bbs-forum-client/src/relay.rs:318 receipt.rs:262
+    C->>L: timer fires: still queued or under 8 s on the wire, re-check later receipt.rs:245 nostr-bbs-forum-client/src/relay.rs:1159; no longer the latest REQ, nothing receipt.rs:121
+    C->>L: 8 s on the wire unanswered: on_watch says Settled, Resend or GiveUp after 2 re-sends receipt.rs:138 receipt.rs:50 receipt.rs:55
+    C->>R: Resend: CLOSE the old wire id, REQ under a fresh one nostr-bbs-forum-client/src/relay.rs:1185 nostr-bbs-forum-client/src/relay.rs:1209
 
-    Note over L: INVARIANT: an answer is never credited to a REQ sent after it - a late EOSE under a retired id is discarded receipt.rs:31-33 receipt.rs:184
-    Note over C: Stall check: 60 s without a signature or 10 s without an answer releases held writes, timers carry conn_gen receipt.rs:60 receipt.rs:67 nostr-bbs-forum-client/src/relay.rs:1046
+    Note over L: INVARIANT: an answer is never credited to a REQ sent after it - a late EOSE under a retired id is discarded receipt.rs:31-33 receipt.rs:191
+    Note over C: Stall check: 60 s without a signature or 10 s without an answer releases held writes, timers carry conn_gen receipt.rs:60 receipt.rs:67 nostr-bbs-forum-client/src/relay.rs:1062
 ```
 
 **What it shows.** Before kit #91 the `authenticated` signal meant only "AUTH frame sent", so a REQ answered anonymously could be taken for the member view. Now the relay's `OK true` is the trigger, and the ledger tells the page whether an EOSE is the authenticated answer.
@@ -673,32 +681,37 @@ flowchart TB
     N2["Only tombstones that hide a restored sealed original persist, the relay hard-deletes ordinary targets.<br/>An unmarked first sync takes the newest 1000 and never pages deletion_sync.rs:25-28"]
 ```
 
-## NF-05.20 Page lookup states: loading, found, not found, timed out (kit #91)
+## NF-05.20 Page lookup states: loading, keys loading, found, not found, timed out (kit #91, kit #98)
 
 ```mermaid
 flowchart TB
     URL(["deep link /forums/zone/section/topic"])
-    GATED["zone_is_gated: a non-public zone needs an authenticated receipt<br/>lookup.rs:123 lookup.rs:62"]
-    SEC{"thread page: channel found, or channel_receipt settles?<br/>thread.rs:640-645, the zone page applies<br/>the same rule to its sections category.rs:148"}
-    TOP{"topic root found among the channel's kind-42 by id?<br/>thread.rs:485 thread.rs:502"}
-    HIST["history receipt from ensure_subscribed<br/>channels.rs:761 thread.rs:651"]
-    DEC["Lookup.decide: presence, then receipt, then 15 s deadline re-armed per target<br/>lookup.rs:91 lookup.rs:37 thread.rs:637"]
-    LOADING(["Loading topic<br/>thread.rs:1179"])
-    NF(["Topic Not Found<br/>thread.rs:1184"])
-    TO(["Topic Unavailable, not claimed absent<br/>thread.rs:1188"])
+    GATED["zone_is_gated: a non-public zone needs an authenticated receipt<br/>lookup.rs:234 lookup.rs:63"]
+    SEC{"thread page: channel found, or channel_receipt settles?<br/>thread.rs:661-665, the zone page applies<br/>the same rule to its sections category.rs:148"}
+    TOP{"topic root found among the channel's kind-42 by id?<br/>thread.rs:487 thread.rs:504"}
+    HIST["history receipt from ensure_subscribed<br/>channels.rs:761 thread.rs:670"]
+    KEYS["key_state_memo: encrypted zone and a zone-key store, phase from key_phase_for<br/>thread.rs:645-656 lookup.rs:195 zone_crypto/store.rs:173"]
+    BACK["GrantBacklog: settled once every grant subscription reached EOSE and no wrap is in flight, latched<br/>stalled after 20 s without progress or 120 s from the start of the sync<br/>grant_backlog.rs:153-159 grant_backlog.rs:35 grant_backlog.rs:42 grant_backlog.rs:164-176"]
+    DEC["Lookup.decide_with_keys: presence, then relay answer, then keys, 15 s deadline re-armed per target<br/>lookup.rs:134-151 lookup.rs:38 thread.rs:639 thread.rs:668"]
+    LOADING(["Loading topic, or Fetching your keys for this zone<br/>thread.rs:1199-1203"])
+    NF(["Topic Not Found<br/>thread.rs:1208"])
+    TO(["Topic Unavailable: no relay answer, or keys too slow<br/>thread.rs:1212 thread.rs:1215-1217"])
     FOUND(["render the topic"])
 
     URL --> GATED --> SEC
     SEC -->|found| TOP
     TOP --> DEC
     HIST --> DEC
+    BACK --> KEYS --> DEC
     DEC -->|found| FOUND
-    DEC -->|receipt settles| NF
-    DEC -->|deadline passed| TO
-    DEC -->|neither| LOADING
+    DEC -->|answered, keys settled or not needed| NF
+    DEC -->|no answer by the deadline, or keys stalled| TO
+    DEC -->|no answer yet, or keys pending or progressing| LOADING
 
-    GAP["OPEN O21 / KF-23: no input says zone keys have not arrived thread.rs:638-655.<br/>Read from code for a sealed migrated original only: it sits in an envelope with another id<br/>until redecrypt restores it under its own id store.rs:447-449 store.rs:463, so the receipt can settle<br/>first and Not Found renders. An ordinary encrypted root keeps its id as a placeholder store.rs:409-411.<br/>Seen live 2026-11-22 for about 12 s to 29 s, then self-corrected, mechanism not reproduced"]
-    GAP -.-> NF
+    CLOSED["CLOSED O21 / KF-23 by kit #98 = fd31193: an answered relay no longer means Not Found while keys arrive lookup.rs:146-149.<br/>Why keys matter: a sealed original sits under its envelope id until a key opens it zone_crypto/store.rs:449-451,<br/>and redecrypt restores it in place when a key lands zone_crypto/store.rs:486-488. The section page applies the same rule to its topic list<br/>section.rs:318 section.rs:334 section.rs:575-579 section.rs:603-606. Operator observation 2026-11-22, same cold device:<br/>Fetching your keys from 9.2 s, the topic at 28.4 s, no Topic Not Found; before the fix Not Found showed from 12.2 s to 28.6 s."]
+    OPEN["STILL OPEN: keys still take about 28 s on a cold device - the code records 28.6 s to the first usable key grant_backlog.rs:38-39.<br/>The grant filter asks for at most 1000 wraps, newest first, shared with DMs zone_crypto/store.rs:1138-1148 channels.rs:963, so an account<br/>with more wraps can miss its oldest grants; paging them is kit PR #95, a draft. A member who holds no key settles too lookup.rs:161-163,<br/>so a sealed-original topic they cannot open is Not Found once keys settle lookup.rs:147."]
+    CLOSED -.-> DEC
+    OPEN -.-> NF
 ```
 
-**What it shows.** Kit #91 replaced "not found as soon as loading clears" with a decision that waits for the subscription that would carry the topic. The O21 window remains open in code at this stamp; kit PR #95 is not merged and nothing here describes a fix.
+**What it shows.** Kit #91 made a deep-linked page wait for the subscription that would carry the topic; kit #98 (fd31193) adds the member's zone-key backlog as an input, so an encrypted zone shows "Fetching your keys" rather than "Topic Not Found" until the grant backlog settles or stalls.
