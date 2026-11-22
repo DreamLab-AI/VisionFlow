@@ -34,7 +34,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
-verified_commit: 7e1f036ebd9ebd6c922db6f9acea041775730071
+verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
 ## NF-04.1 Route surface
@@ -275,19 +275,21 @@ flowchart TB
     F2["solid-pod-rs/nip05-endpoint nostr-bbs-pod-worker/Cargo.toml:24"]
     F3["solid-pod-rs/export-jsonld nostr-bbs-pod-worker/Cargo.toml:25"]
     EXPORT["export.rs is a bare re-export of solid_pod_rs::export<br/>nostr-bbs-pod-worker/src/export.rs:19"]
-    STATE["Off by default: the workspace dep enables only the core feature<br/>nostr-rust-forum/Cargo.toml:185, pulled bare by the worker nostr-bbs-pod-worker/Cargo.toml:56<br/>the trio is opt-in only nostr-bbs-pod-worker/Cargo.toml:22"]
+    STATE["Off by default: the workspace dep enables only the core feature<br/>nostr-rust-forum/Cargo.toml:188, pulled bare by the worker nostr-bbs-pod-worker/Cargo.toml:56<br/>the trio is opt-in only nostr-bbs-pod-worker/Cargo.toml:22"]
 
     FEAT --> F1 & F2 & F3
     FEAT -.-> EXPORT
     STATE --> FEAT
 
-    N1["DIVERGENCE BASELINE-architecture: these three surfaces remain STRUCTURALLY unreachable from wasm32<br/>CF Workers. Legacy ADR-087 (portable cores) is deferred, so ADR-086's pod-federation fallback is<br/>degenerate - the pod returns the same data D1 already holds. Latent risk, not scheduled work<br/>docs/BASELINE-architecture.md:96-99"]
-    N2["DIVERGENCE: the related WAC Turtle serializer bare-path IRI quirk (legacy ADR-088) has ZERO live<br/>impact because this worker writes JSON-LD ACLs and never round-trips Turtle docs/BASELINE-architecture.md:99-102 - see NF-04.4"]
+    N1["DIVERGENCE BASELINE-architecture: these three surfaces remain STRUCTURALLY unreachable from wasm32<br/>CF Workers. Legacy ADR-087 (portable cores) is deferred, so ADR-086's pod-federation fallback is<br/>degenerate - the pod returns the same data D1 already holds. Latent risk, not scheduled work<br/>docs/BASELINE-architecture.md:103-106"]
+    N2["DIVERGENCE: the related WAC Turtle serializer bare-path IRI quirk (legacy ADR-088) has ZERO live<br/>impact because this worker writes JSON-LD ACLs and never round-trips Turtle docs/BASELINE-architecture.md:106-109 - see NF-04.4"]
     N3["The kit groups the three upstream features under ONE forum-facing alias so an operator flips a single<br/>switch rather than three docs/consumer-surface-map.md:52"]
     N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
 ```
 
-**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin" at line 155 of the root manifest, bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.20`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:181-185`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
+**Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin" at line 155 of the root manifest, bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.24`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:184-188`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
+
+**Open:** the floor moved from alpha.20 to alpha.24 at 77144b6 (`../nostr-rust-forum/Cargo.toml:188`), pulling upstream WAC and JSON-LD conformance fixes into the ACL reader this worker uses. The PR's own differential (#85) reports 744 access decisions over the ACL documents the kit writes with no difference; that evidence is the PR's, not re-run here, and hand-edited ACLs in a live pod were outside it. The solid-pod-rs side is SP-* territory.
 
 ## NF-04.11 The journalled D1 ledger today, and the chain view ADR-2012 is moving to
 
