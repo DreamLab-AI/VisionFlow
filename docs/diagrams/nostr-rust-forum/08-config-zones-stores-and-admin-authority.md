@@ -258,7 +258,7 @@ result (`nostr-bbs-relay-worker/src/lib.rs:1094`).
 
 **Drift:** `SETUP.md:123-125` credits the auth worker with the inline governance tables; only the relay bootstrap creates them (N3).
 
-## NF-08.7 Admin authority — three sources, three resolvers, and where they differ
+## NF-08.7 Admin authority — three sources, four resolvers, and where they differ
 
 ```mermaid
 flowchart TB
@@ -275,7 +275,9 @@ flowchart TB
     CANON --> S1 & S2 & S3
     S1 & S2 --> AUTHIS
     S1 & S2 --> RELIS
+    SRCHIS["search-worker - static ADMIN_PUBKEYS ONLY, no D1 - see NF-07.2"]
     S2 --> PODIS
+    S1 --> SRCHIS
     S2 --> CHK
 
     N1["Auth lower-cases at resolver entry nostr-bbs-auth-worker/src/admin.rs:58<br/>Relay query binds its supplied pubkey nostr-bbs-relay-worker/src/auth.rs:195"]
@@ -283,7 +285,7 @@ flowchart TB
     N3["CLOSED at 66ca8d8: the relay used to query members in its OWN D1 where no migration or bootstrap creates<br/>that table, so the branch failed on every call and the error was swallowed. The query is removed, and relay<br/>authority is ADMIN_PUBKEYS union whitelist.is_admin only nostr-bbs-relay-worker/src/auth.rs:185 nostr-bbs-relay-worker/src/auth.rs:194"]
     N3B["DRIFT: the doc comment on query_is_admin still names members - its Task #7 paragraph says the relay<br/>whitelist/members tables may carry no is_admin row, below a paragraph saying the relay no longer queries it<br/>nostr-bbs-relay-worker/src/auth.rs:174 nostr-bbs-relay-worker/src/auth.rs:164"]
     N3C["REVOCATION GAP: RESOLVED at nostr-rust-forum 6064622 - relay set-admin changes only whitelist nostr-bbs-relay-worker/src/whitelist.rs:450<br/>a retained auth members grant no longer confers authority nostr-bbs-auth-worker/src/admin.rs:72"]
-    N6["TENSION, kit O25 / KF-27: a static ADMIN_PUBKEYS admin is an admin to the relay RELIS and auth AUTHIS but not to the<br/>pod worker PODIS, and check-whitelist reports isAdmin false for them, which is what the client reads to honour a<br/>restored sealed original's tombstone - see NF-08.10"]
+    N6["TENSION, kit O25 / KF-27: a static ADMIN_PUBKEYS admin is an admin to the relay, auth and search workers but not to the<br/>pod worker PODIS, a whitelist-only admin is not one to search, and check-whitelist reports isAdmin false for them, which is what the client reads to honour a<br/>restored sealed original's tombstone - see NF-08.10"]
     N4["DOC-DRIFT: ADMIN_PUBKEYS is DECLARED in exactly one wrangler template - the search worker,<br/>nostr-bbs-search-worker/wrangler.toml:41 - yet is read by the auth worker (admin.rs:63) and the relay<br/>(auth.rs:185). The relay template asserts the opposite: there is no ADMIN_PUBKEYS reader in src/<br/>nostr-bbs-relay-worker/wrangler.toml:18-21. SETUP.md:147-151 never lists it either."]
     N5["Consequence of N4: a by-the-book deployment has NO static admin bootstrap on relay or auth,<br/>and the search worker ships a REAL non-placeholder pubkey as its default admin<br/>nostr-bbs-search-worker/wrangler.toml:41 - the only non-generic value in any template."]
 ```
