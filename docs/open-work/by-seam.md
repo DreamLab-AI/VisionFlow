@@ -125,7 +125,7 @@ Where private keys and credentials live, who can read or use them, how they are 
 
 Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 
-6 live, 8 unverified, 0 closed.
+5 live, 8 unverified, 1 closed.
 
 ### Live
 
@@ -134,7 +134,6 @@ Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 | X-1 | Same-UID boundary; per-role accounts and `/run/secrets` | agentbox | deployment | open | 2026-11-20 |
 | N-6 | Key-custody surfaces on shared UID | agentbox, sidestr-rs | deployment | open | 2026-11-20 |
 | W3-06 | Boot now creates a devuser-owned /run/secrets/ruvector-pg/ inside the role-only secrets mount in both modes, outside the role plan; ADR-2122 records that the activation rehearsal was not re-run with it present. | agentbox | deployment | open | 2026-11-20 |
-| CD-F9 | Committed plaintext ruvector-postgres credentials | visionclaw | owner-act | open | 2026-11-20 |
 | CODEX-LEG-CONFINE | The Codex audit leg can read any file the cron user can read, and its turn count and spend are not bounded by the budget reservation | agentbox | deployment | open | 2026-11-20 |
 | NIP98-ROLE-READ | Under role isolation the NIP-98 proxy cannot read its own config file, so the door would stay closed | agentbox | deployment | open | 2026-11-20 |
 
@@ -184,7 +183,7 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-16 live, 4 unverified, 18 closed.
+17 live, 4 unverified, 18 closed.
 
 ### Live
 
@@ -206,6 +205,7 @@ Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-websi
 | SP-LDP-HTML-SANDBOX | solid-pod-rs: stored HTML is served unsandboxed on the pod origin over LDP (outside the remoteStorage container) | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-REMOTESTORAGE-RESIDUALS | solid-pod-rs: remoteStorage tokens can only be revoked all at once; dot-prefixed names are refused; quota is a separate bucket | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-WEBRTC-FORWARDED-TRUST | solid-pod-rs: with trust-proxy on, the WebRTC per-client cap trusts the proxy's forwarded address | solid-pod-rs | engineering | open | 2026-11-21 |
+| SP-AP-CIRCUIT-BREAKER-FLAKE | solid-pod-rs: `a_failing_host_is_backed_off_by_a_circuit_breaker` fails intermittently under heavy load | solid-pod-rs | engineering | open | 2026-11-22 |
 
 ### Recorded as open, not re-checked
 
@@ -224,13 +224,12 @@ Anything that moves or records value: pay routes, the teller and credit ledger, 
 
 Between: sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox.
 
-2 live, 8 unverified, 3 closed.
+1 live, 8 unverified, 4 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| SP-ACL-REVIEW-02 | [HIGH_BUG] Web-Ledger fee debited before the request is validated or served | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SIDESTR-F1 | No remediation had landed for any of the 25 open sidestr rows since the audit pin 814b9e54 | sidestr-rs | untriaged | open | 2026-11-20 |
 
 ### Recorded as open, not re-checked
@@ -346,9 +345,9 @@ Between: estate.
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | S-6 | Podkey pin re-pin | visionclaw | external | open | 2026-11-15 |
-| COV-A-F1 | Agentbox builds diagram-ir v0.1.0, not the audited 15cba16 | agentbox | owner-act | open | 2026-11-20 |
-| SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | owner-act | open | 2026-11-21 |
-| PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | agentbox | owner-act | open | 2026-11-20 |
+| COV-A-F1 | Agentbox builds diagram-ir v0.1.0, not the audited 15cba16 | agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
+| SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
+| PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
 
 ### Recorded as open, not re-checked
 
@@ -401,13 +400,13 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-48 live, 102 unverified, 79 closed.
+47 live, 102 unverified, 80 closed.
 
 ### visionclaw
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
-| 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | owner-act | open | 2026-11-21 |
+| 11-08 #7 | Dependabot backlog untriaged; no `dependabot.yml` | visionclaw, agentbox | owner-act | open | 2026-11-22 |
 | 11-08 #9 | Production-image receipt; VisionClaw ADR-2037/2038/2012/2119 (parked) | visionclaw | external | open | 2026-11-15 |
 | 11-15 new | RUSTSEC-2026-0459: `libsqlite3-sys 0.28` via direct `rusqlite 0.31` | visionclaw | engineering | fixed on an unmerged branch: merged to VisionClaw main 2026-11-20, awaiting rebuild | 2026-11-20 |
 | X-2 | Actor bypass audit (direct store reads, `execute_in_thread`) | visionclaw | engineering | open | 2026-11-21 |
@@ -417,11 +416,11 @@ The item concerns one component's own behaviour and no contract with another. Fi
 | L-6 | Amethyst/Amber mobile session | visionclaw | device | open | 2026-11-15 |
 | CY-C | Bring-up runbook for a clean machine (was: fresh-host runbook and Trust letter) | visionclaw | engineering | open | 2026-11-15 |
 | CD-F3 | Isaac runner `POST /v1/jobs` unauthenticated | visionclaw | engineering | fixed on an unmerged branch: merged to main 2026-11-20, awaiting rebuild | 2026-11-20 |
-| CD-F4 | laya weights fetched at default branch, no revision, no offline flag | visionclaw | owner-decision | open | 2026-11-20 |
+| CD-F4 | laya weights fetched at default branch, no revision, no offline flag | visionclaw | deployment | fixed on an unmerged branch | 2026-11-22 |
 | CD-F12 | VEX bundle self-digests unsigned; no workflow signs it | visionclaw | untriaged | open | 2026-11-15 |
 | VC-NOSTR-KEYS-REDIS-ORDER | VisionClaw: with the `redis` feature (off by default), two quick API-key saves can persist in reverse order, losing the later key after a restart | visionclaw | engineering | open | 2026-11-21 |
 | VC-API-KEYS-NO-LIMITS | VisionClaw: `ApiKeysRequest` has no length limit on each key field and stores a whitespace-only string as a key | visionclaw | engineering | open | 2026-11-21 |
-| VC-API-KEYS-PLAINTEXT-READBACK | VisionClaw: stored provider keys are returned in plaintext to their owner on `GET /api/auth/nostr/api-keys`; whether to return presence flags only is undecided | visionclaw | owner-decision | open | 2026-11-21 |
+| VC-API-KEYS-PLAINTEXT-READBACK | VisionClaw: stored provider keys are returned in plaintext to their owner on `GET /api/auth/nostr/api-keys`; whether to return presence flags only is undecided | visionclaw | deployment | fixed on an unmerged branch | 2026-11-22 |
 | VC-ORPHAN-TEST-DIRS | VisionClaw: `tests/actors/` and `tests/api/` are not cargo targets and are never compiled, and two files in them still name the deleted `EventBus` | visionclaw | engineering | open | 2026-11-21 |
 
 Recorded as open, not re-checked:
@@ -647,7 +646,6 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | W4COVC-F5 | Dockerfile fetches WebVOWL war over plain HTTP, no checksum | wasmvowl | owner-decision | open | 2026-11-20 |
-| WASMVOWL-TOMCAT-EOL | WasmVOWL Dockerfile base image `tomcat:9-jre8-alpine` is end-of-life, and the image still serves upstream WebVOWL | wasmvowl | owner-decision | open | 2026-11-20 |
 | WASMVOWL-LOADONTOLOGY-FILTERS | WasmVOWL: `loadOntology` does not re-apply the active filters when it loads without a clear | wasmvowl | engineering | open | 2026-11-21 |
 
 ### visionflow
