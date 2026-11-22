@@ -29,7 +29,9 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/webid.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/explanation/ecosystem-integration.md
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/main.rs
-verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/handlers/pay.rs
+  - ../solid-pod-rs/crates/solid-pod-rs-server/src/remotestorage.rs
+verified_commit: a28a74832dd0a6e47a531e34e4adc46a3946dfd3
 ---
 
 ## SP-06.1 The Storage seam and its two shipped backends
@@ -38,13 +40,19 @@ verified_commit: 27e18995fc20790fa956acb41f7d8420544a13ec
 classDiagram
     class Storage {
         <<trait>>
-        +get / put / delete / list / head / exists  solid-pod-rs/src/storage/mod.rs:73
-        +create_container (default impl)  solid-pod-rs/src/storage/mod.rs:108
-        +watch  solid-pod-rs/src/storage/mod.rs:127
+        +get / put / delete / list / head / exists  solid-pod-rs/src/storage/mod.rs:96
+        +create_container (default impl)  solid-pod-rs/src/storage/mod.rs:166
+        +watch  solid-pod-rs/src/storage/mod.rs:185
+        +lock_exclusive (default Ok None, no exclusion)  solid-pod-rs/src/storage/mod.rs:141
+        +is_directory (default false)  solid-pod-rs/src/storage/mod.rs:156
+    }
+    class StorageLock {
+        opaque hold, released on drop  solid-pod-rs/src/storage/mod.rs:71
     }
     class FsBackend {
-        +new(root)  solid-pod-rs/src/storage/fs.rs:47
-        -Dir capability handle  solid-pod-rs/src/storage/fs.rs:53
+        +new(root)  solid-pod-rs/src/storage/fs.rs:186
+        -Dir capability handle  solid-pod-rs/src/storage/fs.rs:192
+        +lock_exclusive, Unix flock only  solid-pod-rs/src/storage/fs.rs:528
     }
     class MemoryBackend {
         +new()  solid-pod-rs/src/storage/memory.rs:46
@@ -59,7 +67,8 @@ classDiagram
     Storage <|.. MemoryBackend
     Storage ..> ResourceMeta
     Storage ..> StorageEvent
-    note for Storage "create_container has a default implementation that writes a .meta marker\n(solid-pod-rs/src/storage/mod.rs:118); a filesystem backend overrides it to make\na real directory (solid-pod-rs/src/storage/fs.rs:350).\nThe S3 scaffold was removed in 0.5.0-alpha.8; unsupported backend names\nfail configuration validation (README storage paragraph)."
+    Storage ..> StorageLock
+    note for Storage "create_container has a default implementation that writes a .meta marker\n(solid-pod-rs/src/storage/mod.rs:176); a filesystem backend overrides it to make\na real directory (solid-pod-rs/src/storage/fs.rs:595).\nThe S3 scaffold was removed in 0.5.0-alpha.8; unsupported backend names\nfail configuration validation (README storage paragraph).\nBoth backends refuse a put or create_container beneath an ACL or meta document\n(solid-pod-rs/src/storage/fs.rs:399, solid-pod-rs/src/storage/memory.rs:117)."
 ```
 
 **Drift:** the ecosystem explanation still says "S3 is configuration/dependency scaffolding only; no implementation ships yet" (`crates/solid-pod-rs/docs/explanation/ecosystem-integration.md:105`). At `9b6143c` there is no S3 scaffold at all, and the root README says unsupported backend names, the removed S3 one included, fail validation. Wave-1 audit, 2026-11-02.
@@ -68,13 +77,13 @@ classDiagram
 
 ```mermaid
 flowchart TD
-    IN["FsBackend::normalize(path)<br/>solid-pod-rs/src/storage/fs.rs:69"]
-    LEAD["empty becomes /, otherwise force a leading slash<br/>solid-pod-rs/src/storage/fs.rs:70"]
-    NUL{"contains a NUL byte?<br/>solid-pod-rs/src/storage/fs.rs:77"}
-    COMP{"any ParentDir, RootDir or Prefix component?<br/>solid-pod-rs/src/storage/fs.rs:81"}
-    ERR["PodError::InvalidPath<br/>solid-pod-rs/src/storage/fs.rs:87"]
+    IN["FsBackend::normalize(path)<br/>solid-pod-rs/src/storage/fs.rs:230"]
+    LEAD["empty becomes /, otherwise force a leading slash<br/>solid-pod-rs/src/storage/fs.rs:231"]
+    NUL{"contains a NUL byte?<br/>solid-pod-rs/src/storage/fs.rs:238"}
+    COMP{"any ParentDir, RootDir or Prefix component?<br/>solid-pod-rs/src/storage/fs.rs:242"}
+    ERR["PodError::InvalidPath<br/>solid-pod-rs/src/storage/fs.rs:248"]
     OK["normalised path"]
-    REL["relative -> resolve under the capability root<br/>solid-pod-rs/src/storage/fs.rs:97"]
+    REL["relative -> resolve under the capability root<br/>solid-pod-rs/src/storage/fs.rs:258"]
 
     IN --> LEAD --> NUL
     NUL -- yes --> ERR
@@ -84,9 +93,9 @@ flowchart TD
 
     N["The check is on parsed PATH COMPONENTS, not on a substring. The storage layer does<br/>not percent-decode: a literal %2e%2e is an ordinary name here. Decoding happens once,<br/>in the server's canonical_pod_path, before this gate runs."]
     COMP -.-> N
-    N2["Belt and braces: PathTraversalGuard rejects at the middleware layer too<br/>(solid-pod-rs-server/src/lib.rs:3776, path_is_traversal solid-pod-rs-server/src/lib.rs:3827), and<br/>DotfileGuard filters dotfiles (solid-pod-rs-server/src/lib.rs:4103). See SP-02.8."]
+    N2["Belt and braces: PathTraversalGuard rejects at the middleware layer too<br/>(solid-pod-rs-server/src/lib.rs:4534, path_is_traversal solid-pod-rs-server/src/lib.rs:4585), and<br/>DotfileGuard filters dotfiles (solid-pod-rs-server/src/lib.rs:4895). See SP-02.8."]
     ERR -.-> N2
-    N3["The server also holds ONE canonical spelling: canonical_pod_path percent-decodes once, rejects . and .. segments,<br/>backslash and NUL, and both the permission check and the storage call use its output.<br/>solid-pod-rs-server/src/lib.rs:949"]
+    N3["The server also holds ONE canonical spelling: canonical_pod_path percent-decodes once, rejects . and .. segments,<br/>backslash and NUL, and both the permission check and the storage call use its output.<br/>solid-pod-rs-server/src/lib.rs:1197"]
     N4["The dotfile filter folds case, so doc.ACL and a long-s x.meta.json variant are refused as guarded names<br/>on case-insensitive filesystems.<br/>solid-pod-rs/src/security/dotfile.rs:306"]
     OK -.-> N3
     COMP -.-> N4
@@ -96,68 +105,102 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    OPEN["Dir::open_ambient_dir(root, ambient_authority())<br/>solid-pod-rs/src/storage/fs.rs:53"]
-    CAP["every read, write, list and delete goes through that Dir handle<br/>solid-pod-rs/src/storage/fs.rs:215"]
-    SYM["a symlink pointing outside the root cannot be followed<br/>solid-pod-rs/src/storage/fs.rs:510"]
+    OPEN["Dir::open_ambient_dir(root, ambient_authority())<br/>solid-pod-rs/src/storage/fs.rs:192"]
+    CAP["every read, write, list and delete goes through that Dir handle<br/>solid-pod-rs/src/storage/fs.rs:376"]
+    SYM["a symlink pointing outside the root cannot be followed<br/>solid-pod-rs/src/storage/fs.rs:760"]
 
     OPEN --> CAP --> SYM
 
     N["cap-std makes escape a TYPE-level property rather than a runtime string check:<br/>the Dir capability cannot name a path outside itself, so the symlink root-escape<br/>class of bug is closed by construction rather than by validation."]
     CAP -.-> N
-    N2["A regression test pins it for read, write AND delete<br/>solid-pod-rs/src/storage/fs.rs:510"]
+    N2["A regression test pins it for read, write AND delete<br/>solid-pod-rs/src/storage/fs.rs:760"]
     SYM -.-> N2
 ```
 
-**Tension:** `watch` is the one operation outside the capability. It resolves an ambient `PathBuf` under `root` (`solid-pod-rs/src/storage/fs.rs:368`) and hands it to `notify`, because the watcher API takes host paths. It only observes events and never reads or writes content, but symlinks are not confined on that path.
+**Tension:** `watch` is the one operation outside the capability. It resolves an ambient `PathBuf` under `root` (`solid-pod-rs/src/storage/fs.rs:618`) and hands it to `notify`, because the watcher API takes host paths. It only observes events and never reads or writes content, but symlinks are not confined on that path.
 
 ## SP-06.4 Atomic write and the body/metadata pair
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant W as FsBackend::put<br/>solid-pod-rs/src/storage/fs.rs:232
-    participant A as atomic_write<br/>solid-pod-rs/src/storage/fs.rs:111
+    participant W as FsBackend::put<br/>solid-pod-rs/src/storage/fs.rs:393
+    participant A as atomic_write<br/>solid-pod-rs/src/storage/fs.rs:272
     participant D as Dir capability
     participant R as concurrent reader
 
-    W->>W: take the backend-wide write lock<br/>solid-pod-rs/src/storage/fs.rs:238
+    W->>W: take the backend-wide write lock<br/>solid-pod-rs/src/storage/fs.rs:404
     W->>A: write the .meta.json sidecar first, tagged with the NEW body ETag
-    A->>D: create a dotted temp name<br/>solid-pod-rs/src/storage/fs.rs:123
-    A->>D: write the bytes, then rename onto the target<br/>solid-pod-rs/src/storage/fs.rs:138
-    Note over A: On any failure the temp file is removed<br/>solid-pod-rs/src/storage/fs.rs:142
+    A->>D: create a dotted temp name<br/>solid-pod-rs/src/storage/fs.rs:284
+    A->>D: write the bytes, then rename onto the target<br/>solid-pod-rs/src/storage/fs.rs:299
+    Note over A: On any failure the temp file is removed<br/>solid-pod-rs/src/storage/fs.rs:303
     W->>A: then atomic_write the body
-    R->>W: get() in the same process waits on the read lock<br/>solid-pod-rs/src/storage/fs.rs:210
+    R->>W: get() in the same process waits on the read lock<br/>solid-pod-rs/src/storage/fs.rs:371
     W-->>R: after the body rename, the NEW pair
-    Note over R: After a crash between the two renames, read_meta sees a sidecar ETag that does<br/>not match the body and ignores it, falling back to the guessed content type<br/>solid-pod-rs/src/storage/fs.rs:188
-    W-->>W: ResourceMeta with a SHA-256 ETag<br/>solid-pod-rs/src/storage/fs.rs:107
+    Note over R: After a crash between the two renames, read_meta sees a sidecar ETag that does<br/>not match the body and ignores it, falling back to the guessed content type<br/>solid-pod-rs/src/storage/fs.rs:349
+    W-->>W: ResourceMeta with a SHA-256 ETag<br/>solid-pod-rs/src/storage/fs.rs:268
 
-    Note over D: list() hides both the META_SUFFIX sidecars and any .solid-pod-tmp- file<br/>solid-pod-rs/src/storage/fs.rs:306
+    Note over D: list() hides the META_SUFFIX sidecars, any .solid-pod-tmp- file<br/>and the lock directory LOCK_DIR<br/>solid-pod-rs/src/storage/fs.rs:476
     Note over W: Still two renames, not one. A crash between them leaves a NEW sidecar beside the<br/>OLD body. The ETag tag makes that pair detectable, so its content type and links<br/>are dropped rather than misapplied. The body itself is never torn.
-    Note over D: FsBackend::watch (solid-pod-rs/src/storage/fs.rs:365) registers a notify<br/>recommended_watcher (fs.rs:374) and drops any raw event whose path ends<br/>with META_SUFFIX before mapping it to a StorageEvent (fs.rs:394) — a single<br/>logical write produces two file events (body plus sidecar), and un-filtered<br/>they would double every notification the SP-08 pump receives. MemoryBackend::watch<br/>is the in-process equivalent (solid-pod-rs/src/storage/memory.rs:220).
+    Note over D: FsBackend::watch (solid-pod-rs/src/storage/fs.rs:615) registers a notify<br/>recommended_watcher (fs.rs:624) and drops any raw event whose path ends<br/>with META_SUFFIX before mapping it to a StorageEvent (fs.rs:644) — a single<br/>logical write produces two file events (body plus sidecar), and un-filtered<br/>they would double every notification the SP-08 pump receives. MemoryBackend::watch<br/>is the in-process equivalent (solid-pod-rs/src/storage/memory.rs:230).
 ```
 
-**Drift:** this panel previously cited the README status section for an open atomic-storage violation. At `9b6143c` the README says the dated audit's findings are remediated (0.5.0-alpha.13) and describes "atomic replacement writes". The code now pairs a backend-wide `RwLock` (`solid-pod-rs/src/storage/fs.rs:210`, `:238`) with an ETag-tagged sidecar (`solid-pod-rs/src/storage/fs.rs:254-257`) and a reader-side check (`solid-pod-rs/src/storage/fs.rs:185-193`).
+**Drift:** this panel previously cited the README status section for an open atomic-storage violation. At `9b6143c` the README says the dated audit's findings are remediated (0.5.0-alpha.13) and describes "atomic replacement writes". The code now pairs a backend-wide `RwLock` (`solid-pod-rs/src/storage/fs.rs:371`, `:404`) with an ETag-tagged sidecar (`solid-pod-rs/src/storage/fs.rs:420-423`) and a reader-side check (`solid-pod-rs/src/storage/fs.rs:346-354`).
 
-**Invariant:** the lock is process-local. A second process writing the same root is not serialised. It relies on the ETag check alone, and between the two renames it can read a stale sidecar's content type.
+**Invariant:** the `RwLock` inside `FsBackend` is still process-local, so a second process reading the same root can still see a stale sidecar's content type between the two renames. Since 0.5.0-alpha.23 the server's read-modify-write handlers also hold a cross-process lock (SP-06.5), on Unix only.
+
+## SP-06.5 Cross-process resource lock — in-process stripe, then flock
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant H as LDP write, pod creation, MCP write or payment handler
+    participant LP as lock_pair<br/>solid-pod-rs-server/src/lib.rs:309
+    participant M as in-process stripe mutex<br/>solid-pod-rs-server/src/lib.rs:288
+    participant B as FsBackend::lock_exclusive<br/>solid-pod-rs/src/storage/fs.rs:528
+    participant K as .solid-pod-locks/key<br/>solid-pod-rs/src/storage/fs.rs:91
+
+    H->>LP: lock_resource(path), or lock_payment_state for key state:payments<br/>around every ledger read-modify-write (handlers/pay.rs:504)<br/>solid-pod-rs-server/src/lib.rs:390, solid-pod-rs-server/src/lib.rs:225
+    loop until the deadline, CROSS_PROCESS_LOCK_WAIT 30 s
+        LP->>M: take the stripe chosen by a per-process RandomState hash of the path
+        LP->>B: lock_exclusive(key, wait zero)<br/>solid-pod-rs-server/src/lib.rs:318
+        B->>K: first use only, read the 32-byte key, or create it mode 0600<br/>and install it by hard link so one creator wins<br/>solid-pod-rs/src/storage/fs.rs:138, solid-pod-rs/src/storage/fs.rs:143
+        B->>B: HMAC-SHA-256 of the key picks one of 256 stripe files,<br/>a state: key gets its own file<br/>solid-pod-rs/src/storage/fs.rs:542
+        B->>B: non-blocking exclusive flock<br/>solid-pod-rs/src/storage/fs.rs:570
+        alt another process holds it
+            B-->>LP: Conflict<br/>solid-pod-rs/src/storage/fs.rs:575
+            LP->>M: release the mutex before sleeping 10 ms, then retry
+        end
+    end
+    alt deadline passed
+        LP-->>H: LockError::Busy, answered 503 with Retry-After 1<br/>solid-pod-rs-server/src/lib.rs:379
+    else held
+        LP-->>H: ResourceGuard, both halves released together on drop
+    end
+    Note over H: POST minting re-checks the free name under the lock and remints if taken,<br/>so two creators cannot both claim one name. A lock timeout there is 503, not 409<br/>solid-pod-rs-server/src/lib.rs:410
+    Note over B: INVARIANT: the stripe key is per data root and random, so a client cannot<br/>choose names that share a victim's stripe. A key file of the wrong length is an<br/>error and is never regenerated, which would split the processes' stripes.
+    Note over B: DIVERGENCE: only FsBackend on Unix overrides lock_exclusive. Elsewhere, and<br/>for any other backend, the default returns no lock and the in-process mutex<br/>is all there is (solid-pod-rs/src/storage/mod.rs:141).
+    Note over K: The lock directory is a dotfile under the data root. list() hides it<br/>and the server's listing_visible keeps it, .git, .forge and server state<br/>out of root listings and the export walk (solid-pod-rs-server/src/lib.rs:1156).
+```
 
 ## SP-06.6 Per-pod quota — atomic reservation
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as LDP write handler
-    participant RQ as reserve_quota_for_size<br/>solid-pod-rs-server/src/lib.rs:2895
+    participant H as LDP or remoteStorage write handler
+    participant RQ as reserve_quota_for_size<br/>solid-pod-rs-server/src/lib.rs:3629
     participant Q as FsQuotaStore<br/>solid-pod-rs/src/quota/mod.rs:105
     participant S as Storage
-    participant FQ as finish_quota_reservation<br/>solid-pod-rs-server/src/lib.rs:2923
+    participant FQ as finish_quota_reservation<br/>solid-pod-rs-server/src/lib.rs:3657
 
-    H->>RQ: pod_name_from_path, delta = new size minus the current size from head()<br/>solid-pod-rs-server/src/lib.rs:2888
+    H->>RQ: pod_name_from_path, delta = new size minus the current size from head()<br/>solid-pod-rs-server/src/lib.rs:3622
     RQ->>Q: reserve(pod, delta) only when the delta is positive<br/>solid-pod-rs/src/quota/mod.rs:283
     alt over quota
         Q-->>RQ: QuotaExceeded<br/>solid-pod-rs/src/quota/mod.rs:55
         RQ-->>H: the write never starts
     end
-    Q-->>RQ: QuotaReservation<br/>solid-pod-rs-server/src/lib.rs:2883
+    Q-->>RQ: QuotaReservation<br/>solid-pod-rs-server/src/lib.rs:3617
     H->>S: perform the write
     H->>FQ: settle the reservation with the write outcome
     alt write failed after a positive reservation
@@ -166,10 +209,11 @@ sequenceDiagram
         FQ->>Q: record the negative delta
     end
     Note over Q: The .quota.json sidecar is written to a .quota.json.tmp-<pid>-<nanos><br/>then renamed, so the counter is never observed half-updated<br/>solid-pod-rs/src/quota/mod.rs:169
+    Note over H: remoteStorage PUT and DELETE settle through the same pair, so a delete<br/>returns its bytes to the quota (solid-pod-rs-server/src/remotestorage.rs:1084)
     Note over Q: reconcile (solid-pod-rs/src/quota/mod.rs:85) recomputes from a directory walk<br/>and sweeps stale .quota.json.tmp-* files (solid-pod-rs/src/quota/mod.rs:223) —<br/>the operator CLI drives it — see SP-02.13.
 ```
 
-**Open:** the old size is read with `head()` before `reserve` takes the per-pod lock (`solid-pod-rs-server/src/lib.rs:2903-2909`). Two concurrent overwrites of one resource can both compute their delta from the same old size, so the counter can drift until `reconcile` recomputes it. Source tracing only; no concurrent-write probe was run.
+**Open:** the old size is read with `head()` before `reserve` takes the per-pod lock (`solid-pod-rs-server/src/lib.rs:3637-3643`). Two concurrent overwrites of one resource can both compute their delta from the same old size, so the counter can drift until `reconcile` recomputes it. Source tracing only; no concurrent-write probe was run.
 
 ## SP-06.7 Multitenancy — normalisation and path fallback
 
@@ -194,41 +238,42 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant C as POST /.pods or POST /api/accounts/new
-    participant G as provisioning_gate<br/>solid-pod-rs-server/src/lib.rs:2977
-    participant L as PodCreateLimiter::check<br/>solid-pod-rs-server/src/lib.rs:661
+    participant G as provisioning_gate<br/>solid-pod-rs-server/src/lib.rs:3711
+    participant L as PodCreateLimiter::check<br/>solid-pod-rs-server/src/lib.rs:869
     participant IV as FileInviteStore::consume<br/>solid-pod-rs-server/src/cli/invite_store.rs:315
-    participant PN as provision_named_pod<br/>solid-pod-rs-server/src/lib.rs:3113
+    participant PN as provision_named_pod<br/>solid-pod-rs-server/src/lib.rs:3848
     participant S as Storage
     participant GI as GitAutoInit::init_repo_at<br/>solid-pod-rs-git/src/init.rs:100
 
     C->>G: pod name, optional x-pod-admin-key and x-invite-token
-    G->>G: valid_pod_name check, else 400<br/>solid-pod-rs-server/src/lib.rs:2982
-    G->>G: admin key compared in constant time<br/>solid-pod-rs-server/src/lib.rs:2997
-    G-->>C: 403 when registration is closed and there is neither the admin key nor an invite<br/>solid-pod-rs-server/src/lib.rs:3005
+    G->>G: valid_pod_name — charset, and no name the server serves itself,<br/>case-insensitive (lib.rs:3575), else 400<br/>solid-pod-rs-server/src/lib.rs:3716
+    G->>G: admin key compared in constant time<br/>solid-pod-rs-server/src/lib.rs:3731
+    G-->>C: 403 when registration is closed and there is neither the admin key nor an invite<br/>solid-pod-rs-server/src/lib.rs:3739
     G->>L: one creation per IP per 24 h window
-    L-->>C: 429 with Retry-After<br/>solid-pod-rs-server/src/lib.rs:3011
+    L-->>C: 429 with Retry-After<br/>solid-pod-rs-server/src/lib.rs:3745
     opt registration closed and an invite supplied
-        G->>IV: consume the token, recorded before the pod exists<br/>solid-pod-rs-server/src/lib.rs:3034
+        G->>IV: consume the token, recorded before the pod exists<br/>solid-pod-rs-server/src/lib.rs:3768
         IV-->>G: Granted, or 403 expired, used or invalid
     end
+    C->>C: take the cross-process write lock on the pod root (SP-06.5)<br/>solid-pod-rs-server/src/lib.rs:3687, solid-pod-rs-server/src/lib.rs:3924
     C->>PN: provision the named pod
-    PN->>S: owner ACL tree first, root, profile, public and inbox, before any content<br/>solid-pod-rs-server/src/lib.rs:3128
-    PN->>S: .meta markers for the root, profile, inbox, public, private and settings containers<br/>solid-pod-rs-server/src/lib.rs:3136
-    PN->>S: generated WebID profile card<br/>solid-pod-rs-server/src/lib.rs:3152
+    PN->>S: owner ACL tree first, root, profile, public and inbox, before any content,<br/>each at the key the active --acl-layout reads<br/>solid-pod-rs-server/src/lib.rs:3863
+    PN->>S: .meta markers for the root, profile, inbox, public, private and settings containers<br/>solid-pod-rs-server/src/lib.rs:3871
+    PN->>S: generated WebID profile card<br/>solid-pod-rs-server/src/lib.rs:3887
     opt feature git and fs-backend data_root
-        PN->>GI: git init after the files are written<br/>solid-pod-rs-server/src/lib.rs:3167
+        PN->>GI: git init after the files are written<br/>solid-pod-rs-server/src/lib.rs:3902
         GI-->>PN: failure is logged as a warning, the pod stays created
     end
     PN-->>C: 201 with webId and podUri
     Note over PN: The core provision_pod (solid-pod-rs/src/provision.rs:207), with its type indexes,<br/>their ACLs and the GitInitHook, is NOT called by the server. It remains a library entry point.
-    Note over C: POST /_admin/provision/{pubkey} is a separate handler: admin key only, no gate,<br/>no limiter, and it writes a did:nostr owner ACL straight to the filesystem<br/>(solid-pod-rs-server/src/lib.rs:4783).
+    Note over C: POST /_admin/provision/{pubkey} is a separate handler: admin key only, no gate,<br/>no limiter, and it writes a did:nostr owner ACL straight to the filesystem<br/>(solid-pod-rs-server/src/lib.rs:5599): the sibling form unless --acl-layout inner,<br/>plus the inner form, fatal only under inner (lib.rs:5697, lib.rs:5713).
 ```
 
 **What it shows:** both public provisioning routes go through the same gate, in this order: name check, closed-registration check, per-IP limiter, invite redemption. Then `provision_named_pod` writes an owner ACL tree, container markers and a profile card through the server's storage.
 
-**Drift:** this panel previously drew the server delegating to the core `provision_pod` and `provision_pod_ext`, and cited `check_admin_override` as the key comparison. At `27e1899` the server still does neither. It writes its own tree, ACLs first (`solid-pod-rs-server/src/lib.rs:3128-3134`), then `.meta` markers (`solid-pod-rs-server/src/lib.rs:3136-3151`), runs `GitAutoInit` directly under the `git` feature (`solid-pod-rs-server/src/lib.rs:3164-3169`), and compares the admin key with `subtle::ConstantTimeEq` (`solid-pod-rs-server/src/lib.rs:2997`). The library's `check_admin_override` (`solid-pod-rs/src/provision.rs:454`) is an exact, non-constant-time match with no in-tree server caller.
+**Drift:** this panel previously drew the server delegating to the core `provision_pod` and `provision_pod_ext`, and cited `check_admin_override` as the key comparison. At `a28a748` the server still does neither. It writes its own tree, ACLs first (`solid-pod-rs-server/src/lib.rs:3863-3869`), then `.meta` markers (`solid-pod-rs-server/src/lib.rs:3871-3886`), runs `GitAutoInit` directly under the `git` feature (`solid-pod-rs-server/src/lib.rs:3899-3904`), and compares the admin key with `subtle::ConstantTimeEq` (`solid-pod-rs-server/src/lib.rs:3731`). The library's `check_admin_override` (`solid-pod-rs/src/provision.rs:454`) is an exact, non-constant-time match with no in-tree server caller.
 
-**Open:** RESOLVED at solid-pod-rs 27e1899. `provision_named_pod` now writes the pod's ACL tree before any content, so no resource of a new pod is governed by the operator's root ACL: the owner holds Read, Write and Control, the public may read the root, `profile/` and `public/` and append to `inbox/`, and `private/` and `settings/` inherit owner-only (`solid-pod-rs-server/src/lib.rs:3061-3108`, `solid-pod-rs-server/src/lib.rs:3124-3134`). The admin route likewise writes an owner-only ACL naming `did:nostr:<pubkey>` (`solid-pod-rs-server/src/lib.rs:4860-4866`). It writes with `tokio::fs`, outside the `FsBackend` capability handle (SP-06.3), under `data_root/pods/<pubkey>` (`solid-pod-rs-server/src/lib.rs:4845`).
+**Open:** RESOLVED at solid-pod-rs 27e1899. `provision_named_pod` now writes the pod's ACL tree before any content, so no resource of a new pod is governed by the operator's root ACL: the owner holds Read, Write and Control, the public may read the root, `profile/` and `public/` and append to `inbox/`, and `private/` and `settings/` inherit owner-only (`solid-pod-rs-server/src/lib.rs:3796-3843`, `solid-pod-rs-server/src/lib.rs:3859-3869`); since 0.5.0-alpha.23 each document sits at the key `--acl-layout` selects. The admin route likewise writes an owner-only ACL naming `did:nostr:<pubkey>` (`solid-pod-rs-server/src/lib.rs:5676-5682`). It writes with `tokio::fs`, outside the `FsBackend` capability handle (SP-06.3), under `data_root/pods/<pubkey>` (`solid-pod-rs-server/src/lib.rs:5661`).
 
 ## SP-06.9 The SSRF policy
 
@@ -244,7 +289,7 @@ flowchart TD
     M["SecurityMetrics::record_ssrf_block<br/>solid-pod-rs/src/metrics.rs:63"]
     USE1["OIDC config and JWKS fetching — see SP-05.10"]
     USE2["did:nostr resolution: core DidNostrResolver via the policy (SP-05.22),<br/>solid-pod-rs-nostr resolver via the free fn (SP-05.13)"]
-    USE3["GET /proxy — validate_proxy_target then build_pinned_proxy_client<br/>solid-pod-rs-server/src/lib.rs:3547"]
+    USE3["GET /proxy — validate_proxy_target then build_pinned_proxy_client<br/>solid-pod-rs-server/src/lib.rs:4284"]
     USE4["ActivityPub — classify only, public addresses only — see SP-08<br/>solid-pod-rs/src/security/ssrf.rs:281"]
 
     P --> ENV
@@ -260,13 +305,13 @@ flowchart TD
     FREE --> USE3
     C4 --> USE4
 
-    N["INVARIANT: the check RESOLVES the host and the caller then PINS the client to<br/>that IP (solid-pod-rs-server/src/lib.rs:3603), so a DNS rebind between the check<br/>and the request cannot redirect the fetch."]
+    N["INVARIANT: the check RESOLVES the host and the caller then PINS the client to<br/>that IP (solid-pod-rs-server/src/lib.rs:4340), so a DNS rebind between the check<br/>and the request cannot redirect the fetch."]
     RC -.-> N
-    N2["The proxy also strips hop-by-hop and identity-bearing response headers<br/>solid-pod-rs-server/src/lib.rs:3725"]
+    N2["The proxy also strips hop-by-hop and identity-bearing response headers<br/>solid-pod-rs-server/src/lib.rs:4483"]
     USE3 -.-> N2
 ```
 
-**Tension:** there are two SSRF tiers. `SsrfPolicy::resolve_and_check` is env-configurable (`SSRF_ALLOW_PRIVATE` and the rest) and checks only the first resolved address (`solid-pod-rs/src/security/ssrf.rs:223-226`). It serves OIDC JWKS fetching and, through `SsrfPolicy::from_env`, the server's remote did:nostr cross-identity (`crates/solid-pod-rs-server/src/main.rs:417`). The free `resolve_and_check(host)` ignores every env toggle, checks every resolved address (`solid-pod-rs/src/security/ssrf.rs:529-535`) and short-circuits metadata hostnames. It serves `/proxy` (`solid-pod-rs-server/src/lib.rs:3594`) and the `solid-pod-rs-nostr` default check. An operator who sets `SSRF_ALLOWLIST` therefore changes OIDC behaviour but not `/proxy`, and only the policy tier records `record_ssrf_block` metrics. This panel previously drew one entry point serving all four consumers.
+**Tension:** there are two SSRF tiers. `SsrfPolicy::resolve_and_check` is env-configurable (`SSRF_ALLOW_PRIVATE` and the rest) and checks only the first resolved address (`solid-pod-rs/src/security/ssrf.rs:223-226`). It serves OIDC JWKS fetching and, through `SsrfPolicy::from_env`, the server's remote did:nostr cross-identity (`crates/solid-pod-rs-server/src/main.rs:606`). The free `resolve_and_check(host)` ignores every env toggle, checks every resolved address (`solid-pod-rs/src/security/ssrf.rs:529-535`) and short-circuits metadata hostnames. It serves `/proxy` (`solid-pod-rs-server/src/lib.rs:4331`) and the `solid-pod-rs-nostr` default check. An operator who sets `SSRF_ALLOWLIST` therefore changes OIDC behaviour but not `/proxy`, and only the policy tier records `record_ssrf_block` metrics. This panel previously drew one entry point serving all four consumers.
 
 ## SP-06.10 CORS policy — origin echo and the credentials trap
 
@@ -298,13 +343,13 @@ flowchart TD
 
     N["INVARIANT: Access-Control-Allow-Origin: * is invalid with credentials per the<br/>Fetch spec, so wildcard+credentials degrades to echoing the concrete Origin<br/>and always sends Vary: Origin, never *."]
     CRED -.-> N
-    N2["The server does NOT use CorsPolicy. Its own CorsHeaders middleware (solid-pod-rs-server/src/lib.rs:3851)<br/>emits * without credentials when the allowlist is empty, and reflects the Origin with<br/>credentials only for a listed origin (solid-pod-rs-server/src/lib.rs:3940). See SP-02.3."]
+    N2["The server does NOT use CorsPolicy. Its own CorsHeaders middleware (solid-pod-rs-server/src/lib.rs:4609)<br/>emits * without credentials when the allowlist is empty, and reflects the Origin with<br/>credentials only for a listed origin (solid-pod-rs-server/src/lib.rs:4710). See SP-02.3."]
     ENV -.-> N2
 ```
 
-**Tension:** the library and the server answer the credentials trap in opposite ways. With wildcard origins and credentials on, `CorsPolicy` reflects any request Origin together with `Access-Control-Allow-Credentials: true` (`solid-pod-rs/src/security/cors.rs:242-247`). The server's `add_cors_headers` comment calls exactly that unsafe and never does it (`solid-pod-rs-server/src/lib.rs:3929-3941`). `CorsPolicy` has no in-tree server consumer, so this only matters to a library user who sets `CORS_ALLOW_CREDENTIALS` without an allowlist.
+**Tension:** the library and the server answer the credentials trap in opposite ways. With wildcard origins and credentials on, `CorsPolicy` reflects any request Origin together with `Access-Control-Allow-Credentials: true` (`solid-pod-rs/src/security/cors.rs:242-247`). The server's `add_cors_headers` comment calls exactly that unsafe and never does it (`solid-pod-rs-server/src/lib.rs:4696-4708`). `CorsPolicy` has no in-tree server consumer, so this only matters to a library user who sets `CORS_ALLOW_CREDENTIALS` without an allowlist.
 
-**Drift:** the doc comments on `CorsHeaders` (`solid-pod-rs-server/src/lib.rs:3850`) and its config field (`solid-pod-rs-server/src/lib.rs:348`) still say an empty allowlist echoes the request Origin. `add_cors_headers` emits `*` instead. This panel had repeated the comment.
+**Drift:** the doc comments on `CorsHeaders` (`solid-pod-rs-server/src/lib.rs:4608`) and its config field (`solid-pod-rs-server/src/lib.rs:505`) still say an empty allowlist echoes the request Origin. `add_cors_headers` emits `*` instead. This panel had repeated the comment.
 
 ## SP-06.11 Git-versioned pods — repository lifecycle
 
@@ -324,6 +369,10 @@ stateDiagram-v2
       solid-pod-rs-git/src/init.rs:76
       find_git_dir locates an existing repo instead of re-initialising
       solid-pod-rs-git/src/config.rs:35
+      init runs through hardened_git (solid-pod-rs-git/src/init.rs:102),
+      which also sets maintenance.auto=false and gc.auto=0, so no detached
+      git gc or maintenance writes after a command returns
+      (solid-pod-rs-git/src/hardened.rs:39, solid-pod-rs-git/src/hardened.rs:55)
     end note
     note right of Identified
       AGENT_DID_FILE agent.did.json (solid-pod-rs-git/src/identity.rs:50) and the
@@ -348,9 +397,9 @@ stateDiagram-v2
     end note
 ```
 
-**Drift:** this panel previously drew a single chain from Initialised through Configured and Identified to Marked. In the native server, `git_mark_write` needs only the `.git` directory (`solid-pod-rs-server/src/lib.rs:4287-4290`), so writes are marked straight after init. `apply_write_config` runs only inside `GitHttpService::handle` for a write request (`solid-pod-rs-git/src/service.rs:358-359`), and `handle_git` refuses every push before the service runs (SP-06.12). `write_agent_identity` has no in-tree caller. `init_repo_at` itself sets only `receive.denyCurrentBranch updateInstead` (`solid-pod-rs-git/src/init.rs:130-140`).
+**Drift:** this panel previously drew a single chain from Initialised through Configured and Identified to Marked. In the native server, `git_mark_write` needs only the `.git` directory (`solid-pod-rs-server/src/lib.rs:5103-5106`), so writes are marked straight after init. `apply_write_config` runs only inside `GitHttpService::handle` for a write request (`solid-pod-rs-git/src/service.rs:358-359`), and `handle_git` refuses every push before the service runs (SP-06.12). `write_agent_identity` has no in-tree caller. `init_repo_at` itself sets only `receive.denyCurrentBranch updateInstead` (`solid-pod-rs-git/src/init.rs:130-140`).
 
-**Open:** pods from `POST /_admin/provision/{pubkey}` live under `data_root/pods/<pubkey>` (SP-06.8). `git_mark_write` takes the first path segment as the pod and looks for `data_root/<segment>/.git` (`solid-pod-rs-server/src/lib.rs:4278-4288`). If those pods are addressed as `/pods/<pubkey>/...`, the repository the admin route creates would never be found and their writes would be skipped as not git-backed. Source tracing suggests this; no request was run to confirm it.
+**Open:** pods from `POST /_admin/provision/{pubkey}` live under `data_root/pods/<pubkey>` (SP-06.8). `git_mark_write` takes the first path segment as the pod and looks for `data_root/<segment>/.git` (`solid-pod-rs-server/src/lib.rs:5094-5104`). If those pods are addressed as `/pods/<pubkey>/...`, the repository the admin route creates would never be found and their writes would be skipped as not git-backed. Source tracing suggests this; no request was run to confirm it.
 
 ## SP-06.12 Git smart-HTTP — the WAC-gated CGI bridge, clone and fetch only
 
@@ -358,32 +407,32 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant C as git client
-    participant H as handle_git<br/>solid-pod-rs-server/src/lib.rs:5049
+    participant H as handle_git<br/>solid-pod-rs-server/src/lib.rs:5888
     participant A as BasicNostrExtractor::authorise<br/>solid-pod-rs-git/src/auth.rs:115
     participant W as enforce_read_ctx
     participant S as GitHttpService::handle<br/>solid-pod-rs-git/src/service.rs:284
     participant CGI as git-http-backend<br/>solid-pod-rs-git/src/service.rs:41
 
     C->>H: GET info/refs, or POST git-upload-pack or git-receive-pack
-    H->>H: pod name is the first path segment — repo_root = data_root/{pod}<br/>solid-pod-rs-server/src/lib.rs:5073
+    H->>H: pod name is the first path segment — repo_root = data_root/{pod}<br/>solid-pod-rs-server/src/lib.rs:5912
     alt data_root unset
-        H-->>C: 501 git requires fs-backend storage<br/>solid-pod-rs-server/src/lib.rs:5067
+        H-->>C: 501 git requires fs-backend storage<br/>solid-pod-rs-server/src/lib.rs:5906
     end
     alt pod directory absent
-        H-->>C: 404 pod not found, before push refusal or any credential is read<br/>solid-pod-rs-server/src/lib.rs:5074
+        H-->>C: 404 pod not found, before push refusal or any credential is read<br/>solid-pod-rs-server/src/lib.rs:5913
     end
     alt push or push discovery
-        H-->>C: 403 git push is not served, before any credential is read<br/>solid-pod-rs-server/src/lib.rs:5100
+        H-->>C: 403 git push is not served, before any credential is read<br/>solid-pod-rs-server/src/lib.rs:5939
     end
     H->>A: resolve did:nostr from the Basic nostr: or Nostr credential
-    A-->>H: a pubkey, or anonymous on any failure<br/>solid-pod-rs-server/src/lib.rs:5121
+    A-->>H: a pubkey, or anonymous on any failure<br/>solid-pod-rs-server/src/lib.rs:5960
     H->>H: is_write separates push from clone and fetch<br/>solid-pod-rs-git/src/service.rs:129
-    H->>W: enforce Read against the POD-ROOT container ACL<br/>solid-pod-rs-server/src/lib.rs:5130
+    H->>W: enforce Read against the POD-ROOT container ACL<br/>solid-pod-rs-server/src/lib.rs:5969
     W-->>H: 401 on a private pod so the client retries with credentials
     alt caller is not the pod owner
-        H-->>C: 403 whole-history export requires the pod owner<br/>solid-pod-rs-server/src/lib.rs:5153
+        H-->>C: 403 whole-history export requires the pod owner<br/>solid-pod-rs-server/src/lib.rs:5992
     end
-    H->>S: GitHttpService rooted at data_root receives the original pod-prefixed GitRequest<br/>solid-pod-rs-server/src/lib.rs:5164
+    H->>S: GitHttpService rooted at data_root receives the original pod-prefixed GitRequest<br/>solid-pod-rs-server/src/lib.rs:6003
     S->>S: extract slug and join to root again<br/>solid-pod-rs-git/src/service.rs:295<br/>solid-pod-rs-git/src/service.rs:299
     alt selected repository absent
         S-->>C: 404, before CGI transport<br/>solid-pod-rs-git/src/service.rs:338
@@ -394,12 +443,12 @@ sequenceDiagram
         S-->>C: GitResponse plus GIT_CORS_HEADERS<br/>solid-pod-rs-git/src/service.rs:190
     end
 
-    Note over H: Pushes are refused outright (estate register ER-28,<br/>solid-pod-rs-server/src/lib.rs:5710). Read admission names the root resource,<br/>and the owner-only check stands in for per-child or historical versions, which the transport does not evaluate (solid-pod-rs-server/src/lib.rs:5149-5153).
+    Note over H: Pushes are refused outright (estate register ER-28,<br/>solid-pod-rs-server/src/lib.rs:6710). Read admission names the root resource,<br/>and the owner-only check stands in for per-child or historical versions, which the transport does not evaluate (solid-pod-rs-server/src/lib.rs:5988-5992).
     Note over S: path_safe (solid-pod-rs-git/src/guard.rs:68) and extract_repo_slug<br/>(solid-pod-rs-git/src/guard.rs:18) keep the CGI's repo argument inside repo_root.
-    Note over A: The separate owner-only _git control panel requires caller pubkey<br/>to equal pod pubkey. require_pod_owner_with_body is an identity check,<br/>not delegated WAC Control (solid-pod-rs-server/src/lib.rs:4471).<br/>That authority contract differs from the smart-HTTP root Read gate.
+    Note over A: The separate owner-only _git control panel requires caller pubkey<br/>to equal pod pubkey. require_pod_owner_with_body is an identity check,<br/>not delegated WAC Control (solid-pod-rs-server/src/lib.rs:5287).<br/>That authority contract differs from the smart-HTTP root Read gate.
 ```
 
-**Debt:** the pre-receive path guard (`solid-pod-rs-git/src/push_guard.rs:1`) and `GitHttpService::with_push_guard` (`solid-pod-rs-git/src/service.rs:255`) ship in the git crate, but `handle_git` refuses every push before the service runs (`solid-pod-rs-server/src/lib.rs:5100`), so the server installs no guard and the code is unreachable from it.
+**Debt:** the pre-receive path guard (`solid-pod-rs-git/src/push_guard.rs:1`) and `GitHttpService::with_push_guard` (`solid-pod-rs-git/src/service.rs:255`) ship in the git crate, but `handle_git` refuses every push before the service runs (`solid-pod-rs-server/src/lib.rs:5939`), so the server installs no guard and the code is unreachable from it.
 
 **Boundary:** the CGI constructs a restricted environment and sets `core.symlinks=false`; this transport setup does not implement per-child or historical WAC. The [Git export assessment](../../estate-review/2026-11-01-solid-git-export-and-baseline.md) separates the root/path mismatch from export authority. Both defects must be considered before making normal clones reachable. The topic is restamped at `9b6143c` by the 2026-11-02 wave-1 audit; SP-14 records the mirror publication repair.
 
