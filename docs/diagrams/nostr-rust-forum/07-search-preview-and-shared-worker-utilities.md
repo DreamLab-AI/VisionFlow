@@ -29,7 +29,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
-verified_commit: 7e1f036ebd9ebd6c922db6f9acea041775730071
+verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
 ## NF-07.1 search-worker — routes and gates
@@ -56,7 +56,7 @@ flowchart TB
     N2["/ingest is the only mutating route and it is admin-gated<br/>nostr-bbs-search-worker/src/lib.rs:720 via require_nip98_admin nostr-bbs-search-worker/src/auth.rs:63"]
 ```
 
-## NF-07.2 The third admin authority — static-only, and the only real key in a template
+## NF-07.2 The search worker's admin authority — static-only, and the only real key in a template
 
 ```mermaid
 flowchart LR
@@ -70,7 +70,7 @@ flowchart LR
     TPL --> READ
     WHY --> READ
 
-    N1["INVARIANT: the parse rule is shared through nostr_bbs_core so the comma / whitespace / npub-or-hex<br/>semantics cannot drift between the three workers - see NF-08.7"]
+    N1["INVARIANT: the parse rule is shared through nostr_bbs_core so the comma / whitespace / npub-or-hex<br/>semantics cannot drift between the auth, relay and search workers that read it - see NF-08.7"]
     N2["This worker is the ONLY wrangler template that declares ADMIN_PUBKEYS, yet the auth and relay<br/>workers both read it - the relay reader is nostr-bbs-relay-worker/src/auth.rs:185 - and the deployment gap is written up in NF-08.7 N4"]
     N4["DRIFT: the relay template comment still says the relay has no ADMIN_PUBKEYS reader<br/>nostr-bbs-relay-worker/wrangler.toml:19, contradicted by nostr-bbs-relay-worker/src/auth.rs:185"]
     N3["It is also the only template shipping a non-placeholder value where every other template ships<br/>example.com or a zeroed key nostr-bbs-search-worker/wrangler.toml:41"]
@@ -232,9 +232,9 @@ classDiagram
     RateLimit --> SearchWorker
     RateLimit --> PreviewWorker
 
-    note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:175, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:929,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
+    note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:176, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:929,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
     note for Replay "INVARIANT one shared replay database - the search<br/>worker binds REPLAY_DB nostr-bbs-search-worker/src/auth.rs:31<br/>and delegates to the shared verifier<br/>nostr-bbs-search-worker/src/auth.rs:40 exactly as the auth<br/>worker does. See NF-02.5 and NF-08.4"
-    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:197-200. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
+    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:200-203. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
 ```
 
 ## NF-07.9 The opt-in Jev rerank — on in the shipped manifest, can only permute what search already shows

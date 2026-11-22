@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: 7e1f036ebd9ebd6c922db6f9acea041775730071
+verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
 ## NF-01.1 Twenty crates in four layers
@@ -104,22 +104,24 @@ flowchart TB
     MESH -.->|"README.md:60 dotted, configured peer routing<br/>relay-worker depends on it nostr-bbs-relay-worker/Cargo.toml:27"| RELAY
 
     N1["resolver 2, edition 2021, rust-version 1.85 nostr-rust-forum/Cargo.toml:2 nostr-rust-forum/Cargo.toml:67"]
-    N2["DIVERGENCE: the kit publishes on one beta channel but its path-dep versions are not one set - core, config, mesh and rate-limit beta.19<br/>nostr-rust-forum/Cargo.toml:188-191, jev beta.16 nostr-rust-forum/Cargo.toml:192,<br/>poker beta.15 nostr-rust-forum/Cargo.toml:194, ascii still beta.10 nostr-rust-forum/Cargo.toml:193;<br/>core declares beta.19 crates/nostr-bbs-core/Cargo.toml:3 and ascii beta.10 crates/nostr-bbs-ascii/Cargo.toml:3"]
-    N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.19 nostr-rust-forum/Cargo.toml:187"]
-    N5["Edges are direct Cargo path dependencies: preview-worker links rate-limit and ascii but NOT core<br/>crates/nostr-bbs-preview-worker/Cargo.toml:24-25; forum-client links core and poker but NOT config<br/>crates/nostr-bbs-forum-client/Cargo.toml:24 crates/nostr-bbs-forum-client/Cargo.toml:27; bbs-client links config and core<br/>but NOT ascii crates/nostr-bbs-bbs-client/Cargo.toml:26 crates/nostr-bbs-bbs-client/Cargo.toml:31, although the workspace comment<br/>says its HTML emit is consumed by the BBS client nostr-rust-forum/Cargo.toml:20-21; pod-worker links ascii<br/>crates/nostr-bbs-pod-worker/Cargo.toml:34; jev is linked by auth, relay and search crates/nostr-bbs-auth-worker/Cargo.toml:29<br/>crates/nostr-bbs-search-worker/Cargo.toml:28; mesh links core and config crates/nostr-bbs-mesh/Cargo.toml:16-17;<br/>PK reaches core through poker-citizen crates/nostr-bbs-poker-citizen/Cargo.toml:34. setup-skill edges omitted for width."]
+    N2["DIVERGENCE: the kit publishes on one beta channel but its path-dep versions are not one set - core, config, mesh and rate-limit beta.20<br/>released together nostr-rust-forum/Cargo.toml:191-194, jev beta.16 nostr-rust-forum/Cargo.toml:195,<br/>poker beta.15 nostr-rust-forum/Cargo.toml:197, ascii still beta.10 nostr-rust-forum/Cargo.toml:196;<br/>core declares beta.20 crates/nostr-bbs-core/Cargo.toml:3 and ascii beta.10 crates/nostr-bbs-ascii/Cargo.toml:3"]
+    N3["DOC-DRIFT ADR-2007 / BASELINE known-divergence: the Cargo.toml comment above the path deps still<br/>says published to crates.io as 1.0.0-beta.3 while the tree is on beta.20 nostr-rust-forum/Cargo.toml:190"]
+    N5["Edges are direct Cargo path dependencies: preview-worker links rate-limit and ascii but NOT core<br/>crates/nostr-bbs-preview-worker/Cargo.toml:24-25; forum-client links core and poker but NOT config<br/>crates/nostr-bbs-forum-client/Cargo.toml:24 crates/nostr-bbs-forum-client/Cargo.toml:30; bbs-client links config and core<br/>but NOT ascii crates/nostr-bbs-bbs-client/Cargo.toml:26 crates/nostr-bbs-bbs-client/Cargo.toml:31, although the workspace comment<br/>says its HTML emit is consumed by the BBS client nostr-rust-forum/Cargo.toml:20-21; pod-worker links ascii<br/>crates/nostr-bbs-pod-worker/Cargo.toml:34; jev is linked by auth, relay and search crates/nostr-bbs-auth-worker/Cargo.toml:29<br/>crates/nostr-bbs-search-worker/Cargo.toml:28; mesh links core and config crates/nostr-bbs-mesh/Cargo.toml:16-17;<br/>PK reaches core through poker-citizen crates/nostr-bbs-poker-citizen/Cargo.toml:34. setup-skill edges omitted for width."]
     N4["nostr-bbs-zone-migrate is library-plus-native-binary only, so it still passes the wasm32 workspace<br/>check nostr-rust-forum/Cargo.toml:49-51; seals plaintext channel history into sealed-original<br/>envelopes, verifies, then purges the plaintext crates/nostr-bbs-zone-migrate/Cargo.toml:5"]
 ```
 
 **Drift:** the README draws the mesh as a dotted "configured peer routing" edge into the relay (`../nostr-rust-forum/README.md:60`), yet the relay-worker declares a normal path dependency on `nostr-bbs-mesh` with a `src/mesh.rs` wiring note (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml:27`).
 
-**Open:** does the "room" deployment profile (ADR-2029, proposed, no implementation) or the NIP-17/NIP-171 interop work change the crate set? The README places that implementation on the unmerged `feat/upgrade-phase-0-1` branch (`../nostr-rust-forum/README.md:124`) and `docs/BASELINE-architecture.md` records the profile as "proposed, not implemented" (`../nostr-rust-forum/docs/BASELINE-architecture.md:279`).
+**Open:** does the "room" deployment profile (ADR-2029, proposed, no implementation) change the crate set? `docs/BASELINE-architecture.md` records it as "proposed, not implemented" (`../nostr-rust-forum/docs/BASELINE-architecture.md:334`). The NIP-17/NIP-171 interop work did not: `feat/upgrade-phase-0-1` merged into main at a80c572 and added no workspace member, only forum-client dependencies (`nostr`, and `bip39`, `hkdf`, `getrandom`, `unicode-normalization` for the NIP-171 recovery master: `../nostr-rust-forum/Cargo.toml:111-113`).
+
+**Drift:** the README still says the NIP-17 and NIP-171 implementation is on that branch, "not merged into main" (`../nostr-rust-forum/README.md:124`); its phases 2 to 4 are ancestors of main, their features behind `RECIPIENT_KEYS_ENABLED` and `ZONE_GROUPS_ENABLED`, both off by default (NF-08.8); the relay-URL fail-closed change that came with phase 4 is not flagged (NF-08.8, NF-12).
 
 ## NF-01.2 Build matrix — one target, one release profile
 
 ```mermaid
 flowchart LR
     TC["rust-toolchain.toml:2 channel stable<br/>rust-toolchain.toml:3 targets wasm32-unknown-unknown"]
-    PROF["release profile nostr-rust-forum/Cargo.toml:208<br/>opt-level z nostr-rust-forum/Cargo.toml:209<br/>panic abort nostr-rust-forum/Cargo.toml:213"]
+    PROF["release profile nostr-rust-forum/Cargo.toml:211<br/>opt-level z nostr-rust-forum/Cargo.toml:212<br/>panic abort nostr-rust-forum/Cargo.toml:216"]
     WB["worker-build --release<br/>nostr-bbs-auth-worker/wrangler.toml:6<br/>nostr-bbs-relay-worker/wrangler.toml:6<br/>nostr-bbs-pod-worker/wrangler.toml:6<br/>nostr-bbs-preview-worker/wrangler.toml:6<br/>nostr-bbs-search-worker/wrangler.toml:6"]
     SHIM["build/worker/shim.mjs entrypoint<br/>nostr-bbs-relay-worker/wrangler.toml:2"]
     CIW["declared wasm-check set is three crates, jev joined it<br/>nostr-rust-forum/Cargo.toml:72"]
@@ -129,7 +131,7 @@ flowchart LR
     TC --> CIW
     TC --> CIJOB
 
-    N1["panic = abort is not a tuning choice - workers and WASM cannot unwind, so the unwinding tables are<br/>dead weight nostr-rust-forum/Cargo.toml:203-206"]
+    N1["panic = abort is not a tuning choice - workers and WASM cannot unwind, so the unwinding tables are<br/>dead weight nostr-rust-forum/Cargo.toml:206-209"]
     N2["DOC-DRIFT: workspace.metadata.ci.wasm-check-packages names three crates (config, preview-worker, jev) nostr-rust-forum/Cargo.toml:72<br/>with a comment saying to expand it as the secp256k1-sys cross-compile resolves nostr-rust-forum/Cargo.toml:70-71,<br/>but no workflow or script reads that key - the wasm job runs cargo check --workspace<br/>.github/workflows/ci.yml:188, made possible by installing libc6-dev-i386 .github/workflows/ci.yml:185.<br/>The metadata is inert."]
     N3["compatibility_date 2025-09-01 is identical across all five templates, e.g. nostr-bbs-search-worker/wrangler.toml:3"]
 ```
@@ -139,17 +141,17 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph fetchentry["#[event(fetch)] handlers"]
-        A["auth-worker<br/>nostr-bbs-auth-worker/src/lib.rs:144"]
-        R["relay-worker<br/>nostr-bbs-relay-worker/src/lib.rs:209"]
+        A["auth-worker<br/>nostr-bbs-auth-worker/src/lib.rs:145"]
+        R["relay-worker<br/>nostr-bbs-relay-worker/src/lib.rs:211"]
     end
     subgraph cronentry["#[event(scheduled)] handlers"]
-        AC["auth-worker scheduled<br/>nostr-bbs-auth-worker/src/lib.rs:873"]
-        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1146<br/>trigger nostr-bbs-relay-worker/wrangler.toml:123"]
+        AC["auth-worker scheduled<br/>nostr-bbs-auth-worker/src/lib.rs:894"]
+        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1622<br/>trigger nostr-bbs-relay-worker/wrangler.toml:123"]
         SC["search-worker cron - every 5 min<br/>nostr-bbs-search-worker/wrangler.toml:44"]
     end
-    WSUP["WebSocket upgrade to the Durable Object<br/>nostr-bbs-relay-worker/src/lib.rs:228"]
-    NIP11["NIP-11 relay info on Accept application/nostr+json<br/>nostr-bbs-relay-worker/src/lib.rs:237"]
-    HTTPR["HTTP route table<br/>nostr-bbs-relay-worker/src/lib.rs:286"]
+    WSUP["WebSocket upgrade to the Durable Object<br/>nostr-bbs-relay-worker/src/lib.rs:230"]
+    NIP11["NIP-11 relay info on Accept application/nostr+json<br/>nostr-bbs-relay-worker/src/lib.rs:239"]
+    HTTPR["HTTP route table<br/>nostr-bbs-relay-worker/src/lib.rs:288"]
     ADMDEL["ADR-2017 POST /api/admin/events/delete - silent kind-42 delete, no kind-5<br/>nostr-bbs-relay-worker/src/admin_events.rs:5"]
     SUCC["GET /api/profiles/successors - admin-set pubkey aliases for DM routing<br/>nostr-bbs-relay-worker/src/profile_stats.rs:6"]
     PSTATS["GET /api/profile-stats - viewer-scoped user-card activity stats<br/>nostr-bbs-relay-worker/src/profile_stats.rs:5"]
@@ -161,9 +163,9 @@ flowchart TB
     HTTPR --> SUCC
     HTTPR --> PSTATS
 
-    N1["Both fetch entries bootstrap their schema and the shared replay table, but differently: the relay does it once per isolate<br/>behind SCHEMA_READY, after the CORS preflight and before the WebSocket branch, and latches only on success<br/>nostr-bbs-relay-worker/src/lib.rs:222, nostr-bbs-relay-worker/src/lib.rs:200; the auth worker runs it at the top of every request<br/>nostr-bbs-auth-worker/src/lib.rs:163"]
-    N2["The relay binds its replay schema to REPLAY_DB, the auth worker to its own DB - the same physical<br/>database either way nostr-bbs-relay-worker/src/lib.rs:224, nostr-bbs-auth-worker/src/lib.rs:164"]
-    N3["ADR-2017: deleting the kind-42 row outright, with no kind-5 tombstone, is deliberate - a kind-5<br/>would tombstone the id that a sealed-original envelope restores on every forum client<br/>nostr-bbs-relay-worker/src/lib.rs:371-373"]
+    N1["Both fetch entries bootstrap their schema and the shared replay table, but differently: the relay does it once per isolate<br/>behind SCHEMA_READY, after the CORS preflight and before the WebSocket branch, and latches only on success<br/>nostr-bbs-relay-worker/src/lib.rs:224, nostr-bbs-relay-worker/src/lib.rs:202; the auth worker runs it at the top of every request<br/>nostr-bbs-auth-worker/src/lib.rs:164"]
+    N2["The relay binds its replay schema to REPLAY_DB, the auth worker to its own DB - the same physical<br/>database either way nostr-bbs-relay-worker/src/lib.rs:226, nostr-bbs-auth-worker/src/lib.rs:165"]
+    N3["ADR-2017: deleting the kind-42 row outright, with no kind-5, is deliberate - a kind-5 would tombstone<br/>the id that a sealed-original envelope restores on every forum client. Since db6ddfc the route does record<br/>a relay-side D1 tombstone, never served to clients nostr-bbs-relay-worker/src/lib.rs:373-376 - see NF-08.10"]
 ```
 
 ## NF-01.4 Pinned dependency spine
@@ -177,10 +179,10 @@ classDiagram
         k256 0.14.0 schnorr ecdh : nostr-rust-forum/Cargo.toml:104
         p256 0.14.0 ecdsa : nostr-rust-forum/Cargo.toml:105
         passkey-types 0.3 : nostr-rust-forum/Cargo.toml:101
-        comrak 0.38 : nostr-rust-forum/Cargo.toml:136
-        image 0.24 pure-Rust decoders only : nostr-rust-forum/Cargo.toml:200
+        comrak 0.38 : nostr-rust-forum/Cargo.toml:139
+        image 0.24 pure-Rust decoders only : nostr-rust-forum/Cargo.toml:203
         rusqlite 0.41 bundled, test-only for the shared whitelist SQL : nostr-rust-forum/Cargo.toml:78
-        solid-pod-rs caret 0.5.0-alpha.20 core : nostr-rust-forum/Cargo.toml:185
+        solid-pod-rs caret 0.5.0-alpha.24 core : nostr-rust-forum/Cargo.toml:188
     }
     class SolidPodRs {
         wac : pod-worker acl
@@ -190,11 +192,11 @@ classDiagram
     }
     Workspace --> SolidPodRs
 
-    note for Workspace "TENSION ADR-2007 vs Cargo.toml: ADR-2007 and BASELINE invariant 6 say solid-pod-rs stays an EXACT (=) pin docs/adr/ADR-2007-kit-exact-pin-beta-channel.md:30, docs/BASELINE-architecture.md:200, but the manifest now declares a caret range under estate register ER-35 nostr-rust-forum/Cargo.toml:181-185; Cargo.lock still fixes what a build resolves"
+    note for Workspace "TENSION ADR-2007 vs Cargo.toml: ADR-2007 and BASELINE invariant 6 say solid-pod-rs stays an EXACT (=) pin docs/adr/ADR-2007-kit-exact-pin-beta-channel.md:30, docs/BASELINE-architecture.md:215, but the manifest now declares a caret range under estate register ER-35 nostr-rust-forum/Cargo.toml:184-188; Cargo.lock still fixes what a build resolves"
     note for SolidPodRs "EXTERNAL: the consumer surface is enumerated in docs/consumer-surface-map.md:14 - see the solid-pod-rs area (SP-*) and NF-04"
 ```
 
-**Drift:** the RUSTSEC-2026-0387 dependency bump is fixed on main (`1b27f79`): k256 and p256 are `0.14.0` (`../nostr-rust-forum/Cargo.toml:104-105`), solid-pod-rs is `0.5.0-alpha.20` (`../nostr-rust-forum/Cargo.toml:185`) and nostr-bbs-core is `1.0.0-beta.19` (`../nostr-rust-forum/Cargo.toml:188`), with `Cargo.lock` resolving crypto-bigint `0.7.10` and k256 `0.14.0`. Whether production is fixed is a deployment fact this source tracing cannot check; the earlier record that the edge still runs kit `9c36b60` (crypto-bigint `0.5.5`, k256 `0.13.4`) is carried, not re-verified. The 0.14 line also needs a wasm32-only `getrandom` 0.4 dependency with the `wasm_js` feature (`../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml:60`).
+**Drift:** the RUSTSEC-2026-0387 dependency bump is fixed on main (`1b27f79`): k256 and p256 are `0.14.0` (`../nostr-rust-forum/Cargo.toml:104-105`), solid-pod-rs is `0.5.0-alpha.24` (`../nostr-rust-forum/Cargo.toml:188`, from 77144b6) and nostr-bbs-core is `1.0.0-beta.20` (`../nostr-rust-forum/Cargo.toml:191`, the d423833 release); `Cargo.lock` was last read for crypto-bigint `0.7.10` and k256 `0.14.0` at 7e1f036 and is not re-read here. Whether production is fixed is a deployment fact this source tracing cannot check; the earlier record that the edge still runs kit `9c36b60` (crypto-bigint `0.5.5`, k256 `0.13.4`) is carried, not re-verified. The 0.14 line also needs a wasm32-only `getrandom` 0.4 dependency with the `wasm_js` feature (`../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml:60`).
 
 ## NF-01.5 Upstream `nostr` absorption — canary-first, nothing deleted
 
@@ -234,8 +236,8 @@ stateDiagram-v2
 flowchart LR
     BROWSER["Browser - forum-client or bbs-client"]
     AGENT["Agent (agentbox or any signer)"]
-    RELAYW["relay-worker<br/>WebSocket NIP-01 + REST admin<br/>nostr-bbs-relay-worker/src/lib.rs:209"]
-    AUTHW["auth-worker<br/>passkey + NIP-98 REST<br/>nostr-bbs-auth-worker/src/lib.rs:144"]
+    RELAYW["relay-worker<br/>WebSocket NIP-01 + REST admin<br/>nostr-bbs-relay-worker/src/lib.rs:211"]
+    AUTHW["auth-worker<br/>passkey + NIP-98 REST<br/>nostr-bbs-auth-worker/src/lib.rs:145"]
     PODW["pod-worker<br/>Solid LDP + WAC"]
     SEARCHW["search-worker<br/>Workers AI embeddings"]
     PREVW["preview-worker<br/>link unfurl, SSRF-guarded"]
