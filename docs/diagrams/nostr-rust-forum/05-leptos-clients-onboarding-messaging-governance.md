@@ -11,6 +11,11 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/main.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay/receipt.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/lookup.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/deletion_sync.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/signer_admin.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/passkey.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs
@@ -67,7 +72,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md
   - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
   - ../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md
-verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
+verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
 ## NF-05.1 Forum client boot and the FORUM_BASE discipline
@@ -88,13 +93,13 @@ sequenceDiagram
     M->>SW: update_via_cache = None, so sw.js is always revalidated main.rs:64
     M->>DB: evict cached messages older than 30 days main.rs:195
     A->>A: provide_auth nostr-bbs-forum-client/src/app.rs:319, provide_zone_access nostr-bbs-forum-client/src/app.rs:320,<br/>provide_render_tier nostr-bbs-forum-client/src/app.rs:321
-    A->>A: provide_toasts nostr-bbs-forum-client/src/app.rs:324, wallet::provide_wallet<br/>nostr-bbs-forum-client/src/app.rs:338, provide_profile_cache nostr-bbs-forum-client/src/app.rs:329
-    A->>A: start_admin_alerts nostr-bbs-forum-client/src/app.rs:347, provide_agent_disclosure<br/>nostr-bbs-forum-client/src/app.rs:438
-    A->>A: RelayConnection::new nostr-bbs-forum-client/src/app.rs:446, provide_channel_store<br/>nostr-bbs-forum-client/src/app.rs:448, zone_crypto::store::provide_zone_key_store<br/>nostr-bbs-forum-client/src/app.rs:451
+    A->>A: provide_toasts nostr-bbs-forum-client/src/app.rs:324, wallet::provide_wallet<br/>nostr-bbs-forum-client/src/app.rs:340, provide_profile_cache nostr-bbs-forum-client/src/app.rs:331
+    A->>A: start_admin_alerts nostr-bbs-forum-client/src/app.rs:349, provide_agent_disclosure<br/>nostr-bbs-forum-client/src/app.rs:440
+    A->>A: RelayConnection::new nostr-bbs-forum-client/src/app.rs:448, provide_channel_store<br/>nostr-bbs-forum-client/src/app.rs:450, zone_crypto::store::provide_zone_key_store<br/>nostr-bbs-forum-client/src/app.rs:453
 
-    Note over A: wallet::provide_wallet creates one store per configured compiled-in chain (ADR-2015 amended by ADR-2021),<br/>inert unless SIDESTR_WALLET is on - nostr-bbs-forum-client/src/app.rs:335-338, wallet/mod.rs:58<br/>wallet/mod.rs:239
-    Note over A: INVARIANT ADR-090 - FORUM_BASE is applied in exactly TWO places: the const consumed by Router base= at<br/>nostr-bbs-forum-client/src/app.rs:44 and :902
-    Note over A: and base_href() for every link at nostr-bbs-forum-client/src/app.rs:53, used e.g. at :909. A third application<br/>re-introduces the double-prefix / deep-route-404 bug class.
+    Note over A: wallet::provide_wallet creates one store per configured compiled-in chain (ADR-2015 amended by ADR-2021),<br/>inert unless SIDESTR_WALLET is on - nostr-bbs-forum-client/src/app.rs:337-340, wallet/mod.rs:58<br/>wallet/mod.rs:239
+    Note over A: INVARIANT ADR-090 - FORUM_BASE is applied in exactly TWO places: the const consumed by Router base= at<br/>nostr-bbs-forum-client/src/app.rs:44 and :929
+    Note over A: and base_href() for every link at nostr-bbs-forum-client/src/app.rs:53, used e.g. at :936. A third application<br/>re-introduces the double-prefix / deep-route-404 bug class.
     Note over M: main.rs:55-57 re-read the same option_env! for the service-worker SCOPE - a deliberate, documented mirror of<br/>app::FORUM_BASE, not a third application of the prefix
     Note over A: current_app_path strips the prefix back off a browser path so the router sees an unprefixed route<br/>nostr-bbs-forum-client/src/app.rs:82
 ```
@@ -107,32 +112,32 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph pubroutes["Public"]
-        R1["/ HomeOrForums nostr-bbs-forum-client/src/app.rs:920"]
-        R2["/about nostr-bbs-forum-client/src/app.rs:921 | /login nostr-bbs-forum-client/src/app.rs:922 | /signup nostr-bbs-forum-client/src/app.rs:927"]
-        R3["/connect magic link - must NOT be auth-gated nostr-bbs-forum-client/src/app.rs:926"]
-        R4["/glossary nostr-bbs-forum-client/src/app.rs:931 | /go/:event_id MessageJumpPage nostr-bbs-forum-client/src/app.rs:933 | /join/:code nostr-bbs-forum-client/src/app.rs:938"]
+        R1["/ HomeOrForums nostr-bbs-forum-client/src/app.rs:947"]
+        R2["/about nostr-bbs-forum-client/src/app.rs:948 | /login nostr-bbs-forum-client/src/app.rs:949 | /signup nostr-bbs-forum-client/src/app.rs:954"]
+        R3["/connect magic link - must NOT be auth-gated nostr-bbs-forum-client/src/app.rs:953"]
+        R4["/glossary nostr-bbs-forum-client/src/app.rs:958 | /go/:event_id MessageJumpPage nostr-bbs-forum-client/src/app.rs:960 | /join/:code nostr-bbs-forum-client/src/app.rs:965"]
     end
     subgraph authed["Auth-gated"]
-        R5["/setup nostr-bbs-forum-client/src/app.rs:940 | /forums nostr-bbs-forum-client/src/app.rs:954 | /settings nostr-bbs-forum-client/src/app.rs:964"]
-        R6["/chat/:channel_id nostr-bbs-forum-client/src/app.rs:951 | /dm nostr-bbs-forum-client/src/app.rs:952 | /dm/:pubkey nostr-bbs-forum-client/src/app.rs:953"]
-        R7["/forums/:category/board nostr-bbs-forum-client/src/app.rs:959 | /:section nostr-bbs-forum-client/src/app.rs:960 | /:topic nostr-bbs-forum-client/src/app.rs:961"]
-        R8["/events nostr-bbs-forum-client/src/app.rs:962 | /profile/:pubkey nostr-bbs-forum-client/src/app.rs:963 | /pod nostr-bbs-forum-client/src/app.rs:973"]
-        R14["/wallet AuthGatedWallet - member wallets, ADR-2015 nostr-bbs-forum-client/src/app.rs:974"]
+        R5["/setup nostr-bbs-forum-client/src/app.rs:967 | /forums nostr-bbs-forum-client/src/app.rs:981 | /settings nostr-bbs-forum-client/src/app.rs:991"]
+        R6["/chat/:channel_id nostr-bbs-forum-client/src/app.rs:978 | /dm nostr-bbs-forum-client/src/app.rs:979 | /dm/:pubkey nostr-bbs-forum-client/src/app.rs:980"]
+        R7["/forums/:category/board nostr-bbs-forum-client/src/app.rs:986 | /:section nostr-bbs-forum-client/src/app.rs:987 | /:topic nostr-bbs-forum-client/src/app.rs:988"]
+        R8["/events nostr-bbs-forum-client/src/app.rs:989 | /profile/:pubkey nostr-bbs-forum-client/src/app.rs:990 | /pod nostr-bbs-forum-client/src/app.rs:1000"]
+        R14["/wallet AuthGatedWallet - member wallets, ADR-2015 nostr-bbs-forum-client/src/app.rs:1001"]
     end
     subgraph gov["Governance"]
-        R9["/governance member read-only nostr-bbs-forum-client/src/app.rs:971"]
-        R10["/governance/admin admin write nostr-bbs-forum-client/src/app.rs:972"]
-        R11["/admin - its own internal gate nostr-bbs-forum-client/src/app.rs:965"]
+        R9["/governance member read-only nostr-bbs-forum-client/src/app.rs:998"]
+        R10["/governance/admin admin write nostr-bbs-forum-client/src/app.rs:999"]
+        R11["/admin - its own internal gate nostr-bbs-forum-client/src/app.rs:992"]
     end
     subgraph zonealias["Zone-slug aliases, declared LAST"]
-        R12["/:category nostr-bbs-forum-client/src/app.rs:993 | /:category/board nostr-bbs-forum-client/src/app.rs:995"]
-        R13["/:category/:section nostr-bbs-forum-client/src/app.rs:996 | /:category/:section/:topic nostr-bbs-forum-client/src/app.rs:997"]
+        R12["/:category nostr-bbs-forum-client/src/app.rs:1020 | /:category/board nostr-bbs-forum-client/src/app.rs:1022"]
+        R13["/:category/:section nostr-bbs-forum-client/src/app.rs:1023 | /:category/:section/:topic nostr-bbs-forum-client/src/app.rs:1024"]
     end
 
-    ROUTER["Router base=FORUM_BASE nostr-bbs-forum-client/src/app.rs:902"] --> pubroutes & authed & gov & zonealias
+    ROUTER["Router base=FORUM_BASE nostr-bbs-forum-client/src/app.rs:929"] --> pubroutes & authed & gov & zonealias
 
-    N1["/chat with no channel redirects to /forums - a legacy path kept alive nostr-bbs-forum-client/src/app.rs:950"]
-    N2["The zone-slug aliases are declared last so the static routes out-score them; a slug is only valid<br/>if it resolves in the live ZONE_CONFIG nostr-bbs-forum-client/src/pages/category.rs:102"]
+    N1["/chat with no channel redirects to /forums - a legacy path kept alive nostr-bbs-forum-client/src/app.rs:977"]
+    N2["The zone-slug aliases are declared last so the static routes out-score them; a slug is only valid<br/>if it resolves in the live ZONE_CONFIG nostr-bbs-forum-client/src/pages/category.rs:103"]
     N3["The member and admin governance views are separate ROUTES bound to separate components -<br/>see NF-06.10"]
     N4["/go/:event_id resolves a bare event id to its topic and lands the reader on it - see NF-05.15 for<br/>the deep-link walk and NF-05.6 for the tombstone/zone-decrypt gate it shares with normal ingest"]
 ```
@@ -214,49 +219,56 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as RelayConnection<br/>nostr-bbs-forum-client/src/relay.rs:202
+    participant C as RelayConnection<br/>nostr-bbs-forum-client/src/relay.rs:262
     participant R as relay-worker
 
-    C->>R: connect nostr-bbs-forum-client/src/relay.rs:363
-    R-->>C: open, state = Connected nostr-bbs-forum-client/src/relay.rs:412
-    C->>R: REQ subscription nostr-bbs-forum-client/src/relay.rs:528 nostr-bbs-forum-client/src/relay.rs:549
-    R-->>C: EVENT nostr-bbs-forum-client/src/relay.rs:749
-    C->>C: verify_event_strict BEFORE dispatch nostr-bbs-forum-client/src/relay.rs:769
-    R-->>C: EOSE nostr-bbs-forum-client/src/relay.rs:797
-    C->>R: EVENT publish nostr-bbs-forum-client/src/relay.rs:601
-    R-->>C: OK nostr-bbs-forum-client/src/relay.rs:866
-    R-->>C: AUTH challenge nostr-bbs-forum-client/src/relay.rs:889
-    C->>R: signed kind-22242 AUTH response nostr-bbs-forum-client/src/relay.rs:903
-    C->>R: CLOSE nostr-bbs-forum-client/src/relay.rs:587
-    C->>R: COUNT (NIP-45) - the frame is kept pending and replayed after NIP-42 AUTH, so the authenticated answer still finds its callback nostr-bbs-forum-client/src/relay.rs:569 nostr-bbs-forum-client/src/relay.rs:715
-    R-->>C: COUNT answer nostr-bbs-forum-client/src/relay.rs:817
+    C->>R: connect nostr-bbs-forum-client/src/relay.rs:444
+    R-->>C: open: new conn_gen, auth flags reset nostr-bbs-forum-client/src/relay.rs:497
+    C->>R: queued non-REQ frames flushed, every subscription REQ replayed and counted anonymous nostr-bbs-forum-client/src/relay.rs:514 nostr-bbs-forum-client/src/relay.rs:526
+    C->>C: authenticated cleared BEFORE state = Connected nostr-bbs-forum-client/src/relay.rs:553
+    C->>R: REQ subscription, counted in its ledger only when the socket is open nostr-bbs-forum-client/src/relay.rs:644 nostr-bbs-forum-client/src/relay.rs:681
+    R-->>C: EVENT nostr-bbs-forum-client/src/relay.rs:1238
+    C->>C: verify_event_strict BEFORE dispatch nostr-bbs-forum-client/src/relay.rs:1262
+    R-->>C: EOSE, credited only under the current wire id nostr-bbs-forum-client/src/relay.rs:1290 nostr-bbs-forum-client/src/relay.rs:1303
+    C->>R: EVENT publish, held while the socket is open but AUTH unresolved nostr-bbs-forum-client/src/relay.rs:754 nostr-bbs-forum-client/src/relay.rs:780
+    R-->>C: OK, an AUTH reply is routed to on_auth_ok, see NF-05.18 nostr-bbs-forum-client/src/relay.rs:1384 nostr-bbs-forum-client/src/relay.rs:1395
+    R-->>C: AUTH challenge nostr-bbs-forum-client/src/relay.rs:1424
+    C->>R: signed kind-22242 AUTH response, recorded as pending_auth nostr-bbs-forum-client/src/relay.rs:1438 nostr-bbs-forum-client/src/relay.rs:1459
+    C->>R: CLOSE nostr-bbs-forum-client/src/relay.rs:738
+    C->>R: COUNT (NIP-45), kept pending and re-sent once AUTH is accepted nostr-bbs-forum-client/src/relay.rs:720 nostr-bbs-forum-client/src/relay.rs:945 nostr-bbs-forum-client/src/relay.rs:1174
+    R-->>C: COUNT answer nostr-bbs-forum-client/src/relay.rs:1335
 
-    Note over C: INVARIANT: the client re-verifies every inbound event's id and Schnorr signature - it does not trust the relay nostr-bbs-forum-client/src/relay.rs:769
-    Note over C: publish_with_ack awaits the relay's OK rather than fire-and-forget nostr-bbs-forum-client/src/relay.rs:640
-    Note over C: The client half of NIP-42 is fully wired: it signs the challenge on demand - see NF-03.2 and NF-03.3
+    Note over C: INVARIANT: the client re-verifies every inbound event's id and Schnorr signature - it does not trust the relay nostr-bbs-forum-client/src/relay.rs:1262
+    Note over C: publish_with_ack registers a callback for the relay's OK, then sends or holds the frame like publish nostr-bbs-forum-client/src/relay.rs:795
+    Note over C: Every send is paced to at most 8 frames a second, below the relay's per-IP cap nostr-bbs-forum-client/src/relay.rs:46 nostr-bbs-forum-client/src/relay.rs:286
+    Note over C: OPEN O22 / KF-24: a post made while the socket is CLOSED goes to pending_messages nostr-bbs-forum-client/src/relay.rs:824<br/>and is flushed on reopen BEFORE AUTH nostr-bbs-forum-client/src/relay.rs:514, where the relay refuses it auth-required
 ```
 
 ## NF-05.6 Derived, never accumulated — the counting invariant
 
 ```mermaid
 flowchart TB
-    EVS["channel_messages: HashMap of channel to Vec of events<br/>channels.rs:71"]
-    TOMB["tombstones: HashSet of deleted ids (kind-5, NIP-09)<br/>channels.rs:93 channels.rs:98"]
-    GATE1["admits_message gate BEFORE decrypt<br/>channels.rs:405"]
-    DEC["zone_crypto::store::prepare_incoming - ciphertext to plaintext or placeholder<br/>channels.rs:440"]
-    GATE2["admits_message gate AGAIN AFTER decrypt - a restored sealed original<br/>carries the ORIGINAL id, which a kind-5 may already have tombstoned<br/>channels.rs:446 ADR-2017"]
-    INS["insert_message helper: dedup by id, then sort by created_at<br/>channels.rs:611"]
-    CNT["count_for = Vec::len on every read<br/>channels.rs:159 channels.rs:161"]
-    UNREAD["unread_count is a Memo filtering !read<br/>notifications.rs:249"]
+    EVS["channel_messages: HashMap of channel to Vec of events<br/>channels.rs:77"]
+    TOMB["tombstones are (id, deleter), seeded from the persisted sealed and held sets<br/>channels.rs:119 channels.rs:135, tombstones.rs:67"]
+    GATE1["admits_message gate BEFORE decrypt<br/>channels.rs:580"]
+    DEC["zone_crypto::store::prepare_incoming - ciphertext to plaintext or placeholder<br/>channels.rs:615"]
+    GATE2["admits_message gate AGAIN AFTER decrypt - a restored sealed original<br/>carries the ORIGINAL id, which a kind-5 may already have tombstoned<br/>channels.rs:622 ADR-2017"]
+    INS["insert_message helper: dedup by id, then sort by created_at<br/>channels.rs:807 channels.rs:629"]
+    CNT["count_for = Vec::len on every read<br/>channels.rs:305 channels.rs:307"]
+    UNREAD["unread_count is a Memo filtering !read<br/>notifications.rs:271"]
+    HON["honoured per target: ordinary post, every deleter counts. Restored sealed original,<br/>only its inner author, a relay-vouched admin, or the reader's own delete<br/>tombstones.rs:114 tombstones.rs:131, signer_admin.rs:108 signer_admin.rs:127"]
 
     EVS --> GATE1 --> DEC --> GATE2 --> INS --> CNT
-    TOMB --> GATE1
-    TOMB --> GATE2
+    TOMB --> HON
+    HON --> GATE1
+    HON --> GATE2
     EVS --> UNREAD
 
-    N1["INVARIANT ADR-091: post counts are NEVER stored as an independent field - a mutable counter drifts<br/>against deletions and replaceable events channels.rs:62"]
-    N2["admits_message is the tombstone-set inverse - insert_message is the only path that ADDS to channel_messages,<br/>so dedup-by-id plus the double tombstone gate is what makes len() correct even when a deletion and<br/>its target race channels.rs:609 channels.rs:828. The other mutations only remove or rewrite: fold_deletions<br/>channels.rs:795 behind remove_message channels.rs:129, the empty-EOSE reset channels.rs:320, and redecrypt,<br/>which rewrites in place behind a deletion check zone_crypto/store.rs:164"]
-    N3["The same discipline is applied to notifications - unread is derived, not incremented<br/>notifications.rs:249. init_sync opens NO subscription of its own,<br/>and is idempotent behind a synced flag notifications.rs:460"]
+    N1["INVARIANT ADR-091: post counts are NEVER stored as an independent field - a mutable counter drifts<br/>against deletions and replaceable events channels.rs:68"]
+    N2["admits_message is the single admission predicate for the broad sync, ensure_subscribed and the deep-link replay<br/>channels.rs:267 channels.rs:720 channels.rs:737. insert_message is the only path that ADDS to channel_messages.<br/>The other mutations only remove or rewrite: apply_deletion folds a kind-5 per deleter channels.rs:194 tombstones.rs:164,<br/>remove_message for the reader's own delete channels.rs:243, the empty-EOSE reset channels.rs:478, and redecrypt,<br/>which re-admits a restored original zone_crypto/store.rs:463"]
+    N3["The same discipline is applied to notifications - unread is derived, not incremented<br/>notifications.rs:271. init_sync opens NO subscription of its own,<br/>and is idempotent behind a synced flag notifications.rs:483"]
+    N4["OPEN O25 / KF-27: the client cannot identify TL3 moderators tombstones.rs:17-19, and the isAdmin it asks for<br/>comes from check-whitelist signer_admin.rs:108, which omits static ADMIN_PUBKEYS admins the relay honours.<br/>O13 / KF-17: an ordinary post honours every deleter, so a relay-accepted claim on an id it never stored still hides it"]
+    N5["Kit #81: the sync filters are split so kind-5s cannot crowd out channels or other zones - channels 40 and 41,<br/>deletions, reactions and one kind-42 filter per zone plus a catch-all, each with an explicit limit 1000<br/>channels.rs:1006 channels.rs:1021 channels.rs:1042 channels.rs:963. The broad message sync starts only once the<br/>channel list has an authenticated answer or its deadline passed nostr-bbs-forum-client/src/app.rs:903 lookup.rs:140"]
 ```
 
 ## NF-05.7 Config projection into the browser
@@ -276,7 +288,7 @@ flowchart TB
     ZC --> COH
 
     N1["The client renders what the config describes; the relay is the real boundary enforcing the SAME<br/>JSON - see NF-08.1 and NF-08.2"]
-    N2["ANOMALY O8 re-verified and STILL LIVE: relay.rs reads window.__ENV__ inline<br/>nostr-bbs-forum-client/src/relay.rs:1045 instead of calling the shared window_env helper, and the two<br/>resolvers' hardcoded fallbacks DIVERGE - nostr-bbs-forum-client/src/relay.rs:23 versus utils/relay_url.rs:13"]
+    N2["ANOMALY O8 re-verified and STILL LIVE: relay.rs reads window.__ENV__ inline<br/>nostr-bbs-forum-client/src/relay.rs:1537 instead of calling the shared window_env helper, and the two<br/>resolvers' hardcoded fallbacks DIVERGE - nostr-bbs-forum-client/src/relay.rs:30 versus utils/relay_url.rs:13"]
     N3["ANOMALY O7 CLOSED: settings no longer hardcodes example.test - it imports the onboarding modal's NIP05_HOST, which is baked from NOSTR_BBS_NIP05_DOMAIN, so the two cannot drift<br/>nostr-bbs-forum-client/src/pages/settings.rs:35, nostr-bbs-forum-client/src/components/onboarding_modal.rs:59"]
 ```
 
@@ -306,54 +318,55 @@ sequenceDiagram
 
 [The recovery review](../../estate-review/2026-11-01-forum-recovery-and-connect.md) and NF-22 distinguish attempted output, local import and relay acceptance. This signup path generates a local key; it is not the passkey ceremony in NF-05.3. The downloaded HTML interpolates unescaped display text and differs from the screen's optional device/sweep sections. Fragment-only navigation excludes the key from the HTTP request, but does not prove WASM-only custody or successful history clearing.
 
-**Invariant:** Settings never publishes a kind-0 over a profile it has not loaded: the save merges only the fields it manages into the member's hydrated kind-0, keeps every other field, and refuses while the existing event is still being fetched, because kind-0 is replaceable and an absent field is lost for good (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1847`, `../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1904`). SVG avatars are refused, since the pod serves stored bytes with the declared type (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1985`).
+**Invariant:** Settings never publishes a kind-0 over a profile it has not loaded: the save merges only the fields it manages into the member's hydrated kind-0, keeps every other field, and refuses while the existing event is still being fetched, because kind-0 is replaceable and an absent field is lost for good (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1850`, `../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1907`). SVG avatars are refused, since the pod serves stored bytes with the declared type (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs:1988`).
 
 ## NF-05.9 Direct messages — two wraps per message, and why history exists
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant A as send_message<br/>nostr-bbs-forum-client/src/dm/mod.rs:390
-    participant PAIR as gift_wrap_pair_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:657
+    participant A as send_message<br/>nostr-bbs-forum-client/src/dm/mod.rs:485
+    participant PAIR as gift_wrap_pair_with_signer<br/>nostr-bbs-core/src/gift_wrap.rs:769
     participant R as relay
-    participant B as process_gift_wrap_event<br/>nostr-bbs-forum-client/src/dm/mod.rs:929
+    participant B as process_gift_wrap_event<br/>nostr-bbs-forum-client/src/dm/mod.rs:1223
 
-    A->>A: optimistic bubble applied synchronously, publish on a spawned task dm/mod.rs:386-387
-    A->>PAIR: one rumor, sealed to the recipient and to the sender dm/mod.rs:510
-    PAIR-->>A: (to_recipient, to_self) dm/mod.rs:510
-    A->>A: re-key the optimistic message to the SELF copy's id so the relay echo dedups dm/mod.rs:512-519
-    A->>R: publish BOTH wraps dm/mod.rs:527 dm/mod.rs:528
-    B->>R: REQ gift wraps by my own p tag, windowed by since dm/mod.rs:624 dm/mod.rs:699
-    B->>R: REQ legacy kind-4, unwindowed dm/mod.rs:700
+    A->>A: optimistic bubble applied synchronously, publish on a spawned task dm/mod.rs:478-479
+    A->>A: kind-10050 DM relay list published once per pubkey before the first wrap dm/mod.rs:611
+    A->>PAIR: one rumor, sealed to the recipient and to the sender dm/mod.rs:655
+    PAIR-->>A: (to_recipient, to_self) dm/mod.rs:659
+    A->>A: re-key the optimistic message to the SELF copy's id so the relay echo dedups dm/mod.rs:660-668
+    A->>R: publish BOTH wraps, own copy FIRST so sent history survives a failed recipient publish dm/mod.rs:693 dm/mod.rs:695 dm/mod.rs:696
+    B->>R: REQ gift wraps by my own p tag, windowed by since dm/mod.rs:908 dm/mod.rs:983
+    B->>R: REQ legacy kind-4, unwindowed dm/mod.rs:984
     R-->>B: wraps
-    B->>B: unwrap_gift_with_signer dm/mod.rs:935
-    B->>B: InvalidKind {KIND_ZONE_KEY_GRANT} is not a DM - not an error, the zone-key store handles it dm/mod.rs:942-944
-    B->>B: a failure is surfaced through state.error, not swallowed dm/mod.rs:955-963
+    B->>B: unwrap_gift_with_signer dm/mod.rs:1229
+    B->>B: InvalidKind {KIND_ZONE_KEY_GRANT} or a poker rumor is not a DM - not an error, the zone-key store or the table handles it dm/mod.rs:1236-1238
+    B->>B: a failure is surfaced through state.error, not swallowed dm/mod.rs:1249-1257
 
-    Note over A: INVARIANT a single wrap is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so the sender can neither decrypt nor find it, and sent history kept vanishing dm/mod.rs:485-489
-    Note over B: ADR-2016: a zone-key grant rides the SAME gift-wrap transport (kind 1059) as a DM. Core refuses the grant's rumor kind before unwrap can succeed, so dispatch never needs a kind check of its own - dm/mod.rs:937-941, zone_crypto/mod.rs:87
-    Note over B: The gift-wrap half CANNOT be narrowed to one partner relay-side, so it fetches the whole wrap inbox and selects the conversation locally after unwrapping - the price NIP-59 sender anonymity charges dm/mod.rs:681-685
-    Note over B: The realtime window is widened by GIFT_WRAP_LOOKBACK_SECS because NIP-59 randomises the outer created_at into the PAST - a since equals now subscription would skip a message sent this second dm/mod.rs:713 dm/mod.rs:692-700
-    Note over B: Tier 0 (ADR-2023): a layout-level incoming watcher subscribes to the account's own gift-wrap inbox, unwraps each wrap not yet announced and raises a DM notification, because the per-page DMStore only subscribes while a DM screen is open dm/mod.rs:832 dm/mod.rs:860
-    Note over B: Read marks are kept per account in localStorage under nbbs:dm-read-marks and message timestamps are clamped to now, so a future-dated rumor cannot pin a conversation dm/mod.rs:1120 dm/mod.rs:1128 dm/mod.rs:1281
-    Note over B: Event-id dedup makes the widened overlap free dm/mod.rs:258-259
-    Note over B: ANOMALY O6 CORRECTED: the filed defect was a silent no-op NIP-07 DM subscription. The subscription is registered unconditionally dm/mod.rs:267. The NIP-07 limitation is per-event, and it IS surfaced dm/mod.rs:955-963
+    Note over A: INVARIANT a single wrap is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so the sender can neither decrypt nor find it, and sent history kept vanishing dm/mod.rs:626-630
+    Note over B: ADR-2016: a zone-key grant rides the SAME gift-wrap transport (kind 1059) as a DM. Core refuses the grant's rumor kind before unwrap can succeed, so dispatch never needs a kind check of its own - dm/mod.rs:1231-1235, zone_crypto/mod.rs:93
+    Note over B: The gift-wrap half CANNOT be narrowed to one partner relay-side, so it fetches the whole wrap inbox and selects the conversation locally after unwrapping - the price NIP-59 sender anonymity charges dm/mod.rs:965-969
+    Note over B: The realtime window is widened by GIFT_WRAP_LOOKBACK_SECS because NIP-59 randomises the outer created_at into the PAST - a since equals now subscription would skip a message sent this second dm/mod.rs:997 dm/mod.rs:976-984
+    Note over B: Tier 0 (ADR-2023): a layout-level incoming watcher subscribes to the account's own gift-wrap inbox, unwraps each wrap not yet announced and raises a DM notification, because the per-page DMStore only subscribes while a DM screen is open dm/mod.rs:1116 dm/mod.rs:1144
+    Note over B: Read marks are kept per account in localStorage under nbbs:dm-read-marks and message timestamps are clamped to now, so a future-dated rumor cannot pin a conversation dm/mod.rs:1461 dm/mod.rs:1469 dm/mod.rs:1983
+    Note over B: Event-id dedup makes the widened overlap free dm/mod.rs:350-351
+    Note over B: ANOMALY O6 CORRECTED: the filed defect was a silent no-op NIP-07 DM subscription. The subscription is registered unconditionally dm/mod.rs:359. The NIP-07 limitation is per-event, and it IS surfaced dm/mod.rs:1249-1257
 ```
 
-**Open:** ADR-2027 (NIP-17 overlay for nostr.chat interop) is accepted but only partly implemented and inactive, and ADR-2028 (NIP-171 key plane for zones, superseding ADR-2026) remains proposed/inactive on main; the local upgrade branch contains tested primitives but lacks owner activation workflows (see [NF-28](28-nip171-owner-recovery-and-ticket-contracts.md)), so none of that DM or zone-key routing is drawn as live here (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:6`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:5`, `:7`).
+**Open:** ADR-2027 (NIP-17 overlay) is accepted, partly implemented and inactive, and ADR-2028 (NIP-171 key plane, superseding ADR-2026) is proposed and inactive (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:6`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:5`, `:7`). Both implementations reached main with the upgrade-branch merge a80c572 and stay dormant: the extended DM path (reply and imeta rumors, multi-relay delivery) runs only with `RECIPIENT_KEYS_ENABLED` (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs:560`, `:1637-1638`), and the owner activation workflows are still missing ([NF-28](28-nip171-owner-recovery-and-ticket-contracts.md)), so neither is drawn as live here.
 
 
 ## NF-05.10 Feature surfaces the forum client calls out to
 
 ```mermaid
 flowchart LR
-    THREAD["thread reply - kind 42 e-tagging the topic root<br/>nostr-bbs-forum-client/src/pages/thread.rs:1006<br/>edit/delete via kind 5 thread.rs:1074"]
+    THREAD["thread reply - kind 42 e-tagging the topic root<br/>nostr-bbs-forum-client/src/pages/thread.rs:1023<br/>edit/delete via kind 5 thread.rs:1091"]
     CHAN["channel message - kind 42<br/>nostr-bbs-forum-client/src/pages/channel.rs:835"]
     EVENTS["calendar - kind 31923 events, 31925 RSVPs<br/>nostr-bbs-forum-client/src/pages/events.rs:137 events.rs:195"]
     SEARCH["global search - kind-40 channel names over the relay<br/>global_search.rs:467 plus NIP-50 text search over kind-42<br/>global_search.rs:725-760, worker as semantic layer/fallback<br/>global_search.rs:360. A hit links to /go/:event_id, not /chat/:channel - see NF-05.2 and NF-05.15"]
     BADGE["agent disclosure over public HTTP GET<br/>nostr-bbs-forum-client/src/components/agent_badge.rs:317"]
     GIT["pod git control panel - _git/status :213 stage :272 unstage :310<br/>discard :359 commit :385 diff :434 log :466<br/>nostr-bbs-forum-client/src/components/git_panel.rs:213"]
-    POD["pod browser - {POD_API}/pods/{pubkey} and /HEAD<br/>nostr-bbs-forum-client/src/pages/pod_browser.rs:513 pod_browser.rs:582"]
+    POD["pod browser - {POD_API}/pods/{pubkey} and /HEAD<br/>nostr-bbs-forum-client/src/pages/pod_browser.rs:513 pod_browser.rs:582<br/>OPEN O26 / KF-28: mesh and pod cards print the raw probe error under Details<br/>pod_browser.rs:1045 pod_browser.rs:1058 pod_browser.rs:1181"]
     ADMINT["admin actions - POST /api/admin/suspend :269 and /api/admin/silence :701, NIP-98 signed<br/>nostr-bbs-forum-client/src/admin/user_table.rs:269"]
 
     N1["DOC-DRIFT consumer-surface-map: the map lists the git panel as calling /.well-known/apps, but the<br/>client fetches and PUTs /apps/manifest.json instead - git_panel.rs:893 and git_panel.rs:946; no<br/>.well-known path exists anywhere in the crate"]
@@ -406,7 +419,7 @@ flowchart TB
     ASCII["ASCII images are rendered SERVER-side by the preview worker<br/>nostr-bbs-bbs-client/src/ascii_img.rs:203"]
     UP["uploads PUT to the viewer's own pod, NIP-98 authed<br/>nostr-bbs-bbs-client/src/upload.rs:244 upload.rs:255"]
     IDENT["Identity::derive - DID, WebID and pod URLs, fail-closed<br/>nostr-bbs-bbs-client/src/identity.rs:28"]
-    DMB["DM filter kinds [4, 1059] scoped to my p tag<br/>nostr-bbs-bbs-client/src/dm.rs:388, wrap delegated to core dm.rs:264"]
+    DMB["DM filters kinds [4, 1059] for my p tag and my own sent copies<br/>nostr-bbs-bbs-client/src/dm.rs:463 dm.rs:464, a send wraps a NIP-17 pair<br/>and publishes the self-copy first dm.rs:371 dm.rs:377"]
 
     ENUM --> GO --> VIEW
     KEYS --> GO
@@ -424,13 +437,13 @@ flowchart TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Classify: kind-42 post arrives<br/>nostr-bbs-forum-client/src/stores/notifications.rs:1113
-    Classify --> OwnPost: the viewer wrote it<br/>notifications.rs:1123
-    Classify --> BeforeBaseline: older than the persisted first-sync floor<br/>notifications.rs:1127
-    Classify --> DirectedAtMe: a p tag names me, so the read-position gate is skipped<br/>notifications.rs:1129
-    Classify --> AlreadyRead: at or before the channel read position<br/>notifications.rs:1152
+    [*] --> Classify: kind-42 post arrives<br/>nostr-bbs-forum-client/src/stores/notifications.rs:1148
+    Classify --> OwnPost: the viewer wrote it<br/>notifications.rs:1158
+    Classify --> BeforeBaseline: older than the persisted first-sync floor<br/>notifications.rs:1162
+    Classify --> DirectedAtMe: a p tag names me, so the read-position gate is skipped<br/>notifications.rs:1164
+    Classify --> AlreadyRead: at or before the channel read position<br/>notifications.rs:1187
     DirectedAtMe --> Notify
-    Classify --> Notify: genuine unseen activity<br/>notifications.rs:1154
+    Classify --> Notify: genuine unseen activity<br/>notifications.rs:1189
     Notify --> [*]
     OwnPost --> [*]
     BeforeBaseline --> [*]
@@ -442,22 +455,28 @@ stateDiagram-v2
         that would notify, the notification level allows it. AlreadyRead is
         reversible, because read positions are written by render-time effects
         and can be wrong, and a level loosened later can still surface the
-        post notifications.rs:1099 notifications.rs:1229
+        post notifications.rs:1134 notifications.rs:1264
         The set is a capacity-bounded FIFO of 2000 ids restored per account
-        notifications.rs:149 notifications.rs:180 notifications.rs:515-518
+        notifications.rs:171 notifications.rs:202 notifications.rs:540-543
     end note
     note right of DirectedAtMe
         The read position is per CHANNEL, but a channel holds many topics
         and is stamped to its newest message by a render-time effect, so
         opening a section's title list marked every reply in every topic
         read having shown the reader nothing but titles
-        notifications.rs:1129-1147
+        notifications.rs:1164-1182
+    end note
+    note left of Notify
+        Kit #92: a post from an encrypted zone notifies as
+        New encrypted message in its channel, with no text
+        and no author key notifications.rs:106-108
+        notifications.rs:723 notifications.rs:743
     end note
     note right of Classify
         Order is deliberate - authorship, then the sync floor, then the read
         position - so the most DURABLE reason wins and a post is not filed
         under a reversible verdict when an irreversible one applies
-        notifications.rs:635-654
+        notifications.rs:660-679
     end note
 ```
 
@@ -499,7 +518,7 @@ sequenceDiagram
     participant MJ as MessageJumpPage<br/>nostr-bbs-forum-client/src/pages/message_jump.rs:102
     participant R as relay
     participant CS as ChannelStore
-    participant TP as ThreadPage<br/>nostr-bbs-forum-client/src/pages/thread.rs:376
+    participant TP as ThreadPage<br/>nostr-bbs-forum-client/src/pages/thread.rs:377
 
     U->>MJ: navigate to /go/:event_id (search hit, or any shared link)
     MJ->>R: subscribe ids=[event_id] message_jump.rs:147-153
@@ -510,12 +529,12 @@ sequenceDiagram
     MJ->>MJ: resolve the topic's zone via section_to_zone message_jump.rs:194-202
     MJ->>TP: navigate to /forums/:zone/:section/:topic?focus=:id, replace=true message_jump.rs:203-208
 
-    TP->>TP: landing_target - focus post if loaded, else the newest reply thread.rs:266-282
-    TP->>TP: scroll_into_view + flash, re-applied while replies stream in for LANDING_SETTLE_MS=2500ms thread.rs:206 thread.rs:667 thread.rs:297
+    TP->>TP: landing_target - focus post if loaded, else the newest reply thread.rs:267-283
+    TP->>TP: scroll_into_view + flash, re-applied while replies stream in for LANDING_SETTLE_MS=2500ms thread.rs:207 thread.rs:689 thread.rs:298
 
     Note over MJ: If an ancestor is still streaming in, topic_root_of returns None and the Effect simply<br/>re-runs on the next store update - no retry loop, no timer message_jump.rs:85-98 message_jump.rs:189
     Note over MJ: RESOLVE_TIMEOUT_MS=6000: if the topic can never be resolved (unscoped channel, withheld<br/>parent, relay timeout) the page falls back to the single-note view /view/:id instead of hanging message_jump.rs:32 message_jump.rs:157-162
-    Note over TP: The 2.5s settle window exists because a reply can still be en route when the page first<br/>paints, re-landing during that window is what keeps the reader ON the target post thread.rs:205-206
+    Note over TP: The 2.5s settle window exists because a reply can still be en route when the page first<br/>paints, re-landing during that window is what keeps the reader ON the target post thread.rs:206-207
 ```
 
 ## NF-05.16 Zone encryption depends on resolved policy and locally held keys
@@ -524,23 +543,23 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:795
-    G["Gate on and relay authenticated<br/>start member grant sync once per page"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:676
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:798
+    G["Gate on, relay authenticated and this identity's keys loaded<br/>start member grant sync once per sign-in"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:752
     V["Verify wrap and seal, unwrap private rumor<br/>admin authority and key-pair validation"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:279
-    K["Persist and replace zone/epoch entry<br/>conflicting public keys are not preserved"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:479
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:799
+    K["Persist as this identity's row<br/>a different key for the slot is refused, see NF-27.6"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1244
     W["Resolve channel zone before writing<br/>unknown mapping passes plaintext through"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:568
-    E["Mapped encrypted zone uses newest held key<br/>no key means refuse and retain draft"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:405
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1248
+    E["Mapped encrypted zone uses the send key: highest held,<br/>never one pending delivery, no key means refuse and retain draft"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:580
     T["Incoming event passes tombstone check<br/>then decrypt or keep placeholder"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:446
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:622
     I["Check restored original ID against tombstones<br/>insert with ID deduplication"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:163
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:462
     R["Later key arrival reopens cached events<br/>ReadCache applies deletion predicate and deduplication"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:796
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:799
     O["Gate off stops grant sync<br/>already held keys can still decrypt"]
     G --> V --> K --> R
     W --> E
@@ -591,3 +610,93 @@ flowchart TB
 **Why it is this way.** Push payloads transit Google, Apple and Mozilla, and the service worker has no access to the page’s localStorage or sessionStorage, so ADR-2023 chose payload-less push with a bearer-token drain instead of RFC 8291 encryption (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:34-35`, `../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:38-39`).
 
 **Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:7`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86`).
+
+## NF-05.18 NIP-42 AUTH acceptance, held writes and the per-subscription REQ ledger (kit #91)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as RelayConnection<br/>nostr-bbs-forum-client/src/relay.rs:262
+    participant L as ReqLedger<br/>nostr-bbs-forum-client/src/relay/receipt.rs:71
+    participant R as relay-worker
+
+    C->>R: AUTH frame, pending_auth recorded, answer timer armed nostr-bbs-forum-client/src/relay.rs:1459 nostr-bbs-forum-client/src/relay.rs:1471
+    R-->>C: OK for the AUTH event id nostr-bbs-forum-client/src/relay.rs:1395
+    C->>C: classify_auth_ok decides Accepted, Retry or Rejected receipt.rs:272 nostr-bbs-forum-client/src/relay.rs:960
+    alt Accepted
+        C->>L: replay_after_auth: every REQ counted as authenticated nostr-bbs-forum-client/src/relay.rs:1161 nostr-bbs-forum-client/src/relay.rs:1166
+        C->>R: every REQ and pending COUNT re-sent, held writes flushed, paced nostr-bbs-forum-client/src/relay.rs:1174 nostr-bbs-forum-client/src/relay.rs:1199
+        C->>C: authenticated set true only now nostr-bbs-forum-client/src/relay.rs:1210
+    else rate-limited, below AUTH_RETRY_LIMIT 3
+        C->>R: same AUTH frame re-sent after 1 s times attempts nostr-bbs-forum-client/src/relay.rs:978 receipt.rs:42
+    else rejected, unsigned, or stalled
+        C->>C: refuse_auth: auth_note set, held writes released so each OK false reaches its callback nostr-bbs-forum-client/src/relay.rs:1018 nostr-bbs-forum-client/src/relay.rs:1006
+    end
+    R-->>C: EOSE under the current wire id nostr-bbs-forum-client/src/relay.rs:1303
+    C->>L: answered is authed only when every REQ sent was answered and the last went out after AUTH receipt.rs:109 nostr-bbs-forum-client/src/relay.rs:1305
+    C->>C: on_receipt(authed) feeds the page receipts in NF-05.20 nostr-bbs-forum-client/src/relay.rs:1315
+    C->>L: no answer within 8 s: on_watch says Settled, Resend or GiveUp after 2 re-sends receipt.rs:131 receipt.rs:50 receipt.rs:55
+    C->>R: Resend: CLOSE the old wire id, REQ under a fresh one nostr-bbs-forum-client/src/relay.rs:1133 nostr-bbs-forum-client/src/relay.rs:1142
+
+    Note over L: INVARIANT: an answer is never credited to a REQ sent after it - a late EOSE under a retired id is discarded receipt.rs:31-33 receipt.rs:184
+    Note over C: Stall check: 60 s without a signature or 10 s without an answer releases held writes, timers carry conn_gen receipt.rs:60 receipt.rs:67 nostr-bbs-forum-client/src/relay.rs:1046
+```
+
+**What it shows.** Before kit #91 the `authenticated` signal meant only "AUTH frame sent", so a REQ answered anonymously could be taken for the member view. Now the relay's `OK true` is the trigger, and the ledger tells the page whether an EOSE is the authenticated answer.
+
+## NF-05.19 Incremental kind-5 deletion sync (kit #93)
+
+```mermaid
+flowchart TB
+    LOAD["Per-scope localStorage record: since marker, sealed and held tombstones<br/>deletion_sync.rs:614 deletion_sync.rs:166"]
+    REQ["kind-5 filter with since = marker, limit 1000, beside the channel filters<br/>channels.rs:974 channels.rs:525 channels.rs:526"]
+    OBS["Each kind-5: observe for the marker, then apply_deletion per deleter<br/>channels.rs:385 channels.rs:388 deletion_sync.rs:508"]
+    EOSE["Channel EOSE: on_main_eose decides<br/>channels.rs:511 deletion_sync.rs:570"]
+    PAGE["Marked sync filled the page: fetch until = oldest delivered, inclusive<br/>deletion_sync.rs:402 channels.rs:987"]
+    NEXT["Each page: Done, Next or GiveUp, at most 20 pages<br/>deletion_sync.rs:424 deletion_sync.rs:123"]
+    DONE["Settled: marker = min(newest delivered, now) minus 14 days, never backwards<br/>deletion_sync.rs:266 deletion_sync.rs:119"]
+    GIVE["GiveUp: old marker stays<br/>OPEN O23 / KF-25: no resume cursor, the next session re-fetches the same pages<br/>deletion_sync.rs:30-34"]
+    SAVE["persist the record<br/>deletion_sync.rs:628"]
+
+    LOAD --> REQ --> OBS --> EOSE
+    EOSE -->|full marked page| PAGE --> NEXT
+    NEXT -->|Next| PAGE
+    EOSE -->|short or unmarked| DONE
+    NEXT -->|Done| DONE
+    NEXT -->|GiveUp| GIVE
+    DONE --> SAVE
+    GIVE --> SAVE
+
+    N1["INVARIANT: a kind-5 the relay accepts after a marker-advancing sync is at or above that marker,<br/>because the relay refuses created_at more than 7 days from its clock deletion_sync.rs:54-58 deletion_sync.rs:110"]
+    N2["Only tombstones that hide a restored sealed original persist, the relay hard-deletes ordinary targets.<br/>An unmarked first sync takes the newest 1000 and never pages deletion_sync.rs:25-28"]
+```
+
+## NF-05.20 Page lookup states: loading, found, not found, timed out (kit #91)
+
+```mermaid
+flowchart TB
+    URL(["deep link /forums/zone/section/topic"])
+    GATED["zone_is_gated: a non-public zone needs an authenticated receipt<br/>lookup.rs:123 lookup.rs:62"]
+    SEC{"section: channel found, or channel_receipt settles?<br/>thread.rs:644, category.rs:148"}
+    TOP{"topic root found among the channel's kind-42 by id?<br/>thread.rs:485 thread.rs:502"}
+    HIST["history receipt from ensure_subscribed<br/>channels.rs:761 thread.rs:651"]
+    DEC["Lookup.decide: presence, then receipt, then 15 s deadline re-armed per target<br/>lookup.rs:91 lookup.rs:37 thread.rs:637"]
+    LOADING(["Loading topic<br/>thread.rs:1179"])
+    NF(["Topic Not Found<br/>thread.rs:1184"])
+    TO(["Topic Unavailable, not claimed absent<br/>thread.rs:1188"])
+    FOUND(["render the topic"])
+
+    URL --> GATED --> SEC
+    SEC -->|found| TOP
+    TOP --> DEC
+    HIST --> DEC
+    DEC -->|found| FOUND
+    DEC -->|receipt settles| NF
+    DEC -->|deadline passed| TO
+    DEC -->|neither| LOADING
+
+    GAP["OPEN O21 / KF-23: no input says zone keys have not arrived thread.rs:638-655.<br/>Read from code for a sealed migrated original only: it sits in an envelope with another id<br/>until redecrypt restores it under its own id store.rs:447-449 store.rs:463, so the receipt can settle<br/>first and Not Found renders. An ordinary encrypted root keeps its id as a placeholder store.rs:409-411.<br/>Seen live 2026-11-22 for about 12 s to 29 s, then self-corrected, mechanism not reproduced"]
+    GAP -.-> NF
+```
+
+**What it shows.** Kit #91 replaced "not found as soon as loading clears" with a decision that waits for the subscription that would carry the topic. The O21 window remains open in code at this stamp; kit PR #95 is not merged and nothing here describes a fix.
