@@ -14,7 +14,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## For developers
@@ -29,17 +29,17 @@ The optimisation saves repeated successful lookups. Privacy, activity credit and
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2156
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2271
     A["Resolve viewer from session key"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2216
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2338
     B["Device-owner memo: 60 seconds<br/>including None"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:46
     C["Admin cache: 30 seconds"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2203
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2325
     D["Cohorts plus admin flag: 60 seconds<br/>including empty and false"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2189
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2311
     E["Zone memo: 60 seconds<br/>only positive channel bindings"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2194
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2316
     F["Unbound channel: query again next event<br/>zone cardinality is per channel, not viewer"]
     A --> B --> C --> D
     D --> E --> F
@@ -51,15 +51,15 @@ Native wrapper tests: one bound channel costs one lookup across 50 calls; an unb
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2332
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2697
     A["Channel ID from kind 40, 41 or 42"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2350
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2715
     B["Read cached binding or query channel_zones"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2352
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2717
     C["Some zone: apply member and visibility rules"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:584
     D["Absent row OR database/bind/query failure: None"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2372
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2737
     E["None skips this zone gate<br/>event reaches Deliver if other gates pass"]
     A --> B
     B --> C
@@ -72,15 +72,15 @@ Source-only failure finding: distinguish unavailable from unbound. A whole-datab
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1883
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1961
     A["History: every returned event goes to authoriser"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2354
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2719
     B["Kind 41 in hidden zone: withhold from non-member"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:76
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:77
     C["Live needs_gate includes 40 and 42<br/>plus calendar and kanban; omits 41"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:149
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:164
     D["Gated kinds consult authoriser per recipient"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:162
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:177
     E["Kind 41 skips zone context<br/>matching subscription gets original event"]
     A --> B
     C -->|40 or 42| D
@@ -93,7 +93,7 @@ The unchanged native dispatcher sends kind 41 despite a fixture authoriser that 
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1912
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1990
     A["Authenticated REQ with delivered events"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:128
     B["Add delivered count to pending reads"]
@@ -103,7 +103,7 @@ flowchart TB
     D["No: retain count in memory<br/>no deadline timer in this ledger"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:162
     E["Yes: remove count and advance last_flush"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2246
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2610
     F["Attempt read increment, last-active update<br/>then promotion check"]
     A --> B --> C
     C -->|no| D
@@ -117,15 +117,15 @@ Native tests retain 49 pending reads through a day of other-user activity. A con
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:113
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:124
     A["New Durable Object constructor"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:123
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:134
     B["New empty caches and activity ledger"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs:115
     C["Recover socket session and persisted subscriptions"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:115
     D["Old pending activity is not restored"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:371
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:387
     E["Idle alarm clears rate and connection maps<br/>does not flush activity"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:71
     F["Expired cache entries miss but remain allocated"]
@@ -141,20 +141,20 @@ Native reconstruction loses the old pending count; 10,000 expired cache entries 
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1552
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1618
     A["Admitted event enters save_event"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:82
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:127
     B["INSERT ON CONFLICT id DO NOTHING"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:142
-    C["Regular insert returns success when run succeeds"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1558
-    D["Qualifying kinds increment posts_created<br/>after ACK and broadcast"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs:215
+    C["Regular insert returns success when run succeeds<br/>replaceable kinds now report only a changed row"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1624
+    D["counts_as_post kinds 1, 7, 9, 40, 42, 1984<br/>increment posts_created after ACK and broadcast"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:432
     E["Counter update ignores database result"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1649
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1715
     F["Existing-ID check suppresses push fan-out<br/>not the creation counter above"]
     A --> B --> C --> D --> E
     D --> F
 ```
 
-Source-only exactness gap: an admitted duplicate can increment the counter again, and a failed update can lose activity. Full admission/rate limits still apply; no duplicate event was published in this audit.
+Source-only exactness gap: an admitted duplicate of a regular kind can increment the counter again, and a failed update can lose activity. Since 6064622 replaceable kinds report stored only when the INSERT changed a row (NF-11.4), and a tombstoned id is refused before the save (NF-03.16). Full admission/rate limits still apply; no duplicate event was published in this audit.
