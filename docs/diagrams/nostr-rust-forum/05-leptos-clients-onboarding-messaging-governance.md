@@ -16,6 +16,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/deletion_sync.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/signer_admin.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/passkey.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs
@@ -267,7 +269,7 @@ flowchart TB
     N1["INVARIANT ADR-091: post counts are NEVER stored as an independent field - a mutable counter drifts<br/>against deletions and replaceable events channels.rs:68"]
     N2["admits_message is the single admission predicate for the broad sync, ensure_subscribed and the deep-link replay<br/>channels.rs:267 channels.rs:720 channels.rs:737. insert_message is the only path that ADDS to channel_messages.<br/>The other mutations only remove or rewrite: apply_deletion folds a kind-5 per deleter channels.rs:194 tombstones.rs:164,<br/>remove_message for the reader's own delete channels.rs:243, the empty-EOSE reset channels.rs:478, and redecrypt,<br/>which re-admits a restored original zone_crypto/store.rs:463"]
     N3["The same discipline is applied to notifications - unread is derived, not incremented<br/>notifications.rs:271. init_sync opens NO subscription of its own,<br/>and is idempotent behind a synced flag notifications.rs:483"]
-    N4["OPEN O25 / KF-27: the client cannot identify TL3 moderators tombstones.rs:17-19, and the isAdmin it asks for<br/>comes from check-whitelist signer_admin.rs:108, which omits static ADMIN_PUBKEYS admins the relay honours.<br/>O13 / KF-17: an ordinary post honours every deleter, so a relay-accepted claim on an id it never stored still hides it"]
+    N4["OPEN O25 / KF-27: the client cannot identify TL3 moderators tombstones.rs:17-19, and the isAdmin it asks for<br/>signer_admin.rs:108 is the whitelist row's is_admin alone whitelist.rs:135 whitelist.rs:180, while the relay's own<br/>admin test also honours static ADMIN_PUBKEYS auth.rs:181. O13 / KF-17, relay half per the kit register, not re-read<br/>here: an ordinary post honours every deleter tombstones.rs:7-10, so a claim the relay accepts on an id it never stored hides it"]
     N5["Kit #81: the sync filters are split so kind-5s cannot crowd out channels or other zones - channels 40 and 41,<br/>deletions, reactions and one kind-42 filter per zone plus a catch-all, each with an explicit limit 1000<br/>channels.rs:1006 channels.rs:1021 channels.rs:1042 channels.rs:963. The broad message sync starts only once the<br/>channel list has an authenticated answer or its deadline passed nostr-bbs-forum-client/src/app.rs:903 lookup.rs:140"]
 ```
 
@@ -677,7 +679,7 @@ flowchart TB
 flowchart TB
     URL(["deep link /forums/zone/section/topic"])
     GATED["zone_is_gated: a non-public zone needs an authenticated receipt<br/>lookup.rs:123 lookup.rs:62"]
-    SEC{"section: channel found, or channel_receipt settles?<br/>thread.rs:644, category.rs:148"}
+    SEC{"thread page: channel found, or channel_receipt settles?<br/>thread.rs:640-645, the zone page applies<br/>the same rule to its sections category.rs:148"}
     TOP{"topic root found among the channel's kind-42 by id?<br/>thread.rs:485 thread.rs:502"}
     HIST["history receipt from ensure_subscribed<br/>channels.rs:761 thread.rs:651"]
     DEC["Lookup.decide: presence, then receipt, then 15 s deadline re-armed per target<br/>lookup.rs:91 lookup.rs:37 thread.rs:637"]
