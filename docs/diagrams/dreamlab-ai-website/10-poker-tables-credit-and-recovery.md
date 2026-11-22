@@ -26,12 +26,12 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs
-verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {dreamlab-ai-website: 567bed67f54c2be66edf7e1333442f9458294241, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
 ---
 
 ## For developers
 
-Follow the website overlay into the consumed kit's house state machine and browser settlement path. The associated estate review separates native counterexamples, mocked script results, source-only findings and process observations. The kit sources here are the website's consumed revision; 42 poker files are byte-identical at the agentbox service pin.
+Follow the website overlay into the consumed kit's house state machine and browser settlement path. The associated estate review separates native counterexamples, mocked script results, source-only findings and process observations. The kit sources here are pinned at `6064622`, the house service's revision. The website's client now builds from `3c48e26`, where the cited poker files are unchanged but the cited `relay.rs` and `dm/mod.rs` differ; those two were not re-read at `3c48e26`.
 
 ## For the business
 
@@ -50,7 +50,7 @@ flowchart TB
     %% Source: ../project/agentbox/config/poker/run-citizen.sh:23
     D["Runner chooses chain-specific state path<br/>and executes the baked binary"]
     %% Source: ../project/agentbox/lib/poker-citizen.nix:31
-    E["DRIFT: RESOLVED at agentbox 720e0d8 and website f934e26<br/>service pin 6064622 now equals website client pin 6064622"]
+    E["DRIFT: REOPENED at website 567bed6<br/>service pin 6064622 at agentbox e458b308<br/>differs from website client pin 3c48e26"]
     %% Source: ../dreamlab-ai-website/.github/workflows/deploy.yml:130
     F["Website consumes KIT_REF independently<br/>equal poker source does not prove all dependencies equal"]
     A --> B
@@ -60,8 +60,8 @@ flowchart TB
     E --> F
 ```
 
-**What it shows:** Configuration has expanded beyond the single DREAM seat described by ADR-2009. The service and client pins now name the same kit commit, which does not certify the complete dependency graph or running binary provenance.
-**Why it is this way:** ADR-2009 places forum behaviour in the kit and service custody in agentbox. Its exact-commit lockstep wording now holds, but only by two separately edited pins that must be moved together.
+**What it shows:** Configuration has expanded beyond the single DREAM seat described by ADR-2009. The service and client pins name different kit commits again: the website moved to `3c48e26` on 2026-11-22 while the house service stays at `6064622`; equal pins would not certify the dependency graph or binary provenance anyway.
+**Why it is this way:** ADR-2009 places forum behaviour in the kit and service custody in agentbox. Its exact-commit lockstep wording rests on two separately edited pins; the website's nine repins of 2026-11-21 to 22 moved only its own.
 
 ## DW-10.2 Admission grants unsecured play credit
 
