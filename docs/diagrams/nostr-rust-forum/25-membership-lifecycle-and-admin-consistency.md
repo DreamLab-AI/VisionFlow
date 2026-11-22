@@ -20,6 +20,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/admin.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
 verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
@@ -135,11 +137,11 @@ flowchart TB
     A --> B --> C --> D --> E
     B -.-> B2 --> B3 -.-> B4
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:233
-    OPEN1["OPEN, kit O17 / KF-16: the purge tombstones and deletes by pubkey only,<br/>so device-key and gift-wrap rows are neither tombstoned nor deleted"]
+    OPEN1["OPEN, NF-10 O17 / KF-16: the purge tombstones and deletes by pubkey only,<br/>so device-key and gift-wrap rows are neither tombstoned nor deleted"]
     B2 -.-> OPEN1
 ```
 
-The storage fixture can grant a new row after deletion. It establishes missing removed-state enforcement, without demonstrating unauthorised re-admission or exercising pod deletion. The NIP-09 tombstones (tables from da08b53, used by this purge since db6ddfc) are event-level: they stop a re-admitted member re-publishing purged events (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:221-223`), not re-admission itself, and no route removes one short of `reset-db` (kit O15 / KF-14, NF-08.10).
+The storage fixture can grant a new row after deletion. It establishes missing removed-state enforcement, without demonstrating unauthorised re-admission or exercising pod deletion. The NIP-09 tombstones (tables from da08b53, used by this purge since db6ddfc) are event-level: they stop a re-admitted member re-publishing purged events (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:221-223`), not re-admission itself, and no route removes one short of `reset-db` (O15 / KF-14 in NF-10.14, NF-08.10).
 
 ## NF-25.6 Consolidation remains a proposed migration
 
@@ -190,3 +192,38 @@ flowchart TB
 ```
 
 Before 071e78c only the cohort editor sent keys, so a member added through the form with an encrypted-zone cohort waited for an admin's manual sweep. Both paths now share one client-side grant run; the whitelist write and the key grant remain separate steps, and a grant failure does not undo the membership.
+
+## NF-25.8 The auth worker's admin grant and revoke - two databases, one authority
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant A as Admin client
+    participant W as handle_add / handle_remove<br/>nostr-bbs-auth-worker/src/admins.rs:128
+    participant G as require_admin, is_admin<br/>nostr-bbs-auth-worker/src/admin.rs:92
+    participant R as RELAY_DB whitelist<br/>nostr-bbs-auth-worker/src/admins.rs:155
+    participant M as DB members<br/>nostr-bbs-auth-worker/src/admins.rs:179
+    participant K as KV admin_pubkeys_cache<br/>nostr-bbs-auth-worker/src/admins.rs:23
+
+    A->>W: POST /api/admins/add, NIP-98 nostr-bbs-auth-worker/src/lib.rs:495
+    W->>G: NIP-98 verify, then static set<br/>or whitelist.is_admin only nostr-bbs-auth-worker/src/admin.rs:115 nostr-bbs-auth-worker/src/admin.rs:53
+    W->>W: body pubkey must be 64 hex nostr-bbs-auth-worker/src/admins.rs:146
+    W->>R: INSERT whitelist is_admin 1, cohorts home,<br/>ON CONFLICT set is_admin 1 nostr-bbs-auth-worker/src/admins.rs:160-171
+    R-->>W: error ends the request with 500 nostr-bbs-auth-worker/src/admins.rs:173-174
+    W->>M: INSERT members is_admin 1, result discarded nostr-bbs-auth-worker/src/admins.rs:180-191
+    W->>K: delete the cache key nostr-bbs-auth-worker/src/admins.rs:194 nostr-bbs-auth-worker/src/admins.rs:100-102
+    W-->>A: 200 ok, action admin_added nostr-bbs-auth-worker/src/admins.rs:196-199
+    A->>W: POST /api/admins/remove nostr-bbs-auth-worker/src/lib.rs:499
+    W->>G: require_admin returns the caller nostr-bbs-auth-worker/src/admins.rs:214
+    W->>W: refuses only self-removal, 403 nostr-bbs-auth-worker/src/admins.rs:228-230
+    W->>R: UPDATE whitelist SET is_admin 0, error is a 500 nostr-bbs-auth-worker/src/admins.rs:239-245
+    W->>M: UPDATE members SET is_admin 0, result discarded nostr-bbs-auth-worker/src/admins.rs:249-254
+    W->>K: delete the cache key nostr-bbs-auth-worker/src/admins.rs:257
+    W-->>A: 200 ok, action admin_removed nostr-bbs-auth-worker/src/admins.rs:259-262
+
+    Note over R,M: Only the whitelist confers authority -<br/>the resolver never reads members nostr-bbs-auth-worker/src/admin.rs:4-5 nostr-bbs-auth-worker/src/admin.rs:71-85, see NF-25.3
+    Note over K: The KV entry is written by the list route only and read by nothing,<br/>so the bust protects no authority decision nostr-bbs-auth-worker/src/admins.rs:49-50 nostr-bbs-auth-worker/src/admins.rs:89-93
+    Note over A,W: No in-repo client calls add or remove - the Members UI uses<br/>the relay's set-admin admin/mod.rs:439, which refuses only demoting the LAST admin<br/> whitelist.rs:436-445 and leaves members alone whitelist.rs:450
+```
+
+The two paths agree on the whitelist write but guard differently, and only the relay path writes an audit row (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs:455`).

@@ -35,6 +35,8 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/recipient_keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0013_recipient_keys_proof.sql
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/moderation.rs
 verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
@@ -67,6 +69,8 @@ sequenceDiagram
 
     Note over F: INVARIANT: no error ever leaks to the workers-rs framework - a leaked Debug string is not valid JSON. Unhandled errors become a 500 JSON body nostr-bbs-auth-worker/src/lib.rs:153
     Note over H: The origin is THREADED through the route functions rather than stored in a thread_local (P2-06) nostr-bbs-auth-worker/src/lib.rs:192
+    Note over H: RESOLVED dual CORS builder: one cors_headers, imported by the worker nostr-bbs-auth-worker/src/lib.rs:38, emits NO Allow-Origin when EXPECTED_ORIGIN is unset or blank nostr-bbs-auth-worker/src/http.rs:19-30 - no example.com fallback
+    Note over S: About 23 CREATE TABLE and CREATE INDEX statements run per request, uncoordinated with the relay's once-per-isolate bootstrap nostr-bbs-relay-worker/src/lib.rs:224-228 - correct, they target different D1s.<br/>DOC-DRIFT: the call's comment says cold start nostr-bbs-auth-worker/src/lib.rs:160, and the closing note names the relay's ensure_tables_exist schema.rs:237-241, which is ensure_schema nostr-bbs-relay-worker/src/lib.rs:1059
 ```
 
 ## NF-02.2 Route table — public, sprint-API and legacy tiers
@@ -112,6 +116,7 @@ flowchart TB
 
     N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates nostr-bbs-auth-worker/src/lib.rs:281-289"]
     N2["ANOMALY O11 (recorded live by an earlier review, not re-run here): /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:637 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:66"]
+    N3["GAP: GET /api/moderation/reports nostr-bbs-auth-worker/src/lib.rs:631 reads nip1984_reports nostr-bbs-auth-worker/src/moderation.rs:651, which no code writes.<br/>Its comment says the relay populates it nostr-bbs-auth-worker/src/moderation.rs:631-632; the relay stores kind-1984 in its OWN reports table, in the other D1<br/>nostr-bbs-relay-worker/src/moderation.rs:75. RESOLVED R4: no delegation route or module remains - the NIP-26 501 stub is deleted (NF-10.16)"]
 ```
 
 **Invariant:** `SESSIONS` (the rate limiter's `rl:{ip}:{bucket}` keys) and `KV` (the admin pubkey cache) bind the same KV namespace id, so the admin cache key must never start with `rl:` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs:347`, `../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:22-25`).
@@ -221,8 +226,8 @@ flowchart LR
     ISA["is_admin - static union RELAY_DB union DB<br/>nostr-bbs-auth-worker/src/admin.rs:53"]
 
     RA --> ISA
-    ADMINONLY["Admin-only: mod actions moderation.rs:197 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:136 | governance register governance_api.rs:362 | provision governance_api.rs:441<br/>| roles grant governance_api.rs:670 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1407"]
-    AUTHED["Authed-only: mod report moderation.rs:304 | invite create invites.rs:292 | redeem invites.rs:578<br/>| devices register devices.rs:376 | list devices.rs:467 | revoke devices.rs:503<br/>| username claim username.rs:568 | governance cases governance_api.rs:561 | decisions governance_api.rs:626<br/>| receipt application governance_api.rs:1130 - authed, then authorised by ROLE inside the handler"]
+    ADMINONLY["Admin-only: mod actions nostr-bbs-auth-worker/src/moderation.rs:197 | wot status wot.rs:128 | welcome config welcome.rs:148<br/>| admins add admins.rs:136 | governance register governance_api.rs:362 | provision governance_api.rs:441<br/>| roles grant governance_api.rs:670 | admin registrations username.rs:689<br/>| reviewer telemetry governance_api.rs:1407"]
+    AUTHED["Authed-only: mod report nostr-bbs-auth-worker/src/moderation.rs:304 | invite create invites.rs:292 | redeem invites.rs:578<br/>| devices register devices.rs:376 | list devices.rs:467 | revoke devices.rs:503<br/>| username claim username.rs:568 | governance cases governance_api.rs:561 | decisions governance_api.rs:626<br/>| receipt application governance_api.rs:1130 - authed, then authorised by ROLE inside the handler"]
 
     RA --> ADMINONLY
     RU --> AUTHED

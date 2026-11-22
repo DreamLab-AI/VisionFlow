@@ -134,3 +134,28 @@ flowchart TB
 ```
 
 This ordinary stored-event path has no appended owner-attribution tag. Ephemeral events broadcast directly without storage. Separate UI projections were not exhaustively reviewed here. Preserve signed event bytes and specify any owner presentation as an independent authenticated assertion; see NF-20 for policy/cache limits.
+
+## NF-22.6 No encrypted key export yet, and the third-party import warning
+
+```mermaid
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:46-50
+    A["OPEN: NIP-49 ncryptsec is deferred<br/>core exposes no NIP-49 surface, so the optional<br/>encrypted-key QR is omitted"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:164-171
+    B["The only key export is the raw nsec<br/>in the red secret section"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:470-472
+    C["Screen sheet marks the nsec as NOT<br/>0xchat's Login with QR"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:489-495
+    D["Advanced note: paste via Login with private key,<br/>do not use Login with QR code"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:122-136
+    E["Download: an optional phone sign-in block<br/>when a connect link exists"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:173
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:182
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs:195
+    F["then four sections: secret key, server address,<br/>public profile, how to restore"]
+    A --> B --> C --> D
+    E --> F
+    B -.-> F
+```
+
+The confusion risk is a reading of the copy, not a tested user journey: the warning appears only inside the advanced disclosure on screen, and the downloaded file carries no equivalent line.

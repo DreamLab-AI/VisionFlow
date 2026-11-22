@@ -5,11 +5,10 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008, ADR-2009, ADR-2010, ADR-2014, ADR-2016, ADR-2017, ADR-2019, ADR-2033, ADR-2034]
+adrs: [ADR-2002, ADR-2003, ADR-2004, ADR-2005, ADR-2006, ADR-2007, ADR-2008, ADR-2009, ADR-2010, ADR-2014, ADR-2016, ADR-2017, ADR-2019, ADR-2029, ADR-2033, ADR-2034]
 sources:
   - ../nostr-rust-forum/docs/archive/adr/ADR-100-key-lifecycle.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust_sweep.rs
-  - ../nostr-rust-forum/docs/diagrams/00-anomaly-register.md
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/SETUP.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0008_whitelist.sql
@@ -84,7 +83,30 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/key_owner.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/bookmarks_modal.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/pod_browser.rs
-verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
+  - ../nostr-rust-forum/CONTRIBUTING.md
+  - ../nostr-rust-forum/SECURITY.md
+  - ../nostr-rust-forum/CHANGELOG.md
+  - ../nostr-rust-forum/docs/architecture.md
+  - ../nostr-rust-forum/docs/archive/adr/ADR-099-revocable-device-keys.md
+  - ../nostr-rust-forum/docs/adr/ADR-2029-room-profile-deployment-type.md
+  - ../nostr-rust-forum/docs/deployment-profiles.md
+  - ../nostr-rust-forum/crates/nostr-bbs-core/README.md
+  - ../nostr-rust-forum/crates/nostr-bbs-core/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/did.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-core/src/groups.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/nip11.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/http.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/delegation.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/transport.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/envelope.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/signup.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/section.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/pod_client.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/grant_backlog.rs
+verified_commit: {nostr-rust-forum: fd31193090a29471972bd408e07a7e5b8654f087}
 ---
 
 ## NF-10.1 The compliance surface — BASELINE-architecture invariants
@@ -98,7 +120,7 @@ flowchart LR
     I5["5 gift-wraps are recipient-gated, never author-gated<br/>gift_wrap_recipient nip_handlers.rs:160 | admission nip_handlers.rs:1175 | verdict nip_handlers.rs:2352<br/>other recipient routes: a configured INGRESS_RECIPIENTS key (config, flag-independent), a registered zone epoch key<br/>(ZONE_GROUPS_ENABLED), an inbox key judged by its owner's membership (RECIPIENT_KEYS_ENABLED); otherwise the recipient itself must be whitelisted - see NF-03.5"]
     I6["6 TENSION: BASELINE invariant 6 says solid-pod-rs stays an EXACT pin docs/BASELINE-architecture.md:215,<br/>and the kit section still names =0.5.0-alpha.7 docs/BASELINE-architecture.md:126; the manifest declares a caret range<br/>under ER-35 nostr-rust-forum/Cargo.toml:184, now at 0.5.0-alpha.24 nostr-rust-forum/Cargo.toml:188 - see NF-01.4"]
     I7["7 a member's kind-5 is accepted only when the relay can vouch for every e target<br/>docs/BASELINE-architecture.md:217 | gate nip_handlers.rs:3349 called below TL3 nip_handlers.rs:1321 - see NF-10.13"]
-    I8["8 a deep-linked page never reports absence from ChannelStore loading, only from an<br/>authenticated receipt or the deadline docs/BASELINE-architecture.md:222 | utils/lookup.rs:91 - see NF-10.13"]
+    I8["8 a deep-linked page never reports absence from ChannelStore loading, only from an<br/>authenticated receipt or the deadline docs/BASELINE-architecture.md:222 | utils/lookup.rs:101;<br/>in an encrypted zone it also waits on zone keys utils/lookup.rs:134 - see NF-10.13 and NF-10.15"]
 
     I1 --> I2 --> I3 --> I7
     I4 --> I5 --> I6 --> I8
@@ -142,6 +164,7 @@ flowchart TB
         O11b["O11 /api/native-pod/provision ships placeholder vars - route nostr-bbs-auth-worker/src/lib.rs:637,<br/>NATIVE_POD_URL nostr-bbs-auth-worker/wrangler.toml:66. CORRECTED: it is NOT uncalled - the admin page posts<br/>to it nostr-bbs-forum-client/src/pages/admin.rs:837, a caller older than the previous stamp. See NF-02.2."]
         O8a["O8 qr_svg is defined TWICE with no shared helper -<br/>recovery_sheet.rs:66 and utils/devices.rs:246. See NF-05.4."]
         O8b["O8 a per-page kind-0 subscription still duplicates the app-root ProfileCache subscription -<br/>root sub app.rs:753, page sub settings.rs:457. It is now closed on unmount settings.rs:479 and generation-guarded;<br/>the 5 s timer only flags a slow relay and the subscription stays open settings.rs:488-496. See NF-05.6."]
+        O8c["O8 provision_pod has THREE near-identical copies - signup.rs:176-204, settings.rs:2024-2052 and<br/>provision_pod_signer utils/pod_client.rs:49-78. The settings avatar path provisions again on a 403 or 404 settings.rs:658-659<br/>after upload_to_pod_signer has already provisioned and retried on either utils/pod_client.rs:38-40. See NF-05.8."]
     end
 ```
 
@@ -149,11 +172,12 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    O4["O4 members-vs-whitelist admin split - CLOSED on the relay side at 66ca8d8. The relay no longer queries members, which<br/>lives only in the auth D1: it unions the static set and whitelist (nostr-bbs-relay-worker/src/auth.rs:185, nostr-bbs-relay-worker/src/auth.rs:194),<br/>while the auth worker still unions all three (nostr-bbs-auth-worker/src/admin.rs:53). A doc comment on query_is_admin still names members<br/>nostr-bbs-relay-worker/src/auth.rs:174. See NF-08.7."]
+    O4["O4 members-vs-whitelist admin split - CLOSED in both resolvers. The relay unions the static set and whitelist<br/>(nostr-bbs-relay-worker/src/auth.rs:185, nostr-bbs-relay-worker/src/auth.rs:194). CORRECTED: the auth worker does too - static set<br/>nostr-bbs-auth-worker/src/admin.rs:62-69, RELAY_DB whitelist nostr-bbs-auth-worker/src/admin.rs:71-83, otherwise false nostr-bbs-auth-worker/src/admin.rs:85,<br/>as its module doc says nostr-bbs-auth-worker/src/admin.rs:4-5; members is written but read by neither (NF-08.12). A doc comment on<br/>query_is_admin still names members nostr-bbs-relay-worker/src/auth.rs:174. See NF-08.7."]
     O6["O6 NIP-07 silent no-op DM subscription - CORRECTED. The subscription registers unconditionally<br/>(nostr-bbs-forum-client/src/dm/mod.rs:337). The real limit is per-event: a NIP-04-only extension fails gift-wrap<br/>unwrap at nostr-bbs-forum-client/src/dm/mod.rs:1229 and it IS surfaced via state.error at dm/mod.rs:1256. See NF-05.9."]
     O7["O7 NIP05_USERNAME_HOST hardcoded - NOW SHARED, no longer a settings-local constant. settings.rs:35 aliases the onboarding<br/>modal constant nostr-bbs-forum-client/src/pages/settings.rs:35, which bakes NOSTR_BBS_NIP05_DOMAIN at build time and falls back to example.test<br/>nostr-bbs-forum-client/src/components/onboarding_modal.rs:59; settings.rs:343 uses it. A display fallback only. See NF-05.7."]
-    O9["O9 nostr-bbs-mesh has no impl AND no relay import - HALF holds. No production MeshSocket impl exists<br/>(only nostr-bbs-mesh/src/mock.rs:249), but the relay DOES declare the dependency nostr-bbs-relay-worker/Cargo.toml:27.<br/>DIVERGENCE: the kit register's O9 now says the relay implements MeshTransport; its mesh.rs leaves the outbound<br/>connector a trait nostr-bbs-relay-worker/src/mesh.rs:143 with no impl in the workspace. See NF-09.8."]
+    O9["O9 the relay does NOT implement MeshTransport - VisionFlow keeps this reading against the retired kit register, which said it did.<br/>The one MeshTransport impl is the mesh crate's generic RelayTransport nostr-bbs-mesh/src/transport.rs:527, and the only MeshSocket<br/>is the mock nostr-bbs-mesh/src/mock.rs:249. The relay declares the dependency nostr-bbs-relay-worker/Cargo.toml:27 but imports only<br/>MeshConfig, MeshError and PeerManager nostr-bbs-relay-worker/src/mesh.rs:52-54, leaves the outbound PeerConnector a trait with no impl<br/>nostr-bbs-relay-worker/src/mesh.rs:143, and nothing outside mesh.rs uses the module beyond mod mesh nostr-bbs-relay-worker/src/lib.rs:25.<br/>DOC-DRIFT: the module doc and the manifest comment describe a wired transport nostr-bbs-relay-worker/src/mesh.rs:5 nostr-bbs-relay-worker/Cargo.toml:25-26. See NF-09.8."]
     O10["O10 wasm_bridge has no JS consumers - REFINED. The one in-repo JS consumer of its exports nostr-bbs-core/src/wasm_bridge.rs:228<br/>is the benchmark, which imports @dreamlab/nostr-core-wasm benchmarks/js-vs-wasm/bench.mjs:39 while its package.json<br/>declares @nostr-bbs/nostr-core-wasm at the absent crates/nostr-core/pkg benchmarks/js-vs-wasm/package.json:12, so it cannot<br/>resolve. The upstream-vector suite returns early and passes when fixtures are absent<br/>(nostr-bbs-core/tests/upstream_vectors/all_fixtures.rs:18) and no workflow runs sync-fixtures.sh. DRIFT: the loader doc says<br/>such tests are ignore-attributed nostr-bbs-core/tests/upstream_vectors/mod.rs:11, and none is. See NF-09.3 and NF-09.7."]
+    O10b["O10 pod-worker deferral shims - DELETED: key_provisioning.rs and nip05_endpoint.rs are gone and the removal is recorded at<br/>nostr-bbs-pod-worker/src/lib.rs:37-40; only mod export remains nostr-bbs-pod-worker/src/lib.rs:41, behind solid-pod-rs-phase1<br/>nostr-bbs-pod-worker/Cargo.toml:22. DRIFT: the feature comment still names the deleted stub modules nostr-bbs-pod-worker/Cargo.toml:20-21. See NF-04.10."]
     O11c["O11 broker_decisions is write-only - CORRECTED. A read endpoint exists:<br/>GET /api/governance/decisions with pagination and a case filter,<br/>nostr-bbs-auth-worker/src/governance_api.rs:619. See NF-06.9."]
 ```
 
@@ -163,8 +187,8 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    DD1["CLOSED by the README rewrite: the Known-gaps row calling NIP-42 AUTH scaffolded with auth_required false is gone<br/>(the README at this stamp carries no scaffolded or planned rows README.md:60). The code is unchanged: nip42 is the DEFAULT nip42.rs:134,<br/>the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:39, and every EVENT passes the gate first nip_handlers.rs:1142.<br/>See NF-03.3."]
-    DD2["CLOSED by the README rewrite: the row saying nostr-bbs-mesh is NOT a dependency of the relay-worker is gone and the README<br/>now draws mesh as a dotted configured-routing edge README.md:60. nostr-bbs-relay-worker/Cargo.toml:27 declares the dependency. See NF-09.8."]
+    DD1["CLOSED by the README rewrite: the Known-gaps row calling NIP-42 AUTH scaffolded with auth_required false is gone<br/>(the README at this stamp carries no scaffolded or planned rows nostr-rust-forum/README.md:60). The code is unchanged: nip42 is the DEFAULT nip42.rs:134,<br/>the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:39, and every EVENT passes the gate first nip_handlers.rs:1142.<br/>See NF-03.3."]
+    DD2["CLOSED by the README rewrite: the row saying nostr-bbs-mesh is NOT a dependency of the relay-worker is gone and the README<br/>now draws mesh as a dotted configured-routing edge nostr-rust-forum/README.md:60. nostr-bbs-relay-worker/Cargo.toml:27 declares the dependency. See NF-09.8."]
     DD3["nostr-bbs-relay-worker/wrangler.toml:18 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:185 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:63.<br/>Only nostr-bbs-search-worker/wrangler.toml:41 declares the var. See NF-08.7."]
     DD4["nostr-rust-forum/Cargo.toml:72 workspace.metadata.ci.wasm-check-packages names three crates (config, preview-worker, jev) and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:188. Inert metadata. See NF-01.2."]
     DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
@@ -282,13 +306,13 @@ flowchart TB
     T1["INVARIANT: a tombstone is keyed (id, author), never the id alone - PRIMARY KEY nostr-bbs-relay-worker/src/lib.rs:750,<br/>matched on both nostr-bbs-relay-worker/src/lib.rs:777; ingest refuses a tombstoned event before save_event nip_handlers.rs:1607.<br/>Limits: the lookup fails open nip_handlers.rs:3474; retention and NIP-40 expiry record none cron.rs:454."]
     T2["INVARIANT: below TL3 a kind-5 is accepted only if every e target is canonical and is the signer's own stored event,<br/>a wrap to their recipient key, or an id with no row and an (id, signer) tombstone - gate nip_handlers.rs:3349, classes nip_handlers.rs:3045.<br/>One bad target refuses the whole event; a D1 failure refuses too. Admins skip the block nip_handlers.rs:1259, TL3+ skip the gate nip_handlers.rs:1320.<br/>Exceptions: pre-gate claims satisfy the no-row case nip_handlers.rs:3055 (O13); a kind-5 with no e target passes nip_handlers.rs:3351 (O14)."]
     T3["INVARIANT: the client honours a deletion of a restored sealed original only from its author or a pubkey the relay vouches<br/>is an admin nostr-bbs-forum-client/src/stores/tombstones.rs:121; for an ordinary post every tombstone counts tombstones.rs:119.<br/>Vouching is check-whitelist isAdmin nostr-bbs-forum-client/src/stores/signer_admin.rs:128, the D1 whitelist row alone<br/>nostr-bbs-relay-worker/src/whitelist.rs:139-141 - static ADMIN_PUBKEYS admins and TL3 moderators are not recognised (O25)."]
-    T4["INVARIANT (client): no second key is accepted or minted for a zone epoch already held - the slot guard reads and writes<br/>in one IndexedDB transaction nostr-bbs-forum-client/src/stores/indexed_db.rs:443, and plan_mint waits for the sync and mints above<br/>the highest believable epoch nostr-bbs-forum-client/src/zone_crypto/keyset.rs:169. Limits: a post more than MAX_EPOCH_SKIP ahead is<br/>ignored keyset.rs:125; with ZONE_GROUPS_ENABLED on the pubkey joins the store id, so the slot guard cannot fire zone_crypto/mod.rs:205."]
-    T5["INVARIANT: a deep-linked page reports not found only on a receipt - Lookup::decide nostr-bbs-forum-client/src/utils/lookup.rs:91;<br/>for a gated zone only an EOSE the REQ ledger calls authenticated settles it utils/lookup.rs:62, ledger relay/receipt.rs:71;<br/>no receipt by the 15 s deadline is TimedOut, not NotFound utils/lookup.rs:37. ADR-2034 is partial: zone-key readiness is not an input (O21)."]
+    T4["INVARIANT (client): no second key is accepted or minted for a zone epoch already held - the slot guard reads and writes<br/>in one IndexedDB transaction nostr-bbs-forum-client/src/stores/indexed_db.rs:443, and plan_mint waits for the sync and mints above<br/>the highest believable epoch nostr-bbs-forum-client/src/zone_crypto/keyset.rs:169. Limits: a post more than MAX_EPOCH_SKIP ahead is<br/>ignored keyset.rs:125; with ZONE_GROUPS_ENABLED on the pubkey joins the store id, so the slot guard cannot fire zone_crypto/mod.rs:206."]
+    T5["INVARIANT: a deep-linked page reports not found only on a receipt - Lookup::decide nostr-bbs-forum-client/src/utils/lookup.rs:101;<br/>for a gated zone only an EOSE the REQ ledger calls authenticated settles it utils/lookup.rs:63, ledger relay/receipt.rs:71;<br/>no receipt by the 15 s deadline is TimedOut, not NotFound utils/lookup.rs:38. Since kit #98 an encrypted zone also waits on<br/>the member's zone keys before NotFound utils/lookup.rs:134-151 - O21 closed, NF-10.15."]
     T1 --> T2 --> T3
     T4 --> T5
 ```
 
-## NF-10.14 Anomaly register — relay deletion items opened 2026-11-22 (kit O12 to O18, O20)
+## NF-10.14 Anomaly register — relay deletion items opened 2026-11-22 (O12 to O18, O20)
 
 ```mermaid
 flowchart TB
@@ -304,17 +328,47 @@ flowchart TB
     O16 --> O17 --> O18 --> O20
 ```
 
-## NF-10.15 Anomaly register — sealed originals, client and UX items opened 2026-11-22 (kit O19, O21 to O26)
+## NF-10.15 Anomaly register — sealed originals, client and UX items opened 2026-11-22 (O19, O21 to O26)
 
 ```mermaid
 flowchart TB
     O19["O19 / KF-19, NARROWED: a member cannot delete their own migrated post - refusal nip_handlers.rs:2963, the sealed flag is read<br/>before the tombstone flag nip_handlers.rs:3054. The purge DOES write (id, original author) tombstones admin_events.rs:281 through<br/>nostr-bbs-relay-worker/src/lib.rs:870; they guard re-insert at ingest, but the member gate never reaches them."]
-    O21["O21 / KF-23, GAP: in an encrypted zone a cold deep link can say Topic Not Found before zone keys arrive. The lookup's inputs are the<br/>channel, the receipt and the deadline nostr-bbs-forum-client/src/pages/thread.rs:638-655. The code explains it only for sealed originals:<br/>the original's id exists only once prepare_incoming opens the envelope zone_crypto/store.rs:407-412, and the topic matches on that id<br/>pages/thread.rs:502. Seen live 12 s to 29 s, not reproduced here. Kit PR #95 is open, NOT merged at af4f0d5."]
-    O22["O22 / KF-24: a write made while the socket is closed bypasses the AUTH deferral, which holds writes only on an open<br/>unauthenticated socket nostr-bbs-forum-client/src/relay.rs:769-788; it is buffered relay.rs:824 and flushed on reopen<br/>before AUTH relay.rs:507-515, where the relay refuses it."]
+    O21["O21 / KF-23 - CLOSED by kit #98, merged as fd31193. A cold deep link in an encrypted zone no longer says Topic Not Found while keys arrive:<br/>Lookup::decide_with_keys waits on the grant backlog once the relay has answered nostr-bbs-forum-client/src/utils/lookup.rs:134-151, the backlog<br/>settles on every grant EOSE with no wrap in flight zone_crypto/grant_backlog.rs:153-159, and both the thread page pages/thread.rs:645-656<br/>pages/thread.rs:668 and the section page pages/section.rs:318 pages/section.rs:334 use it. Operator observation 2026-11-22, same cold device:<br/>Fetching your keys from 9.2 s, topic at 28.4 s, no Not Found (before: Not Found 12.2 s to 28.6 s). DRIFT: KF-23 still reads Open<br/>docs/security/known-findings.md:85. See NF-05.20."]
+    O21r["O21 residue, STILL OPEN: keys still take about 28 s cold - the code's own figure is 28.6 s to the first usable key<br/>zone_crypto/grant_backlog.rs:38-39. The grant filter takes at most 1000 wraps, shared with DMs zone_crypto/store.rs:1138-1148, so an<br/>account with more can miss its oldest grants; paging them is kit PR #95, a draft. A member with no key settles too<br/>nostr-bbs-forum-client/src/utils/lookup.rs:161-163, so a sealed-original topic they cannot open is NotFound once keys settle utils/lookup.rs:147."]
+    O22["O22 / KF-24: a write made while the socket is closed bypasses the AUTH deferral, which holds writes only on an open<br/>unauthenticated socket nostr-bbs-forum-client/src/relay.rs:785-804; it is buffered relay.rs:840 and flushed on reopen<br/>before AUTH relay.rs:518-526, where the relay refuses it."]
     O23["O23 / KF-25: deletion paging gives up at MAX_PAGES nostr-bbs-forum-client/src/stores/deletion_sync.rs:123, on a full page with<br/>no progress or on an empty page, keeping the old marker with no resume cursor deletion_sync.rs:30-33, next_page deletion_sync.rs:424."]
     O24["O24 / KF-26, accepted limit: zone-key rows written before per-identity scoping zone_crypto/key_owner.rs:13-19 and pre-#92<br/>bookmarks nostr-bbs-forum-client/src/components/bookmarks_modal.rs:8-11 stay visible to every account on the browser;<br/>same-origin storage is no boundary against the device zone_crypto/key_owner.rs:21-22."]
     O25["O25 / KF-27: the client cannot identify TL3 moderators nostr-bbs-forum-client/src/stores/tombstones.rs:17-19, and check-whitelist sets<br/>isAdmin from the D1 row alone nostr-bbs-relay-worker/src/whitelist.rs:180 while the relay's own check honours static<br/>ADMIN_PUBKEYS first nostr-bbs-relay-worker/src/auth.rs:185 - so T3 in NF-10.13 is narrower than relay admin standing."]
     O26["O26 / KF-28: the Pod Browser mesh card prints the probe's error string verbatim under Details<br/>nostr-bbs-forum-client/src/pages/pod_browser.rs:1056-1058; whether that is a stack trace depends on the failing call, not established."]
-    O19 --> O21 --> O22
+    O19 --> O21 --> O21r --> O22
     O23 --> O24 --> O25 --> O26
+```
+
+## NF-10.16 Resolved history R1 to R9 — each re-checked at fd31193
+
+```mermaid
+flowchart TB
+    R1["R1 licence prose claimed MIT/Apache on AGPL code - fixed. HOLDS for the application: workspace licence nostr-rust-forum/Cargo.toml:64,<br/>CONTRIBUTING.md:105-106. SUPERSEDED for one crate by a deliberate relicence: nostr-bbs-core is MIT OR Apache-2.0 from beta.18<br/>nostr-bbs-core/Cargo.toml:6 nostr-bbs-core/README.md:10-13, as the README states nostr-rust-forum/README.md:154."]
+    R2["R2 version drift README rc11, SECURITY rc tables, NIP-11 serving 3.0.0. HOLDS for NIP-11: version is env CARGO_PKG_VERSION nip11.rs:214.<br/>DRIFT again: SECURITY.md lists 1.0.0-beta.3 as current SECURITY.md:19 above v3.0.0-rc headings SECURITY.md:23, while core is<br/>1.0.0-beta.20 nostr-bbs-core/Cargo.toml:3 and the relay 1.0.0-beta.10 nostr-bbs-relay-worker/Cargo.toml:3."]
+    R3["R3 NIP-17 over-advertised - HOLDS: NIP-11 lists 59, not 17 nip11.rs:16, saying why nip11.rs:205-208,<br/>and the architecture doc says there is no kind-14 inbox routing docs/architecture.md:221."]
+    R4["R4 NIP-26 deleted as superseded by ADR-099 device keys - HOLDS for core and the auth worker; CHANGELOG.md:2126-2127 records NIP-26 rejected.<br/>NOT GONE from the workspace: nostr-bbs-mesh carries its own NIP-26 verifier for mesh delegation nostr-bbs-mesh/src/delegation.rs:1,<br/>noting core has no nip26 module nostr-bbs-mesh/src/delegation.rs:22-28; the upstream-vector suite still wires the fixture all_fixtures.rs:59-60."]
+    R5["R5 NIP-90 DVM module deleted - HOLDS: removal recorded nip11.rs:209-211 and 90 not advertised nip11.rs:16.<br/>DOC-DRIFT: the architecture note still says data vending machines are validated at ingress docs/architecture.md:216-217."]
+    R6["R6 template drift - HOLDS: SETUP lists ZONE_CONFIG and DEVICE_KEYS_ENABLED for the relay SETUP.md:150 and explains the flag SETUP.md:171-174;<br/>the auth template binds RELAY_DB nostr-bbs-auth-worker/wrangler.toml:18; the relay template declares both nostr-bbs-relay-worker/wrangler.toml:26<br/>nostr-bbs-relay-worker/wrangler.toml:29. ADMIN_PUBKEYS stays undeclared - S2 in NF-10.7."]
+    R7["R7 ad-hoc did:nostr format - MOSTLY HOLDS: production sites call did_nostr_uri nostr-bbs-core/src/did.rs:141 and keep format! only as the<br/>parse-failure fallback webauthn.rs:1114-1116 nostr-bbs-pod-worker/src/lib.rs:903-905. RESIDUE: the mesh AS2 projection formats it<br/>directly nostr-bbs-mesh/src/envelope.rs:395-396."]
+    R8["R8 dual auth cors_headers with an example.com fallback - HOLDS: one builder, fail-closed, no Allow-Origin when EXPECTED_ORIGIN is<br/>unset or blank nostr-bbs-auth-worker/src/http.rs:19-30, imported by the worker nostr-bbs-auth-worker/src/lib.rs:38. See NF-02.1."]
+    R9["R9 architecture doc coverage - HOLDS: rate-limit crate row docs/architecture.md:184, NIP-56/59/65/90 note docs/architecture.md:216,<br/>ADR-098/099 section docs/architecture.md:481; ADR-099 status Accepted docs/archive/adr/ADR-099-revocable-device-keys.md:4.<br/>Its NIP-90 sentence is the R5 drift."]
+    R1 --> R2 --> R3 --> R4 --> R5
+    R6 --> R7 --> R8 --> R9
+```
+
+## NF-10.17 Open — the room-dialect sequence this corpus still owes (ADR-2029)
+
+```mermaid
+flowchart LR
+    ADR["ADR-2029 room profile: proposed, implementation none<br/>docs/adr/ADR-2029-room-profile-deployment-type.md:5-6"]
+    DESIGN["Three design-level diagrams only - wire shape, who reads what, choosing<br/>docs/deployment-profiles.md:41 docs/deployment-profiles.md:69 docs/deployment-profiles.md:105<br/>not citation-verified, so NOT copied into this corpus"]
+    CODE["Code today: the h-scoped group builders are deprecated with no caller,<br/>citing ADR-2029 nostr-bbs-core/src/groups.rs:124"]
+    OWED["OPEN: when ADR-2029 is implemented, this VisionFlow area gains a room-dialect topic -<br/>kind 34550 definition publish, kind 9 post and q reply, edit by the Anagram convention,<br/>kind 7 and 5 with h and k, the relay's dialect-selected ban gate and trust counters,<br/>each cited to the lines that implement them"]
+    ADR --> DESIGN --> OWED
+    CODE -.-> OWED
 ```

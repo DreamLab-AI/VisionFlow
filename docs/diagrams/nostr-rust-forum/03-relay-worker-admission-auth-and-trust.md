@@ -24,6 +24,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/recipient_keys.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
 verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
@@ -214,6 +215,7 @@ flowchart TB
     N2["Admins bypass at the call site so they can publish warnings while themselves under moderation<br/>for something else nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1246"]
     N3["Pure predicate by design, so the gate's SCOPE is unit-testable without an Env<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:76"]
     N4["INVARIANT: kind 5 is ban-gated, so a banned or muted member cannot publish a deletion at all,<br/>whatever the member deletion gate of NF-03.15 would say nip_handlers.rs:80"]
+    N5["DUPLICATE, harmless: a ban-gated kind asks admin_cache.is_admin twice for the same pubkey - the bypass nip_handlers.rs:1246<br/>and the trust gate nip_handlers.rs:1258. The second is a hit on the per-DO cache entry, fresh for 30 s<br/>nostr-bbs-relay-worker/src/auth.rs:46 nostr-bbs-relay-worker/src/auth.rs:110, so it costs no D1 read"]
 ```
 
 ## NF-03.7 Trust-level gates on the admission path
@@ -346,6 +348,7 @@ sequenceDiagram
     Note over A,T: Reads and writes share this ledger.<br/>A later activity call triggers an elapsed-window flush.<br/>Pending-read threshold can flush sooner - see NF-17.4<br/>nip_handlers.rs:2592 nip_handlers.rs:2610-2612
     Note over M: Mirror requires an admin on this relay.<br/>A lifted ban must stop enforcement nip_handlers.rs:1653
     Note over G: External human-approval workflow<br/>spans the estate - see ES-05 and AB-14
+    Note over G: RESOLVED: the 31403 body is no longer parsed separately by gate and projection -<br/>action and reasoning come from one pure helper nip_handlers.rs:254, and the projection is the<br/>receipt-bearing project_action_response nip_handlers.rs:4110, not re-audited line by line
 ```
 
 **Tension (ADR-2010 vs code):** ADR-2010 records `decision_status: proposed`, `implementation_status: partial`, `activation_status: staged` (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7`), yet `handle_event` runs all three receipt-bearing projections (appeal, supersession, first-order response) unconditionally after every stored governance event (`nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1667`, `nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1687`, `nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1700`).
@@ -366,7 +369,7 @@ flowchart LR
     V --> L1 & L2 & L3 & L4 & L5
     V -.-> L6 --> L7
 
-    N1["OPEN (kit O20, KF-22): the cap is read and the borrow released at nip_handlers.rs:1862, the subscription<br/>is inserted only at nip_handlers.rs:1929-1931, after the D1 awaits at nip_handlers.rs:1907 and nip_handlers.rs:1908.<br/>Two REQs with different ids on one session can both pass, so the cap is a resource bound, not a security boundary"]
+    N1["OPEN (NF-10 O20, KF-22): the cap is read and the borrow released at nip_handlers.rs:1862, the subscription<br/>is inserted only at nip_handlers.rs:1929-1931, after the D1 awaits at nip_handlers.rs:1907 and nip_handlers.rs:1908.<br/>Two REQs with different ids on one session can both pass, so the cap is a resource bound, not a security boundary"]
 ```
 
 ## NF-03.12 Zone enforcement on writes — sealed originals, encrypted-zone ciphertext, plain writes
@@ -494,9 +497,9 @@ flowchart TB
     N1["Why whole-event refusal: every client folds every e tag of a stored kind 5, the event is signed and the relay<br/>cannot strip a tag, so one target the member cannot be shown to own refuses it all nip_handlers.rs:2940-2947"]
     N2["INVARIANT: the sealed flag is read BEFORE the tombstone flag, so a claim written before the gate existed<br/>cannot reopen a sealed original nip_handlers.rs:3040-3044 nip_handlers.rs:3054-3055. Refusals report in the order<br/>foreign, sealed, unknown nip_handlers.rs:3073-3094"]
     N3["INVARIANT: fail-closed is safe because the gate only runs for members - admins skip the whole non-admin<br/>block and TL3+ skips the lookup, so it can never block a moderator nip_handlers.rs:3345-3348 nip_handlers.rs:1315-1320"]
-    N4["OPEN (kit O12, KF-21): one statement may carry up to 2,000 ids MAX_TAG_COUNT nip_handlers.rs:42, travelling as one JSON<br/>value because D1 caps bound parameters near 100 lib.rs:793-797. Every test of it runs on in-memory rusqlite<br/>nip_handlers.rs:7698-7706 nip_handlers.rs:7756-7772, never on Cloudflare D1"]
-    N5["OPEN (kit O13, KF-17): a no-row target is accepted on an (id, signer) row in deleted_events. Pre-gate claims and the<br/>backfill from stored kind 5s lib.rs:915-925 hold such rows, and a moderator's process_deletion still writes one for any<br/>well-formed id nip_handlers.rs:3533-3544, so a holder can re-name an id never stored here and have it accepted and broadcast"]
-    N6["OPEN (kit O14, KF-20): a kind 5 with no e and no a target is accepted with nothing to act on nip_handlers.rs:3351-3354.<br/>An expiring kind 5 is later removed by the NIP-40 sweep, which writes no tombstone - see NF-11.19"]
+    N4["OPEN (NF-10 O12, KF-21): one statement may carry up to 2,000 ids MAX_TAG_COUNT nip_handlers.rs:42, travelling as one JSON<br/>value because D1 caps bound parameters near 100 lib.rs:793-797. Every test of it runs on in-memory rusqlite<br/>nip_handlers.rs:7698-7706 nip_handlers.rs:7756-7772, never on Cloudflare D1"]
+    N5["OPEN (NF-10 O13, KF-17): a no-row target is accepted on an (id, signer) row in deleted_events. Pre-gate claims and the<br/>backfill from stored kind 5s lib.rs:915-925 hold such rows, and a moderator's process_deletion still writes one for any<br/>well-formed id nip_handlers.rs:3533-3544, so a holder can re-name an id never stored here and have it accepted and broadcast"]
+    N6["OPEN (NF-10 O14, KF-20): a kind 5 with no e and no a target is accepted with nothing to act on nip_handlers.rs:3351-3354.<br/>An expiring kind 5 is later removed by the NIP-40 sweep, which writes no tombstone - see NF-11.19"]
 ```
 
 ## NF-03.16 NIP-09 ingest refusal — a deleted event stays deleted (PR #89)

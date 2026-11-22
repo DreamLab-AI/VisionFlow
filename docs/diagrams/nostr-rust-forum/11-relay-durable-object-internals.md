@@ -145,6 +145,7 @@ flowchart TB
     N3["query_events serves REQ from the same table relay_do/storage.rs:341; is_whitelisted is the admission<br/>lookup NF-03.4 step 7b calls relay_do/storage.rs:437"]
     N4["INVARIANT: the channel creator is recorded in the same save that stores the kind-40, so a later kind-5 deletion of the event<br/>cannot change who may edit the channel relay_do/storage.rs:232. DEBT: the INSERT result is discarded<br/>relay_do/storage.rs:244, so a failed write leaves the lookup on the event row relay_do/nip_handlers.rs:3714"]
     N5["INVARIANT NIP-01 order for both replaceable classes: newer created_at wins and, on a tie, the lowest id,<br/>so a late older version is refused rather than stored beside the current one relay_do/storage.rs:144-146 relay_do/storage.rs:175-181"]
+    N6["DEBT: the kind-0 profiles projection fails silently - upsert_profile returns without a word on a missing D1 binding,<br/>unparsable content or a non-object relay_do/storage.rs:257-270, and discards the UPSERT result relay_do/storage.rs:336-337,<br/>so a broken or missing profiles table is invisible while the event itself is stored"]
 ```
 
 The [1 November storage audit](../../estate-review/2026-11-01-forum-spaces-and-replication.md) reproduced late-older and same-second coexistence; at af4f0d5 both replaceable classes apply the NIP-01 order above. Loss of a higher proposed revision remains: this is created_at order, not ADR-2031 revision ordering; see [NF-13](13-group-admission-and-replacement.md).
@@ -210,7 +211,8 @@ flowchart TB
     N3["d_tag_value is what storage stamps at INSERT so parameterised replacement is an indexed DELETE -<br/>see NF-11.4 N1"]
     N4["Before a filter is even evaluated: a malformed websocket frame is answered with a NOTICE rather than a<br/>socket close - the relay never drops a connection for one bad message relay_do/mod.rs:250-258"]
     N6["NIP-50 search: search_term ignores an empty term and like_pattern escapes the backslash first, then % and _, so a query cannot widen its own LIKE pattern<br/>relay_do/filter.rs:225 relay_do/filter.rs:232"]
-    N5["Subscriptions that install a filter are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ by<br/>subscription_cap_reached relay_do/nip_handlers.rs:45 relay_do/nip_handlers.rs:52-53 relay_do/nip_handlers.rs:1862. Since #91 a REQ<br/>that reuses a held id replaces it and is never refused. OPEN (kit O20, KF-22): concurrent REQs can exceed the cap - see NF-03.11"]
+    N5["Subscriptions that install a filter are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ by<br/>subscription_cap_reached relay_do/nip_handlers.rs:45 relay_do/nip_handlers.rs:52-53 relay_do/nip_handlers.rs:1862. Since #91 a REQ<br/>that reuses a held id replaces it and is never refused. OPEN (NF-10 O20, KF-22): concurrent REQs can exceed the cap - see NF-03.11"]
+    N7["DOC-DRIFT in a test: empty_ids_array_matches_all relay_do/filter.rs:755 opens with a comment calling an empty array no constraint<br/>relay_do/filter.rs:756, but asserts the opposite, that an empty ids matches nothing relay_do/filter.rs:763. The code is right per NIP-01;<br/>the name and first comment are wrong"]
 ```
 
 ## NF-11.7 ModCache — a 60-second ban gate that fails CLOSED
@@ -238,6 +240,12 @@ stateDiagram-v2
         transient fault would extend one blip into a 60-second outage for every
         innocent author. Only a real verdict is stored.
         Resolution from the action rows is pure: resolve_block relay_do/mod_cache.rs:145
+    end note
+    note left of Unknown
+        The admission allowlist refuses on a fault too: is_whitelisted
+        returns false when the D1 binding, the bind or the query fails
+        relay_do/storage.rs:437-452, which rejects. Neither gate admits
+        on a D1 fault - the earlier fail-open wording was wrong.
     end note
     note right of Miss
         invalidate relay_do/mod_cache.rs:59 is called the moment an admin mirrors a
@@ -467,8 +475,8 @@ flowchart TB
     N3["agent_disclosure is a PUBLIC endpoint - the client's agent badge reads it without auth, see NF-05.10.<br/>It is how a reader can tell a human post from an agent post."]
     N4["The user_admin and moderation mutations call log_admin_action nostr-bbs-relay-worker/src/audit.rs:25 -<br/>user_admin.rs:245 user_admin.rs:329 user_admin.rs:392 user_admin.rs:487 user_admin.rs:647 moderation.rs:390 -<br/>into admin_log, the table the trust sweep also writes trust_sweep.rs:441 - see NF-08.5.<br/>DEBT: every call discards the result, so a failed audit write never fails the mutation"]
     N5["A key REPLACED via pubkey_aliases is excluded from both search shapes - roster mode profiles.rs:307<br/>and query mode profiles.rs:318 - so a renamed pubkey never shows twice under two identities"]
-    N7["OPEN (kit O16, KF-15): GET /api/reports lists reportedPubkey exactly as the reporter's p tag claimed it<br/>relay_do/nip_handlers.rs:4765 moderation.rs:211, with no join to the stored event - handle_list_reports moderation.rs:142.<br/>Only the resolve route reads the stored row's real author, after the decision moderation.rs:337-345"]
-    N8["OPEN (kit O17, KF-16): the user purge tombstones and deletes by pubkey only user_admin.rs:225-236, so events signed by<br/>the user's registered device keys and gift wraps they sent or received (throwaway authors) are untouched"]
+    N7["OPEN (NF-10 O16, KF-15): GET /api/reports lists reportedPubkey exactly as the reporter's p tag claimed it<br/>relay_do/nip_handlers.rs:4765 moderation.rs:211, with no join to the stored event - handle_list_reports moderation.rs:142.<br/>Only the resolve route reads the stored row's real author, after the decision moderation.rs:337-345"]
+    N8["OPEN (NF-10 O17, KF-16): the user purge tombstones and deletes by pubkey only user_admin.rs:225-236, so events signed by<br/>the user's registered device keys and gift wraps they sent or received (throwaway authors) are untouched"]
     N6["INVARIANT since 1a26e51: alias_set with inherit_cohorts grants the old key's cohorts to the new one through the<br/>shared merge statement, so the successor keeps any cohort it already held user_admin.rs:624-627 user_admin.rs:634"]
 ```
 
@@ -558,8 +566,8 @@ sequenceDiagram
     Note over PD: INVARIANT without delete-any the SQL keeps the author constraint, so a gate regression cannot widen deletion through this path alone relay_do/nip_handlers.rs:3505-3509
     Note over PD: INVARIANT a regular-kind a-ref never acts - one a tag of 1, pubkey and empty d would otherwise delete every kind 1 the author made relay_do/nip_handlers.rs:2835-2840
     Note over TB: INVARIANT never in the same D1 batch as the DELETE - batches are transactional and a failed tombstone must not undo the deletion. The result is reported, never acted on lib.rs:1562-1568
-    Note over PD,D1: DEBT (kit O13, KF-17) - the (id, signer) row is written even when no row exists for the id, and a moderator's kind 5 is not gated, so a claim for an id never stored here is recorded - see NF-03.15
-    Note over PD,D1: DEBT (kit O18, KF-18) - which envelopes go is decided by whether each envelope's author is an admin NOW, not by a migrator record relay_do/nip_handlers.rs:3437-3448 relay_do/nip_handlers.rs:3396-3399 - see NF-26.7
+    Note over PD,D1: DEBT (NF-10 O13, KF-17) - the (id, signer) row is written even when no row exists for the id, and a moderator's kind 5 is not gated, so a claim for an id never stored here is recorded - see NF-03.15
+    Note over PD,D1: DEBT (NF-10 O18, KF-18) - which envelopes go is decided by whether each envelope's author is an admin NOW, not by a migrator record relay_do/nip_handlers.rs:3437-3448 relay_do/nip_handlers.rs:3396-3399 - see NF-26.7
 ```
 
 ## NF-11.19 Which deletion routes tombstone (PR #90)
@@ -585,6 +593,6 @@ flowchart TB
     C1 --> DEL
 
     N1["A tombstone must be written BEFORE the row goes, because the statements read the author from events -<br/>an absent row records nothing lib.rs:855-866. The id commits to its author, so the wrong author would block nothing lib.rs:741-745"]
-    N2["OPEN (kit O15, KF-14): no admin route removes one tombstone. Only reset-db deletes from deleted_events and<br/>deleted_addresses whitelist.rs:523-525, so an event removed by mistake cannot be selectively re-admitted"]
+    N2["OPEN (NF-10 O15, KF-14): no admin route removes one tombstone. Only reset-db deletes from deleted_events and<br/>deleted_addresses whitelist.rs:523-525, so an event removed by mistake cannot be selectively re-admitted"]
     N3["The report and user-purge routes record whether the tombstone ran and report it to the admin, but proceed<br/>either way moderation.rs:349-354 user_admin.rs:213-217"]
 ```
