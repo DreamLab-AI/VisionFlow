@@ -28,8 +28,10 @@ sources:
   - ../dreamlab-ai-website/docs/api/SEARCH_API.md
   - ../dreamlab-ai-website/docs/api/MODERATION_API.md
   - ../dreamlab-ai-website/forum-config/src/branding.rs
+  - ../dreamlab-ai-website/forum-config/README.md
+  - ../dreamlab-ai-website/docs/adr/ADR-2002-split-hosting-pages-workers.md
   - ../nostr-rust-forum/docs/adr/ADR-2016-end-to-end-encrypted-zones.md
-verified_commit: {dreamlab-ai-website: f934e26f949f3b95171544ec8ec5bcfd7679f593, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {dreamlab-ai-website: 567bed67f54c2be66edf7e1333442f9458294241, nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -94,25 +96,25 @@ flowchart TB
 ## DW-06.6 Invariants register — consolidated from both governing docs
 ```mermaid
 flowchart TB
-    I1["1. KIT_REF + Cargo pin lockstep<br/>BASELINE-architecture.md:163-166 — see DW-01.5"]
-    I2["2. Privileged deploy downloads nothing unverified<br/>BASELINE-architecture.md:167-169 — see DW-01.6"]
-    I3["3. window.__ENV__ vs Vite build vars, validate every endpoint<br/>BASELINE-architecture.md:170-172"]
-    I4["4. GitHub Pages is origin of record until DNS re-cut<br/>BASELINE-architecture.md:173-175 — see DW-01.3"]
-    I5["5. Identity stays raw 64-hex pubkey, no silent DID move<br/>IDENTITY-zones.md:175-177 — see DW-04.1"]
-    I6["6. Zone required_cohorts stays dual-accept<br/>IDENTITY-zones.md:178-179 — see DW-03.1"]
-    I7["7. BREACHED at HEAD: doc says only zone3 is encrypted<br/>IDENTITY-zones.md:180-181, but dreamlab.toml has zone2/3/4<br/>encrypted=true (dreamlab.toml:123,137,148); the toml's own<br/>[encryption] gate + zone4.agent_keys cite 'ADR-2016'<br/>(dreamlab.toml:34,149): a KIT ADR, not this repo's docs/adr/<br/>ADR-2016-end-to-end-encrypted-zones.md:1-4<br/>see DW-03.1"]
-    I8["8. Talk-to-AI reply relays subset of of agent publish fan-out<br/>IDENTITY-zones.md:182-183 — see DW-04.3"]
-    I9["9. Admin/Jarvis pubkeys + ZONE_CONFIG hand-mirrored, rotation touches every mirror<br/>IDENTITY-zones.md:184-186 — see DW-03.3/DW-03.5"]
-    I10["10. website-info holds no cohort, never agent, no admin or zone key;<br/>monitor key and [[ingress]] entries equal across mirrors<br/>IDENTITY-zones.md:187-191 — see DW-04.9"]
+    I1["1. KIT_REF + Cargo pin lockstep<br/>BASELINE-architecture.md:170-173<br/>DOC-DRIFT: the crate version no longer moves with KIT_REF, see DW-01.5"]
+    I2["2. Privileged deploy downloads nothing unverified<br/>BASELINE-architecture.md:174-176 — see DW-01.6"]
+    I3["3. window.__ENV__ vs Vite build vars, validate every endpoint<br/>BASELINE-architecture.md:177-179"]
+    I4["4. GitHub Pages is origin of record until DNS re-cut<br/>BASELINE-architecture.md:180-182 — see DW-01.3"]
+    I5["5. Identity stays raw 64-hex pubkey, no silent DID move<br/>IDENTITY-zones.md:176-178 — see DW-04.1"]
+    I6["6. Zone required_cohorts stays dual-accept<br/>IDENTITY-zones.md:179-180 — see DW-03.1"]
+    I7["7. BREACHED at HEAD: doc says only zone3 is encrypted<br/>IDENTITY-zones.md:181-182, but dreamlab.toml has zone2/3/4<br/>encrypted=true (dreamlab.toml:123,137,148); the toml's own<br/>[encryption] gate + zone4.agent_keys cite 'ADR-2016'<br/>(dreamlab.toml:34,149): a KIT ADR, not this repo's docs/adr/<br/>ADR-2016-end-to-end-encrypted-zones.md:1-4<br/>see DW-03.1"]
+    I8["8. Talk-to-AI reply relays subset of of agent publish fan-out<br/>IDENTITY-zones.md:183-184 — see DW-04.3"]
+    I9["9. Admin/Jarvis pubkeys + ZONE_CONFIG hand-mirrored, rotation touches every mirror<br/>IDENTITY-zones.md:185-187 — see DW-03.3/DW-03.5"]
+    I10["10. website-info holds no cohort, never agent, no admin or zone key;<br/>monitor key and [[ingress]] entries equal across mirrors<br/>IDENTITY-zones.md:188-192 — see DW-04.9"]
 ```
 - These ten invariants are the compliance surface for this area: any change touching them requires a governing-doc update plus a thin ADR under `docs/adr/`, per each doc's own Change-process section — the pack itself is a **thin ledger** amending `BASELINE-architecture.md` / `IDENTITY-zones.md` (the living docs are normative); the pre-2026-08-31 legacy corpus (numbered 013+) is frozen under `docs/archive/adr/` as evidence, not authority (`CLAUDE.md:21-23`). Its ADR-2xxx numbering overlaps VisionFlow/agentbox's own ADR-2xxx space by design — each area's ids are area-scoped, resolved by directory, not globally unique across repos.
 
 ## DW-06.7 Known divergences / DOC-DRIFT register — this area's open items
 ```mermaid
 flowchart TB
-    D1["BASELINE divergence: README said two SPAs, now says three<br/>README.md:54, CLAUDE.md:14 still dual-SPA, see DW-01.2"]
-    D2["BASELINE divergence: Cloudflare-edge vs GitHub Pages origin<br/>README now says one GitHub Pages origin, README.md:43, see DW-01.3"]
-    D3["forum-config/README.md pin note stale: git rev vs crates.io version<br/>BASELINE-architecture.md:150-152"]
+    D1["BASELINE divergence: README said two SPAs, now says three<br/>dreamlab-ai-website/README.md:54, CLAUDE.md:14 still dual-SPA, see DW-01.2"]
+    D2["BASELINE divergence: Cloudflare-edge vs GitHub Pages origin<br/>README now says one GitHub Pages origin, dreamlab-ai-website/README.md:43, see DW-01.3"]
+    D3["RESOLVED 2026-11-22: forum-config/README.md now names the exact<br/>crates.io =1.0.0-beta.20 pins and KIT_REF, forum-config/README.md:10<br/>BASELINE dropped the entry"]
     D4["Branded worker custom domains undeployed, workers.dev is shipped reality<br/>see DW-01.3"]
     D5["dreamlab.toml README: 'Friends' zone does not exist<br/>see DW-03.1"]
     D6["DID/Multikey convergence is documentation-only<br/>see DW-04.1"]
@@ -120,16 +122,17 @@ flowchart TB
     D8["Roster authorised_by authored but not rendered by the kit<br/>see DW-03.3"]
 ```
 
-## DW-06.9 Known divergences / DOC-DRIFT register — continued (D9-D15)
+## DW-06.9 Known divergences / DOC-DRIFT register — continued (D9-D16)
 ```mermaid
 flowchart TB
-    D9["BASELINE-architecture.md cites a stale KIT_REF (BASELINE-architecture.md:117) and a beta.9 crate version (BASELINE-architecture.md:152)<br/>see DW-01.5"]
+    D9["RESOLVED 2026-11-22: BASELINE-architecture.md now records KIT_REF 3c48e26<br/>and the beta.20 crates, BASELINE-architecture.md:110,118, see DW-01.5"]
     D10["branding.rs dead code: dreamlab_zone_names() keeps a superseded<br/>3-zone naming, branding.rs:40-42; branding values now match<br/>dreamlab.toml, see DW-03.1"]
     D11["BASELINE-architecture.md estate-closeout note predates the 2026-09-05 gate fix<br/>see DW-05.3"]
-    D12["REOPENED: README.md:65 names kit source 8a5cf81, several repins behind the pins<br/>at 6064622 (rust-ci.yml:20, workers-deploy.yml:44) — see DW-06.8"]
+    D12["REOPENED: dreamlab-ai-website/README.md:65 names kit source 8a5cf81, several repins behind the pins<br/>at 3c48e26 (rust-ci.yml:20, workers-deploy.yml:44) — see DW-06.8"]
     D13["RESOLVED 2026-10-07: root-level seed scripts with a hardcoded key<br/>deleted by 3baf2fa4, historical — see DW-07.2"]
     D14["embeddings/ tooling targets RuVector Postgres + all-MiniLM-L6-v2,<br/>unrelated to the search worker; the README claim was removed — see DW-07.4"]
     D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:33-37) citing kit ADR-2016; DW-03.1 records the<br/>breach, the governing doc is still unrevised<br/>see DW-06.6 I7"]
+    D16["BASELINE divergence: native pod tier advertised but unreachable,<br/>its host has no DNS record, BASELINE-architecture.md:156-159<br/>open item ADR-2002-split-hosting-pages-workers.md:130, see DW-03.12"]
 ```
 - D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' own `verified_commit` lagging this repo (`BASELINE-architecture.md:6` declares `e02c95d0`, `IDENTITY-zones.md:6` declares `d852f61`) and the estate-closeout note's own explicit 2026-09-04 dating.
 - D12/D13/D14 are Wave 2 findings, closing the material gaps the estate audit (`reports/audit-web.md`) identified for this area (D12 reopened at the 2026-10-30 repin); D15 is a Wave 3 finding — see DW-06.6 and DW-06.9 for the full evidence. **Drift (corrected):** I7 and D15 once said ADR-2016 was never written; it is the kit's ADR (`ADR-2016-end-to-end-encrypted-zones.md:1-4`), which this repo's config cites across the repository boundary.
@@ -146,4 +149,4 @@ flowchart TB
 ```
 - The earlier nine-bullet README feature list this diagram once classified is gone with the README rewrite; the register is seeded only with README claims that cite a concrete in-repo `file:line` (web push in the operator overlay, declared recipients and an inbox-watch path), so uncited README claims report `unclassified` by design (`docs/claims-register.json:2`).
 - **Tension (closed):** the README no longer says "no register file"; it now says the source-grounded register ships in this repository, that its evidence paths are checked in the test suite, and that the checker runs at the end of `postbuild` (`README.md:125`). `docs/claims-register.json` carries two claims and three feature notes, each now with an `evidence` path (`docs/claims-register.json:3-40`), and `checkClaims` still skips Jev only when no feature notes exist (`scripts/lib/claims.mjs:98-101`).
-- **Drift (reopened):** `README.md:65` stopped stating kit source `631c09f…` and stated `8a5cf81…`, but the pin sites now carry `6064622dbb1a7cc1ba2d072109f9e3e8a96157df` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`), so the README sentence is several repins stale.
+- **Drift (reopened):** `README.md:65` stopped stating kit source `631c09f…` and stated `8a5cf81…`, but the pin sites now carry `3c48e2656d7cabefa894a59b827f5f0d3a8b32b7` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:44`), so the README sentence is several repins stale.

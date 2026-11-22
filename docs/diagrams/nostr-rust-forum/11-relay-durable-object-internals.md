@@ -35,7 +35,9 @@ sources:
   - ../nostr-rust-forum/README.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
-verified_commit: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs
+verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
 ## NF-11.1 The Durable Object and its in-memory state
@@ -55,23 +57,28 @@ classDiagram
         channel_zone_cache : TtlCache String, 60 s TTL — relay_do/mod.rs:102
         cohort_cache : TtlCache Vec String, bool, 60 s TTL — relay_do/mod.rs:104
         device_owner_cache : TtlCache Option String, 60 s TTL — relay_do/mod.rs:106
-        activity : ActivityLedger — relay_do/mod.rs:108
+        recipient_row_cache : TtlCache recipient key to owner and revoked — relay_do/mod.rs:108
+        recipient_keys_cache : TtlCache owner to unrevoked inbox keys — relay_do/mod.rs:111
+        epoch_zone_cache : TtlCache epoch key to zone, positive only — relay_do/mod.rs:113
+        epoch_rows_cache : TtlCache all epoch rows, non-empty only — relay_do/mod.rs:115
+        zone_epoch_cache : TtlCache zone and epoch to first key, positive only — relay_do/mod.rs:117
+        activity : ActivityLedger — relay_do/mod.rs:119
     }
     class DurableObject {
-        new : relay_do/mod.rs:112
-        fetch — websocket upgrade only, else 426 : relay_do/mod.rs:130 relay_do/mod.rs:132
-        websocket_message : relay_do/mod.rs:210
-        websocket_close : relay_do/mod.rs:352
+        new : relay_do/mod.rs:123
+        fetch — websocket upgrade only, else 426 : relay_do/mod.rs:146 relay_do/mod.rs:148
+        websocket_message : relay_do/mod.rs:226
+        websocket_close : relay_do/mod.rs:368
     }
     NostrRelayDO ..|> DurableObject
 
     note for NostrRelayDO "EVERY field except state and env is volatile in-memory cache. Hibernation wipes all of it, which is what NF-11.2 exists to survive."
     note for NostrRelayDO "DRIFT: the admin_cache field comment says a 5-minute TTL relay_do/mod.rs:98, but the constant it uses is 30 s nostr-bbs-relay-worker/src/auth.rs:46"
     note for NostrRelayDO "rate_limit_per_sec is lazily resolved and CACHED because Env::var crosses the JS boundary on every read relay_do/mod.rs:91-93"
-    note for NostrRelayDO "ADR-2018: the four newest fields are three 60s-TTL memos plus a throttled activity ledger, added because authorize_event and resolve_viewer_context were re-reading D1 per frame - see NF-11.17"
-    note for NostrRelayDO "Per-IP connection slots are RESERVED atomically at accept (reserve_connection_slot, relay_do/mod.rs:394) and released on a failed WebSocketPair (relay_do/mod.rs:408) and on close (relay_do/session.rs:371), so the count can neither be read stale nor leak. CLOSE of a held subscription skips the limiter because it only sheds load (close_admitted relay_do/mod.rs:385), while AUTH is limited and answers a refused OK relay_do/mod.rs:307"
+    note for NostrRelayDO "ADR-2018: three 60s-TTL memos plus a throttled activity ledger, added because authorize_event and resolve_viewer_context were re-reading D1 per frame - see NF-11.17. Since 6064622 five more 60s memos serve the flagged-off Phase 2 inbox keys and ADR-2028 epoch keys relay_do/mod.rs:107-117"
+    note for NostrRelayDO "Per-IP connection slots are RESERVED atomically at accept (reserve_connection_slot, relay_do/mod.rs:410) and released on a failed WebSocketPair (relay_do/mod.rs:424) and on close (relay_do/session.rs:371), so the count can neither be read stale nor leak. CLOSE of a held subscription skips the limiter because it only sheds load (close_admitted relay_do/mod.rs:401), while AUTH is limited and answers a refused OK relay_do/mod.rs:323"
     note for NostrRelayDO "ADR-2023 content-free Web Push: a push_fanout module extends the DO and runs after save and OK, resolving recipients through the same viewer context and authorize_event gate as live delivery; it returns at once while PUSH_ENABLED is false, which is the shipped default relay_do/push_fanout.rs:47 relay_do/push_fanout.rs:94 - see NF-03.10"
-    note for DurableObject "The DO is a singleton reached by get_by_name main from the worker fetch nostr-bbs-relay-worker/src/lib.rs:230 - see NF-03.1"
+    note for DurableObject "The DO is a singleton reached by get_by_name main from the worker fetch nostr-bbs-relay-worker/src/lib.rs:232 - see NF-03.1"
 ```
 
 **Drift:** the `admin_cache` field comment calls it a 5-minute TTL cache (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs:98`), but `AdminCache` expires entries after `ADMIN_CACHE_TTL_SECS = 30` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:46`). The panel draws the constant.
@@ -86,14 +93,14 @@ sequenceDiagram
     participant DO as NostrRelayDO
     participant ST as DO storage
 
-    Note over DO: DO hibernates - sessions map, next_session_id and rate limits are gone, but sockets and their sid/ip tags survive relay_do/mod.rs:172
+    Note over DO: DO hibernates - sessions map, next_session_id and rate limits are gone, but sockets and their sid/ip tags survive relay_do/mod.rs:188
     alt a NEW connection wakes the DO
-        C2->>DO: fetch - Upgrade websocket relay_do/mod.rs:130
-        DO->>DO: recover_untracked_sessions FIRST, before a new id is allocated relay_do/mod.rs:156
+        C2->>DO: fetch - Upgrade websocket relay_do/mod.rs:146
+        DO->>DO: recover_untracked_sessions FIRST, before a new id is allocated relay_do/mod.rs:172
         DO->>ST: for every tagged socket NOT yet tracked - load challenge, subscriptions, authed_pubkey relay_do/session.rs:186-218
         ST-->>DO: A rejoins sessions with its restored state
     else a FRAME on an old socket wakes the DO
-        C1->>DO: websocket_message relay_do/mod.rs:210
+        C1->>DO: websocket_message relay_do/mod.rs:226
         DO->>DO: find_session_id in memory relay_do/session.rs:40
         alt not found - woke from hibernation
             DO->>ST: recover_session for THIS socket relay_do/session.rs:75
@@ -108,36 +115,39 @@ sequenceDiagram
     Note over DO: recovered_challenge is a PURE decision function, unit-testable without a DO relay_do/session.rs:443
 ```
 
-## NF-11.4 Storage — NIP-16 treatment decides what a save deletes
+## NF-11.4 Storage — NIP-16 treatment decides how a save writes and what it keeps
 
 ```mermaid
 flowchart TB
-    T["event_treatment<br/>relay_do/broadcast.rs:28"]
-    EPH["Ephemeral 20000-29999<br/>relay_do/broadcast.rs:29 - never saved, OK then broadcast"]
-    REP["Replaceable 10000-19999 plus kinds 0 and 3<br/>relay_do/broadcast.rs:31"]
-    PAR["ParameterizedReplaceable 30000-39999<br/>relay_do/broadcast.rs:33"]
-    REG["Regular - everything else<br/>relay_do/broadcast.rs:36"]
-    SAVE["save_event<br/>relay_do/storage.rs:66"]
-    INS["INSERT INTO events with d_tag and received_at<br/>relay_do/storage.rs:80"]
-    D1D["Replaceable: DELETE older rows for (pubkey, kind)<br/>relay_do/storage.rs:100"]
-    D2D["Parameterized: DELETE older rows for (pubkey, kind, d_tag)<br/>relay_do/storage.rs:121"]
-    CRE["kind 40 stored: INSERT INTO channel_creators, first write wins<br/>relay_do/storage.rs:159 relay_do/storage.rs:162"]
-    ISCC["is_channel_creator reads that row, else the kind-40 event<br/>relay_do/nip_handlers.rs:2548 relay_do/nip_handlers.rs:2549"]
+    T["event_treatment<br/>relay_do/broadcast.rs:30"]
+    EPH["Ephemeral 20000-29999<br/>relay_do/broadcast.rs:31 - never saved, OK then broadcast"]
+    REP["Replaceable 10000-19999 plus kinds 0 and 3<br/>relay_do/broadcast.rs:33"]
+    PAR["ParameterizedReplaceable 30000-39999<br/>relay_do/broadcast.rs:35"]
+    REG["Regular - everything else<br/>relay_do/broadcast.rs:38"]
+    SAVE["save_event<br/>relay_do/storage.rs:111"]
+    INS["Regular: INSERT with d_tag and received_at, ON CONFLICT id DO NOTHING,<br/>stored = the statement ran relay_do/storage.rs:125 relay_do/storage.rs:214-215"]
+    D1D["Replaceable: guarded INSERT unless a stored row for (pubkey, kind) beats it, then PRUNE what it beats,<br/>in one D1 batch relay_do/storage.rs:59 relay_do/storage.rs:71 relay_do/storage.rs:165"]
+    D2D["Parameterized: the same pair keyed on (pubkey, kind, d_tag)<br/>relay_do/storage.rs:38 relay_do/storage.rs:51 relay_do/storage.rs:205"]
+    KEPT["replaceable kinds report stored only when the INSERT changed a row, so a stale or duplicate<br/>version is not broadcast or projected relay_do/storage.rs:170 relay_do/storage.rs:201-204 relay_do/storage.rs:210"]
+    CRE["kind 40 stored: INSERT INTO channel_creators, first write wins<br/>relay_do/storage.rs:232 relay_do/storage.rs:235"]
+    ISCC["is_channel_creator reads that row, else the kind-40 event<br/>relay_do/nip_handlers.rs:3713 relay_do/nip_handlers.rs:3714"]
 
     T --> EPH & REP & PAR & REG
-    REP --> SAVE --> INS --> D1D
+    REG --> SAVE --> INS
+    REP --> SAVE
     PAR --> SAVE
-    INS --> D2D
-    REG --> SAVE
+    SAVE --> D1D & D2D
+    D1D & D2D --> KEPT
     INS --> CRE --> ISCC
 
-    N1["The d_tag column is what makes parameterised replacement a single indexed DELETE rather than a scan -<br/>it is written at INSERT time relay_do/storage.rs:80, extracted by relay_do/filter.rs:390"]
-    N2["kind-1059 gift wraps are REGULAR events - no replacement semantics - asserted<br/>relay_do/broadcast.rs:469"]
-    N3["query_events serves REQ from the same table relay_do/storage.rs:268; is_whitelisted is the admission<br/>lookup NF-03.4 step 7b calls relay_do/storage.rs:364"]
-    N4["INVARIANT: the channel creator is recorded in the same save that stores the kind-40, so a later kind-5 deletion of the event<br/>cannot change who may edit the channel relay_do/storage.rs:159. DEBT: the INSERT result is discarded<br/>relay_do/storage.rs:171, so a failed write leaves the lookup on the event row relay_do/nip_handlers.rs:2549"]
+    N1["The d_tag column is written at INSERT time relay_do/storage.rs:117 relay_do/storage.rs:125, extracted by relay_do/filter.rs:390,<br/>so the addressable guard and prune are indexed lookups on (pubkey, kind, d_tag) rather than scans"]
+    N2["kind-1059 gift wraps are REGULAR events - no replacement semantics - asserted<br/>relay_do/broadcast.rs:484"]
+    N3["query_events serves REQ from the same table relay_do/storage.rs:341; is_whitelisted is the admission<br/>lookup NF-03.4 step 7b calls relay_do/storage.rs:437"]
+    N4["INVARIANT: the channel creator is recorded in the same save that stores the kind-40, so a later kind-5 deletion of the event<br/>cannot change who may edit the channel relay_do/storage.rs:232. DEBT: the INSERT result is discarded<br/>relay_do/storage.rs:244, so a failed write leaves the lookup on the event row relay_do/nip_handlers.rs:3714"]
+    N5["INVARIANT NIP-01 order for both replaceable classes: newer created_at wins and, on a tie, the lowest id,<br/>so a late older version is refused rather than stored beside the current one relay_do/storage.rs:144-146 relay_do/storage.rs:175-181"]
 ```
 
-The [1 November storage audit](../../estate-review/2026-11-01-forum-spaces-and-replication.md) reproduces late-older and same-second coexistence and loss of a higher proposed revision. The deletion above does not implement latest-only query results or ADR-2031 revision ordering; see [NF-13](13-group-admission-and-replacement.md).
+The [1 November storage audit](../../estate-review/2026-11-01-forum-spaces-and-replication.md) reproduced late-older and same-second coexistence; at af4f0d5 both replaceable classes apply the NIP-01 order above. Loss of a higher proposed revision remains: this is created_at order, not ADR-2031 revision ordering; see [NF-13](13-group-admission-and-replacement.md).
 
 ## NF-11.5 Broadcast — the kind-1059 delivery gate
 
@@ -145,29 +155,30 @@ The [1 November storage audit](../../estate-review/2026-11-01-forum-spaces-and-r
 sequenceDiagram
     autonumber
     participant H as handle_event after save
-    participant B as broadcast_event<br/>relay_do/broadcast.rs:62
+    participant B as broadcast_event<br/>relay_do/broadcast.rs:64
     participant S as Session candidate
     participant W as WebSocket
 
     H->>B: event
-    B->>B: if kind 1059, extract the recipient p tag relay_do/broadcast.rs:65
-    B->>B: snapshot candidates - authed pubkey, socket, subscriptions relay_do/broadcast.rs:88
-    loop each candidate relay_do/broadcast.rs:114
+    B->>B: if kind 1059, extract the recipient p tag relay_do/broadcast.rs:67
+    B->>B: snapshot candidates - authed pubkey, socket, subscriptions relay_do/broadcast.rs:90
+    loop each candidate relay_do/broadcast.rs:116
         alt event is a protected-read kind - 4, 13, 14, 1059, 30910-30916
-            B->>B: protected_read_permitted per session: a DM needs an authenticated party to it, a moderation event needs AUTH only in nip42 mode relay_do/broadcast.rs:115 relay_do/broadcast.rs:116 relay_do/nip42.rs:103
+            B->>B: protected_read_permitted_with_keys per session: a DM needs an authenticated party to it, a moderation event needs AUTH only in nip42 mode relay_do/broadcast.rs:128-129 relay_do/nip42.rs:99
         end
         alt event is kind 1059
-            B->>B: skip unless the session is AUTHENTICATED as that recipient relay_do/broadcast.rs:129
+            B->>B: that session's inbox and readable epoch keys, looked up only for a wrap relay_do/broadcast.rs:118-126
+            B->>B: skip unless the session is AUTHENTICATED as that recipient, or holds it as an inbox or epoch key relay_do/broadcast.rs:143-147
         end
-        B->>B: zone-scoped kinds only - 40, 42, calendar, kanban: resolve_viewer_context then authorize_event relay_do/broadcast.rs:75 relay_do/broadcast.rs:148
+        B->>B: zone-scoped kinds only - 40, 42, calendar, kanban: resolve_viewer_context then authorize_event relay_do/broadcast.rs:77 relay_do/broadcast.rs:163
         B->>W: deliver if the event matches that subscription's filters
     end
 
-    Note over B: INVARIANT NIP-59: a sealed DM is delivered ONLY to the session whose AUTHENTICATED pubkey matches the p tag - subscribing to kind 1059 is not enough relay_do/broadcast.rs:63-65
-    Note over B: INVARIANT the protected-read check runs per event AND per session on the live path too: a filter that omits kinds names none, passed both REQ filter gates and is stored as a subscription, so without this check it would be handed every later moderation event and DM envelope relay_do/broadcast.rs:105-110 relay_do/broadcast.rs:44
+    Note over B: INVARIANT NIP-59: a sealed DM is delivered ONLY to the session whose AUTHENTICATED pubkey matches the p tag - subscribing to kind 1059 is not enough relay_do/broadcast.rs:65-67
+    Note over B: INVARIANT the protected-read check runs per event AND per session on the live path too: a filter that omits kinds names none, passed both REQ filter gates and is stored as a subscription, so without this check it would be handed every later moderation event and DM envelope relay_do/broadcast.rs:107-112 relay_do/broadcast.rs:46
     Note over B: This is the read-side twin of the write-side recipient gate in NF-03.5. Admission bounds who may PUBLISH a wrap, this bounds who may RECEIVE one.
-    Note over B: INVARIANT what broadcast matches against is the GATED filter, because handle_req now stores the authorised filter rather than the client's raw one relay_do/nip_handlers.rs:1818-1821 relay_do/nip_handlers.rs:1822-1825 - see NF-03.14
-    Note over B: A separate filter-level gate rewrites kind-1059 REQ filters to a mandatory #p in BOTH auth modes relay_do/nip_handlers.rs:2121 - so DM privacy never depends on AUTH_MODE relay_do/nip42.rs:256-259
+    Note over B: INVARIANT what broadcast matches against is the GATED filter, because handle_req now stores the authorised filter rather than the client's raw one relay_do/nip_handlers.rs:1887-1890 relay_do/nip_handlers.rs:1891-1894 - see NF-03.14
+    Note over B: A separate filter-level gate rewrites kind-1059 REQ filters to a mandatory #p in BOTH auth modes relay_do/nip_handlers.rs:2208 - so DM privacy never depends on AUTH_MODE relay_do/nip42.rs:307-310. With recipient keys on, the stored filter keeps the client's p tag and this per-session match is the isolation relay_do/nip_handlers.rs:2224-2229
 ```
 
 ## NF-11.6 Subscription matching — the REQ filter predicate
@@ -194,12 +205,12 @@ flowchart TB
     TAGPLAN --> PROBE
     C5 -.-> TAGPLAN
 
-    N1["Semantics are AND across fields, OR within a field - an absent field is UNCONSTRAINED, which is why<br/>a filter naming no kinds requests everything and is still not blocked by the protected-read gate<br/>(asserted relay_do/nip42.rs:393). See NF-03.3."]
-    N2["The SAME predicate serves both directions: query_events replays history relay_do/storage.rs:268 and<br/>broadcast_event tests each live event against every session subscription - see NF-11.5"]
+    N1["Semantics are AND across fields, OR within a field - an absent field is UNCONSTRAINED, which is why<br/>a filter naming no kinds requests everything and is still not blocked by the protected-read gate<br/>(asserted relay_do/nip42.rs:490). See NF-03.3."]
+    N2["The SAME predicate serves both directions: query_events replays history relay_do/storage.rs:341 and<br/>broadcast_event tests each live event against every session subscription - see NF-11.5"]
     N3["d_tag_value is what storage stamps at INSERT so parameterised replacement is an indexed DELETE -<br/>see NF-11.4 N1"]
-    N4["Before a filter is even evaluated: a malformed websocket frame is answered with a NOTICE rather than a<br/>socket close - the relay never drops a connection for one bad message relay_do/mod.rs:234-242"]
+    N4["Before a filter is even evaluated: a malformed websocket frame is answered with a NOTICE rather than a<br/>socket close - the relay never drops a connection for one bad message relay_do/mod.rs:250-258"]
     N6["NIP-50 search: search_term ignores an empty term and like_pattern escapes the backslash first, then % and _, so a query cannot widen its own LIKE pattern<br/>relay_do/filter.rs:225 relay_do/filter.rs:232"]
-    N5["Subscriptions that install a filter are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ<br/>relay_do/nip_handlers.rs:45 relay_do/nip_handlers.rs:1796"]
+    N5["Subscriptions that install a filter are capped at MAX_SUBSCRIPTIONS = 20 per session, enforced on REQ by<br/>subscription_cap_reached relay_do/nip_handlers.rs:45 relay_do/nip_handlers.rs:52-53 relay_do/nip_handlers.rs:1862. Since #91 a REQ<br/>that reuses a held id replaces it and is never refused. OPEN (kit O20, KF-22): concurrent REQs can exceed the cap - see NF-03.11"]
 ```
 
 ## NF-11.7 ModCache — a 60-second ban gate that fails CLOSED
@@ -267,14 +278,14 @@ flowchart TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Signed: valid signature, correlates to a case<br/>nostr-bbs-core/src/governance.rs:940
-    Signed --> RelayAccepted: durably stored - what an OK actually certifies<br/>nostr-bbs-core/src/governance.rs:943
-    RelayAccepted --> ProjectionCommitted: decision row, case state and receipt commit TOGETHER<br/>nostr-bbs-core/src/governance.rs:945
-    RelayAccepted --> ProjectionFailed: attempted and did not commit<br/>nostr-bbs-core/src/governance.rs:948
-    ProjectionCommitted --> ConsumerReceived: the mutation owner has READ it, not acted<br/>nostr-bbs-core/src/governance.rs:950
-    ConsumerReceived --> Applied: the act was performed and took effect<br/>nostr-bbs-core/src/governance.rs:952
-    ConsumerReceived --> NotApplied: the owner did not perform it, and says so<br/>nostr-bbs-core/src/governance.rs:955
-    ConsumerReceived --> AppliedManually: an operator did it by hand during an outage<br/>nostr-bbs-core/src/governance.rs:957
+    [*] --> Signed: valid signature, correlates to a case<br/>nostr-bbs-core/src/governance.rs:989
+    Signed --> RelayAccepted: durably stored - what an OK actually certifies<br/>nostr-bbs-core/src/governance.rs:992
+    RelayAccepted --> ProjectionCommitted: decision row, case state and receipt commit TOGETHER<br/>nostr-bbs-core/src/governance.rs:994
+    RelayAccepted --> ProjectionFailed: attempted and did not commit<br/>nostr-bbs-core/src/governance.rs:997
+    ProjectionCommitted --> ConsumerReceived: the mutation owner has READ it, not acted<br/>nostr-bbs-core/src/governance.rs:999
+    ConsumerReceived --> Applied: the act was performed and took effect<br/>nostr-bbs-core/src/governance.rs:1001
+    ConsumerReceived --> NotApplied: the owner did not perform it, and says so<br/>nostr-bbs-core/src/governance.rs:1004
+    ConsumerReceived --> AppliedManually: an operator did it by hand during an outage<br/>nostr-bbs-core/src/governance.rs:1006
     Applied --> [*]
     NotApplied --> [*]
     AppliedManually --> [*]
@@ -291,9 +302,9 @@ stateDiagram-v2
     note right of ProjectionFailed
         is_applied is the distinction a downstream operator needs - a DENIED
         action and an APPROVED action whose write FAILED must never look the
-        same nostr-bbs-core/src/governance.rs:953-954
+        same nostr-bbs-core/src/governance.rs:1002-1003
         Terminal until a reconciliation retry supersedes it
-        nostr-bbs-core/src/governance.rs:946-947
+        nostr-bbs-core/src/governance.rs:995-996
     end note
     note right of Applied
         INVARIANT the three application outcomes are a SET, not an order.
@@ -301,22 +312,22 @@ stateDiagram-v2
         rungs up to consumer-received and NOT for these three - they are
         mutually exclusive claims about the world, and a consumer that reduces
         them with max displays a success as a failure
-        nostr-bbs-core/src/governance.rs:919-935
+        nostr-bbs-core/src/governance.rs:968-984
         Compare rungs by ladder_rank, treat outcomes as a set
-        nostr-bbs-core/src/governance.rs:999
+        nostr-bbs-core/src/governance.rs:1048
     end note
 ```
 
 **Two side receipts** record something that happened to a case without advancing it
 toward application, and so never overwrite a ladder stage
-(`nostr-bbs-core/src/governance.rs:1012`).
+(`nostr-bbs-core/src/governance.rs:1061`).
 
 ## NF-11.10 Side receipts, the read API, and what ADR-2010 still leaves open
 
 ```mermaid
 flowchart TB
-    SIDE["Side receipts - never on the ladder<br/>escalated-on-age nostr-bbs-core/src/governance.rs:960<br/>expired nostr-bbs-core/src/governance.rs:962<br/>ladder_rank returns None for both nostr-bbs-core/src/governance.rs:1006"]
-    API["GET /api/governance/receipts - NIP-98 ADMIN<br/>relay_do/receipts.rs:869, routed at nostr-bbs-relay-worker/src/lib.rs:340"]
+    SIDE["Side receipts - never on the ladder<br/>escalated-on-age nostr-bbs-core/src/governance.rs:1009<br/>expired nostr-bbs-core/src/governance.rs:1011<br/>ladder_rank returns None for both nostr-bbs-core/src/governance.rs:1055"]
+    API["GET /api/governance/receipts - NIP-98 ADMIN<br/>relay_do/receipts.rs:869, routed at nostr-bbs-relay-worker/src/lib.rs:342"]
     JSON["receipt_json derives the flags rather than making every client<br/>re-implement stage semantics relay_do/receipts.rs:824"]
     FLAGS["applied relay_do/receipts.rs:844<br/>awaitsProjection relay_do/receipts.rs:845<br/>isApplicationStage relay_do/receipts.rs:849<br/>appliedAt appliedBy acknowledgement relay_do/receipts.rs:850"]
     LEDGER["ADR-2010 ledger row: proposed / partial / staged<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7"]
@@ -330,7 +341,7 @@ flowchart TB
     FLAGS --> OPEN
 
     N1["The relay now serves the APPLICATION stages on the read API, so the human who approved something<br/>can learn whether it actually happened - the loop ADR-2010 left open relay_do/receipts.rs:846-849"]
-    N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:1035 nostr-bbs-relay-worker/src/lib.rs:1047 - see NF-08.5"]
+    N6["INVARIANT: migration 0006 is mirrored into ensure_schema, the live schema path, so case_side_receipts<br/>and case_delegations exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:1341 nostr-bbs-relay-worker/src/lib.rs:1353 - see NF-08.5"]
     N2["INVARIANT: the projection commit is ATOMIC - decision row, case state and receipt in one batch<br/>relay_do/receipts.rs:452 relay_do/receipts.rs:672 relay_do/receipts.rs:716, every statement checked relay_do/receipts.rs:558. A receipt that says committed cannot outlive a decision that did not land. A superseding decision and an appeal commit through the same Commit enum and stage machine relay_do/receipts.rs:308"]
     N3["DIVERGENCE: the read stays scoped to the relay's existing ADMIN authority because ADR-2010's<br/>history-consumer extension leaves cross-case read authority to ratify relay_do/receipts.rs:865-868"]
     N4["RESOLVED at 341c5d2: the ledger row moved from inactive to staged on a live signed journey - the M4 run's<br/>system-decider 31403 read back projection-failed and applied false on the edge<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153. A relay receipt still cannot prove external<br/>application - EXTERNAL: see VC-24 and AB-14, estate loop ES-05"]
@@ -392,15 +403,15 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    CRON["scheduled entry<br/>nostr-bbs-relay-worker/src/lib.rs:1147"]
+    CRON["scheduled entry<br/>nostr-bbs-relay-worker/src/lib.rs:1623"]
     BF["backfill_profiles - ONE-SHOT, manual only<br/>nostr-bbs-relay-worker/src/cron.rs:72"]
     CAP["BACKFILL_MAX_ROWS ceiling per run<br/>nostr-bbs-relay-worker/src/cron.rs:49, stop at cron.rs:126"]
     RES["BackfillResult<br/>nostr-bbs-relay-worker/src/cron.rs:159"]
     RET["retention / NIP-40 expiry sweep<br/>nostr-bbs-relay-worker/src/cron.rs:345"]
-    AGE["ageing sweep - escalate_stale_cases<br/>nostr-bbs-relay-worker/src/cron.rs:592"]
+    AGE["ageing sweep - escalate_stale_cases<br/>nostr-bbs-relay-worker/src/cron.rs:601"]
     SW["trust demotion sweep - moved OUT to trust_sweep<br/>nostr-bbs-relay-worker/src/cron.rs:269"]
-    PUSH["ADR-2023 push: sweep_stale, then flush_pending<br/>nostr-bbs-relay-worker/src/lib.rs:1179 nostr-bbs-relay-worker/src/lib.rs:1181"]
-    EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:748, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1224"]
+    PUSH["ADR-2023 push: sweep_stale, then flush_pending<br/>nostr-bbs-relay-worker/src/lib.rs:1655 nostr-bbs-relay-worker/src/lib.rs:1657"]
+    EXP["ADR-2013: expire_stale_proposals - closes ontology proposals past stale_after<br/>nostr-bbs-relay-worker/src/cron.rs:757, runs AFTER the ageing sweep<br/>nostr-bbs-relay-worker/src/lib.rs:1700"]
 
     CRON --> SW --> PUSH --> RET --> AGE --> EXP
     BF --> CAP --> RES
@@ -408,39 +419,41 @@ flowchart LR
     N1["The profiles backfill is triggered manually via POST /api/admin/profiles/backfill and NOT from the cron,<br/>because it is a one-shot operation and the live ingest hook keeps rows fresh thereafter<br/>nostr-bbs-relay-worker/src/cron.rs:24-26"]
     N2["It is idempotent behind a freshness guard, so a re-run never overwrites a newer row<br/>nostr-bbs-relay-worker/src/cron.rs:11"]
     N3["The sweep was MOVED out of cron.rs because the inline form was unsound - it mutates trust_level, the<br/>very column its own candidate predicate filters on nostr-bbs-relay-worker/src/cron.rs:269-271. See NF-11.12."]
-    N4["The advertised retention windows are built from the SAME RETENTION_POLICY the sweep uses, so NIP-11 and<br/>the cron can never diverge nostr-bbs-relay-worker/src/nip11.rs:173-175"]
-    N5["INVARIANT: the ageing sweep is ordered and filtered by each case's OWN deadline, not by created_at -<br/>panels declare different deadlines, so oldest first is not most overdue first, and ordering by<br/>created_at made the page ceiling cut the LEAST overdue nostr-bbs-relay-worker/src/cron.rs:603-610,<br/>the SQL at nostr-bbs-relay-worker/src/cron.rs:613"]
-    N6["A case exactly AT its deadline has not yet exceeded it nostr-bbs-relay-worker/src/cron.rs:571,<br/>the predicate at nostr-bbs-relay-worker/src/cron.rs:572, asserted nostr-bbs-relay-worker/src/cron.rs:1173"]
-    N7["An ageing escalation is a SIDE receipt - it records what happened to a case without advancing it<br/>toward application nostr-bbs-core/src/governance.rs:960 - see NF-11.10"]
-    N8["ADR-2013: a proposal expires when the corpus has moved past its digest - the ontology page it named no<br/>longer describes the same content, so applying a stale decision would silently promote or demote the<br/>WRONG state. Closed WITHOUT a decision, receipted expired rather than left pending forever<br/>nostr-bbs-relay-worker/src/cron.rs:722-747. Runs after ageing so a case that is both overdue and<br/>expired accrues both receipts in the order they became true, per the scheduled-entry comment<br/>nostr-bbs-relay-worker/src/lib.rs:1219-1223"]
-    N9["NEW at this commit, the admission twin of the retention sweep: a malformed or past NIP-40 expiration<br/>is REFUSED at admission rather than accepted then swept - expiration_admission<br/>relay_do/filter.rs:375 runs before any side effect relay_do/nip_handlers.rs:1070, and the sweep's SQL<br/>skips non-numeric values nostr-bbs-relay-worker/src/cron.rs:419. Closes the mechanism of KF-1, see NF-10.11"]
+    N4["The advertised retention windows are built from the SAME RETENTION_POLICY the sweep uses, so NIP-11 and<br/>the cron can never diverge nostr-bbs-relay-worker/src/nip11.rs:178-180"]
+    N5["INVARIANT: the ageing sweep is ordered and filtered by each case's OWN deadline, not by created_at -<br/>panels declare different deadlines, so oldest first is not most overdue first, and ordering by<br/>created_at made the page ceiling cut the LEAST overdue nostr-bbs-relay-worker/src/cron.rs:612-619,<br/>the SQL at nostr-bbs-relay-worker/src/cron.rs:622"]
+    N6["A case exactly AT its deadline has not yet exceeded it nostr-bbs-relay-worker/src/cron.rs:580,<br/>the predicate at nostr-bbs-relay-worker/src/cron.rs:581, asserted nostr-bbs-relay-worker/src/cron.rs:1182"]
+    N7["An ageing escalation is a SIDE receipt - it records what happened to a case without advancing it<br/>toward application nostr-bbs-core/src/governance.rs:1009 - see NF-11.10"]
+    N8["ADR-2013: a proposal expires when the corpus has moved past its digest - the ontology page it named no<br/>longer describes the same content, so applying a stale decision would silently promote or demote the<br/>WRONG state. Closed WITHOUT a decision, receipted expired rather than left pending forever<br/>nostr-bbs-relay-worker/src/cron.rs:731-756. Runs after ageing so a case that is both overdue and<br/>expired accrues both receipts in the order they became true, per the scheduled-entry comment<br/>nostr-bbs-relay-worker/src/lib.rs:1695-1699"]
+    N9["Since 6064622, the admission twin of the retention sweep: a malformed or past NIP-40 expiration<br/>is REFUSED at admission rather than accepted then swept - expiration_admission<br/>relay_do/filter.rs:375 runs before any side effect relay_do/nip_handlers.rs:1110, and the sweep's SQL<br/>skips non-numeric values nostr-bbs-relay-worker/src/cron.rs:419. Closes the mechanism of KF-1, see NF-10.11"]
+    N10["The retention and expiry sweep writes NO NIP-09 tombstone, deliberately: storage policy, not a decision the content<br/>must never return. Its own residue: kind 9024's one-day window is shorter than the seven-day drift, so a one to seven<br/>day old copy can be stored again and is pruned again nostr-bbs-relay-worker/src/cron.rs:454-461 - see NF-11.19"]
 ```
 
 ## NF-11.14 NIP-11 — the relay information document cannot lie about its own gate
 
 ```mermaid
 flowchart TB
-    RI["relay_info<br/>nostr-bbs-relay-worker/src/nip11.rs:134"]
-    AM["auth_mode from the SAME parse_auth_mode the DO uses<br/>nostr-bbs-relay-worker/src/nip11.rs:158"]
-    LBL["nip42 to write_model nip42+allowlist, rejection auth-required<br/>nostr-bbs-relay-worker/src/nip11.rs:164-167"]
-    ALT["allowlist to write_model whitelist, rejection blocked<br/>nostr-bbs-relay-worker/src/nip11.rs:170"]
-    NIPS["supported_nips 1 9 11 16 29 33 40 42 45 50 56 59 65 98<br/>nostr-bbs-relay-worker/src/nip11.rs:207"]
-    ESC["escalation_defaults block<br/>nostr-bbs-relay-worker/src/nip11.rs:35, tier read at nip11.rs:146, posture nip11.rs:150"]
+    RI["relay_info<br/>nostr-bbs-relay-worker/src/nip11.rs:139"]
+    AM["auth_mode from the SAME parse_auth_mode the DO uses<br/>nostr-bbs-relay-worker/src/nip11.rs:163"]
+    LBL["nip42 to write_model nip42+allowlist, rejection auth-required<br/>nostr-bbs-relay-worker/src/nip11.rs:169-172"]
+    ALT["allowlist to write_model whitelist, rejection blocked<br/>nostr-bbs-relay-worker/src/nip11.rs:175"]
+    NIPS["supported_nips from SUPPORTED_NIPS: 1 9 11 16 33 40 42 45 50 56 59 65 98, NIP-29 deliberately absent<br/>nostr-bbs-relay-worker/src/nip11.rs:16 served nip11.rs:212, asserted nip11.rs:307"]
+    ESC["escalation_defaults block<br/>nostr-bbs-relay-worker/src/nip11.rs:40, tier read at nip11.rs:151, posture nip11.rs:155"]
 
     RI --> AM --> LBL
     AM --> ALT
     RI --> NIPS & ESC
 
-    N1["INVARIANT: the advertised auth_required must reflect the mode the handlers ACTUALLY enforce - it is<br/>sourced from the same parser, so the NIP-11 claim can never drift from behaviour<br/>nostr-bbs-relay-worker/src/nip11.rs:155-157. This is the strongest possible refutation of the stale<br/>README status row in NF-03.3."]
-    N2["The escalation block is explicitly a SCAFFOLD whose authoritative schema is owned by agentbox -<br/>said in the served document itself nostr-bbs-relay-worker/src/nip11.rs:55.<br/>EXTERNAL: see AB-15, and NF-06.12"]
-    N3["NIP-45 COUNT is handled at relay_do/nip_handlers.rs:2389. NIP-50 is the REQ search field, applied in SQL<br/>relay_do/filter.rs:166 and on the live path relay_do/filter.rs:282. profiles::handle_search<br/>nostr-bbs-relay-worker/src/profiles.rs:251 is a separate REST endpoint, not NIP-50"]
+    N1["INVARIANT: the advertised auth_required must reflect the mode the handlers ACTUALLY enforce - it is<br/>sourced from the same parser, so the NIP-11 claim can never drift from behaviour<br/>nostr-bbs-relay-worker/src/nip11.rs:160-162. This is the strongest possible refutation of the stale<br/>README status row in NF-03.3."]
+    N2["The escalation block is explicitly a SCAFFOLD whose authoritative schema is owned by agentbox -<br/>said in the served document itself nostr-bbs-relay-worker/src/nip11.rs:60.<br/>EXTERNAL: see AB-15, and NF-06.12"]
+    N5["CHANGED since 6064622: NIP-29 left the advertised list because the relay only gates the NIP-29 admin kinds and<br/>implements no group semantics nostr-bbs-relay-worker/src/nip11.rs:13-15 - the gate itself stays, see NF-03.4 step 12.<br/>With ZONE_GROUPS_ENABLED on, the document also serves the zone-to-group binding nip11.rs:287-296"]
+    N3["NIP-45 COUNT is handled at relay_do/nip_handlers.rs:2754. NIP-50 is the REQ search field, applied in SQL<br/>relay_do/filter.rs:166 and on the live path relay_do/filter.rs:282. profiles::handle_search<br/>nostr-bbs-relay-worker/src/profiles.rs:251 is a separate REST endpoint, not NIP-50"]
 ```
 
 ## NF-11.15 Admin and moderation surfaces on the worker
 
 ```mermaid
 flowchart TB
-    UA["user_admin<br/>delete_user user_admin.rs:149 | suspend user_admin.rs:259 | silence user_admin.rs:337<br/>notes get user_admin.rs:399 set user_admin.rs:427 | aliases list user_admin.rs:485 set user_admin.rs:525"]
+    UA["user_admin<br/>delete_user user_admin.rs:149 | suspend user_admin.rs:281 | silence user_admin.rs:359<br/>notes get user_admin.rs:421 set user_admin.rs:449 | aliases list user_admin.rs:507 set user_admin.rs:547"]
     MOD["moderation<br/>insert_report moderation.rs:62 | list moderation.rs:142 | resolve moderation.rs:234"]
     AUD["audit<br/>log_admin_action audit.rs:25 | list audit.rs:82"]
     PRO["profiles<br/>batch profiles.rs:96 | search profiles.rs:251 - search excludes pubkey_aliases old_pubkey rows"]
@@ -452,26 +465,28 @@ flowchart TB
     N1["suspend and silence are the two states the admission pipeline reads at NF-03.4 step 8 -<br/>written here, enforced there"]
     N2["profiles::batch is what the forum client's ProfileCache fetches over HTTP rather than by relay REQ -<br/>see NF-05.6; profiles::search is the REST GET /api/profiles/search profiles.rs:248, separate from<br/>the relay's NIP-50 REQ search, see NF-11.6"]
     N3["agent_disclosure is a PUBLIC endpoint - the client's agent badge reads it without auth, see NF-05.10.<br/>It is how a reader can tell a human post from an agent post."]
-    N4["The user_admin and moderation mutations call log_admin_action nostr-bbs-relay-worker/src/audit.rs:25 -<br/>user_admin.rs:229 user_admin.rs:307 user_admin.rs:370 user_admin.rs:465 user_admin.rs:625 moderation.rs:351 -<br/>into admin_log, the table the trust sweep also writes trust_sweep.rs:441 - see NF-08.5.<br/>DEBT: every call discards the result, so a failed audit write never fails the mutation"]
+    N4["The user_admin and moderation mutations call log_admin_action nostr-bbs-relay-worker/src/audit.rs:25 -<br/>user_admin.rs:245 user_admin.rs:329 user_admin.rs:392 user_admin.rs:487 user_admin.rs:647 moderation.rs:390 -<br/>into admin_log, the table the trust sweep also writes trust_sweep.rs:441 - see NF-08.5.<br/>DEBT: every call discards the result, so a failed audit write never fails the mutation"]
     N5["A key REPLACED via pubkey_aliases is excluded from both search shapes - roster mode profiles.rs:307<br/>and query mode profiles.rs:318 - so a renamed pubkey never shows twice under two identities"]
-    N6["INVARIANT since 1a26e51: alias_set with inherit_cohorts grants the old key's cohorts to the new one through the<br/>shared merge statement, so the successor keeps any cohort it already held user_admin.rs:602-605 user_admin.rs:612"]
+    N7["OPEN (kit O16, KF-15): GET /api/reports lists reportedPubkey exactly as the reporter's p tag claimed it<br/>relay_do/nip_handlers.rs:4765 moderation.rs:211, with no join to the stored event - handle_list_reports moderation.rs:142.<br/>Only the resolve route reads the stored row's real author, after the decision moderation.rs:337-345"]
+    N8["OPEN (kit O17, KF-16): the user purge tombstones and deletes by pubkey only user_admin.rs:225-236, so events signed by<br/>the user's registered device keys and gift wraps they sent or received (throwaway authors) are untouched"]
+    N6["INVARIANT since 1a26e51: alias_set with inherit_cohorts grants the old key's cohorts to the new one through the<br/>shared merge statement, so the successor keeps any cohort it already held user_admin.rs:624-627 user_admin.rs:634"]
 ```
 
-**Debt:** each admin mutation in `user_admin` and `moderation` discards the result of its audit write (`let _ = audit::log_admin_action(`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:229`), so `admin_log` can miss a mutation that took effect.
+**Debt:** each admin mutation in `user_admin` and `moderation` discards the result of its audit write (`let _ = audit::log_admin_action(`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:245`), so `admin_log` can miss a mutation that took effect.
 
 ## NF-11.16 ADR-2017 sealed originals — migrating history into an encrypted zone without a fresh-write hole
 
 ```mermaid
 flowchart TB
-    VAL["validate_event<br/>relay_do/nip_handlers.rs:1662"]
-    DRIFT["timestamp_drift_ok<br/>relay_do/nip_handlers.rs:1727"]
-    EXEMPT["sealed_drift_exempt - kind 42 AND a well-formed sealed tag<br/>relay_do/nip_handlers.rs:1717"]
-    PAST["exempt ONLY from the past bound - created_at must still not be in the future<br/>relay_do/nip_handlers.rs:1728"]
-    HAS["has_sealed_tag - ANY sealed tag, well formed or not<br/>relay_do/nip_handlers.rs:1440"]
-    REJ["sealed_write_rejection<br/>relay_do/nip_handlers.rs:1748"]
-    ADMIN["not admin -> SEALED_ADMIN_ONLY<br/>relay_do/nip_handlers.rs:1757"]
-    ENCZ["zone not encrypted -> SEALED_ENCRYPTED_ZONES_ONLY<br/>relay_do/nip_handlers.rs:1760"]
-    CIPHER["is_zone_ciphertext shape check - NIP-44 v2 ciphertext, no readable text even for admins<br/>zone_config.rs:208, gate at relay_do/nip_handlers.rs:1458"]
+    VAL["validate_event<br/>relay_do/nip_handlers.rs:1728"]
+    DRIFT["timestamp_drift_ok<br/>relay_do/nip_handlers.rs:1793"]
+    EXEMPT["sealed_drift_exempt - kind 42 AND a well-formed sealed tag<br/>relay_do/nip_handlers.rs:1783"]
+    PAST["exempt ONLY from the past bound - created_at must still not be in the future<br/>relay_do/nip_handlers.rs:1794"]
+    HAS["has_sealed_tag - ANY sealed tag, well formed or not<br/>relay_do/nip_handlers.rs:1470"]
+    REJ["sealed_write_rejection<br/>relay_do/nip_handlers.rs:1814"]
+    ADMIN["not admin -> SEALED_ADMIN_ONLY<br/>relay_do/nip_handlers.rs:1823"]
+    ENCZ["zone not encrypted -> SEALED_ENCRYPTED_ZONES_ONLY<br/>relay_do/nip_handlers.rs:1826"]
+    CIPHER["is_zone_ciphertext shape check - NIP-44 v2 ciphertext, no readable text even for admins<br/>zone_config.rs:238, gate at relay_do/nip_handlers.rs:1488"]
     OK["event accepted, saved with its ORIGINAL created_at"]
 
     VAL --> DRIFT --> EXEMPT --> PAST
@@ -479,24 +494,24 @@ flowchart TB
     REJ --> ENCZ
     ENCZ -.-> CIPHER --> OK
 
-    N1["INVARIANT: the drift exemption and the write rejection are SEPARATE gates that must both hold - a<br/>malformed sealed marker fails parse_sealed so EXEMPT never fires, but HAS still fires on the raw tag, so<br/>the write is refused rather than silently accepted as a fresh non-exempt event<br/>relay_do/nip_handlers.rs:1713-1716"]
-    N2["INVARIANT: order matters. An UNSCOPED channel otherwise lets any whitelisted member post, so the<br/>encrypted-zone check must reject a sealed envelope there even from an admin - checked BEFORE the ordinary<br/>zone-write gate, not folded into it relay_do/nip_handlers.rs:1435-1449"]
-    N3["The relay holds no zone key, so CIPHER is a SHAPE check only - it cannot prove the ciphertext decrypts<br/>to anything, only that it is not plaintext masquerading as migrated history relay_do/nip_handlers.rs:1455-1458"]
-    N4["Why this exists: an envelope keeps its original created_at so pagination, ordering and client unread<br/>logic stay correct across a migration that is usually far older than MAX_TIMESTAMP_DRIFT (7 days)<br/>relay_do/nip_handlers.rs:1706-1708"]
+    N1["INVARIANT: the drift exemption and the write rejection are SEPARATE gates that must both hold - a<br/>malformed sealed marker fails parse_sealed so EXEMPT never fires, but HAS still fires on the raw tag, so<br/>the write is refused rather than silently accepted as a fresh non-exempt event<br/>relay_do/nip_handlers.rs:1779-1782"]
+    N2["INVARIANT: order matters. An UNSCOPED channel otherwise lets any whitelisted member post, so the<br/>encrypted-zone check must reject a sealed envelope there even from an admin - checked BEFORE the ordinary<br/>zone-write gate, not folded into it relay_do/nip_handlers.rs:1465-1477"]
+    N3["The relay holds no zone key, so CIPHER is a SHAPE check only - it cannot prove the ciphertext decrypts<br/>to anything, only that it is not plaintext masquerading as migrated history relay_do/nip_handlers.rs:1485-1488"]
+    N4["Why this exists: an envelope keeps its original created_at so pagination, ordering and client unread<br/>logic stay correct across a migration that is usually far older than MAX_TIMESTAMP_DRIFT (7 days)<br/>relay_do/nip_handlers.rs:1772-1774"]
 ```
 
 ## NF-11.17 ADR-2018 read-side caching — per-DO memos and a throttled activity ledger
 
 ```mermaid
 flowchart TB
-    ZONE["cached_channel_zone - 60s memo, POSITIVE results only<br/>relay_do/nip_handlers.rs:2189"]
-    COH["cached_viewer_cohorts - 60s memo of cohorts, is_admin, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:2203"]
-    DEV["cached_device_owner - 60s memo, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:2216"]
+    ZONE["cached_channel_zone - 60s memo, POSITIVE results only<br/>relay_do/nip_handlers.rs:2311"]
+    COH["cached_viewer_cohorts - 60s memo of cohorts, is_admin, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:2325"]
+    DEV["cached_device_owner - 60s memo, BOTH outcomes cached<br/>relay_do/nip_handlers.rs:2338"]
     TTL["TtlCache generic memo, entries expire ttl_secs after being stored<br/>read_cache.rs:56"]
-    READ["note_read_activity - accumulates delivered reads<br/>relay_do/nip_handlers.rs:2228"]
-    WRITE["note_write_activity - records EVERY accepted EVENT; only the stamp and promotion check are throttled<br/>relay_do/nip_handlers.rs:2238 relay_do/nip_handlers.rs:2237"]
+    READ["note_read_activity - accumulates delivered reads<br/>relay_do/nip_handlers.rs:2592"]
+    WRITE["note_write_activity - records EVERY accepted EVENT; only the stamp and promotion check are throttled<br/>relay_do/nip_handlers.rs:2602 relay_do/nip_handlers.rs:2601"]
     LEDGER["ActivityLedger - flush at most once per pubkey per 300s, or at 50 pending reads<br/>read_cache.rs:98, thresholds read_cache.rs:44-48"]
-    FLUSH["flush_activity - increment_posts_read_by, update_last_active, check_promotion<br/>relay_do/nip_handlers.rs:2245"]
+    FLUSH["flush_activity - increment_posts_read_by, update_last_active, check_promotion<br/>relay_do/nip_handlers.rs:2609"]
 
     ZONE & COH & DEV --> TTL
     READ & WRITE --> LEDGER --> FLUSH
@@ -506,6 +521,70 @@ flowchart TB
     N3["The 60s TTL matches the existing ModCache (NF-11.7): a cohort revocation or zone re-binding self-heals<br/>within the same window the moderation cache already accepts read_cache.rs:22-23"]
     N4["Stamps are activity SIGNALS for the six-month inactivity sweep (NF-11.11) and TL0-to-TL1 promotion, so a<br/>five-minute coalescing delay is invisible; a DO eviction can drop at most one window of pending reads<br/>read_cache.rs:31-33"]
     N5["Everything here is PURE over an explicit now, so the TTL and flush-threshold decisions are unit-tested<br/>natively without the Workers runtime read_cache.rs:35-36"]
+    N6["The same TtlCache now also backs five flagged-off memos - recipient rows and keys (Phase 2), epoch zone, epoch rows<br/>and zone epoch (ADR-2028) relay_do/mod.rs:107-117, filled through cached_recipient_keys and cached_epoch_zone<br/>relay_do/nip_handlers.rs:2289 relay_do/nip_handlers.rs:2476"]
 ```
 
 [The trust-transition review](../../estate-review/2026-11-01-forum-trust-transitions.md) qualifies NF-11.11/12 with repeated capped-tick tests and confirms the repaired demotion transaction. Promotion has separate unchecked writes; see NF-24.3.
+
+## NF-11.18 NIP-09 process_deletion — tombstone first, then delete (PRs #89, #90, #94)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant H as handle_event after save
+    participant PD as process_deletion<br/>relay_do/nip_handlers.rs:3510
+    participant TB as tombstone_before_delete<br/>nostr-bbs-relay-worker/src/lib.rs:1569
+    participant D1 as relay D1
+
+    H->>PD: stored kind 5, can_delete_any = admin or TL3+ relay_do/nip_handlers.rs:1638-1640
+    loop each e target
+        PD->>D1: well-formed id - INSERT OR IGNORE deleted_events (id, signer) relay_do/nip_handlers.rs:3533-3543 lib.rs:764-765
+        PD->>TB: address tombstone - Event for a moderator, OwnEventAddress for a member relay_do/nip_handlers.rs:3549-3558
+        TB->>D1: statements read the row's REAL author from events before the row goes lib.rs:870-873 lib.rs:878-883
+        PD->>D1: DELETE by id, scoped to the signer unless can_delete_any relay_do/nip_handlers.rs:3560-3574
+        opt member, RECIPIENT_KEYS_ENABLED
+            PD->>D1: a wrap whose first p is one of the signer's keys - tombstone under the wrap's own author, then delete relay_do/nip_handlers.rs:3581-3619
+        end
+    end
+    opt can_delete_any
+        PD->>D1: delete_sealed_envelopes - admin-authored envelopes wrapping a named sealed original relay_do/nip_handlers.rs:3629-3630 relay_do/nip_handlers.rs:3404
+    end
+    loop each a target
+        PD->>PD: a_ref_target - only replaceable and addressable kinds, own address unless can_delete_any relay_do/nip_handlers.rs:3643-3648 relay_do/nip_handlers.rs:2841
+        PD->>D1: upsert deleted_addresses with deleted_until = min(kind-5 created_at, now) relay_do/nip_handlers.rs:3654-3661 lib.rs:769-773
+        PD->>D1: DELETE versions up to the kind-5's own created_at, a newer version stays relay_do/nip_handlers.rs:3664-3680
+    end
+
+    Note over PD: INVARIANT without delete-any the SQL keeps the author constraint, so a gate regression cannot widen deletion through this path alone relay_do/nip_handlers.rs:3505-3509
+    Note over PD: INVARIANT a regular-kind a-ref never acts - one a tag of 1, pubkey and empty d would otherwise delete every kind 1 the author made relay_do/nip_handlers.rs:2835-2840
+    Note over TB: INVARIANT never in the same D1 batch as the DELETE - batches are transactional and a failed tombstone must not undo the deletion. The result is reported, never acted on lib.rs:1562-1568
+    Note over PD,D1: DEBT (kit O13, KF-17) - the (id, signer) row is written even when no row exists for the id, and a moderator's kind 5 is not gated, so a claim for an id never stored here is recorded - see NF-03.15
+    Note over PD,D1: DEBT (kit O18, KF-18) - which envelopes go is decided by whether each envelope's author is an admin NOW, not by a migrator record relay_do/nip_handlers.rs:3437-3448 relay_do/nip_handlers.rs:3396-3399 - see NF-26.7
+```
+
+## NF-11.19 Which deletion routes tombstone (PR #90)
+
+```mermaid
+flowchart TB
+    subgraph W ["routes that tombstone the stored rows first"]
+        R1["kind 5 via process_deletion<br/>relay_do/nip_handlers.rs:3510 - NF-11.18"]
+        R2["report resolved as delete, POST /api/reports/resolve<br/>Event target moderation.rs:349-353, then DELETE moderation.rs:356<br/>route nostr-bbs-relay-worker/src/lib.rs:394"]
+        R3["admin purge of migrated plaintext, kind 42 only, POST /api/admin/events/delete<br/>RegularEvent target admin_events.rs:279-284, then DELETE admin_events.rs:286<br/>route nostr-bbs-relay-worker/src/lib.rs:377"]
+        R4["user purge with delete_events, POST /api/admin/user/delete<br/>Author target user_admin.rs:225-229, then DELETE user_admin.rs:233<br/>route nostr-bbs-relay-worker/src/lib.rs:440"]
+    end
+    TB["tombstone_before_delete, fail-open, reads the row's real author<br/>nostr-bbs-relay-worker/src/lib.rs:1569 lib.rs:855-866"]
+    DEL["DELETE FROM events"]
+    subgraph N ["routes that write none"]
+        C1["cron retention and NIP-40 expiry, deliberately<br/>nostr-bbs-relay-worker/src/cron.rs:345 cron.rs:454-461"]
+        C2["reset-db clears every tombstone along with the events<br/>whitelist.rs:521-525, route nostr-bbs-relay-worker/src/lib.rs:362"]
+    end
+    ING["ingest is_deleted refuses re-publication<br/>relay_do/nip_handlers.rs:1607 - NF-03.16"]
+
+    R1 & R2 & R3 & R4 --> TB --> DEL
+    DEL -.-> ING
+    C1 --> DEL
+
+    N1["A tombstone must be written BEFORE the row goes, because the statements read the author from events -<br/>an absent row records nothing lib.rs:855-866. The id commits to its author, so the wrong author would block nothing lib.rs:741-745"]
+    N2["OPEN (kit O15, KF-14): no admin route removes one tombstone. Only reset-db deletes from deleted_events and<br/>deleted_addresses whitelist.rs:523-525, so an event removed by mistake cannot be selectively re-admitted"]
+    N3["The report and user-purge routes record whether the tombstone ran and report it to the admin, but proceed<br/>either way moderation.rs:349-354 user_admin.rs:213-217"]
+```

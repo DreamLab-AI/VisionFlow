@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
   - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
-verified_commit: 7e1f036ebd9ebd6c922db6f9acea041775730071
+verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
 ---
 
 ## NF-09.1 The CI gate graph
@@ -68,7 +68,7 @@ flowchart TB
     N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:185 - which is why it can check the WHOLE workspace, not the three crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:72. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:329"]
     N6["The drift job needs no Rust toolchain and checks out agentbox read-only into _agentbox so the JS derivation is pinned to the real call sites<br/>.github/workflows/ci.yml:281-284. DRIFT: the comment says it runs only when its scripts or fixtures change<br/>.github/workflows/ci.yml:272-273, but the job has no if: and the path filters are workflow-wide and include every .rs file<br/>.github/workflows/ci.yml:26 .github/workflows/ci.yml:275-278, so it runs on every CI run, still outside ci-pass"]
-    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:252-254. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
+    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:307-309. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
     CLIP -.- N5
     DG -.- N6
 ```
@@ -96,12 +96,12 @@ flowchart LR
     AUD --> DEPW
     SH -.->|"meant to mirror, no shared config format"| POL
 
-    N1["INVARIANT: no git dependencies. allow-git is empty deny.toml:78, so every crate, solid-pod-rs included,<br/>comes from crates.io. It does not fix the version: solid-pod-rs is now a caret range nostr-rust-forum/Cargo.toml:185 -<br/>see NF-10.1 I6, NF-01.4 and ADR-2007"]
-    N2["DRIFT: the advisory ignore list is duplicated by hand between deny.toml and security-audit.sh because<br/>cargo-audit has no shared config format scripts/security-audit.sh:5, and the copies now differ. The script also ignores<br/>RUSTSEC-2026-0097 and RUSTSEC-2026-0221 scripts/security-audit.sh:10 scripts/security-audit.sh:12, which deny.toml:12-19<br/>omits, though both are reviewed exceptions docs/security/advisory-exceptions.md:13-14"]
+    N1["INVARIANT: no git dependencies. allow-git is empty deny.toml:78, so every crate, solid-pod-rs included,<br/>comes from crates.io. It does not fix the version: solid-pod-rs is now a caret range nostr-rust-forum/Cargo.toml:188 -<br/>see NF-10.1 I6, NF-01.4 and ADR-2007"]
+    N2["DRIFT: the advisory ignore list is duplicated by hand between deny.toml and security-audit.sh because<br/>cargo-audit has no shared config format scripts/security-audit.sh:5, and the copies now differ. The script also ignores<br/>RUSTSEC-2026-0097, RUSTSEC-2026-0221 and, since 6ce6264, RUSTSEC-2026-0543 (chrono via solid-pod-rs)<br/>scripts/security-audit.sh:10 scripts/security-audit.sh:12 scripts/security-audit.sh:13, which deny.toml:12-19<br/>omits, though all three are reviewed exceptions docs/security/advisory-exceptions.md:13-15"]
     N3["MITNFA (MIT plus a no-false-attribution clause) was added for hex_lit, a rust-bitcoin 0.32<br/>dependency reached through the member wallet - ADR-2015 deny.toml:41"]
 ```
 
-**Drift:** `../nostr-rust-forum/scripts/security-audit.sh:10` and `:12` ignore two advisories that `../nostr-rust-forum/deny.toml:12-19` does not (N2).
+**Drift:** `../nostr-rust-forum/scripts/security-audit.sh:10`, `:12` and `:13` ignore three advisories that `../nostr-rust-forum/deny.toml:12-19` does not (N2); the chrono exception added at 6ce6264 went into the script and the exceptions record but not into `deny.toml`, so the weekly `cargo deny check advisories` job and the script still disagree.
 
 ## NF-09.3 Repository scripts
 
@@ -137,11 +137,12 @@ flowchart LR
     ING["[[ingress]] recipients well-formed and unique, ADR-2022 validate.rs:226 to nostr-bbs-config/src/ingress.rs:94"]
     Z1["zone ids unique validate.rs:241"]
     ENC["ADR-2016: encrypted && visibility = public is rejected - anonymous readers<br/>can never hold a zone key validate.rs:250"]
-    Z2["slug must be lowercase a-z 0-9 hyphen validate.rs:271 validate.rs:298"]
-    Z3["slug unique validate.rs:278"]
-    Z4["a slug must not collide with a DIFFERENT zone's id validate.rs:283"]
+    Z2["slug must be lowercase a-z 0-9 hyphen validate.rs:296 validate.rs:323"]
+    Z3["slug unique validate.rs:303"]
+    Z4["a slug must not collide with a DIFFERENT zone's id validate.rs:308"]
+    GP["ADR-2028: group_pubkey nostr-bbs-config/src/schema.rs:256 must be 64-char lowercase hex validate.rs:271<br/>and is rejected on a zone that is not encrypted validate.rs:282"]
 
-    V --> H & R & I & A & ING & Z1 & ENC & Z2 & Z3 & Z4
+    V --> H & R & I & A & ING & Z1 & ENC & Z2 & Z3 & Z4 & GP
 
     N1["This is what makes forum.example.toml's zeroed placeholder pubkeys fail by design - see NF-08.1"]
     N2["The slug-versus-id collision rule is what keeps the client's zone-slug route aliases unambiguous -<br/>see NF-05.2"]

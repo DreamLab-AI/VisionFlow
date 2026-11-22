@@ -11,6 +11,7 @@ sources:
   - ../solid-pod-rs/.github/dependabot.yml
   - ../solid-pod-rs/.github/CODEOWNERS
   - ../solid-pod-rs/deny.toml
+  - ../solid-pod-rs/.cargo/audit.toml
   - ../solid-pod-rs/Cargo.toml
   - ../solid-pod-rs/CHANGELOG.md
   - ../solid-pod-rs/scripts/check-diagram-staleness.sh
@@ -33,13 +34,16 @@ sources:
   - ../project/Cargo.toml
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/Cargo.lock
+  - ../nostr-rust-forum/CHANGELOG.md
+  - ../dreamlab-ai-website/forum-config/Cargo.toml
+  - ../dreamlab-ai-website/forum-config/Cargo.lock
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs
   - ../project/agentbox/lib/solid-pod-rs.nix
   - ../project/agentbox/flake.nix
   - ../project/agentbox/management-api/routes/payments.js
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md
-verified_commit: {solid-pod-rs: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
+verified_commit: {solid-pod-rs: a28a74832dd0a6e47a531e34e4adc46a3946dfd3, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891, dreamlab-ai-website: 567bed67f54c2be66edf7e1333442f9458294241}
 ---
 
 ## SP-09.2 The CI jobs and the required-check aggregator
@@ -144,13 +148,13 @@ flowchart TD
     AUD -.-> N2
     N3["The coverage GATE is tarpaulin's --fail-under; the Codecov upload is reporting<br/>only, so a missing CODECOV_TOKEN cannot mask a passing gate.<br/>../solid-pod-rs/.github/workflows/ci.yml:240-244"]
     CC -.-> N3
-    N4["Four dated, justified advisory exceptions with no in-semver fix — RUSTSEC-2026-0258<br/>(h2 0.3 via actix-http, no HTTP/2 listener enabled), RUSTSEC-2023-0071 (rsa 0.9<br/>Marvin, verification-only) and, since alpha.18, RUSTSEC-2026-0387 (crypto-bigint 0.5.5 via openidconnect, exposure unassessed) and SQLite RUSTSEC-2026-0459 via ActivityPub, reviewed by 2026-12-20<br/>— are ignored in lockstep by deny.toml:48,57,64,74 and<br/>.cargo/audit.toml. The README no longer states the gate PASSES: it says its refresh<br/>did not establish current dependency-advisory status<br/>(../solid-pod-rs/README.md:175) and that historical green checks are no claim for<br/>today (../solid-pod-rs/README.md:178)."]
+    N4["Five dated, justified advisory exceptions — RUSTSEC-2026-0258<br/>(h2 0.3 via actix-http, no HTTP/2 listener enabled, re-verified on actix-http 3.22.0), RUSTSEC-2023-0071 (rsa 0.9<br/>Marvin, verification-only), since alpha.18 RUSTSEC-2026-0387 (crypto-bigint 0.5.5 via openidconnect, whose premise<br/>the lock no longer bears out, see SP-01.11), SQLite RUSTSEC-2026-0459 via ActivityPub and, since alpha.24,<br/>RUSTSEC-2026-0543 (chrono unmaintained: public API, a breaking release to time is the exit), reviewed by 2026-12-20<br/>— are ignored in lockstep by deny.toml:48,58,65,75,92 and<br/>.cargo/audit.toml:11,16,23,33,50. The README no longer states the gate PASSES: it says its refresh<br/>did not establish current dependency-advisory status<br/>(../solid-pod-rs/README.md:175) and that historical green checks are no claim for<br/>today (../solid-pod-rs/README.md:178)."]
     AUD -.-> N4
     N5["The audit job also runs on the weekly schedule (SP-09.2), not just push/PR, so<br/>cargo-audit re-checks against a moving advisory database even when nothing in<br/>the repo changed — a dependency becomes vulnerable without a commit.<br/>../solid-pod-rs/.github/workflows/ci.yml:19"]
     AUD -.-> N5
-    N6["The licence check carries one crate-scoped exception, MITNFA for hex_lit,<br/>which rust-bitcoin 0.32 pulls in since the ADR-2008 port. It is allowed for<br/>that crate only, never workspace-wide.<br/>../solid-pod-rs/deny.toml:120"]
+    N6["The licence check carries one crate-scoped exception, MITNFA for hex_lit,<br/>which rust-bitcoin 0.32 pulls in since the ADR-2008 port. It is allowed for<br/>that crate only, never workspace-wide.<br/>../solid-pod-rs/deny.toml:138"]
     DENY -.-> N6
-    N7["The mrc20 feature now enables rust-bitcoin, which links the C libsecp256k1.<br/>It stays outside the core feature the wasm job checks, so this gate does not<br/>cover it; a wasm32 build with mrc20 needs a C toolchain for the target.<br/>crates/solid-pod-rs/Cargo.toml:214-215"]
+    N7["The mrc20 feature now enables rust-bitcoin, which links the C libsecp256k1.<br/>It stays outside the core feature the wasm job checks, so this gate does not<br/>cover it; a wasm32 build with mrc20 needs a C toolchain for the target.<br/>crates/solid-pod-rs/Cargo.toml:226-227"]
     WASM -.-> N7
 ```
 
@@ -192,29 +196,33 @@ sequenceDiagram
 - **Drift:** the release body comes from `git log` over `crates/solid-pod-rs` only (../solid-pod-rs/.github/workflows/release.yml:117), not from CHANGELOG.md. Sibling-crate commits, including forge and server fixes, are left out of the GitHub release text.
 - **Open:** the "manual approval" step is real only if the `crates-io-publish` environment has required reviewers. The workflow comment says it must (../solid-pod-rs/.github/workflows/release.yml:183-184), but that is repository configuration that source cannot show.
 
-## SP-09.7 Version alignment and the consumer pin matrix
+## SP-09.7 Version alignment and the release line
 
 ```mermaid
 flowchart TD
-    WSV["workspace.package.version 0.5.0-alpha.22<br/>../solid-pod-rs/Cargo.toml:15"]
+    WSV["workspace.package.version 0.5.0-alpha.24<br/>../solid-pod-rs/Cargo.toml:15"]
+    UNREL["Unreleased at a28a748 (PR 17, no version bump, no publish): url floor 2.5.9 in every crate<br/>that declares it for RUSTSEC-2026-0592, chrono ignore re-assessed, sqlx's chrono now said to be opt-in<br/>../solid-pod-rs/CHANGELOG.md:7-16"]
+    REL24["0.5.0-alpha.24, 2026-11-22 — actix-http 3.22.0 and quinn-udp 0.5.16 advisories,<br/>chrono ignore, first-use lock NotFound retry, wall-clock NIP-98 test helpers<br/>../solid-pod-rs/CHANGELOG.md:18"]
+    REL23["0.5.0-alpha.23, 2026-11-21 — ActivityPub, remoteStorage and WebRTC mounts and their review fixes,<br/>Nostr relay and /.notifications mounts, JSON-LD ACLs and pod-origin IRI resolution,<br/>SPARQL WHERE evaluation, cross-process storage lock, container ACL layouts<br/>../solid-pod-rs/CHANGELOG.md:39"]
     INH["every crate inherits it — version.workspace = true<br/>crates/solid-pod-rs/Cargo.toml:3"]
-    REL22["0.5.0-alpha.22, 2026-11-11 — cap-primitives and rustix fixes,<br/>dated SQLite exception, hermetic Jev fixtures<br/>../solid-pod-rs/CHANGELOG.md:9-31"]
-    REL21["0.5.0-alpha.21, 2026-11-08 — RUSTSEC-2026-0387 cleared from the OIDC path, the actix advisories,<br/>the NIP-98 GitLenient path-segment boundary, in-memory backend path refusal<br/>../solid-pod-rs/CHANGELOG.md:33"]
-    REL20["0.5.0-alpha.20, 2026-11-03 — pod creation writes an owner ACL tree under the pod root lock,<br/>full N3 Patch grammar, repeated ACL predicates kept<br/>../solid-pod-rs/CHANGELOG.md:58"]
-    REL19["0.5.0-alpha.19, 2026-11-03 — the SP-GIT-02 mirror and fork migrations, MSRV 1.89<br/>../solid-pod-rs/CHANGELOG.md:163"]
-    REL18["0.5.0-alpha.18, 2026-10-29 — RustCrypto 0.14 (k256 and p256), the RUSTSEC clearances,<br/>RUSTSEC-2026-0387 ignored for the openidconnect path<br/>../solid-pod-rs/CHANGELOG.md:517"]
-    REL17["0.5.0-alpha.17, 2026-10-20 — the rest of the forge feature set, mirror hardening,<br/>security-review fixes<br/>../solid-pod-rs/CHANGELOG.md:546"]
-    REL16["0.5.0-alpha.16, 2026-10-19 — tracks JSS 0.0.221, repo-held git-mark trails<br/>../solid-pod-rs/CHANGELOG.md:592"]
-    REL15["0.5.0-alpha.15, 2026-10-19 — the server stops serving git push (403)<br/>../solid-pod-rs/CHANGELOG.md:629"]
-    REL14["0.5.0-alpha.14, 2026-10-18 — MCP skill reads are charged, dependency advisories<br/>../solid-pod-rs/CHANGELOG.md:643"]
-    REL13["0.5.0-alpha.13, 2026-10-14 — the security release: COPY authorises its source;<br/>every server release from 0.4.0-alpha.3 to 0.5.0-alpha.12 yanked<br/>../solid-pod-rs/CHANGELOG.md:689"]
-    REL12["0.5.0-alpha.12, 2026-10-03 — the whole-trail verification release:<br/>blocktrail module, git-mark anchors, verify_mrc20_anchor walks every link<br/>../solid-pod-rs/CHANGELOG.md:765"]
-    REL11["0.5.0-alpha.11, 2026-10-02 — the deposit-binding release:<br/>rust-bitcoin anchor validation, the TXO stand-in deleted,<br/>WebLedger receipts<br/>../solid-pod-rs/CHANGELOG.md:830"]
-    REL10["0.5.0-alpha.10, 2026-10-01 — the did:nostr parity release,<br/>re-pinned all eight crates<br/>../solid-pod-rs/CHANGELOG.md:982, :989-990"]
-    REL["0.5.0-alpha.9 re-pins ALL EIGHT crates and yanks the superseded versions<br/>../solid-pod-rs/CHANGELOG.md:1054-1055"]
-    DRIFT["the drift it fixed: siblings sat at alpha.7 on crates.io while the root<br/>crate moved to alpha.8<br/>../solid-pod-rs/CHANGELOG.md:1052-1053"]
+    REL22["0.5.0-alpha.22, 2026-11-11 — cap-primitives and rustix fixes,<br/>dated SQLite exception, hermetic Jev fixtures<br/>../solid-pod-rs/CHANGELOG.md:405-427"]
+    REL21["0.5.0-alpha.21, 2026-11-08 — RUSTSEC-2026-0387 cleared from the OIDC path, the actix advisories,<br/>the NIP-98 GitLenient path-segment boundary, in-memory backend path refusal<br/>../solid-pod-rs/CHANGELOG.md:429"]
+    REL20["0.5.0-alpha.20, 2026-11-03 — pod creation writes an owner ACL tree under the pod root lock,<br/>full N3 Patch grammar, repeated ACL predicates kept<br/>../solid-pod-rs/CHANGELOG.md:454"]
+    REL19["0.5.0-alpha.19, 2026-11-03 — the SP-GIT-02 mirror and fork migrations, MSRV 1.89<br/>../solid-pod-rs/CHANGELOG.md:559"]
+    REL18["0.5.0-alpha.18, 2026-10-29 — RustCrypto 0.14 (k256 and p256), the RUSTSEC clearances,<br/>RUSTSEC-2026-0387 ignored for the openidconnect path<br/>../solid-pod-rs/CHANGELOG.md:913"]
+    REL17["0.5.0-alpha.17, 2026-10-20 — the rest of the forge feature set, mirror hardening,<br/>security-review fixes<br/>../solid-pod-rs/CHANGELOG.md:942"]
+    REL16["0.5.0-alpha.16, 2026-10-19 — tracks JSS 0.0.221, repo-held git-mark trails<br/>../solid-pod-rs/CHANGELOG.md:988"]
+    REL15["0.5.0-alpha.15, 2026-10-19 — the server stops serving git push (403)<br/>../solid-pod-rs/CHANGELOG.md:1025"]
+    REL14["0.5.0-alpha.14, 2026-10-18 — MCP skill reads are charged, dependency advisories<br/>../solid-pod-rs/CHANGELOG.md:1039"]
+    REL13["0.5.0-alpha.13, 2026-10-14 — the security release: COPY authorises its source;<br/>every server release from 0.4.0-alpha.3 to 0.5.0-alpha.12 yanked<br/>../solid-pod-rs/CHANGELOG.md:1085"]
+    REL12["0.5.0-alpha.12, 2026-10-03 — the whole-trail verification release:<br/>blocktrail module, git-mark anchors, verify_mrc20_anchor walks every link<br/>../solid-pod-rs/CHANGELOG.md:1161"]
+    REL11["0.5.0-alpha.11, 2026-10-02 — the deposit-binding release:<br/>rust-bitcoin anchor validation, the TXO stand-in deleted,<br/>WebLedger receipts<br/>../solid-pod-rs/CHANGELOG.md:1226"]
+    REL10["0.5.0-alpha.10, 2026-10-01 — the did:nostr parity release,<br/>re-pinned all eight crates<br/>../solid-pod-rs/CHANGELOG.md:1378, :1385-1386"]
+    REL["0.5.0-alpha.9 re-pins ALL EIGHT crates and yanks the superseded versions<br/>../solid-pod-rs/CHANGELOG.md:1450-1451"]
+    DRIFT["the drift it fixed: siblings sat at alpha.7 on crates.io while the root<br/>crate moved to alpha.8<br/>../solid-pod-rs/CHANGELOG.md:1448-1449"]
 
-    WSV --> INH --> REL22
+    WSV --> INH --> REL24
+    REL22 --> REL23 --> REL24 -.-> UNREL
     REL19 --> REL20 --> REL21 --> REL22
     REL18 --> REL19
     REL17 --> REL18
@@ -228,36 +236,46 @@ flowchart TD
     REL --> REL10
     DRIFT --> REL
 
-    AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — version 0.5.0-alpha.22 at rev bc6d9d8<br/>(../project/agentbox/lib/solid-pod-rs.nix:66-69), with forge-full added unless the manifest's<br/>forge.enable is false (../project/agentbox/flake.nix:1702). The pin carries the alpha.22 security fixes and these earlier repairs: SP-GIT-02 commits A, B1 and B2, the hidden-object fetch<br/>refusal, the NIP-98 empty-body binding, the OIDC redirect check and the ACL-control fix.<br/>The server's Jev option stays local-only unless SOLID_POD_JEV_ALLOW_CLOUD=1 admits the proxy and the<br/>TypeSafe step (../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:153). See AB-08, AB-06 and ES-08."]
-    VC["EXTERNAL: VisionClaw requires solid-pod-rs, -nostr, -idp and -server at 0.5.0-alpha.22,<br/>optional, level with this workspace and agentbox's pin, superseding the former 0.4.0-alpha.15 pin<br/>(../project/Cargo.toml:219-220 and :240-243). See VC-26."]
-    NF["EXTERNAL: nostr-rust-forum requires solid-pod-rs 0.5.0-alpha.20 as a CARET range on main,<br/>default-features = false, features = core (../nostr-rust-forum/Cargo.toml:185), locked at alpha.20<br/>(../nostr-rust-forum/Cargo.lock:4226-4227); the exact pin was dropped by owner decision 2026-10-18<br/>(../nostr-rust-forum/Cargo.toml:181-184). Main carries the RUSTSEC-2026-0387 bump. See the nostr-rust-forum area."]
-    DW["EXTERNAL: dreamlab-ai-website has no direct dependency; it inherits whatever<br/>the forum kit pins. See the dreamlab-ai-website area."]
-
-    REL12 --> AB
-    REL12 --> VC
-    REL12 --> NF
-    NF --> DW
-
-    N["The forum's alpha.7 lag is long closed: it moved to alpha.10 for the<br/>full-key Multikey encoder and decoder (../solid-pod-rs/CHANGELOG.md:994-997)<br/>and is now required at 0.5.0-alpha.20 as a caret range on main. Every type intended for the edge tier<br/>compiles under core. A dependency bump alone does not change caller<br/>behaviour — wiring the edge ACL, audience and replay seams is separate work."]
-    NF -.-> N
-    N2["The source-compatibility notes since alpha.9: ReplayError gained<br/>CapacityExhausted and is non_exhaustive (nip98-replay is not in core, so no<br/>in-estate consumer was affected); alpha.11 makes WebLedger::credit/debit<br/>pub(crate) receipt-only (../solid-pod-rs/CHANGELOG.md:919-922) and restricts the<br/>paying routes to did:nostr<br/>accounts (../solid-pod-rs/CHANGELOG.md:954-958) — the core wasm surface is<br/>untouched. See SP-05.5."]
+    N2["The source-compatibility notes since alpha.9: ReplayError gained<br/>CapacityExhausted and is non_exhaustive (nip98-replay is not in core, so no<br/>in-estate consumer was affected); alpha.11 makes WebLedger::credit/debit<br/>pub(crate) receipt-only (../solid-pod-rs/CHANGELOG.md:1315-1318) and restricts the<br/>paying routes to did:nostr<br/>accounts (../solid-pod-rs/CHANGELOG.md:1350-1354) — the core wasm surface is<br/>untouched. See SP-05.5."]
     REL11 -.-> N2
-    N3["A registry-alignment bump like alpha.9 has happened before: alpha.3 was also a<br/>whole-workspace re-publish after a per-crate publish left the siblings on<br/>alpha.1 while the core crate alone moved to alpha.2<br/>(../solid-pod-rs/CHANGELOG.md:1335-1340, :1359). Publishing the workspace as a<br/>set is what the release job's version check (SP-09.6) now enforces."]
+    N3["A registry-alignment bump like alpha.9 has happened before: alpha.3 was also a<br/>whole-workspace re-publish after a per-crate publish left the siblings on<br/>alpha.1 while the core crate alone moved to alpha.2<br/>(../solid-pod-rs/CHANGELOG.md:1731-1736, :1755). Publishing the workspace as a<br/>set is what the release job's version check (SP-09.6) now enforces."]
     REL -.-> N3
-    N4["0.5.0-alpha.6 is absent from CHANGELOG.md — the release line skips from<br/>alpha.5 (../solid-pod-rs/CHANGELOG.md:1231) straight to alpha.7<br/>(../solid-pod-rs/CHANGELOG.md:1154)."]
+    N4["0.5.0-alpha.6 is absent from CHANGELOG.md — the release line skips from<br/>alpha.5 (../solid-pod-rs/CHANGELOG.md:1627) straight to alpha.7<br/>(../solid-pod-rs/CHANGELOG.md:1550)."]
     REL -.-> N4
 ```
+
+## SP-09.8 The consumer pin matrix
+
+```mermaid
+flowchart TD
+    P["solid-pod-rs workspace 0.5.0-alpha.24, the release line in SP-09.7<br/>../solid-pod-rs/Cargo.toml:15"]
+    P --> AB
+    P --> VC
+    P --> NF
+    AB["EXTERNAL: agentbox builds a PINNED solid-pod-rs-server binary through Nix for<br/>the native pod tier — version 0.5.0-alpha.22 at rev bc6d9d8<br/>(../project/agentbox/lib/solid-pod-rs.nix:66-69), with forge-full added unless the manifest's<br/>forge.enable is false (../project/agentbox/flake.nix:1702). The pin carries the alpha.22 security fixes and these earlier repairs: SP-GIT-02 commits A, B1 and B2, the hidden-object fetch<br/>refusal, the NIP-98 empty-body binding, the OIDC redirect check and the ACL-control fix.<br/>The server's Jev option stays local-only unless SOLID_POD_JEV_ALLOW_CLOUD=1 admits the proxy and the<br/>TypeSafe step (../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:153). See AB-08, AB-06 and ES-08."]
+    VC["EXTERNAL: VisionClaw requires solid-pod-rs, -nostr, -idp and -server at 0.5.0-alpha.22,<br/>optional, level with agentbox's pin, superseding the former 0.4.0-alpha.15 pin<br/>(../project/Cargo.toml:219-220 and :240-243). See VC-26."]
+    NF["EXTERNAL: nostr-rust-forum requires solid-pod-rs 0.5.0-alpha.24 as a CARET range on main,<br/>default-features = false, features = core (../nostr-rust-forum/Cargo.toml:188), locked at alpha.24<br/>(../nostr-rust-forum/Cargo.lock:4249-4250); the exact pin was dropped by owner decision 2026-10-18<br/>(../nostr-rust-forum/Cargo.toml:184-187). Its PR 85 records a differential over every ACL document<br/>the pod worker writes: no changed access decision in 744 cases (../nostr-rust-forum/CHANGELOG.md:140-141).<br/>See the nostr-rust-forum area."]
+    DW["EXTERNAL: dreamlab-ai-website has no direct dependency. Its operator overlay pins<br/>nostr-bbs-core =1.0.0-beta.20 (../dreamlab-ai-website/forum-config/Cargo.toml:50), and its lock<br/>resolves that crate (../dreamlab-ai-website/forum-config/Cargo.lock:959-960) and solid-pod-rs<br/>0.5.0-alpha.24 (../dreamlab-ai-website/forum-config/Cargo.lock:1548-1549). See the dreamlab-ai-website area."]
+    LAG["The agentbox and VisionClaw pins above are read at their declared revisions (agentbox 3a2c597,<br/>VisionClaw d2780e2), not re-read in this pass: as read there, both stand at alpha.22,<br/>two releases behind this workspace's alpha.24. The forum and the website overlay are level."]
+    AB -.-> LAG
+    VC -.-> LAG
+
+    NF --> DW
+
+    N["The forum's alpha.7 lag is long closed: it moved to alpha.10 for the<br/>full-key Multikey encoder and decoder (../solid-pod-rs/CHANGELOG.md:1390-1393)<br/>and is now required at 0.5.0-alpha.24 as a caret range on main. Every type intended for the edge tier<br/>compiles under core. A dependency bump alone does not change caller<br/>behaviour — wiring the edge ACL, audience and replay seams is separate work."]
+    NF -.-> N
+```
 - **Open (ADR-2008, proposed):** the record makes closing the host/forum skew an exit criterion rather than a follow-up, with both consumers adopting one post-port version in lockstep (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:90-93). D8 is still listed as not built after the 2026-10-02 port (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:161-162), and nothing states which version the lockstep bump adopts, or who publishes it first.
-- The record no longer contradicts the pins it lists: its D8 text still quotes the forum at `=0.5.0-alpha.7` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:90-93), but its 2026-10-02 Disposition names those pins as overtaken and restates them as workspace `0.5.0-alpha.10`, forum `=0.5.0-alpha.10`, host `0.4.0-alpha.15` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:130). agentbox's Nix build — now pinned at `0.5.0-alpha.22` (`../project/agentbox/lib/solid-pod-rs.nix:66`) — and the host's `0.5.0-alpha.21` requirement (`../project/Cargo.toml:240`) are versions the record does not mention.
-- **Debt (resolved by the pins, kept for the record):** the rust-bitcoin port, the TXO stand-in deletion and the WebLedger receipt rework all shipped in 0.5.0-alpha.11 (../solid-pod-rs/CHANGELOG.md:830). The deletion removes the public `AppState` field and the `--deposit-txo-standin` CLI flag (../solid-pod-rs/CHANGELOG.md:891-892), and `credit`/`debit` are now `pub(crate)` receipt-only (../solid-pod-rs/CHANGELOG.md:919-922), so a consumer pinned at alpha.10 or older would not run the current surface; none of the three in the matrix now is (agentbox `0.5.0-alpha.22`, host `0.5.0-alpha.21`, forum `0.5.0-alpha.20` locked at alpha.20 on main).
-- **Debt (agentbox source pin, resolved):** At Agentbox 3a2c597, the Nix pin is `bc6d9d8` (../project/agentbox/lib/solid-pod-rs.nix:69), matching this topic’s alpha.22. A native pod built from it carries the SP-GIT-02 publication isolation and boot migrations recorded in SP-14, and the alpha.22 security lockfile changes (../solid-pod-rs/CHANGELOG.md:13-21). This source pin does not establish a rebuilt or activated image. agentbox still compiles `forge-full`, and therefore the mirror, by default (../project/agentbox/flake.nix:1702). ADR-2010 still says compiling `forge-full` does not prove held objects cannot be served (adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:72-82).
+- The record no longer contradicts the pins it lists: its D8 text still quotes the forum at `=0.5.0-alpha.7` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:90-93), but its 2026-10-02 Disposition names those pins as overtaken and restates them as workspace `0.5.0-alpha.10`, forum `=0.5.0-alpha.10`, host `0.4.0-alpha.15` (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:130). agentbox's Nix build — now pinned at `0.5.0-alpha.22` (`../project/agentbox/lib/solid-pod-rs.nix:66`) — and the host's `0.5.0-alpha.22` requirement (`../project/Cargo.toml:240`) are versions the record does not mention.
+- **Debt (resolved by the pins, kept for the record):** the rust-bitcoin port, the TXO stand-in deletion and the WebLedger receipt rework all shipped in 0.5.0-alpha.11 (../solid-pod-rs/CHANGELOG.md:1226). The deletion removes the public `AppState` field and the `--deposit-txo-standin` CLI flag (../solid-pod-rs/CHANGELOG.md:1287-1288), and `credit`/`debit` are now `pub(crate)` receipt-only (../solid-pod-rs/CHANGELOG.md:1315-1318), so a consumer pinned at alpha.10 or older would not run the current surface; none of the three in the matrix now is (agentbox `0.5.0-alpha.22`, host `0.5.0-alpha.22`, forum `0.5.0-alpha.24` locked at alpha.24 on main).
+- **Debt (agentbox source pin, resolved):** At Agentbox 3a2c597, the Nix pin is `bc6d9d8` (../project/agentbox/lib/solid-pod-rs.nix:69), alpha.22, two releases behind the alpha.24 this topic now reads. A native pod built from it carries the SP-GIT-02 publication isolation and boot migrations recorded in SP-14, and the alpha.22 security lockfile changes (../solid-pod-rs/CHANGELOG.md:409-417). This source pin does not establish a rebuilt or activated image. agentbox still compiles `forge-full`, and therefore the mirror, by default (../project/agentbox/flake.nix:1702). ADR-2010 still says compiling `forge-full` does not prove held objects cannot be served (adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:76-86).
 - **Drift (ADR-2008 vs agentbox):** the record says agentbox's payments route proxies `{txo_uri, amount_sats}` to this server's `/pay/.deposit` and will surface the 501 (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:165-166); `POST /v1/pay/deposit` now answers 501 `deposit-not-served` itself and points callers at the pod's own `/pay/.deposit` (../project/agentbox/management-api/routes/payments.js:278-304).
-- **Tension (forum pin comment vs pin), partly resolved at the 2026-10-30 pins:** the forum manifest's note still says the build requires alpha.12 to be published (../nostr-rust-forum/Cargo.toml:178-180) while the requirement beneath it is `0.5.0-alpha.20` as a caret range (../nostr-rust-forum/Cargo.toml:185). The k256 half is resolved on main: alpha.18 puts `k256` 0.14 types in the public API of `did_nostr_types` (../solid-pod-rs/CHANGELOG.md:524-527) and the forum workspace now pins `k256` 0.14.0 (../nostr-rust-forum/Cargo.toml:104), so the bump and the range agree. Still open: the host manifest says its alpha.17 pin is "in lockstep with nostr-rust-forum" (../project/Cargo.toml:219-220) while the requirement beneath it is now alpha.21 and the forum main is on alpha.20, a lockstep agentbox had already left.
+- **Tension (forum pin comment vs pin), partly resolved at the 2026-10-30 pins:** the forum manifest's note still says the build requires alpha.12 to be published (../nostr-rust-forum/Cargo.toml:181-183) while the requirement beneath it is `0.5.0-alpha.24` as a caret range (../nostr-rust-forum/Cargo.toml:188). The k256 half is resolved on main: alpha.18 puts `k256` 0.14 types in the public API of `did_nostr_types` (../solid-pod-rs/CHANGELOG.md:920-923) and the forum workspace now pins `k256` 0.14.0 (../nostr-rust-forum/Cargo.toml:104), so the bump and the range agree. Still open: the host manifest says its alpha.17 pin is "in lockstep with nostr-rust-forum" (../project/Cargo.toml:219-220) while the requirement beneath it is now alpha.22 and the forum main is on alpha.24.
 - **Open (deployment, not source):** earlier revisions of this panel recorded that the running agentbox container was still on an older pin, and that the forum's production edge ran kit `9c36b60` with `k256` 0.13.4. Neither claim can be checked from source at these revisions, and this topic certifies no deployment.
 - **Drift:** the VisionClaw manifest's comment still says the pod crates are a published dependency "at =0.5.0-alpha.17" in lockstep with the forum (../project/Cargo.toml:219-220), while the four requirements beneath it are `0.5.0-alpha.22` (../project/Cargo.toml:240-243).
-- **Open (ADR-2010, accepted / complete / staged):** the record states agentbox and the host consume the forge only by their own decision and that VisionClaw needs a `/forge` adapter (adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:53); the host manifest lists `solid-pod-rs-server` as an optional dependency (../project/Cargo.toml:243), and nothing records whether it ever enables a forge feature.
+- **Open (ADR-2010, accepted / complete / staged):** the record states agentbox and the host consume the forge only by their own decision and that VisionClaw needs a `/forge` adapter (adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:55); the host manifest lists `solid-pod-rs-server` as an optional dependency (../project/Cargo.toml:243), and nothing records whether it ever enables a forge feature.
 - Packaging hygiene since alpha.10: the core crate's manifest excludes `.claude-flow` agent runtime state from the published package (`crates/solid-pod-rs/Cargo.toml:15`, `f5a191e`, 2026-10-01).
-- **Debt (resolved in alpha.11):** removing `credit` and `debit` from the public API was named in the record as the one deliberately breaking change in the estate and a semver-major event for this crate (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:74-80, :100). It has now happened: both are `pub(crate)` receipt-only in 0.5.0-alpha.11 (../solid-pod-rs/CHANGELOG.md:919-922), so the pin matrix above is the surface that absorbed it. D5 remains not built (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:161).
+- **Debt (resolved in alpha.11):** removing `credit` and `debit` from the public API was named in the record as the one deliberately breaking change in the estate and a semver-major event for this crate (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:74-80, :100). It has now happened: both are `pub(crate)` receipt-only in 0.5.0-alpha.11 (../solid-pod-rs/CHANGELOG.md:1315-1318), so the pin matrix above is the surface that absorbed it. D5 remains not built (adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:161).
 
 ## SP-09.9 Repository governance and maintenance automation
 
@@ -277,13 +295,13 @@ flowchart LR
     PC --> LOCAL
     SF --> LOCAL
 
-    N["parity-check counts rows in PARITY-CHECKLIST.md and computes strict parity:<br/>every table row starting with a number is a feature row, status is the 6th<br/>pipe-delimited field, and Shipped covers present, net-new, semantic-difference,<br/>present-by-absence, shared-gap, present (both absent) and test/conformance meta<br/>(../solid-pod-rs/scripts/parity-check.sh:10-13). The checklist now reports at most 89.6%<br/>strict, below this script's 95% threshold (crates/solid-pod-rs/PARITY-CHECKLIST.md:52)."]
+    N["parity-check counts rows in PARITY-CHECKLIST.md and computes strict parity:<br/>every table row starting with a number is a feature row, status is the 6th<br/>pipe-delimited field, and Shipped covers present, net-new, semantic-difference,<br/>present-by-absence, shared-gap, present (both absent) and test/conformance meta<br/>(../solid-pod-rs/scripts/parity-check.sh:10-13).<br/>DOC-DRIFT: the checklist now reports at most 97.9% strict, 280/286 in-scope rows, and calls that<br/>below the script's 95% threshold (crates/solid-pod-rs/PARITY-CHECKLIST.md:52), while the README<br/>says at most 91.4% over 300 rows (../solid-pod-rs/README.md:171): the two figures disagree."]
     PC -.-> N
 ```
 
 - **Debt:** the CODEOWNERS "security-sensitive" rules name `/src/auth/`, `/src/oidc.rs` and `/src/wac.rs` from the repository root (../solid-pod-rs/.github/CODEOWNERS:18-20). Those paths do not exist; the code is under `crates/solid-pod-rs/src/`. The catch-all `*` rule routes the same team anyway (../solid-pod-rs/.github/CODEOWNERS:7), so review routing is unchanged, but the rules protect nothing of their own.
 - **Debt:** both dependabot entries use `directory: "/crates/solid-pod-rs"` (../solid-pod-rs/.github/dependabot.yml:6, :44). The workflows live at the repository root's `.github/workflows`, so the github-actions entry probably scans nothing. The cargo entry names only the core crate's manifest. What Dependabot actually opens for this layout is service behaviour, not source.
-- **Drift:** an older SP-10 R6 quoted 99.2% strict over 264 rows. The README now says at most 89.6% over 300 rows (../solid-pod-rs/README.md:171), and SP-10 R6 has been brought to that figure. This panel records the figure, not the repair.
+- **Drift:** an older SP-10 R6 quoted 99.2% strict over 264 rows. The README now says at most 91.4% over 300 rows, rows closed through 2026-11-20 (../solid-pod-rs/README.md:171); the checklist's own figure differs (SP-09.9). This panel records the figures, not the repair.
 
 ## SP-09.10 What CI does NOT gate
 
@@ -292,7 +310,7 @@ flowchart TD
     GATED["gated by ci-required"]
     NG1["the server's forge feature — the core-crate matrix cannot enable it, and the workspace job<br/>runs siblings at DEFAULT features (every sibling default is empty, SP-01.9). Since the MSRV raise<br/>the forge CRATE is cargo-checked with its mirror feature on every run<br/>(../solid-pod-rs/.github/workflows/ci.yml:127), but not linted, tested or wired into the server."]
     NG2["the git feature end-to-end on pull requests — the CGI integration tests sit behind<br/>with-git-binary<br/>crates/solid-pod-rs-git/Cargo.toml:48"]
-    NG3["the tls feature on pull requests — no matrix row builds it<br/>crates/solid-pod-rs-server/Cargo.toml:136"]
+    NG3["the tls feature on pull requests — no matrix row builds it<br/>crates/solid-pod-rs-server/Cargo.toml:140"]
     NG4["deployed behaviour: no job starts the binary, exercises a real cache, or<br/>crosses a restart"]
     NG5["any out-of-repo consumer's conformance — the edge ACL resolver lives in<br/>nostr-rust-forum"]
 
@@ -319,7 +337,7 @@ flowchart TD
         B4["nip98_verify_bench — valid and tampered tokens<br/>crates/solid-pod-rs/benches/nip98_verify_bench.rs:100"]
         B5["dpop_replay_bench — single-threaded and concurrent, needs dpop-replay-cache<br/>crates/solid-pod-rs/benches/dpop_replay_bench.rs:49"]
     end
-    DECL["[[bench]] declarations<br/>crates/solid-pod-rs/Cargo.toml:366"]
+    DECL["[[bench]] declarations<br/>crates/solid-pod-rs/Cargo.toml:378"]
     PR["build-test: cargo test --all-targets runs every bench target once in test mode<br/>../solid-pod-rs/.github/workflows/ci.yml:90"]
     FUZZ["fuzz_target over apply_sparql_patch<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:6"]
     CI["ci-required — see SP-09.2"]
@@ -334,7 +352,7 @@ flowchart TD
 
     N["Each bench guards a hot path a diagram elsewhere describes: B1 the Storage seam<br/>(SP-06.1), B2 the WAC evaluator (SP-04.7), B3 conneg (SP-03.10), B4 the NIP-98<br/>verifier (SP-05.2), B5 the DPoP replay cache (SP-05.7). dpop_replay_bench states<br/>the contract it defends — under 1 microsecond at 10k steady-state entries<br/>(crates/solid-pod-rs/benches/dpop_replay_bench.rs:4)."]
     BENCH -.-> N
-    N2["Benches are not schedule-only. cargo test --all-targets includes bench targets, and<br/>criterion 0.5 runs each once when no --bench flag is passed. The four default-feature benches<br/>run on every build-test row, and dpop_replay_bench runs only in the all-features rows, because it<br/>requires dpop-replay-cache (crates/solid-pod-rs/Cargo.toml:385). The scheduled smoke passes no<br/>features, so it skips dpop_replay_bench. Neither run checks the 1 microsecond contract. The fuzz<br/>target is the surface only the schedule runs: outside ci-required, a panic can reach main before<br/>the next Monday run."]
+    N2["Benches are not schedule-only. cargo test --all-targets includes bench targets, and<br/>criterion 0.5 runs each once when no --bench flag is passed. The four default-feature benches<br/>run on every build-test row, and dpop_replay_bench runs only in the all-features rows, because it<br/>requires dpop-replay-cache (crates/solid-pod-rs/Cargo.toml:397). The scheduled smoke passes no<br/>features, so it skips dpop_replay_bench. Neither run checks the 1 microsecond contract. The fuzz<br/>target is the surface only the schedule runs: outside ci-required, a panic can reach main before<br/>the next Monday run."]
     CI -.-> N2
 ```
 
@@ -348,7 +366,7 @@ flowchart TD
     CAP{"len > SPARQL_UPDATE_MAX_BYTES?<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:16"}
     ASSERT["ASSERT the library returns Err, never panics<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:20"]
     PARSE["exercise the spargebra parser below the cap<br/>crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:26"]
-    LIM["SPARQL_UPDATE_MAX_BYTES = 1 MiB<br/>solid-pod-rs/src/ldp.rs:1206"]
+    LIM["SPARQL_UPDATE_MAX_BYTES = 1 MiB<br/>solid-pod-rs/src/ldp.rs:1286"]
 
     IN --> UTF
     UTF -- no --> SKIP
@@ -361,7 +379,7 @@ flowchart TD
     ASSERT -.-> N
     N2["The size cap is the first line of defence and the fuzzer deliberately spends<br/>most of its budget BELOW it<br/>(crates/solid-pod-rs/fuzz/fuzz_targets/sparql_update.rs:9) — fuzzing above the<br/>cap would only re-test the guard."]
     PARSE -.-> N2
-    N3["DOC-DRIFT: docs/benchmarks.md opens 'Four criterion-based benches'<br/>(crates/solid-pod-rs/docs/benchmarks.md:3) and its Running section lists four<br/>(:11 to :14). There are FIVE bench files and five [[bench]] declarations —<br/>dpop_replay_bench (crates/solid-pod-rs/Cargo.toml:382) is in neither."]
+    N3["DOC-DRIFT: docs/benchmarks.md opens 'Four criterion-based benches'<br/>(crates/solid-pod-rs/docs/benchmarks.md:3) and its Running section lists four<br/>(:11 to :14). There are FIVE bench files and five [[bench]] declarations —<br/>dpop_replay_bench (crates/solid-pod-rs/Cargo.toml:394) is in neither."]
     IN -.-> N3
 ```
 

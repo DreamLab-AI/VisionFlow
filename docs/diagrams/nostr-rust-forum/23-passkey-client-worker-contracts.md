@@ -15,7 +15,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/http.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## For developers
@@ -38,7 +38,7 @@ flowchart TB
     B["Request is signed with the derived key<br/>and carries a NIP-98 Authorization"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs:356
     C["BBS registration verify<br/>also uses fetch_with_nip98_post"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs:259
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs:260
     D["Router dispatches register_verify"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:893
     E["Missing Authorization returns 401<br/>before attestation validation"]
@@ -80,7 +80,7 @@ flowchart TB
     B["Unknown pubkey gets deterministic fallback salt"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:78
     C["Missing server secret defaults to empty<br/>fallback becomes publicly reproducible"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs:275
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs:276
     D["Separate public POST /auth/lookup"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/webauthn.rs:1503
     E["Known credential returns owner<br/>unknown credential returns 404"]

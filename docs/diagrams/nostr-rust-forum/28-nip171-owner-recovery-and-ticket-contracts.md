@@ -19,12 +19,14 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/recipient_keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-zone-migrate/src/grants.rs
   - ../project/agentbox/management-api/lib/zone-keys.js
-verified_commit: {nostr-rust-forum: 0b7979c404f41414cfdbefffa28fb6d5ae1b1242, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
 ---
 
 ## For developers
 
-These panels describe the **local upgrade branch**, not main or a live deployment. [The audit](../../estate-review/2026-11-01-forum-nip171-keyplane.md) assesses ADR-2028 section by section and records 220 bounded native/Node tests. Owner flows and scratch migration remain incomplete. NF-27 describes the separate main implementation.
+These panels were drawn from the local upgrade branch and are re-derived here from **main**, which merged it at a80c572: the code ships dormant, since both sides read `ZONE_GROUPS_ENABLED` as on only for the exact string "true" (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs:47-48`, `../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:51`, `../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:100-101`), and the shipped relay template does not set it. [The audit](../../estate-review/2026-11-01-forum-nip171-keyplane.md) (220 bounded native/Node tests) was run on the branch, not re-run on main. Owner flows and scratch migration remain incomplete. NF-27 draws the flag-off path.
+
+**Drift:** ADR-2028 still records `implementation_status: none` although its key plane is on main behind the flag (`../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`).
 
 ## For the business
 
@@ -36,11 +38,11 @@ A recovery phrase and passing derivation tests do not yet constitute a recoverab
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/nip171.rs:19
     P["Derivation, records and owner backup helpers<br/>owner consumers explicitly deferred"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:573
-    H["Register held group signer<br/>only test caller in this branch"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:597
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:574
+    H["Register held group signer<br/>only a test caller on main"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:605
     I["Ticket issuer requires held signer<br/>and matching authoritative binding"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:255
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:261
     F["Otherwise issue legacy 21453 grant"]
     %% Source: ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:132
     B["Owner-only numbered binding required<br/>keep ZONE_GROUPS_ENABLED off"]
@@ -55,13 +57,13 @@ flowchart TB
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs:79
     C["Two zk claims<br/>same free epoch, different pubkeys"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2551
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2569
     P["Preflight reads stored rows<br/>both claims see no existing binding"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs:38
     A["First insert reserves key A"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs:118
     R["Second insert finds existing binding<br/>lookup returns A; key B is refused"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2567
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2585
     S["Event rejected; key A remains reserved<br/>SQLite algorithm fixture confirms"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/recipient_keys.rs:408
     O["Admin recipient registration<br/>has no epoch number or sole-owner check"]
@@ -73,13 +75,13 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:125
-    S["Flag-on store retains competing keys<br/>same zone and epoch, distinct pubkeys"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:85
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:219
+    S["Flag-on store id adds group and pubkey<br/>so competing keys for one epoch both persist"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:101
     W["Selected send epoch is contested<br/>send_key refuses"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:95
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:111
     L["Read lookup chooses one deterministic key<br/>message pubkey is not a lookup argument"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:527
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:565
     R["Message encrypted under the other held key<br/>read path fails despite usable key in store"]
     S --> W
     S --> L --> R
@@ -113,9 +115,9 @@ flowchart TB
 flowchart TB
     %% Source: ../nostr-rust-forum/docs/runbooks/deploy-phase-0-4.md:9
     D["Deploy dormant code<br/>all new feature flags off"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:512
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/tickets.rs:513
     T["1014 arrives while browser flag is off<br/>route returns Ignore"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:329
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:676
     P["Wrap marked processed<br/>later activation needs explicit replay policy"]
     %% Source: ../nostr-rust-forum/docs/runbooks/deploy-phase-0-4.md:89
     R["Runbook starts 30-day clock<br/>when dormant deployment lands"]
@@ -140,7 +142,7 @@ flowchart TB
     C["Competing valid ticket rejected<br/>first key retained without conflict marker"]
     %% Source: ../project/agentbox/management-api/lib/zone-keys.js:625
     W["writePlan still selects first key<br/>new probe encrypts successfully"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:86
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:102
     X["Browser refuses contested send epoch<br/>cross-consumer policy remains inconsistent"]
     A --> C --> W
     B --> X
