@@ -56,7 +56,7 @@ flowchart TB
     N2["/ingest is the only mutating route and it is admin-gated<br/>nostr-bbs-search-worker/src/lib.rs:720 via require_nip98_admin nostr-bbs-search-worker/src/auth.rs:63"]
 ```
 
-## NF-07.2 The third admin authority — static-only, and the only real key in a template
+## NF-07.2 The search worker's admin authority — static-only, and the only real key in a template
 
 ```mermaid
 flowchart LR
@@ -70,7 +70,7 @@ flowchart LR
     TPL --> READ
     WHY --> READ
 
-    N1["INVARIANT: the parse rule is shared through nostr_bbs_core so the comma / whitespace / npub-or-hex<br/>semantics cannot drift between the three workers - see NF-08.7"]
+    N1["INVARIANT: the parse rule is shared through nostr_bbs_core so the comma / whitespace / npub-or-hex<br/>semantics cannot drift between the auth, relay and search workers that read it - see NF-08.7"]
     N2["This worker is the ONLY wrangler template that declares ADMIN_PUBKEYS, yet the auth and relay<br/>workers both read it - the relay reader is nostr-bbs-relay-worker/src/auth.rs:185 - and the deployment gap is written up in NF-08.7 N4"]
     N4["DRIFT: the relay template comment still says the relay has no ADMIN_PUBKEYS reader<br/>nostr-bbs-relay-worker/wrangler.toml:19, contradicted by nostr-bbs-relay-worker/src/auth.rs:185"]
     N3["It is also the only template shipping a non-placeholder value where every other template ships<br/>example.com or a zeroed key nostr-bbs-search-worker/wrangler.toml:41"]

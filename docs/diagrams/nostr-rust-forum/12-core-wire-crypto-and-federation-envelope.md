@@ -185,7 +185,7 @@ sequenceDiagram
     RC->>RC: verify the OUTER wrap's own id and signature BEFORE any decrypt, ADR-2025 gift_wrap.rs:564
     RC->>RC: verify the SEAL's Schnorr signature before trusting seal.pubkey gift_wrap.rs:587
     RC->>RC: rumor.pubkey MUST equal the verified seal.pubkey gift_wrap.rs:609
-    RC->>RC: rumor kind must be a NIP-17 RumorKind - 14 chat, 7 reaction, 5 deletion or 15 file, since beta.19 gift_wrap.rs:531 gift_wrap.rs:599
+    RC->>RC: rumor kind must be a NIP-17 RumorKind - 14 chat, 7 reaction, 5 deletion or 15 file, since 75e48b4 gift_wrap.rs:531 gift_wrap.rs:599
 
     Note over RC: INVARIANT every parse and decrypt error is a fixed string, never serde text,<br/>because serde quotes the offending value and that would copy decrypted bytes<br/>into a log line gift_wrap.rs:288-289. Kind numbers and the two pubkeys still<br/>appear in InvalidKind and AuthorMismatch gift_wrap.rs:54 gift_wrap.rs:90.<br/>A signed rumor is tolerated rather than refused, since wraps from foreign<br/>clients are already stored, and the author binding above is what protects<br/>the recipient gift_wrap.rs:303
     Note over WR: The ephemeral author is why relay admission cannot key on the author - it keys on the outer p tag instead, see NF-03.5, and delivery keys on the AUTHENTICATED session, see NF-11.5
@@ -196,7 +196,7 @@ sequenceDiagram
     Note over WR: The throwaway secret is held in Zeroizing so it scrubs<br/>on drop and on every early return gift_wrap.rs:434. The previous<br/>copy-then-zeroize left the original binding live, so that<br/>defence-in-depth scrub was a no-op
 ```
 
-**Open:** ADR-2027 (NIP-17 overlay for nostr.chat interop) is accepted, partial and inactive, and ADR-2028 (NIP-171 key plane for zones, superseding ADR-2026) is proposed, so none of that DM or zone-key routing is drawn as live here (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:6`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`). The core primitives the overlay needs (NIP-17 rumor kinds and caller-built rumors, NF-12.4) ship in the published beta.20 crate whether or not the overlay is switched on.
+**Open:** ADR-2027 (NIP-17 overlay for nostr.chat interop) is accepted, partial and inactive, and ADR-2028 (NIP-171 key plane for zones, superseding ADR-2026) is proposed, so none of that DM or zone-key routing is drawn as live here (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:6`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`). The core primitives the overlay needs (NIP-17 rumor kinds and caller-built rumors, NF-12.4) are present at the beta.20 release commit d423833 whether or not the overlay is switched on; the crates.io artefact was not inspected.
 
 **Drift:** both records are behind main. ADR-2027's 2026-11-20 note says decision 1, the NIP-17 overlay, "is not built" (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:31`), but the client's overlay modules are on main behind `RECIPIENT_KEYS_ENABLED` (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/requests.rs:1`); ADR-2028 still says implementation none (`../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`) while the relay's zone group binding is on main behind `ZONE_GROUPS_ENABLED` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs:1-4`). Built and off is not the same as not built.
 

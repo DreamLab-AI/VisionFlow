@@ -405,6 +405,12 @@ flowchart TB
 
 Admin authority for every writer above is `require_nip98_admin` (the relay resolver of NF-08.7), except the kind-5 path, which trusts the trust ladder: TL3+ deletes anyone's events without being an admin (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1638-1640`). The ingest refusal fails open when its lookup fails, and the purge of a user by `pubkey` leaves device-key and gift-wrap rows untombstoned (kit O17 / KF-16, see NF-25.5).
 
+**Open (kit O13 / KF-17):** `process_deletion` writes an `(id, signer)` tombstone for any well-formed `e` target, stored or not (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3533-3543`), and the member gate then accepts a no-row target as already deleted on exactly such a row (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3055`), so a signer can re-name an id this relay never stored.
+
+**Open (kit O19 / KF-19):** a member cannot delete their own migrated post: the gate classifies a sealed original before anything else, and the original author is not recorded (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2960-2962`, `:3054`). The purge's tombstones under the original author (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:279`) are therefore never consulted by it.
+
+**Open (kit O12 / KF-21):** the member gate answers up to 2,000 targets with one `json_each` statement (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:793-796`); its tests run on rusqlite, never on Cloudflare D1, so D1's behaviour for that statement is unproven.
+
 ## NF-08.11 Relay tables added for deletion and key registration — migration-less or flag-gated
 
 ```mermaid

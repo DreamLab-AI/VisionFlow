@@ -165,7 +165,7 @@ flowchart TB
 
     N1["Both fetch entries bootstrap their schema and the shared replay table, but differently: the relay does it once per isolate<br/>behind SCHEMA_READY, after the CORS preflight and before the WebSocket branch, and latches only on success<br/>nostr-bbs-relay-worker/src/lib.rs:224, nostr-bbs-relay-worker/src/lib.rs:202; the auth worker runs it at the top of every request<br/>nostr-bbs-auth-worker/src/lib.rs:164"]
     N2["The relay binds its replay schema to REPLAY_DB, the auth worker to its own DB - the same physical<br/>database either way nostr-bbs-relay-worker/src/lib.rs:226, nostr-bbs-auth-worker/src/lib.rs:165"]
-    N3["ADR-2017: deleting the kind-42 row outright, with no kind-5, is deliberate - a kind-5 would tombstone<br/>the id that a sealed-original envelope restores on every forum client. Since da08b53 the route does record<br/>a relay-side D1 tombstone, never served to clients nostr-bbs-relay-worker/src/lib.rs:373-376 - see NF-08.10"]
+    N3["ADR-2017: deleting the kind-42 row outright, with no kind-5, is deliberate - a kind-5 would tombstone<br/>the id that a sealed-original envelope restores on every forum client. Since db6ddfc the route does record<br/>a relay-side D1 tombstone, never served to clients nostr-bbs-relay-worker/src/lib.rs:373-376 - see NF-08.10"]
 ```
 
 ## NF-01.4 Pinned dependency spine

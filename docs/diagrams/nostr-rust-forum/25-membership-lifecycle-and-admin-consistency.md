@@ -139,7 +139,7 @@ flowchart TB
     B2 -.-> OPEN1
 ```
 
-The storage fixture can grant a new row after deletion. It establishes missing removed-state enforcement, without demonstrating unauthorised re-admission or exercising pod deletion. The NIP-09 tombstones added at da08b53 and db6ddfc are event-level: they stop a re-admitted member re-publishing purged events (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:221-223`), not re-admission itself, and no route removes one short of `reset-db` (kit O15 / KF-14, NF-08.10).
+The storage fixture can grant a new row after deletion. It establishes missing removed-state enforcement, without demonstrating unauthorised re-admission or exercising pod deletion. The NIP-09 tombstones (tables from da08b53, used by this purge since db6ddfc) are event-level: they stop a re-admitted member re-publishing purged events (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs:221-223`), not re-admission itself, and no route removes one short of `reset-db` (kit O15 / KF-14, NF-08.10).
 
 ## NF-25.6 Consolidation remains a proposed migration
 
