@@ -14,7 +14,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/pwa.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
 ---
 
 ## For developers
