@@ -26,10 +26,14 @@ sources:
   - ../dreamlab-ai-website/scripts/__tests__/helpers/fixture-repo.mjs
   - ../dreamlab-ai-website/scripts/__tests__/kit-ref-sites.test.mjs
   - ../dreamlab-ai-website/CLAUDE.md
-verified_commit: e255b2b113ee47d58a0c872c6b4702afc62a46e5
+  - ../dreamlab-ai-website/docs/adr/ADR-2004-kit-pin-version-and-sha-lockstep.md
+verified_commit: 389a644c23e9f5ed0b571242f3e8e5418aae0a7c
 ---
 
 ## DW-05.1 `ci.yml` — the ten-job PR/push gate and its aggregator
+
+> **Superseded** by DW-05.9 at 389a644 (frozen at e255b2b).
+
 ```mermaid
 flowchart TB
     TRIG["push/PR to main, paths: src/**, forum-config/**,<br/>.github/workflows/**, scripts/**, dream.config.json<br/>ci.yml:11-63 — deliberately broad, see note"] --> NL["node-lint: eslint"]
@@ -101,6 +105,9 @@ sequenceDiagram
 - **Drift (corrected):** this bullet once called the guard narrower than `ci.yml`'s `pin-check` job. The wrapper now just runs `node scripts/pin-parity.mjs` (`scripts/dream-kit-pin-guard.sh:27-28`), the same evaluator `pin-check` runs with `--github` (`ci.yml:225`), and without `--skip-actions` that evaluator also sweeps workflow Action SHA pins (`scripts/pin-parity.mjs:57-60`). The two gates differ in trigger set and annotation style, not in what they check. Node 20 is pinned because the guard "delegates to scripts/pin-parity.mjs" (`kit-pin-guard.yml:18-19`).
 
 ## DW-05.8 Pin-parity fixtures derive the pin from the live record
+
+> **Superseded** by DW-05.10 at 389a644 (frozen at e255b2b).
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -109,7 +116,7 @@ sequenceDiagram
     participant FX as makeFixtureRepo<br/>scripts/__tests__/helpers/fixture-repo.mjs:43
     participant CK as checkKitPins<br/>scripts/lib/pin-parity.mjs:190
     PP->>REC: read the record at REPO_ROOT, scripts/__tests__/pin-parity.test.mjs:24
-    REC-->>PP: CANONICAL_KIT_VERSION and the four RESOLVED checksum lines
+    REC-->>PP: CANONICAL_KIT_VERSION and the four resolved-checksum lines
     PP->>PP: LIVE_VERSION, LIVE_CORE_CHECKSUM, LIVE_MESH_CHECKSUM, scripts/__tests__/pin-parity.test.mjs:25-27
     PP->>FX: copy the live tree, corrupt one derived fact, scripts/__tests__/pin-parity.test.mjs:190-199
     FX-->>PP: fixture root, scripts/__tests__/helpers/fixture-repo.mjs:54
@@ -118,8 +125,49 @@ sequenceDiagram
     CK-->>PP: not ok, an error naming the corrupted fact
     Note over PP,FX: INVARIANT: no fixture hard-codes a kit version or<br/>checksum, so a kit bump cannot make a drift test<br/>stop failing, scripts/__tests__/pin-parity.test.mjs:24-27
 ```
-- `checkKitPins` also counts `[[package]]` blocks per kit crate (`countKitPackageBlocks`, `scripts/lib/pin-parity.mjs:118`; the error `is resolved N times`, `scripts/lib/pin-parity.mjs:299-307`), because `parseLockfileResolved` keeps only the last block per name (`scripts/lib/pin-parity.mjs:103`) and a stale transitive requirement can resolve a second, older beta beside the pin; a fixture appends a `beta.8` block and expects drift (`scripts/__tests__/pin-parity.test.mjs:270-277`). The record side has the same twin: `countRecordResolvedLines` (`scripts/lib/pin-parity.mjs:174`) makes `checkKitPins` reject a record that carries two `RESOLVED` lines for one crate (`scripts/lib/pin-parity.mjs:370-378`), because `parseRecord` keeps only the last (`scripts/lib/pin-parity.mjs:161-163`; fixture `scripts/__tests__/pin-parity.test.mjs:306-315`). `scripts/__tests__/deploy-subset-of-ci.test.mjs:1-8` adds a static guard that every `deploy.yml` path filter is covered by a `ci.yml` filter.
+- `checkKitPins` also counts `[[package]]` blocks per kit crate (`countKitPackageBlocks`, `scripts/lib/pin-parity.mjs:118`; the error `is resolved N times`, `scripts/lib/pin-parity.mjs:299-307`), because `parseLockfileResolved` keeps only the last block per name (`scripts/lib/pin-parity.mjs:103`) and a stale transitive requirement can resolve a second, older beta beside the pin; a fixture appends a `beta.8` block and expects drift (`scripts/__tests__/pin-parity.test.mjs:270-277`). The record side has the same twin: `countRecordResolvedLines` (`scripts/lib/pin-parity.mjs:174`) makes `checkKitPins` reject a record that carries two resolved-checksum lines for one crate (`scripts/lib/pin-parity.mjs:370-378`), because `parseRecord` keeps only the last (`scripts/lib/pin-parity.mjs:161-163`; fixture `scripts/__tests__/pin-parity.test.mjs:306-315`). `scripts/__tests__/deploy-subset-of-ci.test.mjs:1-8` adds a static guard that every `deploy.yml` path filter is covered by a `ci.yml` filter.
 - New since the previous stamp, a third sweep covers what both counts miss: `findKitFamilyPackages` (`scripts/lib/pin-parity.mjs:138`) collects every lockfile `[[package]]` whose name starts with `nostr-bbs-` (`scripts/lib/pin-parity.mjs:47,144`), and `checkKitPins` fails any such crate that is not on `KIT_CRATES` (`scripts/lib/pin-parity.mjs:284-293`). It is needed because `parseLockfileResolved` and `countKitPackageBlocks` both skip names outside `KIT_CRATES` (`scripts/lib/pin-parity.mjs:99,124`), so a kit crate arriving only transitively, never named in the manifest, was invisible to every exact-pin, checksum and record comparison. The sweep reads package blocks, not text, so a name that only appears in another package's `dependencies` list is not family drift (`scripts/__tests__/pin-parity.test.mjs:129-155`); the fixture inserts a `nostr-bbs-agent-tools` block and expects `kit-family crate nostr-bbs-agent-tools` (`scripts/__tests__/pin-parity.test.mjs:337-355`). The kit pin moved nine times from 2026-11-21 to 2026-11-22 (website PRs #89 to #96 and #99): `KIT_REF` is now `fd31193090a29471972bd408e07a7e5b8654f087` in all three pin sites (`.github/workflows/deploy.yml:131`, `.github/workflows/workers-deploy.yml:45`, `.github/workflows/rust-ci.yml:20`) and `CANONICAL_KIT_SHA` matches it (`docs/architecture/kit-compatibility-record.md:30`), while `CANONICAL_KIT_VERSION` is `1.0.0-beta.20` (`docs/architecture/kit-compatibility-record.md:31`). The SHA is tagged `v1.0.0-beta.21-rc.3`, so it runs ahead of the published crates; the record says the library crates are unchanged since the beta.20 release (`docs/architecture/kit-compatibility-record.md:26,40,44`), and no file under the four library crate directories differs between the release commit `d423833` and `fd31193`. Each repin has its own dated paragraph with a rollback (`docs/architecture/kit-compatibility-record.md:40-56`); the 2026-10-30 note that a pin update "is not a deployment receipt" still stands (`docs/architecture/kit-compatibility-record.md:62-68`). pin-parity still compares only `CANONICAL_KIT_SHA`, not the row's branch/tag column (`docs/architecture/kit-compatibility-record.md:26`), so that column could drift unseen.
 - The wrapper suite derives the same two facts independently (`scripts/__tests__/dream-kit-pin-guard.test.mjs:23-24`) and drives them through `scripts/dream-kit-pin-guard.sh`, so the thin wrapper and the gate it delegates to are both exercised against the live record rather than against a snapshot of it. **Drift (closed):** the pin rule used to credit `kit-ref-sites.test.mjs` with checking `CANONICAL_KIT_SHA`; it now gives the record comparison to `pin-parity.mjs` and the three-site agreement to the test (`CLAUDE.md:254-257`). The comparison with `KIT_REF` is in `checkKitPins` (`scripts/lib/pin-parity.mjs:223-225`); `kit-ref-sites.test.mjs` never reads the record. It binds every workflow that defines a `KIT_REF`, enumerated pin site or not, to one full 40-hex SHA (`scripts/__tests__/kit-ref-sites.test.mjs:1-7,27-47`).
 - **Debt:** `scripts/dream-kit-pin-guard.sh:9-18` records the cost already paid for the previous shape — a verbatim shell transcription of the evaluator reported `PIN-DRIFT-RECORD-VER` against a correctly pinned repository once the manifest moved to exact `=` pins, and never opened `forum-config/Cargo.lock` at all.
 - **Invariant:** the guard prints `PIN-PARITY-OK` or `PIN-DRIFT` and always exits 0 (`scripts/dream-kit-pin-guard.sh:20-22`); enforcement lives in `kit-pin-guard.yml`, so changing the exit code here silently disarms the gate.
+
+## DW-05.9 The deploy-time System One credential check covers all three consumers
+```mermaid
+flowchart TB
+    SET["set-worker-secrets.yml writes TYPESAFE_API_KEY to the search, relay and auth Workers<br/>set-worker-secrets.yml:157"]
+    EMPTY["an empty GH secret fails the job<br/>set-worker-secrets.yml:167"]
+    GATE["workers-deploy.yml step 'Validate public System One credential'<br/>workers-deploy.yml:288"]
+    COND["runs for search-worker, relay-worker and auth-worker<br/>workers-deploy.yml:289"]
+    LIST["wrangler secret list, then jq looks for the name<br/>workers-deploy.yml:296<br/>workers-deploy.yml:297"]
+    FAIL["missing: ::error:: and exit 1, deploy blocked<br/>workers-deploy.yml:298"]
+    AUTH["auth-worker also needs PRF_SERVER_SECRET and ADMIN_PUBKEYS<br/>workers-deploy.yml:320"]
+    OPT["the two NATIVE_POD secrets only warn<br/>workers-deploy.yml:332"]
+    SET --> EMPTY
+    SET --> GATE
+    GATE --> COND --> LIST --> FAIL
+    COND --> AUTH --> OPT
+    HDR["DRIFT: the set-worker-secrets.yml header still says one Worker gets four secrets,<br/>all validated by the deploy gate<br/>set-worker-secrets.yml:3<br/>set-worker-secrets.yml:8"]
+    SET -.-> HDR
+```
+- **What it shows:** the auth worker, which needs the Typesafe key for its rationale check, is now checked at deploy time as well as provisioned; the step's `if:` carries the third matrix entry (`workers-deploy.yml:289`). DW-05.1 still describes the ten-job `ci.yml` gate correctly; only its secret-validation claim changed.
+- **Why it is this way:** a missing key degrades a Worker silently at request time, so ADR-2005's fail-closed rule puts the presence check before `wrangler deploy`. The check reads names only (`workers-deploy.yml:296`), never values. **Drift:** the header comment of `set-worker-secrets.yml:3-10` predates the System One job (`set-worker-secrets.yml:146-157`), and the required-secret check for the auth worker covers two of the four names it lists (`workers-deploy.yml:320`).
+
+## DW-05.10 The kit pin after the 2026-11-23 repin
+```mermaid
+flowchart TB
+    SITES["KIT_REF is 8a0ca418b9f1 at the three pin sites<br/>.github/workflows/deploy.yml:131<br/>.github/workflows/workers-deploy.yml:45<br/>.github/workflows/rust-ci.yml:20"]
+    REC["CANONICAL_KIT_SHA in the compatibility record is the same commit<br/>docs/architecture/kit-compatibility-record.md:30"]
+    VER["CANONICAL_KIT_VERSION stays 1.0.0-beta.20<br/>docs/architecture/kit-compatibility-record.md:31"]
+    CHK["checkKitPins: three sites identical, then equal to the record<br/>scripts/lib/pin-parity.mjs:207<br/>scripts/lib/pin-parity.mjs:223"]
+    SWEEP["every workflow that defines a KIT_REF must agree and be 40-hex<br/>scripts/__tests__/kit-ref-sites.test.mjs:28"]
+    ROW["the row's branch or tag text is not compared<br/>docs/architecture/kit-compatibility-record.md:26"]
+    SITES --> CHK
+    REC --> CHK
+    SITES --> SWEEP
+    REC --> VER
+    CHK -.-> ROW
+    DOCS["DRIFT: BASELINE-architecture and ADR-2004 still name fd31193,<br/>and no gate reads them, see DW-06.11<br/>docs/BASELINE-architecture.md:118<br/>docs/adr/ADR-2004-kit-pin-version-and-sha-lockstep.md:134"]
+    CHK -.-> DOCS
+```
+- **What it shows:** the repin of 2026-11-23 moved the workflows and the record together (`docs/architecture/kit-compatibility-record.md:40` is its dated paragraph). The commit is kit `main` four commits after `v1.0.0-beta.21-rc.3`, and no file under the four library crate directories differs between the beta.20 release commit `d423833` and `8a0ca41` (checked with `git diff` in the kit repository), so the exact crate pins did not move.
+- **Why it is this way:** ADR-2004 keeps the version pin and the SHA pin in lockstep and gates the three workflow sites plus the record (`scripts/lib/pin-parity.mjs:194-225`). The 2026-10-30 note that a pin update "is not a deployment receipt" still stands (`docs/architecture/kit-compatibility-record.md:64-70`). **Drift:** the two prose records of the pin are outside the gate.

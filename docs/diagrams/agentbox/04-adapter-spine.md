@@ -31,6 +31,7 @@ sources:
   - ../project/agentbox/agentbox.sh
   - ../project/agentbox/schema/agentbox.toml.schema.json
   - ../project/agentbox/scripts/agentbox-config-validate.js
+  - ../project/agentbox/tests/config/adapters-connect-timeout-schema.test.mjs
   - ../project/agentbox/tests/contract/beads.contract.spec.js
   - ../project/agentbox/tests/contract/events.contract.spec.js
   - ../project/agentbox/tests/contract/memory-encoder-bypass.contract.spec.js
@@ -43,7 +44,7 @@ sources:
   - ../project/agentbox/management-api/lib/pg-config.js
   - ../project/agentbox/management-api/adapters/memory/external-pg.js
   - ../project/agentbox/mcp/servers/lib/memory-evidence.js
-verified_commit: 3f66d51ff7614db0e6fac23f6d3d4350bccd4bd4
+verified_commit: 76ad253ae575d61eb43a2bdefeb163f8247cabb8
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
@@ -269,13 +270,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as server.js boot<br/>server.js:1383-1401
+    participant SV as server.js boot<br/>server.js:1388-1406
     participant LC as connectAdapters<br/>adapters/lifecycle.js:234
     participant CO as connectOneSlot<br/>adapters/lifecycle.js:194
     participant AD as adapter.connect()
     participant T as deadline timer<br/>lifecycle.js:210-212
 
-    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1385
+    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1390
     par all five slots concurrently (lifecycle.js:249)
         LC->>LC: timeoutMs = connectTimeoutFor(slot, manifest) (lifecycle.js:252 and :119)
         alt adapter missing or no connect() hook (lifecycle.js:255)
@@ -296,17 +297,17 @@ sequenceDiagram
         end
     end
     LC-->>SV: readiness map and healthy flag (lifecycle.js:338-339)
-    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1398)
-    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1399)
-    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1400)
+    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1403)
+    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1404)
+    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1405)
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:72
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:107-109, :123,<br/>non-positive values ignored (lifecycle.js:126). The Stage 1 schema rejects the key, see AB-04.15
-    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:234, wired from server.js:1384-1385. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35).
+    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:234, wired from server.js:1389-1390. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35).
     Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:162 documents the<br/>per-slot deadline. Its line references there (server.js lines 1241-1242) are stale at this<br/>commit, see the Drift entry below this panel.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:31-33
 ```
 
-**Drift:** `docs/BASELINE-container.md` still cites `connectAdapters` as wired from `server.js` lines 1241-1242 and `app.adapterReadiness` at `server.js` line 1257 (`../project/agentbox/docs/BASELINE-container.md:162`). At the pin those calls sit at `../project/agentbox/management-api/server.js:1384-1400`. It also places `instrumentAdapter` at `index.js:131` (`../project/agentbox/docs/BASELINE-container.md:157`), where the function is now at `../project/agentbox/management-api/adapters/index.js:158`. The governing document carries line numbers that no longer resolve.
+**Drift:** `docs/BASELINE-container.md` still cites `connectAdapters` as wired from `server.js` lines 1241-1242 and `app.adapterReadiness` at `server.js` line 1257 (`../project/agentbox/docs/BASELINE-container.md:162`). At the pin those calls sit at `../project/agentbox/management-api/server.js:1389-1405`. It also places `instrumentAdapter` at `index.js:131` (`../project/agentbox/docs/BASELINE-container.md:157`), where the function is now at `../project/agentbox/management-api/adapters/index.js:158`. The governing document carries line numbers that no longer resolve.
 
 ## AB-04.7 Failure path — quarantine before replacement, fail-closed slots abort
 ```mermaid
@@ -314,7 +315,7 @@ sequenceDiagram
     autonumber
     participant LC as connectAdapters<br/>lifecycle.js:234
     participant Q as quarantineAdapter<br/>lifecycle.js:142
-    participant RO as resolveOff callback<br/>server.js:1390-1393
+    participant RO as resolveOff callback<br/>server.js:1395-1398
     participant IDX as resolveAdapters<br/>index.js:196
     participant PX as process.exit(1)<br/>lifecycle.js:333
 
@@ -403,7 +404,7 @@ stateDiagram-v2
     end note
 ```
 
-**Drift:** this panel used to map the legacy states onto the `agentbox_adapter_health` gauge as off 0, degraded 1, healthy 2. `setAdapterHealth` encodes healthy as 1, degraded as 2 and anything else as 0 (`../project/agentbox/management-api/observability/metrics.js:202-204`). Nothing in the management API calls it, so the gauge is never set at this revision. The collapse feeds only the `/health` JSON (`../project/agentbox/management-api/server.js:1399`, `../project/agentbox/management-api/server.js:627-638`).
+**Drift:** this panel used to map the legacy states onto the `agentbox_adapter_health` gauge as off 0, degraded 1, healthy 2. `setAdapterHealth` encodes healthy as 1, degraded as 2 and anything else as 0 (`../project/agentbox/management-api/observability/metrics.js:202-204`). Nothing in the management API calls it, so the gauge is never set at this revision. The collapse feeds only the `/health` JSON (`../project/agentbox/management-api/server.js:1404`, `../project/agentbox/management-api/server.js:632-643`).
 
 ## AB-04.9 memory.store — the configured external-pg dispatch through both layers
 ```mermaid
@@ -614,6 +615,8 @@ flowchart LR
 ```
 
 ## AB-04.15 The four validation stages — different files, different lifecycle points
+
+> **Superseded** by AB-04.18 at 1d26ebe (frozen at 3f66d51).
 ```mermaid
 flowchart TD
     subgraph S1["Stage 1 static schema — edit and build time"]
@@ -659,47 +662,47 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant OP as operator shell
-    participant SH as cmd_health<br/>agentbox.sh:1131
-    participant H as GET /health<br/>server.js:601-639
-    participant MT as GET /v1/meta<br/>agentbox.sh:1185
+    participant SH as cmd_health<br/>agentbox.sh:1132
+    participant H as GET /health<br/>server.js:606-644
+    participant MT as GET /v1/meta<br/>agentbox.sh:1186
     participant PM as prom-client registry<br/>metrics.js:18 :26 :35
     participant SP as speech sidecars<br/>localhost port 8897 and port 8898
 
     OP->>SH: ./agentbox.sh health
-    SH->>H: curl HEALTH_URL http://localhost:$MGMT_PORT/health (agentbox.sh:631 and :1142)
+    SH->>H: curl HEALTH_URL http://localhost:$MGMT_PORT/health (agentbox.sh:632 and :1143)
     alt curl fails
         H-->>SH: no response
-        SH-->>OP: ERROR could not reach — exit 1 (agentbox.sh:1142-1146)
+        SH-->>OP: ERROR could not reach — exit 1 (agentbox.sh:1143-1147)
     else --json
-        SH-->>OP: print the raw payload, exit 0 whatever it says (agentbox.sh:1148-1151)
+        SH-->>OP: print the raw payload, exit 0 whatever it says (agentbox.sh:1149-1152)
     else response received, jq present
         H-->>SH: status, uptime, image_hash, manifest_checksum, adapters, adapter_failures, adapter_failure_files, degraded_count, note
-        SH->>SH: degraded = jq '.adapters // {} | to_entries[] | select(.value != "healthy" and .value != "off") | .key' (agentbox.sh:1157-1162)
-        SH->>SH: degraded_count = jq '.degraded_count // 0' (agentbox.sh:1163-1164)
-        SH->>SH: print "adapter/<slot>: <value>" from .adapters (agentbox.sh:1167-1176)
+        SH->>SH: degraded = jq '.adapters // {} | to_entries[] | select(.value != "healthy" and .value != "off") | .key' (agentbox.sh:1158-1163)
+        SH->>SH: degraded_count = jq '.degraded_count // 0' (agentbox.sh:1164-1165)
+        SH->>SH: print "adapter/<slot>: <value>" from .adapters (agentbox.sh:1168-1177)
         SH->>MT: curl http://localhost:9090/v1/meta for observability.metrics_endpoint
         MT-->>SH: metrics_endpoint
-        SH->>PM: curl metrics_endpoint, print first 5 non-comment lines (agentbox.sh:1193-1199)
-        SH->>SP: curl -sf http://localhost:8897/health — nemotron-asr (agentbox.sh:1204-1209)
+        SH->>PM: curl metrics_endpoint, print first 5 non-comment lines (agentbox.sh:1194-1200)
+        SH->>SP: curl -sf http://localhost:8897/health — nemotron-asr (agentbox.sh:1205-1210)
         SP-->>SH: healthy or speech_failed=1
-        SH->>SP: curl -sf http://localhost:8898/health — pocket-tts (agentbox.sh:1210-1215)
+        SH->>SP: curl -sf http://localhost:8898/health — pocket-tts (agentbox.sh:1211-1216)
         SP-->>SH: healthy or speech_failed=1
         alt degraded non-empty OR degraded_count > 0 OR speech_failed > 0
-            SH-->>OP: exit 1 (agentbox.sh:1217-1218)
+            SH-->>OP: exit 1 (agentbox.sh:1218-1219)
         else
             SH-->>OP: exit 0
         end
     else jq absent
-        SH-->>OP: print the raw payload, falls off the end with status 0 (agentbox.sh:1220-1223)
+        SH-->>OP: print the raw payload, falls off the end with status 0 (agentbox.sh:1221-1224)
     end
-    Note over H: /health computes degradedCount from adapterHealth (server.js:627) and emits keys status, uptime, image_hash,<br/>manifest_checksum, adapters, adapter_failures, adapter_failure_files, degraded_count, note — NO services key (server.js:628-638)
-    Note over SH,H: RESOLVED ADR-2037 — cmd_health derives failure from .adapters (a slot fails when its value<br/>is neither "healthy" nor "off", agentbox.sh:1157-1162) plus .degraded_count (agentbox.sh:1163),<br/>so exit 1 at agentbox.sh:1217-1218 is reachable. Same fix as AB-05.7.
-    Note over SH,SP: the exit condition carries a third term, speech_failed (agentbox.sh:1203, :1217):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
-    Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:637)
+    Note over H: /health computes degradedCount from adapterHealth (server.js:632) and emits keys status, uptime, image_hash,<br/>manifest_checksum, adapters, adapter_failures, adapter_failure_files, degraded_count, note — NO services key (server.js:633-643)
+    Note over SH,H: RESOLVED ADR-2037 — cmd_health derives failure from .adapters (a slot fails when its value<br/>is neither "healthy" nor "off", agentbox.sh:1158-1163) plus .degraded_count (agentbox.sh:1164),<br/>so exit 1 at agentbox.sh:1218-1219 is reachable. Same fix as AB-05.7.
+    Note over SH,SP: the exit condition carries a third term, speech_failed (agentbox.sh:1204, :1218):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
+    Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:642)
     Note over PM: the agentbox_adapter_health gauge is declared but never set, so the sample lines carry no slot health, see AB-04.15
 ```
 
-**Tension:** the non-zero exit is reachable only on the pretty-print path. `--json` prints the payload and exits 0 (`../project/agentbox/agentbox.sh:1148-1151`). A host without `jq` prints the raw payload and returns 0 even when slots are degraded (`../project/agentbox/agentbox.sh:1220-1223`). A script that pipes `agentbox.sh health --json` gets no failure signal.
+**Tension:** the non-zero exit is reachable only on the pretty-print path. `--json` prints the payload and exits 0 (`../project/agentbox/agentbox.sh:1149-1152`). A host without `jq` prints the raw payload and returns 0 even when slots are degraded (`../project/agentbox/agentbox.sh:1221-1224`). A script that pipes `agentbox.sh health --json` gets no failure signal.
 
 ## AB-04.17 External memory deletion withdraws evidence references
 
@@ -722,3 +725,24 @@ sequenceDiagram
 **What it shows:** the external Postgres adapter shares the MCP server's atomic delete-and-withdraw statement. Its public result remains a boolean `deleted`; a successful SQL statement alone no longer implies an entry was removed.
 
 **Why it is this way:** references written while evidence tracking was enabled must still be withdrawn after that gate is disabled (`../project/agentbox/mcp/servers/lib/memory-evidence.js:136-140`). This is database reference withdrawal; it does not recall prose copied outside those metadata references. The wider memory boundary is in ES-07.11.
+
+## AB-04.18 The connect deadline now passes Stage 1 — the schema declares connect_timeout_ms
+
+```mermaid
+flowchart TD
+    M["agentbox.toml [adapters] connect_timeout_ms: one integer, or a table of per-slot overrides with a default"]
+    SC["schema declares connect_timeout_ms as oneOf integer minimum 1 or an object over beads, pods, memory, events, orchestrator, default<br/>../project/agentbox/schema/agentbox.toml.schema.json:101-110"]
+    AJ["Stage 1 Ajv compile and validate over the manifest<br/>../project/agentbox/scripts/agentbox-config-validate.js:125-128"]
+    OK{"unknown key under adapters?"}
+    LC["Stage 2 connectTimeoutFor(slot, manifest) reads adapters.connect_timeout_ms, a table gives the slot value or its default<br/>../project/agentbox/management-api/adapters/lifecycle.js:119-124"]
+    DEF["non-positive or non-finite falls back to 10000 ms<br/>../project/agentbox/management-api/adapters/lifecycle.js:72"]
+    CON["connectAdapters applies the deadline per slot<br/>../project/agentbox/management-api/server.js:1389-1390"]
+    M --> SC --> AJ --> OK
+    OK -->|"no, the key is declared"| LC --> DEF --> CON
+    OK -->|"yes"| REJ["reject, exit 1<br/>../project/agentbox/scripts/agentbox-config-validate.js:1932"]
+    SC -.-> N["INVARIANT: the schema must stay in step with what lifecycle.js resolves, asserted by a test over scalar, table, default and rejected shapes<br/>../project/agentbox/tests/config/adapters-connect-timeout-schema.test.mjs:42"]
+```
+
+- **What it shows:** the knob that Stage 2 reads is now a declared key, so Stage 1 no longer rejects it as unknown. The frozen AB-04.15 recorded that `additionalProperties: false` under `[adapters]` blocked it.
+- **Why it is this way:** commit 1d26ebe added the property to the schema rather than loosening `additionalProperties`, keeping E016 (unknown manifest key) intact for every other key.
+- **Open:** the schema allows the integer minimum 1, while `connectTimeoutFor` ignores non-positive values instead of rejecting them (`../project/agentbox/management-api/adapters/lifecycle.js:119`). The two agree for valid input, and only an out-of-range value reaches the lifecycle fallback in a build that skips Stage 1.

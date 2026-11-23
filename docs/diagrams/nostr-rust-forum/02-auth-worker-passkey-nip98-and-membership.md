@@ -37,7 +37,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0013_recipient_keys_proof.sql
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/moderation.rs
-verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
+verified_commit: 8a0ca418b9f129b219431880d9fa5a81603428fc
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -70,10 +70,12 @@ sequenceDiagram
     Note over F: INVARIANT: no error ever leaks to the workers-rs framework - a leaked Debug string is not valid JSON. Unhandled errors become a 500 JSON body nostr-bbs-auth-worker/src/lib.rs:153
     Note over H: The origin is THREADED through the route functions rather than stored in a thread_local (P2-06) nostr-bbs-auth-worker/src/lib.rs:192
     Note over H: RESOLVED dual CORS builder: one cors_headers, imported by the worker nostr-bbs-auth-worker/src/lib.rs:38, emits NO Allow-Origin when EXPECTED_ORIGIN is unset or blank nostr-bbs-auth-worker/src/http.rs:19-30 - no example.com fallback
-    Note over S: About 23 CREATE TABLE and CREATE INDEX statements run per request, uncoordinated with the relay's once-per-isolate bootstrap nostr-bbs-relay-worker/src/lib.rs:224-228 - correct, they target different D1s.<br/>DOC-DRIFT: the call's comment says cold start nostr-bbs-auth-worker/src/lib.rs:160, and the closing note names the relay's ensure_tables_exist schema.rs:237-241, which is ensure_schema nostr-bbs-relay-worker/src/lib.rs:1059
+    Note over S: About 23 CREATE TABLE and CREATE INDEX statements run per request, uncoordinated with the relay's once-per-isolate bootstrap nostr-bbs-relay-worker/src/lib.rs:224-228 - correct, they target different D1s.<br/>DOC-DRIFT: the call's comment says cold start nostr-bbs-auth-worker/src/lib.rs:160, and the closing note names the relay's ensure_tables_exist schema.rs:217-221, which is ensure_schema nostr-bbs-relay-worker/src/lib.rs:1059
 ```
 
 ## NF-02.2 Route table — public, sprint-API and legacy tiers
+
+> **Superseded** by NF-02.12 at 94199e5 (frozen at 4a73a7a).
 
 ```mermaid
 flowchart TB
@@ -116,7 +118,7 @@ flowchart TB
 
     N1["Sprint handlers are dispatched BEFORE the legacy verify branch because they run their own<br/>require_admin / require_authed gates nostr-bbs-auth-worker/src/lib.rs:281-289"]
     N2["ANOMALY O11 (recorded live by an earlier review, not re-run here): /api/native-pod/provision nostr-bbs-auth-worker/src/lib.rs:637 requires NATIVE_POD_URL and the<br/>NATIVE_POD_ADMIN_KEY secret; both are placeholders in the template nostr-bbs-auth-worker/wrangler.toml:66"]
-    N3["GAP: GET /api/moderation/reports nostr-bbs-auth-worker/src/lib.rs:631 reads nip1984_reports nostr-bbs-auth-worker/src/moderation.rs:651, which no code writes.<br/>Its comment says the relay populates it nostr-bbs-auth-worker/src/moderation.rs:631-632; the relay stores kind-1984 in its OWN reports table, in the other D1<br/>nostr-bbs-relay-worker/src/moderation.rs:75. RESOLVED R4: no delegation route or module remains - the NIP-26 501 stub is deleted (NF-10.16)"]
+    N3["GAP: GET /api/moderation/reports nostr-bbs-auth-worker/src/lib.rs:631 reads nip1984_reports nostr-bbs-auth-worker/src/moderation.rs:651, which no code writes.<br/>Its comment says the relay populates it nostr-bbs-auth-worker/src/moderation.rs:631-632; the relay stores kind-1984 in its OWN reports table, in the other D1<br/>nostr-bbs-relay-worker/src/moderation.rs:75"]
 ```
 
 **Invariant:** `SESSIONS` (the rate limiter's `rl:{ip}:{bucket}` keys) and `KV` (the admin pubkey cache) bind the same KV namespace id, so the admin cache key must never start with `rl:` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs:347`, `../nostr-rust-forum/crates/nostr-bbs-auth-worker/wrangler.toml:22-25`).
@@ -251,9 +253,9 @@ flowchart TB
     D["Conditional upsert of relay D1 registry row<br/>another owner or a revoked row is refused with 409"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:526
     E["Owner-scoped revoke sets revoked to 1"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2152
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2153
     F["AUTH stores raw public key<br/>does not consult device registry"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3781
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3782
     G["Read/write scope resolves owner later<br/>through a 60-second cache"]
     A --> B --> C --> D --> E
     F --> G
@@ -276,17 +278,17 @@ sequenceDiagram
     participant RD as relay D1 whitelist
 
     I->>IC: POST /api/invites/create
-    IC->>AD: invitations row schema.rs:124
+    IC->>AD: invitations row schema.rs:104
     N->>IR: POST /api/invites/{code}/redeem
-    IR->>AD: invitation_redemptions invites.rs:662 schema.rs:137 + members row invites.rs:672 schema.rs:117
+    IR->>AD: invitation_redemptions invites.rs:662 schema.rs:117 + members row invites.rs:672 schema.rs:97
     IR->>RD: zone invite only - grant_zone_cohorts on the relay whitelist invites.rs:223 invites.rs:238 invites.rs:263
     N->>UC: POST /api/username/claim
-    UC->>AD: one atomic INSERT into username_reservations username.rs:237, table schema.rs:209
+    UC->>AD: one atomic INSERT into username_reservations username.rs:237, table schema.rs:189
     UC->>RD: whitelist row with the auto-approved cohort set, ON CONFLICT DO NOTHING keeps admin-set cohorts username.rs:307
 
-    Note over UC: INVARIANT one name per pubkey and one pubkey per name: the claim is a single INSERT that relies on UNIQUE(username) and UNIQUE(pubkey) username.rs:231 schema.rs:212, not an upsert
+    Note over UC: INVARIANT one name per pubkey and one pubkey per name: the claim is a single INSERT that relies on UNIQUE(username) and UNIQUE(pubkey) username.rs:231 schema.rs:192, not an upsert
     Note over IR: INVARIANT ensure-then-merge: the zone grant inserts-or-keeps the whitelist row, then merges cohorts into it, so a concurrent username claim creating the same row cannot drop the grant invites.rs:208-218
-    Note over IC: consume_for_registration is the registration-time bypass of the WoT gate invites.rs:786
+    Note over IC: consume_for_registration is the registration-time bypass of the WoT gate invites.rs:809
     Note over UC: The granted cohort set is config-driven, not hardcoded - see NF-08.3
 ```
 
@@ -346,3 +348,23 @@ flowchart TB
 ```
 
 Phase 2 of the interop upgrade, merged to main at a80c572 and inactive while the flag is off. The routes are the auth side only; the relay's use of the rows at gift-wrap admission belongs to NF-03.
+
+## NF-02.12 The kind-1984 report queue reads the relay's reports table
+
+```mermaid
+flowchart TB
+    ROUTE["GET /api/moderation/reports<br/>nostr-bbs-auth-worker/src/lib.rs:631"]
+    GATE["handle_nip1984_reports requires an admin NIP-98 caller<br/>nostr-bbs-auth-worker/src/moderation.rs:671"]
+    BIND["RELAY_DB binding, the relay worker's D1<br/>nostr-bbs-auth-worker/wrangler.toml:18<br/>nostr-bbs-auth-worker/src/moderation.rs:675"]
+    SQL["SELECT FROM reports ORDER BY created_at DESC LIMIT 50<br/>nostr-bbs-auth-worker/src/moderation.rs:632"]
+    WRITE["relay stores each kind-1984 report with INSERT INTO reports<br/>nostr-bbs-relay-worker/src/moderation.rs:75"]
+    SHAPE["rows rendered in the NIP-56 event shape, plus reason and status fields<br/>nostr-bbs-auth-worker/src/moderation.rs:689"]
+    ROUTE --> GATE --> BIND --> SQL --> SHAPE
+    WRITE -.-> SQL
+    N["INVARIANT: the auth worker no longer creates nip1984_reports, which nothing wrote;<br/>the bootstrap leaves only a comment pointing at the relay table<br/>nostr-bbs-auth-worker/src/schema.rs:46"]
+    SQL -.-> N
+```
+
+**What it shows:** the sprint-tier route listed in NF-02.2 is unchanged; its handler now reads the relay's `reports` table through `RELAY_DB`, so the queue returns what the relay projected. The other routes in NF-02.2 are untouched by this change.
+**Why it is this way:** commit 94199e5 replaced a read of a never-written table; migration 0005 drops it. **Debt:** the auth worker's own kind-30913 queue, `mod_reports`, is a separate table served at `/api/mod/reports`, so two report queues remain. Read from source at 8a0ca41; nothing was executed.
+

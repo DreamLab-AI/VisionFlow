@@ -31,6 +31,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0005_governance_receipts.sql
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/migrations/002_mod_wot_invites_welcome.sql
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/migrations/0003_username_reservations.sql
+  - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/migrations/0005_drop_nip1984_reports.sql
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/username.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs
@@ -62,7 +63,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
-verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
+verified_commit: 8a0ca418b9f129b219431880d9fa5a81603428fc
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -197,6 +198,8 @@ flowchart TB
 ```
 
 ## NF-08.5 Table map — who creates each table and who reads it
+
+> **Superseded** by NF-08.15 at 94199e5 (frozen at 4a73a7a).
 
 ```mermaid
 flowchart TB
@@ -377,9 +380,9 @@ flowchart TB
     SHAPECHK -->|"fails"| REJECT
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1576-1588
     ZG["ZONE_GROUPS_ENABLED exactly true, kind 42 or kanban bound to a zone:<br/>zone_group_gate, later in admission"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2566
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2567
     HINT["zk fifth element must match the zone's group_pubkey from ZONE_CONFIG<br/>zone_config.rs:63 zone_config.rs:136"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2577-2585
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2578-2586
     UNIQ["first key stored for a zone and epoch wins in zone_epoch_keys,<br/>a different key is refused, a D1 failure refuses"]
     ACCEPT -.-> ZG --> HINT --> UNIQ
 
@@ -393,9 +396,9 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph writers["Writers - tombstone first, DELETE after, never one batch"]
-        K5["member kind-5 below TL3 - member_deletion_gate first<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1320-1321, gate nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3351"]
-        K5ANY["admin or TL3+ kind-5 - can_delete_any skips the gate<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1638-1640, process_deletion nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3512"]
-        ENV["sealed original named by a moderator: envelope deleted only when its<br/>author is a CURRENT admin nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3439-3450"]
+        K5["member kind-5 below TL3 - member_deletion_gate first<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1320-1321, gate nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3352"]
+        K5ANY["admin or TL3+ kind-5 - can_delete_any skips the gate<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1638-1640, process_deletion nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3513"]
+        ENV["sealed original named by a moderator: envelope deleted only when its<br/>author is a CURRENT admin nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3440-3450"]
         REP["POST /api/reports/resolve as delete, NIP-98 admin<br/>nostr-bbs-relay-worker/src/moderation.rs:240, tombstone nostr-bbs-relay-worker/src/moderation.rs:349"]
         PURGE["POST /api/admin/events/delete, ADR-2017 purge<br/>nostr-bbs-relay-worker/src/admin_events.rs:233, tombstone nostr-bbs-relay-worker/src/admin_events.rs:281"]
         USR["POST /api/admin/user/delete with delete_events<br/>nostr-bbs-relay-worker/src/user_admin.rs:154, tombstone nostr-bbs-relay-worker/src/user_admin.rs:225"]
@@ -415,16 +418,16 @@ flowchart TB
     RESET -->|"wipes all, markers kept"| TB
 
     N1["OPEN, NF-10 O15 / KF-14: no route removes ONE tombstone - reset-db is the only way out, and it wipes the events,<br/>whitelist and every tombstone together nostr-bbs-relay-worker/src/whitelist.rs:521-525"]
-    N2["OPEN, NF-10 O18 / KF-18: the envelope delete trusts current admin standing, not a migrator record -<br/>a migrator who has lost admin leaves the envelope in place nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3399-3401"]
+    N2["OPEN, NF-10 O18 / KF-18: the envelope delete trusts current admin standing, not a migrator record -<br/>a migrator who has lost admin leaves the envelope in place nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3400-3402"]
     N3["INVARIANT: every writer fails open - a tombstone error neither stops nor fails the deletion<br/>nostr-bbs-relay-worker/src/lib.rs:1564-1568, and the tables are never served to a client"]
     N4["A report resolved as hide records none: only delete tombstones nostr-bbs-relay-worker/src/moderation.rs:318"]
 ```
 
 Admin authority for every writer above is `require_nip98_admin` (the relay resolver of NF-08.7), except the kind-5 path, which trusts the trust ladder: TL3+ deletes anyone's events without being an admin (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1638-1640`). The ingest refusal fails open when its lookup fails, and the purge of a user by `pubkey` leaves device-key and gift-wrap rows untombstoned (NF-10 O17 / KF-16, see NF-25.5).
 
-**Open (NF-10 O13 / KF-17):** `process_deletion` writes an `(id, signer)` tombstone for any well-formed `e` target, stored or not (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3535-3545`), and the member gate then accepts a no-row target as already deleted on exactly such a row (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3057`), so a signer can re-name an id this relay never stored.
+**Open (NF-10 O13 / KF-17):** `process_deletion` writes an `(id, signer)` tombstone for any well-formed `e` target, stored or not (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3536-3546`), and the member gate then accepts a no-row target as already deleted on exactly such a row (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3058`), so a signer can re-name an id this relay never stored.
 
-**Open (NF-10 O19 / KF-19):** a member cannot delete their own migrated post: the gate classifies a sealed original before anything else, and the original author is not recorded (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2962-2964`, `:3056`). The purge's tombstones under the original author (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:281`) are therefore never consulted by it.
+**Open (NF-10 O19 / KF-19):** a member cannot delete their own migrated post: the gate classifies a sealed original before anything else, and the original author is not recorded (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2963-2965`, `:3057`). The purge's tombstones under the original author (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:281`) are therefore never consulted by it.
 
 **Open (NF-10 O12 / KF-21):** the member gate answers up to 2,000 targets with one `json_each` statement (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:793-796`); its tests run on rusqlite, never on Cloudflare D1, so D1's behaviour for that statement is unproven.
 
@@ -450,18 +453,20 @@ flowchart TB
 ```mermaid
 flowchart TB
     WL["whitelist - W auth: /api/admins add and remove nostr-bbs-auth-worker/src/admins.rs:162 nostr-bbs-auth-worker/src/admins.rs:240, invite seed and merge<br/>nostr-bbs-auth-worker/src/invites.rs:238 nostr-bbs-auth-worker/src/invites.rs:263, username claim nostr-bbs-auth-worker/src/username.rs:307, agent provision nostr-bbs-auth-worker/src/governance_api.rs:466;<br/>relay: grant nostr-bbs-relay-worker/src/whitelist.rs:373, set-admin nostr-bbs-relay-worker/src/whitelist.rs:450, cohort edit nostr-bbs-relay-worker/src/whitelist.rs:593, delete nostr-bbs-relay-worker/src/user_admin.rs:199<br/>R relay admission nostr-bbs-relay-worker/src/relay_do/storage.rs:445, relay admin nostr-bbs-relay-worker/src/auth.rs:194, check-whitelist nostr-bbs-relay-worker/src/whitelist.rs:135,<br/>auth is_admin nostr-bbs-auth-worker/src/admin.rs:72, admin list nostr-bbs-auth-worker/src/admins.rs:75, device owner check nostr-bbs-auth-worker/src/devices.rs:281, pod admin nostr-bbs-pod-worker/src/lib.rs:2022"]
-    AR["agent_registry - W auth register nostr-bbs-auth-worker/src/governance_api.rs:381, provision nostr-bbs-auth-worker/src/governance_api.rs:476, revoke nostr-bbs-auth-worker/src/governance_api.rs:532<br/>R auth list nostr-bbs-auth-worker/src/governance_api.rs:347 and is_registered_agent nostr-bbs-auth-worker/src/governance_api.rs:1102, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3800, relay disclosure nostr-bbs-relay-worker/src/agent_disclosure.rs:105"]
-    BC["broker_cases - W relay: case upsert on kind-31402 nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1033 - projection of kind-31403 nostr-bbs-relay-worker/src/relay_do/receipts.rs:192, supersession nostr-bbs-relay-worker/src/relay_do/receipts.rs:244,<br/>appeal reopen nostr-bbs-relay-worker/src/relay_do/receipts.rs:283, cron ageing nostr-bbs-relay-worker/src/cron.rs:844<br/>R auth case list and read nostr-bbs-auth-worker/src/governance_api.rs:572 nostr-bbs-auth-worker/src/governance_api.rs:600, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3995, cron nostr-bbs-relay-worker/src/cron.rs:622"]
-    BD["broker_decisions - W relay projection nostr-bbs-relay-worker/src/relay_do/receipts.rs:185, supersession nostr-bbs-relay-worker/src/relay_do/receipts.rs:234 nostr-bbs-relay-worker/src/relay_do/receipts.rs:242<br/>R auth GET /api/governance/decisions nostr-bbs-auth-worker/src/governance_api.rs:619 nostr-bbs-auth-worker/src/governance_api.rs:646, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4193"]
-    BR["broker_roles - W auth grant nostr-bbs-auth-worker/src/governance_api.rs:693, revoke nostr-bbs-auth-worker/src/governance_api.rs:757<br/>R auth list nostr-bbs-auth-worker/src/governance_api.rs:724, relay is_reviewer nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4012 and governance_rank nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4329"]
-    DK["device_keys - W auth register nostr-bbs-auth-worker/src/devices.rs:331, revoke nostr-bbs-auth-worker/src/devices.rs:526<br/>R auth list nostr-bbs-auth-worker/src/devices.rs:478; relay device_owner nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3763 through effective_pubkey nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3781<br/>on EVENT nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1162 and REQ viewer context nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2276 - never at NIP-42 AUTH"]
-    MA["moderation_actions, RELAY copy - W the admin kind-30910/30911 mirror nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4854<br/>R the ban gate nostr-bbs-relay-worker/src/relay_do/mod_cache.rs:117"]
-    RP["reports - W relay kind-1984 projection nostr-bbs-relay-worker/src/moderation.rs:75 from nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4798"]
+    AR["agent_registry - W auth register nostr-bbs-auth-worker/src/governance_api.rs:381, provision nostr-bbs-auth-worker/src/governance_api.rs:476, revoke nostr-bbs-auth-worker/src/governance_api.rs:532<br/>R auth list nostr-bbs-auth-worker/src/governance_api.rs:347 and is_registered_agent nostr-bbs-auth-worker/src/governance_api.rs:1102, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3801, relay disclosure nostr-bbs-relay-worker/src/agent_disclosure.rs:105"]
+    BC["broker_cases - W relay: case upsert on kind-31402 nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1033 - projection of kind-31403 nostr-bbs-relay-worker/src/relay_do/receipts.rs:192, supersession nostr-bbs-relay-worker/src/relay_do/receipts.rs:244,<br/>appeal reopen nostr-bbs-relay-worker/src/relay_do/receipts.rs:283, cron ageing nostr-bbs-relay-worker/src/cron.rs:844<br/>R auth case list and read nostr-bbs-auth-worker/src/governance_api.rs:572 nostr-bbs-auth-worker/src/governance_api.rs:600, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3996, cron nostr-bbs-relay-worker/src/cron.rs:622"]
+    BD["broker_decisions - W relay projection nostr-bbs-relay-worker/src/relay_do/receipts.rs:185, supersession nostr-bbs-relay-worker/src/relay_do/receipts.rs:234 nostr-bbs-relay-worker/src/relay_do/receipts.rs:242<br/>R auth GET /api/governance/decisions nostr-bbs-auth-worker/src/governance_api.rs:619 nostr-bbs-auth-worker/src/governance_api.rs:646, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4194"]
+    BR["broker_roles - W auth grant nostr-bbs-auth-worker/src/governance_api.rs:693, revoke nostr-bbs-auth-worker/src/governance_api.rs:757<br/>R auth list nostr-bbs-auth-worker/src/governance_api.rs:724, relay is_reviewer nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4013 and governance_rank nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4330"]
+    DK["device_keys - W auth register nostr-bbs-auth-worker/src/devices.rs:331, revoke nostr-bbs-auth-worker/src/devices.rs:526<br/>R auth list nostr-bbs-auth-worker/src/devices.rs:478; relay device_owner nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3764 through effective_pubkey nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3782<br/>on EVENT nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1162 and REQ viewer context nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2277 - never at NIP-42 AUTH"]
+    MA["moderation_actions, RELAY copy - W the admin kind-30910/30911 mirror nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4855<br/>R the ban gate nostr-bbs-relay-worker/src/relay_do/mod_cache.rs:117"]
+    RP["reports - W relay kind-1984 projection nostr-bbs-relay-worker/src/moderation.rs:75 from nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4799"]
     WL --> AR --> BC --> BD
     BR --> DK --> MA --> RP
 ```
 
 ## NF-08.13 Auth D1 tables - who writes and who reads each
+
+> **Superseded** by NF-08.14 at 94199e5 (frozen at 4a73a7a).
 
 ```mermaid
 flowchart TB
@@ -478,3 +483,43 @@ flowchart TB
     RPL --> MEM --> MOD --> MRP --> WOT
     INST --> USR --> NIP --> CH --> CRED
 ```
+
+## NF-08.14 Auth D1 tables, after the dead report table was dropped - who writes and who reads each
+
+```mermaid
+flowchart TB
+    RPL["nip98_replay - all four NIP-98 verifiers, INSERT OR IGNORE nostr-bbs-rate-limit/src/replay.rs:13: auth via DB nostr-bbs-auth-worker/src/auth.rs:11,<br/>relay nostr-bbs-relay-worker/src/auth.rs:31, search nostr-bbs-search-worker/src/auth.rs:31 and pod nostr-bbs-pod-worker/src/auth.rs:10 via REPLAY_DB - one table, so replay is cross-worker"]
+    MEM["members - W invite redemption nostr-bbs-auth-worker/src/invites.rs:672 nostr-bbs-auth-worker/src/invites.rs:901, /api/admins nostr-bbs-auth-worker/src/admins.rs:182 nostr-bbs-auth-worker/src/admins.rs:251,<br/>delete-member nostr-bbs-auth-worker/src/admins.rs:310. R the invite flow only nostr-bbs-auth-worker/src/invites.rs:134. NOT read by any admin resolver; the shared<br/>members SQL constants have no caller in the workspace nostr-bbs-core/src/admin_shared.rs:76 nostr-bbs-core/src/admin_shared.rs:82"]
+    MOD["moderation_actions, AUTH copy - W /api/mod/ban and siblings nostr-bbs-auth-worker/src/moderation.rs:257, R /api/mod/actions nostr-bbs-auth-worker/src/moderation.rs:415.<br/>A different table from the relay copy the ban gate reads - NF-08.12"]
+    MRP["mod_reports - W /api/mod/report nostr-bbs-auth-worker/src/moderation.rs:342, action nostr-bbs-auth-worker/src/moderation.rs:589<br/>R /api/mod/reports nostr-bbs-auth-worker/src/moderation.rs:501 nostr-bbs-auth-worker/src/moderation.rs:572"]
+    WOT["wot_entries - W wot.rs:320 wot.rs:389, deletes wot.rs:312 wot.rs:401 - R wot.rs:165 wot.rs:462"]
+    INST["instance_settings - W seed schema.rs:183, welcome welcome.rs:226 welcome.rs:279, wot wot.rs:220 wot.rs:331<br/>R welcome.rs:82 wot.rs:117 nostr-bbs-auth-worker/src/invites.rs:116"]
+    USR["username_reservations - W claim username.rs:237, release username.rs:376, real name username.rs:435, dismiss username.rs:762,<br/>delete-member nostr-bbs-auth-worker/src/admins.rs:315 - R username.rs:191 username.rs:344 username.rs:466 username.rs:492"]
+    NIP["reports (the relay's D1) - W relay kind-1984 projection nostr-bbs-relay-worker/src/moderation.rs:75, R auth GET /api/moderation/reports through RELAY_DB nostr-bbs-auth-worker/src/moderation.rs:632 nostr-bbs-auth-worker/src/moderation.rs:675.<br/>The auth bootstrap no longer creates nip1984_reports nostr-bbs-auth-worker/src/schema.rs:46, and migration 0005 drops it nostr-bbs-auth-worker/migrations/0005_drop_nip1984_reports.sql:10"]
+    CH["challenges - W webauthn.rs:803 webauthn.rs:1203, deletes webauthn.rs:800 webauthn.rs:1094 webauthn.rs:1467 - R webauthn.rs:719 webauthn.rs:1350"]
+    CRED["webauthn_credentials - W webauthn.rs:1081, counter webauthn.rs:1464<br/>R webauthn.rs:1042 webauthn.rs:1168 webauthn.rs:1273 webauthn.rs:1496 nostr-bbs-auth-worker/src/did.rs:49"]
+    RPL --> MEM --> MOD --> MRP --> WOT
+    INST --> USR --> NIP --> CH --> CRED
+```
+
+## NF-08.15 Auth D1 bootstrap — the table list without the dead report table
+
+```mermaid
+flowchart TB
+    subgraph authd1["nostr-bbs-auth D1 - bootstrapped by nostr-bbs-auth-worker/src/schema.rs:19"]
+        A1["challenges schema.rs:28<br/>webauthn_credentials schema.rs:33<br/>moderation_actions schema.rs:51"]
+        A2["mod_reports schema.rs:63<br/>wot_entries schema.rs:84<br/>members schema.rs:97<br/>invitations schema.rs:104"]
+        A3["invitation_redemptions schema.rs:117<br/>welcome_messages schema.rs:145<br/>instance_settings schema.rs:163<br/>username_reservations schema.rs:189"]
+    end
+    GONE["nip1984_reports is not created: only a comment remains<br/>nostr-bbs-auth-worker/src/schema.rs:46<br/>and migration 0005 drops the table and its index<br/>nostr-bbs-auth-worker/migrations/0005_drop_nip1984_reports.sql:10"]
+    RPT["kind-1984 reports live in the relay's reports table<br/>nostr-bbs-relay-worker/src/lib.rs:1255"]
+    A1 --> A2 --> A3
+    A3 -.-> GONE
+    GONE -.-> RPT
+    N["INVARIANT: the auth worker has two report tables of its own kind, mod_reports for kind-30913<br/>nostr-bbs-auth-worker/src/schema.rs:63, and reads the relay's reports through RELAY_DB, never a copy<br/>nostr-bbs-auth-worker/src/moderation.rs:675"]
+    RPT -.-> N
+```
+
+**What it shows:** the auth worker's bootstrap now creates the tables above, one fewer than NF-08.5 listed. The relay D1 half of NF-08.5 is unchanged except for the `reports` line shown here.
+**Why it is this way:** commit 94199e5 removed a table nothing wrote; NF-08.14 gives the per-table writers and readers. Read from source at 8a0ca41, nothing executed.
+

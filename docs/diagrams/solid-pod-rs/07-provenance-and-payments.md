@@ -24,20 +24,20 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs/src/storage/mod.rs
   - ../solid-pod-rs/crates/solid-pod-rs/src/storage/fs.rs
   - ../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md
-verified_commit: a28a74832dd0a6e47a531e34e4adc46a3946dfd3
+verified_commit: d7a04bcd854729a0e8722ed2e56a89f5ac374fea
 ---
 
-**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](15-authority-and-payment-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries.
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](15-authority-and-payment-repairs.md). The panels the 2026-11-23 repair superseded (SP-07.9, SP-07.17 and SP-07.19) are frozen at a28a748 and point to their successors; the rest of the topic is stamped at d7a04bc, where the only cited file changed outside that repair is `storage/fs.rs` (its lock fixes do not alter what SP-07.15 states).
 
 ## SP-07.1 The two provenance tiers
 
 ```mermaid
 flowchart LR
-    W["eligible stored resource write<br/>git feature and repository required<br/>solid-pod-rs-server/src/lib.rs:5066"]
+    W["eligible stored resource write<br/>git feature and repository required<br/>solid-pod-rs-server/src/lib.rs:5075"]
     GM["record_receipt attempts local mark<br/>solid-pod-rs/src/provenance.rs:516"]
     MK["receipt retains mark and per-tier errors<br/>solid-pod-rs/src/provenance.rs:558"]
     AN["inline policy may anchor the commit SHA<br/>solid-pod-rs/src/provenance.rs:544"]
-    SC["write PROV-O sidecar after mark<br/>solid-pod-rs-server/src/lib.rs:5240"]
+    SC["write PROV-O sidecar after mark<br/>solid-pod-rs-server/src/lib.rs:5249"]
     W --> GM --> MK --> SC
     GM --> AN --> MK
     N["INVARIANT: inline anchoring receives the git commit SHA.<br/>Epoch batching instead anchors a Merkle root over commits.<br/>solid-pod-rs-server/src/handlers/prov.rs:320"]
@@ -53,16 +53,16 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    IN["git_mark_write(state, resource_path, agent, message)<br/>solid-pod-rs-server/src/lib.rs:5066"]
-    SIDE{"path ends .acl, .meta or .prov.ttl?<br/>solid-pod-rs-server/src/lib.rs:5077"}
+    IN["git_mark_write(state, resource_path, agent, message)<br/>solid-pod-rs-server/src/lib.rs:5075"]
+    SIDE{"path ends .acl, .meta or .prov.ttl?<br/>solid-pod-rs-server/src/lib.rs:5086"}
     S1["Skipped: ExcludedPath<br/>solid-pod-rs/src/provenance.rs:635"]
-    CONT{"path ends with a slash?<br/>solid-pod-rs-server/src/lib.rs:5084"}
+    CONT{"path ends with a slash?<br/>solid-pod-rs-server/src/lib.rs:5093"}
     S2["Skipped: Container<br/>solid-pod-rs/src/provenance.rs:637"]
-    ROOT{"data_root configured?<br/>solid-pod-rs-server/src/lib.rs:5089"}
+    ROOT{"data_root configured?<br/>solid-pod-rs-server/src/lib.rs:5098"}
     S3["Skipped: NotConfigured<br/>solid-pod-rs/src/provenance.rs:629"]
-    SPLIT{"path splits into pod plus rest?<br/>solid-pod-rs-server/src/lib.rs:5095"}
+    SPLIT{"path splits into pod plus rest?<br/>solid-pod-rs-server/src/lib.rs:5104"}
     S4["Skipped: UnresolvablePath<br/>solid-pod-rs/src/provenance.rs:639"]
-    GITD{"data_root/{pod}/.git is a directory?<br/>solid-pod-rs-server/src/lib.rs:5106"}
+    GITD{"data_root/{pod}/.git is a directory?<br/>solid-pod-rs-server/src/lib.rs:5115"}
     S5["Skipped: NotGitBacked<br/>solid-pod-rs/src/provenance.rs:632"]
     GO["proceed to policy resolution — SP-07.3"]
 
@@ -82,7 +82,7 @@ flowchart TD
     S1 -.-> N
     N2["A skip is not a fault. ProvenanceSkip exists precisely so a correctly<br/>unmarked write is never reported as a provenance failure.<br/>solid-pod-rs/src/provenance.rs:624"]
     S5 -.-> N2
-    N3["Cargo default: this function is the no-op shim, returning NotConfigured.<br/>This is a build-profile fact — consumers can enable git explicitly.<br/>solid-pod-rs-server/src/lib.rs:5272"]
+    N3["Cargo default: this function is the no-op shim, returning NotConfigured.<br/>This is a build-profile fact — consumers can enable git explicitly.<br/>solid-pod-rs-server/src/lib.rs:5281"]
     IN -.-> N3
 ```
 
@@ -97,13 +97,13 @@ flowchart TD
     NEVER["absent condition or ACL read error: Never<br/>solid-pod-rs-server/src/handlers/prov.rs:103"]
     HV["inline mode: HighValue<br/>solid-pod-rs-server/src/handlers/prov.rs:117"]
     EP["epoch mode: Epoch<br/>solid-pod-rs-server/src/handlers/prov.rs:118"]
-    BLD["build_anchorer when policy is not Never<br/>solid-pod-rs-server/src/lib.rs:5129"]
+    BLD["build_anchorer when policy is not Never<br/>solid-pod-rs-server/src/lib.rs:5138"]
     MRC["issued MRC20 trail: MempoolBlockAnchorer<br/>solid-pod-rs-server/src/handlers/prov.rs:207"]
     GM["started git-mark trail: GitmarkAnchorer<br/>solid-pod-rs-server/src/handlers/prov.rs:219"]
     ERR["unreadable trail: UnavailableAnchorer<br/>solid-pod-rs-server/src/handlers/prov.rs:168"]
     NONE["no trail: no bundle<br/>solid-pod-rs-server/src/handlers/prov.rs:217"]
-    FLAG["DRIFT: no bundle clears high_value —<br/>missing inline anchor is not reported<br/>solid-pod-rs-server/src/lib.rs:5152"]
-    BATCH["Epoch becomes Never for record_receipt —<br/>batch call only when bundle exists<br/>solid-pod-rs-server/src/lib.rs:5149<br/>solid-pod-rs-server/src/lib.rs:5210"]
+    FLAG["DRIFT: no bundle clears high_value —<br/>missing inline anchor is not reported<br/>solid-pod-rs-server/src/lib.rs:5161"]
+    BATCH["Epoch becomes Never for record_receipt —<br/>batch call only when bundle exists<br/>solid-pod-rs-server/src/lib.rs:5158<br/>solid-pod-rs-server/src/lib.rs:5219"]
     RES --> NEVER
     RES --> HV --> BLD
     RES --> EP --> BLD
@@ -158,18 +158,18 @@ sequenceDiagram
     participant S as Storage
     participant C as Client
     Note over H,S: Resource bytes are stored before the hook runs.
-    H->>G: mark the write<br/>solid-pod-rs-server/src/lib.rs:5066
-    G->>R: compose receipt for eligible write<br/>solid-pod-rs-server/src/lib.rs:5172
+    H->>G: mark the write<br/>solid-pod-rs-server/src/lib.rs:5075
+    G->>R: compose receipt for eligible write<br/>solid-pod-rs-server/src/lib.rs:5181
     alt receipt has no mark
         G-->>H: return failed-mark receipt
     else local mark exists
         opt policy is Epoch and anchorer bundle exists
-            G->>G: accumulate or anchor epoch<br/>solid-pod-rs-server/src/lib.rs:5212
-            Note over G,R: DRIFT: success or failure only logged —<br/>receipt is not updated<br/>solid-pod-rs-server/src/lib.rs:5228
+            G->>G: accumulate or anchor epoch<br/>solid-pod-rs-server/src/lib.rs:5221
+            Note over G,R: DRIFT: success or failure only logged —<br/>receipt is not updated<br/>solid-pod-rs-server/src/lib.rs:5237
         end
-        G->>S: write resource.prov.ttl<br/>solid-pod-rs-server/src/lib.rs:5240
+        G->>S: write resource.prov.ttl<br/>solid-pod-rs-server/src/lib.rs:5249
         opt sidecar write fails
-            G->>R: add mark_error — keep achieved mark and anchor<br/>solid-pod-rs-server/src/lib.rs:5254
+            G->>R: add mark_error — keep achieved mark and anchor<br/>solid-pod-rs-server/src/lib.rs:5263
         end
         G-->>H: receipt
     end
@@ -238,6 +238,8 @@ flowchart TD
 - **Open:** lock_path is process-local at solid-pod-rs-server/src/trail_store.rs:340. Multi-process safety, durable proof export and process-restart reconciliation are not established by the in-memory fault tests.
 
 ## SP-07.9 MRC20 state chain and Bitcoin anchoring
+
+> **Superseded** by SP-07.21 at d7a04bc (frozen at a28a748).
 
 ```mermaid
 flowchart TD
@@ -355,7 +357,7 @@ flowchart TD
     PAYOUT["debit_by_payout: debit once by txid<br/>reverse_payout restores its recorded amount<br/>solid-pod-rs/src/payments.rs:501<br/>solid-pod-rs/src/payments.rs:536"]
     CHARGE["charge and refund: local service-fee mutations<br/>Charge is an in-memory capability<br/>solid-pod-rs/src/payments.rs:548<br/>solid-pod-rs/src/payments.rs:557"]
     STORE["PaymentStore still reads and writes ledger authority<br/>solid-pod-rs/src/payments.rs:911"]
-    VERIFY["MRC20 HTTP handler verifies before crediting token units<br/>solid-pod-rs-server/src/handlers/pay.rs:659<br/>solid-pod-rs-server/src/handlers/pay.rs:706"]
+    VERIFY["MRC20 HTTP handler verifies before crediting token units<br/>solid-pod-rs-server/src/handlers/pay.rs:670<br/>solid-pod-rs-server/src/handlers/pay.rs:725"]
     ID --> LEDGER
     VERIFY --> CREDIT --> LEDGER
     PAYOUT --> LEDGER
@@ -363,26 +365,26 @@ flowchart TD
     LEDGER --> STORE
 ```
 
-- **What it shows:** outpoint and payout receipts are local replay controls. The public credit_by_outpoint method performs no network lookup; its caller supplies the verified facts. The handler does verify before it credits, but what verify_mrc20_anchor accepts is weaker than "verified" suggests: a one-string trail passes, so the credited amount is self-asserted (SP-07.17 Tension). Service charges and refunds are additional balance mutations.
+- **What it shows:** outpoint and payout receipts are local replay controls. The public credit_by_outpoint method performs no network lookup; its caller supplies the verified facts. The handler verifies before it credits: it needs the full state trail and credits the net balance increase the trail's committed balances show, not a caller-asserted amount (SP-07.22). Service charges and refunds are additional balance mutations.
 - **Why it is this way:** Teller-shaped receipts improve the stored ledger without delivering ADR-2008's chain-derived authority. Bare credit/debit are now crate-private at solid-pod-rs/src/payments.rs:565 and solid-pod-rs/src/payments.rs:579, but public receipt operations and write_ledger still change stored balances.
-- **Invariant:** the MRC20 deposit route refuses a ticker that aliases sats at solid-pod-rs-server/src/handlers/pay.rs:642. Its credit goes to token units, not the satoshi balance. Genesis identity does not authenticate the changing balances.
+- **Invariant:** the MRC20 deposit route refuses a ticker that aliases sats at solid-pod-rs-server/src/handlers/pay.rs:771. Its credit goes to token units, not the satoshi balance. Genesis identity does not authenticate the changing balances.
 
 ## SP-07.14 The `/pay/*` route family
 
 ```mermaid
 flowchart LR
-    REG["handlers::pay::register<br/>solid-pod-rs-server/src/handlers/pay.rs:1866"]
+    REG["handlers::pay::register<br/>solid-pod-rs-server/src/handlers/pay.rs:1920"]
     BAL["GET /pay/.balance -> handle_balance<br/>solid-pod-rs-server/src/handlers/pay.rs:435"]
-    DEP["POST /pay/.deposit -> handle_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:495"]
-    ADDR["GET /pay/.address -> handle_address<br/>solid-pod-rs-server/src/handlers/pay.rs:787"]
-    OFF["GET /pay/.offers -> handle_offers<br/>solid-pod-rs-server/src/handlers/pay.rs:879"]
-    SELL["POST /pay/.sell -> handle_sell<br/>solid-pod-rs-server/src/handlers/pay.rs:914"]
-    SWAP["POST /pay/.swap -> handle_swap<br/>solid-pod-rs-server/src/handlers/pay.rs:1017"]
-    POOLG["GET /pay/.pool -> handle_pool_get<br/>solid-pod-rs-server/src/handlers/pay.rs:1080"]
-    POOLP["POST /pay/.pool -> handle_pool_post<br/>solid-pod-rs-server/src/handlers/pay.rs:1135"]
-    BUY["POST /pay/.buy -> handle_buy<br/>solid-pod-rs-server/src/handlers/pay.rs:1503"]
-    WD["POST /pay/.withdraw -> handle_withdraw<br/>solid-pod-rs-server/src/handlers/pay.rs:1596"]
-    WDS["POST /pay/.withdraw-sats -> handle_withdraw_sats<br/>solid-pod-rs-server/src/handlers/pay.rs:1703"]
+    DEP["POST /pay/.deposit -> handle_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:499"]
+    ADDR["GET /pay/.address -> handle_address<br/>solid-pod-rs-server/src/handlers/pay.rs:841"]
+    OFF["GET /pay/.offers -> handle_offers<br/>solid-pod-rs-server/src/handlers/pay.rs:933"]
+    SELL["POST /pay/.sell -> handle_sell<br/>solid-pod-rs-server/src/handlers/pay.rs:968"]
+    SWAP["POST /pay/.swap -> handle_swap<br/>solid-pod-rs-server/src/handlers/pay.rs:1071"]
+    POOLG["GET /pay/.pool -> handle_pool_get<br/>solid-pod-rs-server/src/handlers/pay.rs:1134"]
+    POOLP["POST /pay/.pool -> handle_pool_post<br/>solid-pod-rs-server/src/handlers/pay.rs:1189"]
+    BUY["POST /pay/.buy -> handle_buy<br/>solid-pod-rs-server/src/handlers/pay.rs:1557"]
+    WD["POST /pay/.withdraw -> handle_withdraw<br/>solid-pod-rs-server/src/handlers/pay.rs:1650"]
+    WDS["POST /pay/.withdraw-sats -> handle_withdraw_sats<br/>solid-pod-rs-server/src/handlers/pay.rs:1757"]
 
     REG --> BAL
     REG --> DEP
@@ -396,13 +398,13 @@ flowchart LR
     REG --> WD
     REG --> WDS
 
-    N["Every write route, and GET /pay/.balance, resolves the caller first: require_did and<br/>require_did_with_body (solid-pod-rs-server/src/handlers/pay.rs:388) answer 401 without<br/>a verified NIP-98 header. Outside dev-bearer builds a Bearer header is unauthenticated<br/>(solid-pod-rs-server/src/lib.rs:927), so the actor is a signing key. is_valid_did_nostr<br/>(solid-pod-rs-server/src/handlers/pay.rs:857) checks only the GET /pay/.address query<br/>(solid-pod-rs-server/src/handlers/pay.rs:827). The receipt mutators narrow an account to<br/>did:nostr with account_of (solid-pod-rs/src/payments.rs:458, :507, :601)."]
+    N["Every write route, and GET /pay/.balance, resolves the caller first: require_did and<br/>require_did_with_body (solid-pod-rs-server/src/handlers/pay.rs:388) answer 401 without<br/>a verified NIP-98 header. Outside dev-bearer builds a Bearer header is unauthenticated<br/>(solid-pod-rs-server/src/lib.rs:927), so the actor is a signing key. is_valid_did_nostr<br/>(solid-pod-rs-server/src/handlers/pay.rs:911) checks only the GET /pay/.address query<br/>(solid-pod-rs-server/src/handlers/pay.rs:881). The receipt mutators narrow an account to<br/>did:nostr with account_of (solid-pod-rs/src/payments.rs:458, :507, :601)."]
     REG -.-> N
-    N2["DIVERGENCE: the whole /pay/* surface is registered with the SAME gating as<br/>/pay/.info — always on, with no payments feature flag<br/>(solid-pod-rs-server/src/lib.rs:6630)."]
+    N2["DIVERGENCE: the whole /pay/* surface is registered with the SAME gating as<br/>/pay/.info — always on, with no payments feature flag<br/>(solid-pod-rs-server/src/lib.rs:6639)."]
     REG -.-> N2
 ```
 
-- **Drift:** the README opens by saying payments are added "through explicit features" (../solid-pod-rs/README.md:3), and its payments paragraph describes deposits, withdrawals, the order book and the AMM with no caution (../solid-pod-rs/README.md:141). The `/pay/*` routes are mounted unconditionally (solid-pod-rs-server/src/lib.rs:6630). An earlier version of this panel cited a README warning against carrying value through these routes. That sentence is in neither 09ec90f nor 9b6143c.
+- **Drift:** the README opens by saying payments are added "through explicit features" (../solid-pod-rs/README.md:3), and its payments paragraph describes deposits, withdrawals, the order book and the AMM with no caution (../solid-pod-rs/README.md:141). The `/pay/*` routes are mounted unconditionally (solid-pod-rs-server/src/lib.rs:6639). An earlier version of this panel cited a README warning against carrying value through these routes. That sentence is in neither 09ec90f nor 9b6143c.
 
 ## SP-07.15 Payment-state commits and the read-failure gap
 
@@ -410,7 +412,7 @@ flowchart LR
 flowchart TD
     LOCK["handlers take lock_payment_state: the in-process PAYMENT_STATE_LOCK,<br/>then the backend lock on key state:payments<br/>solid-pod-rs-server/src/lib.rs:225<br/>solid-pod-rs-server/src/lib.rs:212, :218"]
     BUSY["another process holds it past 30 s: LockError.Busy, 503 Retry-After 1<br/>solid-pod-rs-server/src/lib.rs:339, :377"]
-    XPROC["cross-process only where the backend overrides lock_exclusive:<br/>the default returns Ok(None), FsBackend uses flock on Unix only<br/>solid-pod-rs/src/storage/mod.rs:141<br/>solid-pod-rs/src/storage/fs.rs:528"]
+    XPROC["cross-process only where the backend overrides lock_exclusive:<br/>the default returns Ok(None), FsBackend uses flock on Unix only<br/>solid-pod-rs/src/storage/mod.rs:141<br/>solid-pod-rs/src/storage/fs.rs:954"]
     READ["read_state_unchecked reads canonical state.json<br/>solid-pod-rs-server/src/handlers/pay.rs:192"]
     PARSE["successful read: parse or return error<br/>then check ledger genesis<br/>solid-pod-rs-server/src/handlers/pay.rs:195<br/>solid-pod-rs-server/src/handlers/pay.rs:182"]
     FALL["DRIFT: RESOLVED at solid-pod-rs 27e1899, only a missing state file falls back<br/>to legacy files, version zero and no pending intents<br/>solid-pod-rs-server/src/handlers/pay.rs:201"]
@@ -418,7 +420,7 @@ flowchart TD
     MUTATE["mutate ledger, replay, orders or exchange"]
     SAVE["commit_state: increment version and put bundled state<br/>solid-pod-rs-server/src/handlers/pay.rs:215"]
     MIRROR["write legacy mirrors best-effort afterwards<br/>solid-pod-rs-server/src/handlers/pay.rs:234"]
-    INTENT["token payout stores debit plus intent before broadcast<br/>solid-pod-rs-server/src/handlers/pay.rs:1427"]
+    INTENT["token payout stores debit plus intent before broadcast<br/>solid-pod-rs-server/src/handlers/pay.rs:1481"]
     LOCK --> READ
     LOCK -- busy --> BUSY
     LOCK -.-> XPROC
@@ -432,7 +434,7 @@ flowchart TD
 - **What it shows:** bundled state prevents a local transition being split between authoritative ledger, replay and market files. A read outage no longer selects stale mirrors: only a missing state file falls back to the legacy files, and any other storage error is returned (`solid-pod-rs-server/src/handlers/pay.rs:198-200`).
 - **Why it is this way:** a single-document commit under a two-level lock. Since SP-PAR-275 two processes on one filesystem data root serialise on a Unix `flock`. Another backend gets no cross-process exclusion unless it overrides `lock_exclusive`. There is still no compare-and-swap, and the compatibility fallback covers only a missing file.
 - **Debt:** recovery at solid-pod-rs-server/src/handlers/pay.rs:266 trusts explorer presence, advances a saved trail when behind and reverses a payout on 404. A missing payout receipt retains the intent. These are bounded recovery rules, not proof of finality or safe absence across explorers.
-- **Invariant:** token transfer waits at most two seconds for its trail lock while holding the payment lock, then returns 503 with Retry-After at solid-pod-rs-server/src/handlers/pay.rs:1360. The existing tests establish this local bound.
+- **Invariant:** token transfer waits at most two seconds for its trail lock while holding the payment lock, then returns 503 with Retry-After at solid-pod-rs-server/src/handlers/pay.rs:1414. The existing tests establish this local bound.
 
 ## SP-07.16 Order book and AMM
 
@@ -473,6 +475,8 @@ classDiagram
 
 ## SP-07.17 Deposits are MRC20-only — the stand-in is deleted (ADR-2008 D6)
 
+> **Superseded** by SP-07.22 at d7a04bc (frozen at a28a748).
+
 ```mermaid
 flowchart TD
     IN["POST /pay/.deposit -> handle_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:495"]
@@ -499,8 +503,8 @@ flowchart TD
 ```mermaid
 flowchart TD
     PORT["implemented: rust-bitcoin primitives and golden parity D1/D2<br/>solid-pod-rs/src/bitcoin_tx.rs:281<br/>solid-pod-rs/src/bitcoin_tx.rs:1244"]
-    TXO["D6 stand-in deletion implemented: non-MRC20 deposit 501<br/>solid-pod-rs-server/src/handlers/pay.rs:510"]
-    MRC["D3/D6 partial: MRC20 credits token units,<br/>buy and withdraw routes remain<br/>solid-pod-rs-server/src/handlers/pay.rs:706<br/>solid-pod-rs-server/src/handlers/pay.rs:1877"]
+    TXO["D6 stand-in deletion implemented: non-MRC20 deposit 501<br/>solid-pod-rs-server/src/handlers/pay.rs:514"]
+    MRC["D3/D6 partial: MRC20 credits token units,<br/>buy and withdraw routes remain<br/>solid-pod-rs-server/src/handlers/pay.rs:725<br/>solid-pod-rs-server/src/handlers/pay.rs:1931"]
     API["D5 partial: bare credit/debit now crate-private,<br/>public receipt mutations and write_ledger remain<br/>solid-pod-rs/src/payments.rs:565<br/>solid-pod-rs/src/payments.rs:913"]
     LOCAL["D4 absent: stored local balance, no height-stamped chain view<br/>solid-pod-rs/src/payments.rs:412"]
     ATOMIC["D7 partial: bundled state, two-level lock,<br/>read-failure fallback now limited to a missing file<br/>solid-pod-rs-server/src/handlers/pay.rs:192"]
@@ -515,12 +519,14 @@ flowchart TD
 
 ## SP-07.19 Whole-trail verification — every mark walked back from the head (alpha.12)
 
+> **Superseded** by SP-07.21 at d7a04bc (frozen at a28a748).
+
 ```mermaid
 sequenceDiagram
     autonumber
     participant V as verify<br/>solid-pod-rs-server/src/mempool.rs:853
     participant R as verify_anchor_report<br/>solid-pod-rs-server/src/mempool.rs:889
-    participant W as verify_anchor_chain<br/>solid-pod-rs/src/blocktrail.rs:1068
+    participant W as verify_anchor_chain<br/>solid-pod-rs/src/blocktrail.rs:1072
     participant M as MempoolLookup
     participant T as TrailReport<br/>solid-pod-rs/src/blocktrail.rs:765
 
@@ -529,17 +535,17 @@ sequenceDiagram
     R-->>V: None when the recorded address is not the derivation, a forged anchor<br/>solid-pod-rs-server/src/mempool.rs:907
     R->>W: pubkey, state_strings and the anchor's txid and vout<br/>solid-pod-rs-server/src/mempool.rs:913
     loop mark k-1 down to 0
-        W->>M: tx for the current outpoint<br/>solid-pod-rs/src/blocktrail.rs:1106
+        W->>M: tx for the current outpoint<br/>solid-pod-rs/src/blocktrail.rs:1110
         M-->>W: TxInfo with vin, vout and confirmation
-        W->>W: the output script must be the key this prefix of states derives<br/>solid-pod-rs/src/blocktrail.rs:1113
+        W->>W: the output script must be the key this prefix of states derives<br/>solid-pod-rs/src/blocktrail.rs:1117
         W->>W: the spent input becomes the previous mark<br/>solid-pod-rs/src/blocktrail.rs:1136
     end
     W-->>R: TrailReport, one MarkReport per state
     R-->>V: Some(report)
     V->>T: is_intact decides the boolean<br/>solid-pod-rs-server/src/mempool.rs:856
     Note over T: is_verified needs every mark confirmed (solid-pod-rs/src/blocktrail.rs:841), is_intact also<br/>accepts marks still in the mempool, not only the head (solid-pod-rs/src/blocktrail.rs:849). verify<br/>answers with is_intact, so an unconfirmed head passes.
-    Note over W: INVARIANT: the amount is not checked on this path, because an MRC20 trail keeps only its head<br/>outpoint (solid-pod-rs/src/blocktrail.rs:1068). The key and the spend order are the whole check.
-    Note over W: On this walk a mark with inputs is linked by construction (solid-pod-rs/src/blocktrail.rs:1137).<br/>An input that is not the predecessor shows as WrongKey or NotFound at the predecessor's index.<br/>BrokenLink (solid-pod-rs/src/blocktrail.rs:647) arises only for a mark with no inputs (:1116).<br/>Either way it fails. Mark 0's input is never examined (:1114), so a one-string proof is a head check.
+    Note over W: INVARIANT: the amount is not checked on this path, because an MRC20 trail keeps only its head<br/>outpoint (solid-pod-rs/src/blocktrail.rs:1072). The key and the spend order are the whole check.
+    Note over W: On this walk a mark with inputs is linked by construction (solid-pod-rs/src/blocktrail.rs:1137).<br/>An input that is not the predecessor shows as WrongKey or NotFound at the predecessor's index.<br/>BrokenLink (solid-pod-rs/src/blocktrail.rs:647) arises only for a mark with no inputs (:1116).<br/>Either way it fails. Mark 0's input is never examined (:1121), so a one-string proof is a head check.
 ```
 - **What it shows:** `verify` on either anchorer is a walk, not a lookup. From the anchor's own outpoint back to genesis every mark must exist, be the key its prefix of states derives, and be spent by the next.
 - **Why it is this way:** a UTXO at the head address proves only that the head key was paid, so the earlier version accepted a trail whose history was missing or paid other keys (0.5.0-alpha.12 CHANGELOG, `Changed`). Verification follows blocktrails/verify 043e7af, with fixtures generated from the page itself. On the full-trail walk, `verify_blocktrail` counts BrokenLink as a failure where the page still labels such a mark verified. Here the crate is deliberately stricter than its reference.
@@ -571,3 +577,69 @@ flowchart TD
 - **Why it is this way:** durable intents protect against lost broadcast responses and failed private saves. Recovery uses private mark count to decide whether persistence is complete, which misses a failed public proof write.
 - **Invariant:** a new extension compares the latest output with the key derived from the trail states at solid-pod-rs/src/bitcoin_tx.rs:963. That later check does not prevent recovery from first replacing stored metadata.
 - **Open:** native server source contains no non-test genesis caller (SP-07.3). Full process restart, multi-process locking and external provisioning remain unverified. The fixture transport used here is not a consensus node.
+
+## SP-07.21 The anchor walk checks the whole trail, and each mark must spend the one before
+
+```mermaid
+flowchart TD
+    VMA["verify_mrc20_anchor_at — named outpoint or ordered coins<br/>solid-pod-rs/src/mrc20.rs:1049"]
+    VMD["verify_mrc20_deposit — state link and transfer to the address<br/>solid-pod-rs/src/mrc20.rs:1059"]
+    VTS["verify_trail_states — the full trail, genesis to tip<br/>solid-pod-rs/src/mrc20.rs:869"]
+    MIN["at least 2 strings, at most MAX_TRAIL_STATES = 256<br/>solid-pod-rs/src/mrc20.rs:877<br/>solid-pod-rs/src/mrc20.rs:883"]
+    CHAIN["canonical JCS, genesis seq 0, seq and prev hash-linked, one ticker<br/>solid-pod-rs/src/mrc20.rs:895<br/>solid-pod-rs/src/mrc20.rs:901<br/>solid-pod-rs/src/mrc20.rs:906"]
+    TIP["last two strings equal JCS(state) and JCS(prevState)<br/>solid-pod-rs/src/mrc20.rs:917<br/>solid-pod-rs/src/mrc20.rs:920"]
+    ADDR["bt_address from the portable proof, then address_utxos<br/>solid-pod-rs/src/mrc20.rs:1076<br/>solid-pod-rs/src/mrc20.rs:1080"]
+    PICK["named coin only, else confirmed first, then height, then outpoint, first 4 (MAX_UTXOS_WALKED)<br/>solid-pod-rs/src/mrc20.rs:1091<br/>solid-pod-rs/src/mrc20.rs:1116"]
+    WALK["verify_anchor_chain from that coin back to genesis<br/>solid-pod-rs/src/blocktrail.rs:1072"]
+    LINK["a mark after genesis needs an input that spends an output committing to the previous key,<br/>read from at most 8 inputs (MAX_INPUTS_CHECKED)<br/>solid-pod-rs/src/blocktrail.rs:1121<br/>solid-pod-rs/src/blocktrail.rs:1125"]
+    STOP["a mark that does not commit ends the walk, the rest is reported unreached<br/>solid-pod-rs/src/blocktrail.rs:1161"]
+    OK["is_intact on the report returns the proven amount and the coin<br/>solid-pod-rs/src/mrc20.rs:1129"]
+    VMA --> VMD --> VTS --> MIN --> CHAIN --> TIP --> ADDR --> PICK --> WALK --> LINK --> STOP --> OK
+
+    N["INVARIANT: a deposit is a transfer, so a one-string trail is refused before any network read. The<br/>head address comes from the public issuer key, so anyone can fund it, but a mark after genesis<br/>must spend its predecessor, which needs the issuer secret.<br/>solid-pod-rs/src/mrc20.rs:877"]
+    MIN -.-> N
+    N2["CHANGED at d7a04bc: a mark with inputs is no longer linked by construction. Without a spending<br/>input that commits to the previous key the mark fails and the first input is only followed<br/>to name the bad mark.<br/>solid-pod-rs/src/blocktrail.rs:1146"]
+    LINK -.-> N2
+    N3["TENSION: mark 0 has no link check (links is None), and the balances of every state before the<br/>tip are read as given, only the tip's ops are replayed against them.<br/>solid-pod-rs/src/blocktrail.rs:1121<br/>solid-pod-rs/src/mrc20.rs:927"]
+    TIP -.-> N3
+```
+
+- **What it shows:** `verify_mrc20_anchor` is now `verify_mrc20_anchor_at` with no named coin (`solid-pod-rs/src/mrc20.rs:1011`). The proof must be the whole trail, and the coin walked is the depositor's named outpoint or one of the first four in a fixed order, so dust cannot crowd the real anchor out.
+- **Why it is this way:** the d7a04bc commit closed the one-string and head-only proof recorded at SP-07.9 and SP-07.19. Each state costs one or two mempool requests, hence the 256-state and 4-coin bounds. Source tracing: the walk is exercised by `solid-pod-rs-server/tests/pay_mrc20_routes.rs`, which this review did not run.
+- **Tension:** an unnamed anchor can still be outranked by earlier-confirmed dust, which the doc comment says to avoid by naming the outpoint (`solid-pod-rs/src/mrc20.rs:1041`). The remaining trust in earlier balances rests on the issuer's own spends, as noted in the diagram.
+
+## SP-07.22 Deposit credit is the net balance increase the verified trail commits
+
+```mermaid
+flowchart TD
+    IN["POST /pay/.deposit -> handle_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:499"]
+    SNIFF{"body_is_mrc20?<br/>solid-pod-rs-server/src/handlers/pay.rs:510"}
+    R501["501 for any other authenticated body, no payment state written<br/>solid-pod-rs-server/src/handlers/pay.rs:514"]
+    MRC["handle_mrc20_deposit<br/>solid-pod-rs-server/src/handlers/pay.rs:568"]
+    BIND["issuer and ticker binding: accepts_issuer, else 403, wrong ticker 400<br/>solid-pod-rs-server/src/handlers/pay.rs:593"]
+    ADDR["to_address is bt_address of the issuer and the caller's DID<br/>solid-pod-rs-server/src/handlers/pay.rs:624"]
+    PRE["unlocked look: deposit_refusal on the ticker and the state-hash replay key<br/>solid-pod-rs-server/src/handlers/pay.rs:765"]
+    NAMED["optional anchor.outpoint parsed as txid:vout, malformed is 400<br/>solid-pod-rs-server/src/handlers/pay.rs:660"]
+    VER["verify_mrc20_anchor_at against the mempool client, outside the payment lock<br/>solid-pod-rs-server/src/handlers/pay.rs:669"]
+    LOCK["lock_payment_state, re-read the ledger, repeat deposit_refusal<br/>solid-pod-rs-server/src/handlers/pay.rs:687<br/>solid-pod-rs-server/src/handlers/pay.rs:692"]
+    OUT["replay guard over every coin at the address, then credit the verified coin<br/>solid-pod-rs-server/src/handlers/pay.rs:703"]
+    CR["credit_by_outpoint(did, ticker, anchor, result.amount), commit_state<br/>solid-pod-rs-server/src/handlers/pay.rs:725<br/>solid-pod-rs-server/src/handlers/pay.rs:742"]
+    AMT["amount = after - before at the deposit address, checked, above zero<br/>solid-pod-rs/src/mrc20.rs:961"]
+    OPS["the tip's transfer ops must reproduce its committed balances<br/>solid-pod-rs/src/mrc20.rs:952"]
+
+    IN --> SNIFF
+    SNIFF -- no --> R501
+    SNIFF -- yes --> MRC --> BIND --> ADDR --> PRE --> NAMED --> VER --> LOCK --> OUT --> CR
+    VER -.-> OPS --> AMT
+
+    N["INVARIANT: the credited amount is result.amount from the verified trail, never a figure the caller sent.<br/>A self-transfer or a round trip nets to nothing and is refused.<br/>solid-pod-rs/src/mrc20.rs:257"]
+    AMT -.-> N
+    N2["INVARIANT: the network read is the slow step, so it runs without the payment lock, and every replay<br/>check is repeated under the lock before the credit is committed.<br/>solid-pod-rs-server/src/handlers/pay.rs:687"]
+    LOCK -.-> N2
+    N3["TENSION: the anchor network still comes from the body and defaults to testnet4, so the<br/>configured mempool endpoint bounds the chain, not the code.<br/>solid-pod-rs-server/src/handlers/pay.rs:610"]
+    VER -.-> N3
+```
+
+- **What it shows:** the deposit path that SP-07.17 described as proven only by caller-supplied strings now requires the full canonical trail and credits the net increase the trail itself commits to the caller's address, to the ticker balance and never the satoshi balance (`solid-pod-rs-server/src/handlers/pay.rs:771`).
+- **Why it is this way:** the d7a04bc commit made the credit follow the proof, not the request; `total_transferred_to` still reports the gross op sum but now returns `Option<u64>` (`solid-pod-rs/src/mrc20.rs:257`) and the credit uses the net figure. The stand-in deletion of ADR-2008 D6 (501 for non-MRC20 bodies) is unchanged.
+- **Open:** ADR-2008 D4 and D8 are not touched by this commit, so SP-07.18 still holds. The route tests at `solid-pod-rs-server/tests/pay_mrc20_routes.rs` were not run for this review; the claims above are source tracing at d7a04bc.

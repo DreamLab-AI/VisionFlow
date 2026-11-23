@@ -55,12 +55,16 @@ sources:
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
   - ../project/agentbox/mcp/servers/nostr-bridge.js
   - ../project/agentbox/management-api/lib/agent-event-auth.js
+  - ../project/agentbox/management-api/lib/nip98-url.js
+  - ../project/agentbox/management-api/lib/rate-limit-key.js
   - ../project/agentbox/flake.nix
   - ../project/agentbox/scripts/agentbox-config-validate.js
-verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
+verified_commit: 76ad253ae575d61eb43a2bdefeb163f8247cabb8
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
+
+> **Superseded** by AB-03.19 at 11b9f26 (frozen at 59b1aca).
 
 ```mermaid
 sequenceDiagram
@@ -113,62 +117,62 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Start as start()<br/>server.js:936
+    participant Start as start()<br/>server.js:941
     participant Manifest as loadManifest<br/>adapters/manifest-loader.js
     participant App as fastify app
     participant Adapters as resolveAdapters<br/>adapters/index.js
 
-    Start->>Manifest: loadManifest()<br/>server.js:941
+    Start->>Manifest: loadManifest()<br/>server.js:946
     alt manifest file missing
-        Manifest-->>Start: ManifestNotFound<br/>server.js:944-946
+        Manifest-->>Start: ManifestNotFound<br/>server.js:949-951
         Start->>Start: manifest = {} all-off defaults
     end
-    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:967
-    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:968
+    Start->>Adapters: resolveAdapters(manifest)<br/>server.js:972
+    Start->>App: app.decorate adapters resolvedAdapters<br/>server.js:973
     Note over Start,Adapters: see AB-04.1 for slot to implementation resolution detail
-    Start->>App: middleware/linked-data createEncoder ALWAYS runs and decorates linkedData,<br/>linked_data.enabled only changes the log level on success or failure<br/>server.js:974-996
-    Start->>App: register routes/uri-resolver always mounted<br/>server.js:1005
-    Start->>App: register routes/chain (self-gates 503 when sidechain off)<br/>server.js:1018
-    Start->>App: register routes/chain-payments, POST /v1/chain/pay with spend-policy in rail mode<br/>server.js:1031
-    Start->>App: register routes/system logger manifest adapters execution snapshot<br/>server.js:1048-1059
-    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:1076-1077
-    Start->>App: build the elevation publisher only when sovereign_mesh.kg_elevation is on, then register routes/kg-elevation, which self-gates and reports the publisher on /ready<br/>server.js:1091-1095, server.js:568-573
-    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1116-1124
+    Start->>App: middleware/linked-data createEncoder ALWAYS runs and decorates linkedData,<br/>linked_data.enabled only changes the log level on success or failure<br/>server.js:979-1001
+    Start->>App: register routes/uri-resolver always mounted<br/>server.js:1010
+    Start->>App: register routes/chain (self-gates 503 when sidechain off)<br/>server.js:1023
+    Start->>App: register routes/chain-payments, POST /v1/chain/pay with spend-policy in rail mode<br/>server.js:1036
+    Start->>App: register routes/system logger manifest adapters execution snapshot<br/>server.js:1053-1064
+    Start->>App: register routes/voice-intent with dispatchActionRequest<br/>server.js:1081-1082
+    Start->>App: build the elevation publisher only when sovereign_mesh.kg_elevation is on, then register routes/kg-elevation, which self-gates and reports the publisher on /ready<br/>server.js:1096-1100, server.js:573-578
+    Start->>App: new ProjectTracker + register routes/projects<br/>server.js:1121-1129
     opt project_tracking.enabled true
-        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1126-1133
+        Start->>Start: tracker.scan() then tracker.startScheduler()<br/>server.js:1131-1138
     end
     alt sovereign_mesh.multi_user.enabled true
-        Start->>App: register routes/admin-users<br/>server.js:1155-1157
+        Start->>App: register routes/admin-users<br/>server.js:1160-1162
     else disabled default
-        Start->>Start: /admin/users/* not mounted<br/>server.js:1167
+        Start->>Start: /admin/users/* not mounted<br/>server.js:1172
     end
-    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1177-1180
-    Start->>App: register routes/well-known x402 discovery<br/>server.js:1200
-    Start->>App: buildAuthorityConsumer + buildAuthorityJournal + buildAuthorityGate, decorate authorityDenyJournal authorityConsumer authorityGate<br/>server.js:1219-1251
-    Start->>App: bootReceiptPublisher over the same deny journal (boot flush, then one per minute), decorate governanceReceiptPublisher, stop on close<br/>server.js:1245-1249
-    Note over Start: fallback to governance-decision-waiter.awaitDecision when the authority consumer is null (server.js:1233-1235)
-    Start->>App: register routes/beads<br/>server.js:1265
-    Start->>App: register routes/mandate<br/>server.js:1276
-    Start->>App: register routes/sessions-boundary<br/>server.js:1286
-    Start->>App: register routes/approvals<br/>server.js:1296
-    Start->>App: register routes/briefing with processManager, ADR-2072<br/>server.js:1311
-    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1368-1374
-    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1384-1400
+    Start->>App: resolveViewerImpl + register routes/linked-objects<br/>server.js:1182-1185
+    Start->>App: register routes/well-known x402 discovery<br/>server.js:1205
+    Start->>App: buildAuthorityConsumer + buildAuthorityJournal + buildAuthorityGate, decorate authorityDenyJournal authorityConsumer authorityGate<br/>server.js:1224-1256
+    Start->>App: bootReceiptPublisher over the same deny journal (boot flush, then one per minute), decorate governanceReceiptPublisher, stop on close<br/>server.js:1250-1254
+    Note over Start: fallback to governance-decision-waiter.awaitDecision when the authority consumer is null (server.js:1238-1240)
+    Start->>App: register routes/beads<br/>server.js:1270
+    Start->>App: register routes/mandate<br/>server.js:1281
+    Start->>App: register routes/sessions-boundary<br/>server.js:1291
+    Start->>App: register routes/approvals<br/>server.js:1301
+    Start->>App: register routes/briefing with processManager, ADR-2072<br/>server.js:1316
+    Start->>Start: log SecurityProfileApplied resolved posture<br/>server.js:1373-1379
+    Start->>Adapters: connectAdapters per-slot deadline<br/>server.js:1389-1405
     Note over Start,Adapters: see AB-04.6 connectAdapters per-slot deadline detail, not re-drawn here
     opt AGENTBOX_RELAY_ENABLED and AGENTBOX_RELAY_POD_BRIDGE true
-        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1407-1408, server.js:1451-1469
+        Start->>Start: new RelayConsumer(npubs...).start()<br/>server.js:1412-1413, server.js:1456-1474
     end
     opt junkiejarvisEnabled(manifest)
-        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1490-1509
+        Start->>Start: startJunkieJarvis bridge logger<br/>server.js:1495-1514
     end
-    Start->>Start: headroom.init(logger) decorate headroom or null<br/>server.js:1526-1534
-    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1538-1540
-    Start->>App: app.listen port PORT host HOST<br/>server.js:1543
+    Start->>Start: headroom.init(logger) decorate headroom or null<br/>server.js:1531-1539
+    Start->>Start: initTracing, setBuildInfo, startMetricsServer<br/>server.js:1543-1545
+    Start->>App: app.listen port PORT host HOST<br/>server.js:1548
     Note over Start: MANAGEMENT_API_PORT default 9090 (server.js:45) HOST default 0.0.0.0 (server.js:50)<br/>compose publishes 127.0.0.1 9090 9090 only
-    Note over Start: agentbox main b9e0ea9a8 (S-3) leaves the 0.0.0.0 bind alone and instead makes the two readers of X-Agentbox-Pubkey (agent-event-auth and action-plane resolveAgentDid)<br/>honour it only from a loopback TCP peer (lib/agent-event-auth.js:98-106, :116-117, AGENTBOX_PROXY_PEERS overrides the peer list), so a cross-container<br/>MANAGEMENT_API_KEY holder can no longer assert an identity through it. The auth gate itself never reads the header, see AB-10.14
+    Note over Start: agentbox main b9e0ea9a8 (S-3) leaves the 0.0.0.0 bind alone and instead makes the two readers of X-Agentbox-Pubkey (agent-event-auth and action-plane resolveAgentDid)<br/>honour it only from a loopback TCP peer (lib/agent-event-auth.js:100-108, :118-119, AGENTBOX_PROXY_PEERS overrides the peer list), so a cross-container<br/>MANAGEMENT_API_KEY holder can no longer assert an identity through it. The auth gate itself never reads the header, see AB-10.14
 ```
 
-**Drift:** the route tables AB-03.6 to AB-03.11 do not draw four mounted surfaces: `routes/status` (`../project/agentbox/management-api/server.js:348`), `routes/chain` (`../project/agentbox/management-api/server.js:1018`), `routes/chain-payments` (`../project/agentbox/management-api/server.js:1031`) and `routes/briefing` (`../project/agentbox/management-api/server.js:1311`). The topic is a partial route census, not the complete one its title implies.
+**Drift:** the route tables AB-03.6 to AB-03.11 do not draw four mounted surfaces: `routes/status` (`../project/agentbox/management-api/server.js:353`), `routes/chain` (`../project/agentbox/management-api/server.js:1023`), `routes/chain-payments` (`../project/agentbox/management-api/server.js:1036`) and `routes/briefing` (`../project/agentbox/management-api/server.js:1316`). The topic is a partial route census, not the complete one its title implies.
 
 ## AB-03.3 generic request lifecycle — Fastify hook phases, auth and validation failure
 
@@ -176,28 +180,28 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant PreVal as preValidation hook<br/>server.js:235
-    participant Auth as authMiddleware<br/>middleware/auth.js:188
+    participant PreVal as preValidation hook<br/>server.js:240
+    participant Auth as authMiddleware<br/>middleware/auth.js:194
     participant Schema as Fastify schema validation
     participant PreH as route preHandler<br/>e.g. costGate/paymentGate/authz
     participant H as route handler
-    participant OnResp as onResponse hook<br/>server.js:214
+    participant OnResp as onResponse hook<br/>server.js:219
 
     C->>PreVal: HTTP request, Fastify starts its own reply timer at request start
-    Note over C,PreVal: no app-level onRequest hook since the Fastify 5 upgrade - duration comes from<br/>reply.elapsedTime (server.js:211-215), which a cors preflight answered in onRequest still has.<br/>Body parsing (registerRawBody) runs before preValidation
+    Note over C,PreVal: no app-level onRequest hook since the Fastify 5 upgrade - duration comes from<br/>reply.elapsedTime (server.js:216-220), which a cors preflight answered in onRequest still has.<br/>Body parsing (registerRawBody) runs before preValidation
     alt url on public allowlist
-        PreVal->>H: skip authMiddleware entirely<br/>server.js:237-273
+        PreVal->>H: skip authMiddleware entirely<br/>server.js:242-278
     else url requires auth
-        PreVal->>Auth: authMiddleware(request, reply)<br/>server.js:275
-        Auth->>Auth: verifyNip98Header + verifyBearerHeader<br/>middleware/auth.js:190-191
-        Auth->>Auth: authMode gates which result counts — strict-nip98 and nip98 drop bearer<br/>middleware/auth.js:194-199
+        PreVal->>Auth: authMiddleware(request, reply)<br/>server.js:280
+        Auth->>Auth: verifyNip98Header + verifyBearerHeader<br/>middleware/auth.js:196-197
+        Auth->>Auth: authMode gates which result counts — strict-nip98 and nip98 drop bearer<br/>middleware/auth.js:200-205
         opt neither accepted — task action token (lib/task-action-tokens.js)
-            Auth->>Auth: verifyTaskTokenHeader, admitted only on TASK_TOKEN_ROUTES<br/>emit, batch, trajectory — else 403 (middleware/auth.js:139-144, :207-219)
+            Auth->>Auth: verifyTaskTokenHeader, admitted only on TASK_TOKEN_ROUTES<br/>emit, batch, trajectory — else 403 (middleware/auth.js:145-150, :213-225)
         end
         alt no credential accepted for configured authMode
-            Auth-->>C: 401 Unauthorized typed message<br/>middleware/auth.js:222-237
+            Auth-->>C: 401 Unauthorized typed message<br/>middleware/auth.js:228-243
         else authenticated
-            Auth->>Auth: request.auth = {mode nip98 or bearer or task-token, pubkey?}<br/>middleware/auth.js:217, :240
+            Auth->>Auth: request.auth = {mode nip98 or bearer or task-token, pubkey?}<br/>middleware/auth.js:223, :246
             Auth->>Schema: continue to schema validation
         end
     end
@@ -215,8 +219,8 @@ sequenceDiagram
     PreH->>H: route handler executes
     H-->>C: reply.send(...)
     H->>OnResp: response phase
-    OnResp->>OnResp: metrics.recordHttpRequest(method, routeOptions.url or url, statusCode, duration)<br/>server.js:214-221
-    Note over OnResp: duration = reply.elapsedTime divided by 1000 (server.js:215), feeds<br/>http_request_duration_seconds (observability/metrics.js:58)
+    OnResp->>OnResp: metrics.recordHttpRequest(method, routeOptions.url or url, statusCode, duration)<br/>server.js:219-226
+    Note over OnResp: duration = reply.elapsedTime divided by 1000 (server.js:220), feeds<br/>http_request_duration_seconds (observability/metrics.js:58)
 ```
 
 ## AB-03.4 lib/authz.js — identity resolution predicates
@@ -224,7 +228,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Req as request.auth<br/>middleware/auth.js:240
+    participant Req as request.auth<br/>middleware/auth.js:246
     participant AP as authenticatedPubkey<br/>lib/authz.js:114
     participant OP as isOperator<br/>lib/authz.js:90
     participant AL as approvalAllowlist<br/>lib/authz.js:71
@@ -292,14 +296,14 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    subgraph probes["public probes — auth-skip allowlist server.js:237-273"]
-        A1["GET /livez<br/>server.js:438"] --> H1["event-loop-alive only<br/>server.js:453"]
-        A2["GET /ready<br/>server.js:473"] --> H2["bootstrap+adapters+paths check, 503 with missing list<br/>server.js:501-596"]
-        A3["GET /health<br/>server.js:601"] --> H3["adapterHealth snapshot plus adapter_failures<br/>server.js:627-638"]
-        A4["GET /health/pods<br/>server.js:644"] --> H4["probePodHealth<br/>server.js:121-185"]
-        A5["GET /v1/meta<br/>server.js:665"] --> H5["image_hash + adapter contract versions<br/>server.js:692-707"]
-        A6["GET /metrics<br/>server.js:711"] --> H6["metrics.register.metrics<br/>server.js:724"]
-        A7["GET /<br/>server.js:728"] --> H7["endpoint index<br/>server.js:746-809"]
+    subgraph probes["public probes — auth-skip allowlist server.js:242-278"]
+        A1["GET /livez<br/>server.js:443"] --> H1["event-loop-alive only<br/>server.js:458"]
+        A2["GET /ready<br/>server.js:478"] --> H2["bootstrap+adapters+paths check, 503 with missing list<br/>server.js:506-601"]
+        A3["GET /health<br/>server.js:606"] --> H3["adapterHealth snapshot plus adapter_failures<br/>server.js:632-643"]
+        A4["GET /health/pods<br/>server.js:649"] --> H4["probePodHealth<br/>server.js:123-187"]
+        A5["GET /v1/meta<br/>server.js:670"] --> H5["image_hash + adapter contract versions<br/>server.js:697-712"]
+        A6["GET /metrics<br/>server.js:716"] --> H6["metrics.register.metrics<br/>server.js:729"]
+        A7["GET /<br/>server.js:733"] --> H7["endpoint index<br/>server.js:751-814"]
     end
     subgraph sysroutes["routes/system.js — authed, always mounted"]
         B1["GET /v1/system<br/>routes/system.js:44"] --> HB1["buildSystemView + buildExecutionCoverage<br/>routes/system.js:58-61"]
@@ -307,7 +311,7 @@ flowchart TD
     end
     subgraph wellknown["public discovery"]
         C1["GET /.well-known/x402.json<br/>routes/well-known.js:64"] --> HC1["cached manifest or 404<br/>routes/well-known.js:34-52,90-95"]
-        C2["GET /.well-known/did.json<br/>auth-skip only server.js:265"] -.->|"not a fastify route here"| HC2["served by solid-pod-rs<br/>lib/uris.js:278"]
+        C2["GET /.well-known/did.json<br/>auth-skip only server.js:270"] -.->|"not a fastify route here"| HC2["served by solid-pod-rs<br/>lib/uris.js:278"]
     end
     subgraph uri["routes/uri-resolver.js — authed, always mounted"]
         D1["GET /v1/uri/:urn<br/>routes/uri-resolver.js:49"] --> HD1["400 malformed / 200+307 resolvable / 404 unknown —<br/>see AB-11.15 for the full alt-chain; 410 Gone is documented<br/>but WITHDRAWN, never emitted (ADR-2049) routes/uri-resolver.js:12-25"]
@@ -340,8 +344,8 @@ flowchart TD
         P1["GET /v1/projects<br/>projects.js:106"] --> PH1["tracker.list"]
         P2["GET /v1/projects/:id<br/>projects.js:146"] --> PH2["tracker.get"]
         P3["GET /v1/projects/:id/activity<br/>projects.js:185"] --> PH3["git commit activity"]
-        P4["POST /v1/projects/scan<br/>projects.js:233"] --> PH4["tracker.scan<br/>boot scan server.js:1128-1129"]
-        P5["POST /v1/projects/:id/primer<br/>projects.js:274"] --> PH5["PrimerGenerator — server.js:1111"]
+        P4["POST /v1/projects/scan<br/>projects.js:233"] --> PH4["tracker.scan<br/>boot scan server.js:1133-1134"]
+        P5["POST /v1/projects/:id/primer<br/>projects.js:274"] --> PH5["PrimerGenerator — server.js:1116"]
         P6["POST /v1/projects/:id/publish<br/>projects.js:327"] --> PH6["kind-30841 nostr digest publish"]
     end
 ```
@@ -361,13 +365,13 @@ flowchart TD
         K2["GET /v1/kg-elevation/federation<br/>kg-elevation.js:86<br/>publisher status: gate, configured, skipped, failed"]
     end
     subgraph lo["routes/linked-objects.js — viewer.mountPath, auth-skip for /lo/*"]
-        L1["GET /lo/*<br/>linked-objects.js:133"] --> LH1["static viewer bundle — no auth (server.js:251-253)"]
+        L1["GET /lo/*<br/>linked-objects.js:133"] --> LH1["static viewer bundle — no auth (server.js:256-258)"]
         L2["GET viewer/manifest.json<br/>linked-objects.js:154"] --> LH2["pane manifest"]
         L3["GET viewer/panes/:file<br/>linked-objects.js:168"] --> LH3["pane asset"]
         L4["GET viewer/proxy<br/>linked-objects.js:206"] --> LH4["proxy fetch of a resource for the viewer"]
         L5["GET viewer.mountPath and viewer.mountPath/*<br/>linked-objects.js:258,261,271,275"] --> LH5["viewer shell — enabled/disabled variants"]
     end
-    Note1["INVARIANT: /v1/* data endpoints stay authed even when the /lo static bundle is public (server.js:247-253)"]
+    Note1["INVARIANT: /v1/* data endpoints stay authed even when the /lo static bundle is public (server.js:252-258)"]
 ```
 
 **Drift:** the panel previously labelled `POST /v1/memory` as guarded by `wrapWithPrivacyFilter` at `middleware/privacy-filter.js:649`. The route never calls that wrapper. It imports only the marker and assertion helpers (`../project/agentbox/management-api/routes/memory.js:25-28`). Redaction happens one layer down, where `wrapDispatch` wraps every adapter method (`../project/agentbox/management-api/observability/metrics.js:127`), see AB-04.4.
@@ -392,7 +396,7 @@ flowchart TD
         E8["GET /v1/agent-events/status<br/>agent-events.js:828"] --> EH8["forwarder status"]
     end
     subgraph au["routes/admin-users.js — mounted only if sovereign_mesh.multi_user.enabled"]
-        AU1["POST /admin/users/provision<br/>admin-users.js:138"] --> AUH1["501 stub — see PRD-007 (server.js:1162)"]
+        AU1["POST /admin/users/provision<br/>admin-users.js:138"] --> AUH1["501 stub — see PRD-007 (server.js:1167)"]
         AU2["POST /admin/users/:pubkey/git-init<br/>admin-users.js:196"] --> AUH2["501 stub"]
         AU3["POST /admin/users/:pubkey/suspend<br/>admin-users.js:230"] --> AUH3["501 stub"]
         AU4["POST /admin/users/:pubkey/archive<br/>admin-users.js:246"] --> AUH4["501 stub"]
@@ -412,7 +416,7 @@ flowchart TD
     ap ~~~ md
 ```
 
-**Drift:** two agent-events write routes joined since the previous stamp, `POST /v1/agent-events/trajectory` and `POST /v1/agent-events/routing-label` (`../project/agentbox/management-api/routes/agent-events.js:571`, `../project/agentbox/management-api/routes/agent-events.js:661`). Trajectory joins emit and batch as the only three routes a per-task action token may reach (`../project/agentbox/management-api/middleware/auth.js:139-144`). Routing-label is not on that list, so a task token gets 403 there.
+**Drift:** two agent-events write routes joined since the previous stamp, `POST /v1/agent-events/trajectory` and `POST /v1/agent-events/routing-label` (`../project/agentbox/management-api/routes/agent-events.js:571`, `../project/agentbox/management-api/routes/agent-events.js:661`). Trajectory joins emit and batch as the only three routes a per-task action token may reach (`../project/agentbox/management-api/middleware/auth.js:145-150`). Routing-label is not on that list, so a task token gets 403 there.
 
 ## AB-03.10 route table (e1) — payments, llm-marketplace, dream, comfyui
 
@@ -459,7 +463,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph vi["routes/voice-intent.js — WS7, mandate-gated"]
-        VI1["POST /v1/voice-intent<br/>voice-intent.js:85"] --> VIH1["transcript to agent intent<br/>optional Jev interpret after the speaker, mandate and target checks, off by default,<br/>422 clarification-needed holds a doubted intent (voice-intent.js:227-229)<br/>dispatch signed 31402, or 503 dispatch-unavailable when no dispatcher is wired (voice-intent.js:237-241;<br/>dispatcher built by buildVoiceIntentDispatcher server.js:897, :1076)"]
+        VI1["POST /v1/voice-intent<br/>voice-intent.js:85"] --> VIH1["transcript to agent intent<br/>optional Jev interpret after the speaker, mandate and target checks, off by default,<br/>422 clarification-needed holds a doubted intent (voice-intent.js:227-229)<br/>dispatch signed 31402, or 503 dispatch-unavailable when no dispatcher is wired (voice-intent.js:237-241;<br/>dispatcher built by buildVoiceIntentDispatcher server.js:902, :1081)"]
     end
     subgraph bb["routes/broker-bridge.js — G6"]
         BB1["GET /api/broker/bridge/inbox<br/>broker-bridge.js:316"] --> BBH1["enrichment review inbox"]
@@ -611,10 +615,12 @@ sequenceDiagram
             M-->>Caller: throw UntraceableModelRequest (strict) or degraded model.requested (compatibility)<br/>lib/execution-journal.js:75-84
         end
     end
-    Note over J: CORRECTED 2026-10-02 — the journal is live: lib/action-plane.js:169 constructs ExecutionJournal<br/>(tasks.js dispatchTaskSpawn rides that plane), and since ADR-2071 Phase 1 routes/exec-record.js:128<br/>appends through the same singleton, so the management API stays the only chain writer
+    Note over J: CORRECTED 2026-10-02 — the journal is live: lib/action-plane.js:169 constructs ExecutionJournal<br/>(tasks.js dispatchTaskSpawn rides that plane), and since ADR-2071 Phase 1 routes/exec-record.js:136<br/>appends through the same singleton, so the management API stays the only chain writer
 ```
 
 ## AB-03.15 end-to-end authenticated write — nip98-proxy through the mandate registry
+
+> **Superseded** by AB-03.20 at 11b9f26 (frozen at 59b1aca).
 
 ```mermaid
 sequenceDiagram
@@ -668,16 +674,16 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    A["middleware/auth.js<br/>createAuthMiddleware + registerRawBody"] --> A1["global preValidation hook<br/>server.js:225,235,275"]
+    A["middleware/auth.js<br/>createAuthMiddleware + registerRawBody"] --> A1["global preValidation hook<br/>server.js:230,235,275"]
     B["middleware/cost-gate.js<br/>costGate"] --> B1["preHandler on POST /v1/tasks<br/>routes/tasks.js:7,43"]
     C["middleware/payment-gate.js<br/>paymentGate"] --> C1["preHandler on POST /v1/comfyui/workflow<br/>routes/comfyui.js:10,74"]
     D["middleware/privacy-filter.js<br/>ADR-008 layer 2"] --> D1["marker and assertion helpers imported by routes/memory.js<br/>memory.js:25-28"]
     D --> D2["wrapWithPrivacyFilter wraps every adapter dispatch<br/>see AB-04.4/AB-04.5, not re-drawn here"]
-    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["createEncoder always runs in start(); surfaces gated by linked_data.enabled<br/>server.js:974-996"]
-    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1177-1180"]
+    E["middleware/linked-data/*<br/>createEncoder, viewer, surfaces"] --> E1["createEncoder always runs in start(); surfaces gated by linked_data.enabled<br/>server.js:979-1001"]
+    E --> E2["routes/linked-objects.js viewer mount<br/>server.js:1182-1185"]
     F["middleware/spend-policy.js<br/>spendPolicy factory"] --> F1["required by routes/chain-payments.js:34,<br/>rail-mode hook built at chain-payments.js:146"]
     G["middleware/consumer-payer.js<br/>resolveSidestr"] --> G1["required by routes/chain-payments.js:35"]
-    F1 --> R["POST /v1/chain/pay, mounted in start()<br/>server.js:1031"]
+    F1 --> R["POST /v1/chain/pay, mounted in start()<br/>server.js:1036"]
     G1 --> R
     Note1["no other routes/*.js or server.js require them; scripts/agentbox-config-validate.js<br/>only checks payments.consumer coherence for spend-policy, it does not import it"]
 ```
@@ -720,3 +726,69 @@ sequenceDiagram
     K->>Pub: every candidate still emits its LINK beam, only unblocked ones are published<br/>kg-elevation.js:237, :249-253
     Note over G: DANGLING_LINK is the one issue code the gate tolerates standalone<br/>every relation target is dangling in a one-page scratch repo by construction (lib/elevation-stage.js:23-28, :47)
 ```
+
+## AB-03.19 server.js boot — loopback-only proxy trust, an identity-keyed rate limit and an operator-gated exec/record
+
+```mermaid
+flowchart TB
+    FA["fastify construction: trustProxy is the loopback pair only, no longer true<br/>../project/agentbox/management-api/server.js:91"]
+    RL["rate limit max 100 per minute, keyGenerator rateLimitKey, allowList 127.0.0.1<br/>../project/agentbox/management-api/server.js:204-212"]
+    KEY["rateLimitKey: a loopback peer with a printable X-Agentbox-Pubkey is keyed id:pubkey, any other peer by request.ip<br/>../project/agentbox/management-api/lib/rate-limit-key.js:16-19"]
+    REG["register routes/exec-record, prefix empty, no manifest option<br/>../project/agentbox/management-api/server.js:439"]
+    POST["POST /v1/exec/record carries preHandler requireOperator<br/>../project/agentbox/management-api/routes/exec-record.js:71"]
+    GATE["requireOperator: bearer passes, a nip98 signer passes only if isOperator, else 403 forbidden_not_operator<br/>../project/agentbox/management-api/lib/authz.js:188-190"]
+    MAND["POST /v1/mandate uses the same preHandler<br/>../project/agentbox/management-api/routes/mandate.js:311"]
+    FA --> RL --> KEY
+    FA --> REG --> POST --> GATE
+    MAND -.-> GATE
+    N1["INVARIANT: Fastify request.ip, host and protocol are derived from X-Forwarded-* only for the trustProxy peers, so a remote caller can no longer choose them<br/>../project/agentbox/management-api/server.js:89-91"]
+    FA -.-> N1
+    N2["The route is registered without a manifest option, so exec-record.js passes an empty manifest (exec-record.js:64). isOperator ignores its manifest argument<br/>../project/agentbox/management-api/lib/authz.js:90"]
+    REG -.-> N2
+```
+
+- **What it shows:** the boot now narrows forwarded-header trust to the co-located nip98-proxy and keys the 100-per-minute limit on the proxy-verified identity, because behind the proxy every request shares one peer address. `exec/record` now has the operator gate that its comment at `../project/agentbox/management-api/server.js:436-438` already claimed.
+- **Why it is this way:** commit 11b9f26 (AB-03.1 and AB-03.15, reviewed in four rounds). The global auth hook proves who signed, not whether that signer owns the hash-chained journal.
+- **Invariant:** the journal writer is operator-only on both mutating routes that append to it, `exec/record` and `mandate`, by one shared preHandler (`../project/agentbox/management-api/lib/authz.js:184`).
+
+## AB-03.20 end-to-end authenticated write — the signed URL is rebuilt exactly and matched exactly
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Cli as external caller
+    participant Proxy as nip98-proxy port 9096
+    participant App as fastify app port 9090
+    participant Auth as authMiddleware
+    participant Url as nip98-url
+    participant Br as NostrBridge
+    participant Guard as requireOperator
+
+    rect rgb(232,244,255)
+    Note over Cli,Proxy: LAN-published ingress door, port 9096 (../project/agentbox/docker-compose.yml:48)
+    Cli->>Proxy: request to /mgmt/v1/mandate, kind-27235 Authorization signed over the public /mgmt URL
+    Proxy->>Proxy: signedUrlFor rebuilds scheme, Host and path, creds params stripped, one forwardedProto value<br/>../project/agentbox/config/nip98-proxy/proxy.mjs:532-535
+    Proxy->>Proxy: NostrBridge.verifyNip98 then the allowlist, pubkey_not_allowed on a miss<br/>../project/agentbox/config/nip98-proxy/proxy.mjs:602-619
+    Proxy->>Proxy: routeFor strips the /mgmt prefix and records it as strippedPrefix<br/>../project/agentbox/config/nip98-proxy/proxy.mjs:358
+    Proxy->>App: forwards Authorization verbatim, x-forwarded-host as signed, x-forwarded-prefix set by the proxy alone, any inbound copy dropped<br/>../project/agentbox/config/nip98-proxy/proxy.mjs:906-914
+    end
+    rect rgb(240,255,235)
+    Note over App,Guard: loopback-only surface, 127.0.0.1 port 9090 (../project/agentbox/docker-compose.yml:49)
+    App->>Auth: preValidation hook, url not on the public allowlist<br/>../project/agentbox/management-api/server.js:240-280
+    Auth->>Url: signedUrlForRequest(request)<br/>../project/agentbox/management-api/middleware/auth.js:78
+    Url->>Url: forwarded host and proto honoured only from a loopback peer, prefix only if on the trusted list, default /mgmt<br/>../project/agentbox/management-api/lib/nip98-url.js:71-82
+    Url->>Url: host must match plain host[:port], else null and 401, no fallback<br/>../project/agentbox/management-api/lib/nip98-url.js:84
+    Auth->>Br: verifyNip98(header, method, absolute URL, rawBody)<br/>../project/agentbox/management-api/middleware/auth.js:89
+    Br->>Br: nip98UrlsMatch, equal scheme, host, port and path after canonicalisation, no endsWith, query compared only if the tag has one<br/>../project/agentbox/mcp/servers/nostr-bridge.js:611, ../project/agentbox/mcp/servers/nostr-bridge.js:309-315
+    alt signature or URL invalid
+        Auth-->>Cli: 401 Unauthorized<br/>../project/agentbox/management-api/middleware/auth.js:240-243
+    else verified
+        Auth->>Guard: request.auth = nip98 mode and pubkey (auth.js:246), then preHandler<br/>../project/agentbox/management-api/routes/mandate.js:311
+        Guard-->>Cli: 403 forbidden_not_operator unless the operator key<br/>../project/agentbox/management-api/lib/authz.js:190
+    end
+    end
+```
+
+- **What it shows:** the 401 that the frozen panel left open is closed by design. The API now rebuilds `/mgmt/v1/x` from the proxy-reported prefix, and the verifier requires the absolute URL to equal the signed `u` tag after canonicalisation. A bare path is rejected, and dot segments, encoded slashes, backslashes and control characters are refused (`../project/agentbox/mcp/servers/nostr-bridge.js:278-297`).
+- **Why it is this way:** the proxy holds no signing key and never re-signs, so authority stays with the operator's signature (`../project/agentbox/config/nip98-proxy/proxy.mjs:906-914`). `agent-event-auth.js` takes the same reconstruction (`../project/agentbox/management-api/lib/agent-event-auth.js:176-181`).
+- **Open:** the exact-match path is covered by tests in the commit, but no request through port 9096 was sent for this panel, so the live 200 through `/mgmt/` is source-traced only.

@@ -31,13 +31,15 @@ verified_commit: {dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5,
 
 ## For developers
 
-Follow the website overlay into the consumed kit's house state machine and browser settlement path. The associated estate review separates native counterexamples, mocked script results, source-only findings and process observations. The kit sources here are verified at `4a73a7a`. The cited poker files are unchanged from `6064622`, the house service's revision, and from `fd31193`, the website client's `KIT_REF`; the cited `relay.rs` and `dm/mod.rs` differ from `6064622` and were re-read at `4a73a7a`, which matches `fd31193` for both.
+Follow the website overlay into the consumed kit's house state machine and browser settlement path. The associated estate review separates native counterexamples, mocked script results, source-only findings and process observations. The kit sources here are verified at `4a73a7a`. DW-10.1 to DW-10.4 are frozen and superseded by DW-12 (their citations span three repositories, so DW-10 keeps its stamps). The cited poker files are unchanged from `6064622`, the house service's revision, and from `fd31193`, the website client's `KIT_REF`; the cited `relay.rs` and `dm/mod.rs` differ from `6064622` and were re-read at `4a73a7a`, which matches `fd31193` for both.
 
 ## For the business
 
 Members have practice chips and two configured asset tables, with the house acting as a trusted dealer. A completed hand, an accepted transfer and a recoverable record are separate outcomes. The current receipts and recovery behaviour leave gaps between them.
 
 ## DW-10.1 Deployment selects separate house seats
+
+> **Superseded** by DW-12.1 at 389a644 (frozen at e255b2b).
 
 ```mermaid
 flowchart TB
@@ -65,6 +67,8 @@ flowchart TB
 
 ## DW-10.2 Admission grants unsecured play credit
 
+> **Superseded** by DW-12.2 at 8a0ca41 (frozen at e255b2b).
+
 ```mermaid
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-poker-citizen/src/table.rs:289
@@ -91,6 +95,8 @@ flowchart TB
 
 ## DW-10.3 Recovery persists the book but not the active game
 
+> **Superseded** by DW-12.3 at 8a0ca41 (frozen at e255b2b).
+
 ```mermaid
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-poker-citizen/src/table.rs:148
@@ -116,6 +122,8 @@ flowchart TB
 **Why it is this way:** The service separates its pure state machine from network effects. Its persisted book covers settled obligations, while the in-progress game and held transaction inputs remain in memory.
 
 ## DW-10.4 Replay verification and payment fields have different coverage
+
+> **Superseded** by DW-12.4 at 8a0ca41 (frozen at e255b2b).
 
 ```mermaid
 flowchart TB

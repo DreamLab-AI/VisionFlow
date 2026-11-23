@@ -22,12 +22,12 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admins.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/lib.rs
-verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
+verified_commit: {nostr-rust-forum: 8a0ca418b9f129b219431880d9fa5a81603428fc}
 ---
 
 ## For developers
 
-The dynamic admin split and invite revoke/cohort findings have a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-292-device-lifecycle-and-dynamic-administration-settle-at-their-owners). The dynamic admin split and invite cohort findings are marked resolved at the re-verified stamp 6064622; other membership findings remain separate. Re-verified at af4f0d5: the user purge now writes NIP-09 event tombstones (NF-25.5) and the Add User form now sends zone keys (NF-25.7); nothing else in these sources changed.
+The dynamic admin split has a [scoped source-repair successor, NF-29](29-external-review-repairs.md#nf-292-device-lifecycle-and-dynamic-administration-settle-at-their-owners). The dynamic admin split and invite cohort findings are marked resolved at the re-verified stamp 6064622; the revoke-by-code finding was not effective until 94199e5 (NF-25.9); other membership findings remain separate. Re-verified at af4f0d5: the user purge now writes NIP-09 event tombstones (NF-25.5) and the Add User form now sends zone keys (NF-25.7); nothing else in these sources changed. Re-verified at 8a0ca41: revoke by code now updates the selected row (NF-25.9, which supersedes NF-25.4); no other cited source in this topic changed since af4f0d5.
 
 [The membership audit](../../estate-review/2026-11-01-forum-membership-lifecycle.md) records 37 selected native cases and seven extracted-SQL scenarios. The pager uses the actual Rust implementation with synthetic pages. SQL cases exercise chosen schedules on SQLite, without running the async Worker handlers or live D1. Consolidation below is proposed, not deployed.
 
@@ -95,6 +95,8 @@ flowchart TB
 At the earlier stamp the auth resolver also consulted members. At 6064622 it reads only the static set and the relay whitelist (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admin.rs:62-83`), so a relay demotion is authoritative for both resolvers and a failed relay lookup returns false rather than falling through (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/admin.rs:85`). The fixture executes the write and both store queries.
 
 ## NF-25.4 Invite creation and revocation use different identifiers
+
+> **Superseded** by NF-25.9 at 94199e5 (frozen at af4f0d5).
 
 ```mermaid
 flowchart LR
@@ -227,3 +229,27 @@ sequenceDiagram
 ```
 
 The two paths agree on the whitelist write but guard differently, and only the relay path writes an audit row (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs:455`).
+
+## NF-25.9 Invite revocation binds the selected row's id
+
+```mermaid
+flowchart LR
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:362
+    A["Create invite<br/>ID: 8 characters<br/>code: 16 characters"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/invites.rs:175
+    B["Client sends code<br/>in revoke URL"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:712
+    C["SELECT matches WHERE id = input OR code = input"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:759
+    D["No row: 404<br/>Invite not found"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:780
+    E["UPDATE binds the selected row.id,<br/>not the raw path segment"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:788
+    F["INVARIANT: a change count other than one<br/>is a 500 error, never an ok reply"]
+    A --> B --> C --> D
+    C --> E --> F
+```
+
+**What it shows:** a revoke by code selects the row, then updates it by that row's id; the UPDATE keyed on the code, which matched nothing, is gone (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:715`). The guard `require_revoked` (`../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:720`) turns a zero-row update into an error.
+**Why it is this way:** commit 94199e5 repaired the regression in which lookup accepted a code but the update did not; unit tests pin both the by-id and by-code paths. Read from source and its tests at 8a0ca41; no deployed worker was exercised.
+

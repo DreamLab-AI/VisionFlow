@@ -34,7 +34,7 @@ sources:
   - ../project/agentbox/management-api/server.js
   - ../project/agentbox/mcp/mcp.json
   - ../project/agentbox/management-api/adapters/contract-versions.js
-verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
+verified_commit: 76ad253ae575d61eb43a2bdefeb163f8247cabb8
 ---
 
 ## AB-26.1 headroom — lazy native load and slot gating
@@ -49,7 +49,7 @@ sequenceDiagram
     participant ADDON as headroom_napi.node<br/>/opt/agentbox/lib/headroom/headroom_napi.node
     participant CR as _detectContentType (JS-local)<br/>agentbox/management-api/lib/headroom.js:159
 
-    Note over MW,H: init#40;#41; runs once at management-api boot (management-api/server.js:1526-1527), until it succeeds compress#40;#41;<br/>passes through (headroom.js:206)
+    Note over MW,H: init#40;#41; runs once at management-api boot (management-api/server.js:1531-1532), until it succeeds compress#40;#41;<br/>passes through (headroom.js:206)
     MW->>H: compress(JSON of the ranked results, "memory", opts)
     alt slot == events
         H-->>MW: input UNCHANGED
@@ -121,6 +121,8 @@ sequenceDiagram
 ```
 
 ## AB-26.3 headroom MCP tools
+
+> **Superseded** by AB-26.10 at 1d26ebe (frozen at 59b1aca).
 
 ```mermaid
 sequenceDiagram
@@ -261,18 +263,18 @@ sequenceDiagram
     autonumber
     participant AG as Agent
     participant ST as substrate-tools spawn_child<br/>agentbox/mcp/servers/substrate-tools.js:108
-    participant CTX as createSpawnContext<br/>agentbox/mcp/servers/lib/typed-spawn.js:62
-    participant VAL as validateIris<br/>agentbox/mcp/servers/lib/typed-spawn.js:40
+    participant CTX as createSpawnContext<br/>agentbox/mcp/servers/lib/typed-spawn.js:74
+    participant VAL as validateIris<br/>agentbox/mcp/servers/lib/typed-spawn.js:52
     participant ONT as local ontology<br/>agentbox/mcp/servers/lib/ontology-local.js — see AB-25
     participant BEADS as beads adapter<br/>agentbox/management-api/adapters/beads/local-sqlite.js
 
     AG->>ST: spawn_child {title, skill, input_iris, blocked_by, epic_id, epic_title, owner}
     Note over ST: only `title` is required (substrate-tools.js:121)
     ST->>CTX: createSpawnContext(opts)
-    CTX->>CTX: owner = opts.owner or AGENTBOX_REFINE_OPERATOR or did:nostr:jjohare (:64)
+    CTX->>CTX: owner = opts.owner or AGENTBOX_REFINE_OPERATOR or did:nostr:jjohare (:76)
     alt no epicId supplied
         CTX->>BEADS: createEpic({title, tags: ["owner:<did>"]})
-        Note over CTX,BEADS: OWNERSHIP is an axis distinct from `actor`, which is the CLAIM — who WORKS the bead. The<br/>owner DID rides in tags so getReady (actor IS NULL) still treats children as runnable,<br/>and a worker can claim-and-run WITHOUT taking ownership. This is the<br/>sovereign-ownership-vs-claim separation (:67-71)
+        Note over CTX,BEADS: OWNERSHIP is an axis distinct from `actor`, which is the CLAIM — who WORKS the bead. The<br/>owner DID rides in tags so getReady (actor IS NULL) still treats children as runnable,<br/>and a worker can claim-and-run WITHOUT taking ownership. This is the<br/>sovereign-ownership-vs-claim separation (:79-83)
     end
     CTX->>VAL: validateIris(ontology, inputIris, "input")
     loop each IRI
@@ -280,24 +282,26 @@ sequenceDiagram
         alt unknown
             ONT-->>VAL: error
             VAL-->>AG: throw "input references unknown ontology IRIs: ..."
-            Note over VAL: INVARIANT: an unknown IRI is REJECTED BEFORE ANY WORK IS SPAWNED (:15-16, :83)
+            Note over VAL: INVARIANT: an unknown IRI is REJECTED BEFORE ANY WORK IS SPAWNED (:15-16, :95)
         else known
             ONT-->>VAL: canonical IRI
         end
     end
     CTX->>BEADS: createChild({title, parent_id: epicId, tags: [owner:<did>, skill:<skill>, in:<iri>...]})
-    Note over CTX,BEADS: actor is left NULL so the child stays runnable in getReady until a worker claims it<br/>(:88-89)
+    Note over CTX,BEADS: actor is left NULL so the child stays runnable in getReady until a worker claims it<br/>(:100-101)
     loop each blocker in blockedBy
-        CTX->>BEADS: addDependency(child.id, blocker) — a work-DAG edge (:92)
+        CTX->>BEADS: addDependency(child.id, blocker) — a work-DAG edge (:104)
     end
     CTX-->>AG: {beadId, epicId, owner, skill, typedInput, status}
     Note over AG,CTX: prime-agent's rlm() spawns ANONYMOUS, UNTYPED children — the adoptable here is the<br/>CONTRACT prime lacks: a child bead under the parent epic, typed IRIs, and inherited DID<br/>ownership (:7-20)
     Note over CTX: the heavy lifting — retrieval, reasoning, actual agent execution — stays with the<br/>ORCHESTRATOR. This is a thin typing+attribution+ownership skin over a spawn (:20-21).<br/>Dispatch is AB-04
 ```
 
-**Drift:** the module header still says the child "inherits the parent's DID/Nostr identity as its actor" (`../project/agentbox/mcp/servers/lib/typed-spawn.js:17-18`), while the code deliberately leaves `actor` null and carries the owner in tags (`../project/agentbox/mcp/servers/lib/typed-spawn.js:68-72`, `../project/agentbox/mcp/servers/lib/typed-spawn.js:87-89`). The code is the intended design; the header predates it.
+**Drift:** the module header still says the child "inherits the parent's DID/Nostr identity as its actor" (`../project/agentbox/mcp/servers/lib/typed-spawn.js:17-18`), while the code deliberately leaves `actor` null and carries the owner in tags (`../project/agentbox/mcp/servers/lib/typed-spawn.js:80-84`, `../project/agentbox/mcp/servers/lib/typed-spawn.js:99-101`). The code is the intended design; the header predates it.
 
 ## AB-26.7 spawn_ready and spawn_complete
+
+> **Superseded** by AB-26.11 at 1d26ebe (frozen at 59b1aca).
 
 ```mermaid
 sequenceDiagram
@@ -421,3 +425,53 @@ flowchart TB
         N1 ~~~ N2 ~~~ N3
     end
 ```
+
+## AB-26.10 headroom after the dead tool module was deleted — compress is wired, retrieve has no agent-facing route
+
+```mermaid
+flowchart TB
+    BOOT["server boot: headroom.init then app.decorate headroom, or null when init fails<br/>../project/agentbox/management-api/server.js:1531-1537"]
+    MEM["POST memory search: compress the ranked results through fastify.headroom when more than two came back<br/>../project/agentbox/management-api/routes/memory.js:269-277"]
+    EV["compressSelected: Jev-ranked excerpts then compress, flag off by default<br/>../project/agentbox/management-api/lib/headroom.js:407-408"]
+    API["headroom.js exports compress, retrieve, stats and the camelCase aliases ccrRetrieve and ccrStats<br/>../project/agentbox/management-api/lib/headroom.js:411-415"]
+    RET["retrieve(hash): null until init has run, otherwise the native CCR store lookup<br/>../project/agentbox/management-api/lib/headroom.js:286-288"]
+    NAPI["ccr_retrieve over the process-global CCR store<br/>../project/agentbox/crates/headroom-napi/src/lib.rs:70"]
+    GONE["management-api/lib/headroom-mcp-tools.js is deleted: no MCP server, route or test loads headroom_retrieve, headroom_stats or headroom_compress"]
+    BOOT --> MEM
+    BOOT --> API
+    EV --> API
+    MEM --> API
+    API --> RET --> NAPI
+    N1["DEBT: the CCR originals are still written on compress, but nothing agent-facing calls retrieve, so a compression sentinel in a memory search result has no route back to its original<br/>../project/agentbox/management-api/lib/headroom.js:383-387"]
+    RET -.-> N1
+    GONE -.-> N1
+```
+
+- **What it shows:** the dead module that the frozen AB-26.3 recorded as unreachable was deleted in 1d26ebe, so the only live headroom surface is in-process: the memory-search route and the Jev option. The alias comment still says `ccrRetrieve` is "expected by MCP tools" (`../project/agentbox/management-api/lib/headroom.js:383-384`), and no such tool exists.
+- **Why it is this way:** the triage batch chose deletion over registering the tools on a served MCP surface, because the module had no caller (commit message of 1d26ebe).
+- **Debt:** `retrieve` and `stats` are exported and unused outside tests, and the PRD-016 `headroom_retrieve` tool is archived only (`docs/archive/prd/PRD-016-context-compression-caching.md:116`, read at the stamp).
+
+## AB-26.11 spawn_ready and spawn_complete — an empty AGENTBOX_BEADS_DB falls through to the persistent database
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant AG as Agent
+    participant ST as substrate-tools<br/>../project/agentbox/mcp/servers/substrate-tools.js
+    participant CFG as mcp registration<br/>../project/agentbox/mcp/mcp.json:224
+    participant DEP as loadDeps<br/>../project/agentbox/mcp/servers/lib/typed-spawn.js:37
+    participant RES as resolveDbPath<br/>../project/agentbox/mcp/servers/lib/typed-spawn.js:32
+    participant BEADS as LocalSqliteBeadsAdapter<br/>../project/agentbox/management-api/adapters/beads/local-sqlite.js:61
+
+    AG->>ST: spawn_ready or spawn_complete, each call builds a new spawn context<br/>../project/agentbox/mcp/servers/substrate-tools.js:174-178
+    ST->>CFG: process.env.AGENTBOX_BEADS_DB, empty string when unset
+    ST->>DEP: createSpawnContext with dbPath, the empty string included
+    DEP->>RES: resolveDbPath(opts.dbPath)<br/>../project/agentbox/mcp/servers/lib/typed-spawn.js:46
+    RES-->>DEP: undefined for unset, empty or whitespace, the value otherwise, :memory: only if passed explicitly
+    DEP->>BEADS: new LocalSqliteBeadsAdapter with dbPath undefined
+    Note over BEADS: opts.dbPath or the workspace beads.db default, so state persists across calls<br/>../project/agentbox/management-api/adapters/beads/local-sqlite.js:63-64
+```
+
+- **What it shows:** the shipped empty default no longer becomes `:memory:`, so `spawn_ready` sees the children that `spawn_child` created in an earlier call and `spawn_complete` can find the bead. The fix is the whole of `resolveDbPath` (`../project/agentbox/mcp/servers/lib/typed-spawn.js:32-34`).
+- **Why it is this way:** commit 1d26ebe took the first of the two closures the frozen AB-26.7 named, defaulting inside `loadDeps`, and left `mcp.json` passing an empty string. The contract is asserted by `../project/agentbox/mcp/servers/lib/typed-spawn.test.js:5-10`.
+- **Invariant:** a test or caller that wants an in-memory database must pass `:memory:` explicitly (`../project/agentbox/mcp/servers/lib/typed-spawn.js:27-28`). Read at the stamp only: no spawn call was made.

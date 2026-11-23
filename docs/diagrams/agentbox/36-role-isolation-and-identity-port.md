@@ -16,6 +16,7 @@ sources:
   - ../project/agentbox/config/role-accounts.json
   - ../project/agentbox/config/lib/nip98-config.sh
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
+  - ../project/agentbox/config/nip98-proxy/config-path.mjs
   - ../project/agentbox/services/agentbox-manifest/src/role_accounts.rs
   - ../project/agentbox/flake.nix
   - ../project/agentbox/config/bake-devuser-privilege.sh
@@ -39,7 +40,7 @@ sources:
   - ../project/agentbox/tests/config/role-isolation-rehearsal.test.sh
   - ../project/agentbox/tests/config/role-isolation-supervisor.test.sh
   - ../project/agentbox/docs/estate-closeout/x1-rehearsal-20261003T090708Z.json
-verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
+verified_commit: 06c2f701130aa94edf24a20f9f86de2131a0bcf4
 ---
 
 ## For developers
@@ -51,6 +52,8 @@ verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 The assistant container holds keys that speak for the organisation: its Nostr identity, the forum house account, the payment chain's signing keys and the door's emergency credential. Until now any program in the container, including any AI agent's tool, could read all of them. One mistaken or compromised tool could therefore impersonate the organisation or move value. This change gives each of those keys a single owner. Only the program that needs a key can read it, and the identity keys never leave one dedicated signing service. Everyone else asks that service to sign for them. It signs only a fixed list of kinds of action and keeps a receipt of every decision. The agents keep working as before; they just no longer hold the keys. It is switched off today. It switches on only after the owner rebuilds the container and a rehearsal script proves every boundary from both sides. Two things remain outside its reach. Provider credentials (model APIs, GitHub and similar) stay with the agents by deliberate exception, because the agents are their users. And the host machine's Docker control socket has to be tightened on the host itself.
 
 ## AB-36.1 The accounts table: one uid per secret-bearing role, baked into the image
+
+> **Superseded** by AB-36.8 at 11b9f26 (frozen at 59b1aca).
 
 ```mermaid
 flowchart TB
@@ -246,7 +249,7 @@ flowchart TB
 
 **Debt:** 38 DEVUSER_CLASS names (ADR-2122's own list still says 35), among them provider API keys, `BRIDGE_TOKEN`, `MANAGEMENT_API_KEY`, the System One vendor keys (SubQ and Typesafe, although the selected backend is now the keyless LAN route laya, `agentbox.toml:914`) and the ssh-agent socket path that grants use of every key the agent holds, remain in the agent environment by exception Q8 (`config/custody/env-classes.json:207`, `config/custody/env-classes.json:215`, `config/custody/env-classes.json:223`, `config/custody/env-classes.json:98`, `config/custody/env-classes.json:100`, `ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:264-265`).
 
-**Invariant:** an environment name the gate finds read in its sources but in no class fails CI (`../project/agentbox/scripts/ci/env-secret-inventory.js:244`); the System One and Jev-checkpoints boot locals and the secret-shaped `FACTRAIL_API_KEY` are among the names it has to classify (`../project/agentbox/config/entrypoint-unified.sh:3125`, `../project/agentbox/config/entrypoint-unified.sh:2685`, `../project/agentbox/config/entrypoint-unified.sh:3270`). At this revision the table holds ROLE 12, DEVUSER_CLASS 38 and 714 NON_SECRET names, counted from the JSON at `0693c761c`; the gate itself was not re-run for this review, so the earlier recorded pass (715 names, at `6500582`) is not re-established here.
+**Invariant:** an environment name the gate finds read in its sources but in no class fails CI (`../project/agentbox/scripts/ci/env-secret-inventory.js:244`); the System One and Jev-checkpoints boot locals and the secret-shaped `FACTRAIL_API_KEY` are among the names it has to classify (`../project/agentbox/config/entrypoint-unified.sh:3130`, `../project/agentbox/config/entrypoint-unified.sh:2690`, `../project/agentbox/config/entrypoint-unified.sh:3275`). At this revision the table holds ROLE 12, DEVUSER_CLASS 38 and 714 NON_SECRET names, counted from the JSON at `0693c761c`; the gate itself was not re-run for this review, so the earlier recorded pass (715 names, at `6500582`) is not re-established here.
 
 ## AB-36.7 The activation rehearsal: two halves, one receipt, flag still off
 
@@ -286,3 +289,31 @@ flowchart TB
 **Tension (sudoers vs the no-runtime-sudo design):** the sudo route now follows the BUILD-time flag, not the boot-time one. Built with `role_isolation` off, which is how it ships, the image keeps devuser in `wheel` (`../project/agentbox/flake.nix:4283`) and bakes a `NOPASSWD: ALL` drop-in (`../project/agentbox/config/bake-devuser-privilege.sh:44-47`, called at `../project/agentbox/flake.nix:4297`); built with it on, devuser leaves `wheel` and `root` and gets no drop-in (`../project/agentbox/config/bake-devuser-privilege.sh:29-39`). The same flake says the setuid wrapper is gone and there is no runtime escalation path (`../project/agentbox/flake.nix:4045-4049`). In the shipped image the grant is inert only because `no-new-privileges` is set (`../project/agentbox/docker-compose.yml:128`) and no setuid sudo ships, and an image built off but booted on records `degraded:devuser-sudo` rather than repairing it (`../project/agentbox/config/entrypoint-unified.sh:659`); check (f) probes `sudo -n true` (`../project/agentbox/scripts/activation/role-isolation-rehearsal.sh:593-594`). Reverting either guard on a flag-off build turns devuser back into root, past every role boundary in this topic.
 
 **Drift (committed receipt vs rehearsal):** the committed receipt's uid table is "derived from /etc/agentbox.toml (design §2.2 numbering)" (`docs/estate-closeout/x1-rehearsal-20261003T090708Z.json:26`), from a run at an earlier commit (`docs/estate-closeout/x1-rehearsal-20261003T090708Z.json:16`). The rehearsal at this revision requires the baked table and plan, with no derived numbering (`scripts/activation/role-isolation-rehearsal.sh:41-43`). The receipt predates the rule it would now fail.
+
+## AB-36.8 The ab-ingress door config: staged by root, read from the role's own directory
+
+```mermaid
+flowchart TB
+    ENT["entrypoint Stage B calls ab_nip98_project with the workspace path as the flag-off destination<br/>../project/agentbox/config/entrypoint-unified.sh:2346"]
+    ROLE{"ab_nip98_role_gid: AGENTBOX_ROLE_ISOLATION is 1 and ab-ingress resolves<br/>../project/agentbox/config/lib/nip98-config.sh:116-119"}
+    PREP["ab_nip98_role_dir_prepare: refuses a symlinked or non-root /run/secrets or role dir, else install -d root:ab-ingress 0750<br/>../project/agentbox/config/lib/nip98-config.sh:135-145"]
+    STAGE["projector writes into a staging dir under the root-only secrets root, then one mv -fT into place<br/>../project/agentbox/config/lib/nip98-config.sh:78"]
+    OWN["ab_nip98_own: chmod 440 then chown root:ab-ingress<br/>../project/agentbox/config/lib/nip98-config.sh:156-159"]
+    OFF["flag off: the whole projection runs as devuser through ab_nip98_as_devuser, env cleared, fds above 2 closed, so root touches nothing in the workspace<br/>../project/agentbox/config/lib/nip98-config.sh:89-105"]
+    PATH["proxy picks its file by uid: uid 1000 the workspace copy, any other uid only AGENTBOX_SECRETS_DIR/nip98-proxy-config.json, no fallback<br/>../project/agentbox/config/nip98-proxy/config-path.mjs:22-31"]
+    RD["proxy reads CONFIG_FILE, a null path is the same as an absent file: pending, every identity refused<br/>../project/agentbox/config/nip98-proxy/proxy.mjs:254, ../project/agentbox/config/nip98-proxy/proxy.mjs:274"]
+    ENV["the role render injects AGENTBOX_SECRETS_DIR into the program environment, so the path is fixed before Stage B has run<br/>../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:1007"]
+    ENT --> ROLE
+    ROLE -- yes --> PREP --> STAGE --> OWN
+    ROLE -- no --> OFF --> STAGE
+    ENV --> PATH --> RD
+    OWN --> RD
+    N1["INVARIANT: under the flag the file the door reads is root-written 0440 in a root-controlled directory, never the devuser-writable workspace copy<br/>../project/agentbox/config/nip98-proxy/config-path.mjs:4-7"]
+    PATH -.-> N1
+    N2["DEBT: the fallback in the entrypoint, used only when the lib is unreadable, still leaves 1000:1000 0600, so under the flag that path keeps the door closed rather than open<br/>../project/agentbox/config/entrypoint-unified.sh:2353-2356"]
+    ENT -.-> N2
+```
+
+- **What it shows:** the frozen AB-36.1 note recorded that the ab-ingress proxy could not read a config file projected 1000:1000 mode 0600. The file now lands in `/run/secrets/ab-ingress` as root:ab-ingress 0440 and the proxy reads only that path when it is not uid 1000.
+- **Why it is this way:** commit 11b9f26. A non-1000 uid must not reload whatever sits in the devuser-writable workspace directory (`../project/agentbox/config/nip98-proxy/config-path.mjs:4-6`), and root must not perform file operations there either.
+- **Open:** the rehearsal in AB-36.7 was not re-run against this change, so the flag-on door reading its projected file is source-traced and covered by `tests/config/nip98-config-path.test.mjs`, not a runtime receipt.

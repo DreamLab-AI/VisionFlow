@@ -58,7 +58,7 @@ sources:
   - ../project/agentbox/scripts/ci/check-ports-loopback.mjs
   - ../project/agentbox/config/entrypoint-unified.sh
   - scripts/estate-health/roster.json
-verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 06c2f701130aa94edf24a20f9f86de2131a0bcf4, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 ## ES-01.1 Substrate map — the VisionClaw checkout's neighbourhood, not the whole estate
 ```mermaid
@@ -70,7 +70,7 @@ flowchart TB
     end
     VC -->|"embeds as submodule<br/>path=agentbox, .gitmodules:1-3<br/>no branch key — the pin is a bare gitlink"| AB
     VC -->|"second submodule, own repository and own Cargo workspace<br/>path=codescape, .gitmodules:4-6"| CS
-    AB -.->|"VisionClaw gitlink at the stamp: 59b1aca1c, the agentbox stamp itself<br/>zero commits behind, no files differ<br/>git ls-tree at the stamp; codescape gitlink: e3b76f63e"| ABPIN["submodule pin"]
+    AB -.->|"VisionClaw gitlink at the stamp: 59b1aca1c, ten commits behind the agentbox stamp 06c2f7011<br/>81 files differ (git rev-list and git diff between the two)<br/>git ls-tree at the stamp; codescape gitlink: e3b76f63e"| ABPIN["submodule pin"]
 
     subgraph CRATE["Embedded as a Cargo dependency, not a checkout"]
         SPR["solid-pod-rs 0.5.0-alpha.22<br/>crates.io version, Cargo.toml:243<br/>feature solid-pod-embed (ADR-032 M3)"]
