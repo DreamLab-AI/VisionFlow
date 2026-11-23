@@ -58,7 +58,7 @@ sources:
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/nostr_mount.rs
   - ../solid-pod-rs/crates/solid-pod-rs-server/src/activitypub.rs
   - ../solid-pod-rs/crates/solid-pod-rs-forge/src/operator_relays.rs
-verified_commit: {solid-pod-rs: a28a74832dd0a6e47a531e34e4adc46a3946dfd3, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {solid-pod-rs: a28a74832dd0a6e47a531e34e4adc46a3946dfd3, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## SP-08.1 Solid Notifications 0.2 — the three channels
@@ -616,7 +616,7 @@ flowchart TD
 
 **Drift (ADR text vs the SP-GIT-02 repair):** both ADRs gained a review qualification dated 2026-11-01 (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:75`, `../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:76`) that still treats hidden refs as the mechanism and complete object withholding as open (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:83`). At this revision the boundary is store isolation plus the reader gate (SP-14.3, SP-14.4), and neither ADR says so.
 
-**Tension (ADR-2010 vs agentbox):** RESOLVED at agentbox e458b30 as to the pin. ADR-2010 reads accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:5-7`), and agentbox's pin enables `forge-full` (`../project/agentbox/lib/solid-pod-rs.nix:18`). At agentbox e458b30 that pin is `bc6d9d8` (`../project/agentbox/lib/solid-pod-rs.nix:69`), older than the a28a748 this topic is stamped at: a shipped build carries the hidden-tip repair and the SP-GIT-02 store isolation but predates SP-08.19 to SP-08.22. The mirror stays inert while no follow entries are configured. ADR-2009 moved the same way, accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:5-7`).
+**Tension (ADR-2010 vs agentbox):** RESOLVED at agentbox 59b1aca as to the pin. ADR-2010 reads accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2010-forge-and-mirror-are-on-in-shipped-builds.md:5-7`), and agentbox's pin enables `forge-full` (`../project/agentbox/lib/solid-pod-rs.nix:18`). At agentbox 59b1aca that pin is `eb22d21` (`../project/agentbox/lib/solid-pod-rs.nix:72`), the v0.5.0-alpha.24 release commit and the parent of the dependency-only a28a748 this topic is stamped at, so a build from it carries SP-08.19 to SP-08.22 as well as the hidden-tip repair and the SP-GIT-02 store isolation. The mirror stays inert while no follow entries are configured. ADR-2009 moved the same way, accepted / complete / staged (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2009-forge-plugins-comparator-and-default-off-mirror.md:5-7`).
 
 **Open:** the forge README (`../solid-pod-rs/crates/solid-pod-rs-forge/README.md:33`) records the web-edit tier as "not included" for announce triggering, while `ApiEdit` is routed (`solid-pod-rs-forge/src/router.rs:279`); nothing states whether an edit announces.
 
@@ -771,3 +771,39 @@ flowchart TD
 ```
 
 The loopback allowance covers the operator's relay sockets alone (SP-MIRROR-WS-REWRITE, AW1-01); the NIP-34 publisher takes the same `OperatorRelays` for its own relay list (`solid-pod-rs-server/src/lib.rs:6238`).
+
+## SP-08.23 The change-notification envelope
+
+```mermaid
+classDiagram
+    class StorageEvent {
+        Created, Updated or Deleted, each carrying a path
+    }
+    class ChangeNotification {
+        +context, serialised as @context  solid-pod-rs/src/notifications/mod.rs:78
+        +id  solid-pod-rs/src/notifications/mod.rs:80
+        +kind, serialised as type  solid-pod-rs/src/notifications/mod.rs:81
+        +object  solid-pod-rs/src/notifications/mod.rs:83
+        +published  solid-pod-rs/src/notifications/mod.rs:84
+        +from_storage_event(event, pod_base)  solid-pod-rs/src/notifications/mod.rs:89
+    }
+    class as_ns {
+        CONTEXT activitystreams  solid-pod-rs/src/notifications/mod.rs:46
+        CREATE, UPDATE, DELETE  solid-pod-rs/src/notifications/mod.rs:47
+    }
+    class WebSocketChannelManager {
+        +stream, a broadcast Receiver of ChangeNotification  solid-pod-rs/src/notifications/mod.rs:303
+    }
+    class WebhookChannelManager {
+        -send_once, POST of serde_json bytes  solid-pod-rs/src/notifications/mod.rs:554
+    }
+    StorageEvent ..> ChangeNotification : mapped by from_storage_event
+    as_ns ..> ChangeNotification : supplies context and type
+    ChangeNotification ..> WebSocketChannelManager : broadcast as the typed value
+    ChangeNotification ..> WebhookChannelManager : serialised per delivery
+    note for ChangeNotification "Created maps to Create, Updated to Update, Deleted to Delete\n(solid-pod-rs/src/notifications/mod.rs:91).\nobject is pod_base without its trailing slash plus the path (:95),\nid is urn:uuid with a fresh v4 (:98), published is RFC 3339 now (:100).\nOne id per event: the webhook retry loop resends the same note (:611),\nso a receiver can de-duplicate retries by id."
+    note for WebhookChannelManager "Content-Type application/ld+json\n(solid-pod-rs/src/notifications/mod.rs:560); the same bytes are what\nwebhook-signing signs when a signer is configured (SP-08.3)."
+```
+
+- **What it shows:** the one payload both Notifications 0.2 managers carry, an Activity Streams 2.0 activity built from a storage event. No actor, no target and no state accompany it: a subscriber learns which resource changed and how, then reads it.
+- **Why it is this way:** the shape follows the Solid Notifications 0.2 examples (`solid-pod-rs/src/notifications/mod.rs:13`). As SP-08.1 records, the reference server mounts neither manager, so this envelope reaches only an embedder that wires them.

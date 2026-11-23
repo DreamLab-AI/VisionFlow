@@ -89,6 +89,39 @@ flowchart TD
     REP -.-> N3
 ```
 
+## SP-03.15 What a container listing carries — and the helpers the server does not call
+
+```mermaid
+flowchart TD
+    GET["container GET, listing branch<br/>solid-pod-rs-server/src/lib.rs:1981"]
+    RC["ldp::render_container — always PreferHeader::default<br/>solid-pod-rs/src/ldp.rs:1186<br/>solid-pod-rs/src/ldp.rs:1187"]
+    FULL["Full JSON-LD: the container typed Container, BasicContainer, Resource<br/>solid-pod-rs/src/ldp.rs:1178"]
+    MEM["ldp:contains, one entry per visible child<br/>solid-pod-rs/src/ldp.rs:1179"]
+    TYP["a child ending in a slash is typed as a container too,<br/>any other child as Resource only<br/>solid-pod-rs/src/ldp.rs:1159<br/>solid-pod-rs/src/ldp.rs:1166"]
+    OUT["served as application/ld+json<br/>solid-pod-rs-server/src/lib.rs:2009"]
+    LH["the type rels also go out as Link headers (SP-03.11)<br/>solid-pod-rs/src/ldp.rs:150"]
+
+    GET --> RC --> FULL --> OUT
+    FULL --> MEM --> TYP
+    OUT -.-> LH
+
+    subgraph LIB["Library helpers with no caller in solid-pod-rs-server"]
+        PREF["PreferHeader::parse — PreferMinimalContainer and PreferContainedIRIs<br/>solid-pod-rs/src/ldp.rs:247<br/>solid-pod-rs/src/ldp.rs:225"]
+        TTL["render_container_turtle<br/>solid-pod-rs/src/ldp.rs:1191"]
+        SMT["server_managed_triples — dcterms:modified, stat:size, stat:mtime,<br/>and ldp:contains for a container<br/>solid-pod-rs/src/ldp.rs:1044"]
+        ILL["find_illegal_server_managed over SERVER_MANAGED_PREDICATES<br/>solid-pod-rs/src/ldp.rs:1098<br/>solid-pod-rs/src/ldp.rs:1089"]
+    end
+    RC -.-> LIB
+
+    N["DRIFT: a Prefer header has no effect on the listing, the listing is never Turtle,<br/>and it carries no modified, size or mtime triples. The removed in-repo diagram<br/>(solid-pod-rs PR 18) drew those triples as rendered on GET."]
+    SMT -.-> N
+    N2["DEBT: the doc comment says client-supplied server-managed triples MUST be<br/>ignored at PUT time (solid-pod-rs/src/ldp.rs:1097); no server write path calls<br/>find_illegal_server_managed, so nothing in the server strips them from a PUT body."]
+    ILL -.-> N2
+```
+
+- **What it shows:** the reference server's listing is one fixed shape, the Full JSON-LD view with typed `ldp:contains` members. The Prefer, Turtle and server-managed-triple helpers are library surface for embedders.
+- **Why it is this way:** `render_container` is the backwards-compatible Phase 1 alias with the default preference, and the server's GET branch calls that alias rather than `render_container_jsonld` with a parsed `Prefer`.
+
 ## SP-03.3 PUT — resource and container creation
 
 ```mermaid
