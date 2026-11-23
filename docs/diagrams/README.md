@@ -105,6 +105,7 @@ node scripts/diagram-index-gen.cjs docs/diagrams --check --render     # + render
 node scripts/diagram-index-gen.cjs docs/diagrams --check --cite-check # + resolve every path:line citation
 node scripts/diagram-index-gen.cjs docs/diagrams --check --strict-citations   # the gate: refuse anything unverified
 node scripts/diagram-index-gen.cjs docs/diagrams                      # regenerate the index below + COVERAGE.md
+node scripts/diagram-register-gen.cjs [--check]                      # regenerate REGISTER-visionclaw.md from visionclaw/*.md markers (--check: fail if stale)
 ```
 
 ### Where the citation gate runs

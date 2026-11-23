@@ -1,6 +1,6 @@
 # Roadmap
 
-**Business roadmap, Nov 2026 – Apr 2028 (proposed, ADR-2021):** [business/roadmap-2026-11-to-2028-04.md](business/roadmap-2026-11-to-2028-04.md), six quarters across operate, offer and assure, each milestone with a checkable exit test.
+**Business roadmap, Nov 2026 – Apr 2028 (rejected, ADR-2021, owner ruling 2026-11-16):** [business/roadmap-2026-11-to-2028-04.md](business/roadmap-2026-11-to-2028-04.md) is kept as the record of what was proposed and is not adopted: VisionFlow does not seek customers or users.
 
 **2026-10-30 landing (latest):** ranked remaining work and drift-checked rows are in the [master TODO § Landing 2026-10-30](https://github.com/DreamLab-AI/VisionClaw/blob/main/docs/TODO-unified.md#landing-2026-10-30); every parked ADR and blocker, with its reopen trigger, is in the [park register](registers/park-2026-10-30.md). Entries below are history.
 
