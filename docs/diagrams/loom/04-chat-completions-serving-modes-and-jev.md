@@ -83,6 +83,8 @@ flowchart TB
     P --- INV
     SEE["see AB-24.11 for the consumers that send scaffold false"]
     P --- SEE
+    DRIFT["DOC-DRIFT: passthrough is documented as delegated UNCHANGED, but a non-streaming<br/>passthrough still goes through the adapter, which pops stream and floors max_tokens<br/>loom-facade/src/serving.rs:59,60,61<br/>loom-backend-openai/src/lib.rs:179,114,122"]
+    P --- DRIFT
 ```
 
 **What it shows.** The status separates "the corpus had nothing", "the caller declined" and "the model answered over a scaffold", which a bare 200 cannot. The README states passthrough reports `corpus_backed: false` (`../loom/README.md:65`).
@@ -106,7 +108,7 @@ flowchart TB
     ON --> RES
     TENS["TENSION: LOOM_JEV_LOCAL=1 is a declaration that skips the URL check,<br/>and both profiles set it with an operator-supplied endpoint<br/>loom-facade/src/jev.rs:221,222<br/>../loom/deploy/compose.profile-a.yml:35,37<br/>../loom/deploy/compose.profile-b.yml:33,35"]
     R1 --- TENS
-    DEF["config default is off, both compose profiles default LOOM_JEV to 1<br/>../loom/deploy/compose.profile-a.yml:31<br/>../loom/deploy/compose.profile-b.yml:29"]
+    DEF["TENSION: the README calls Jev off by default, true of the config,<br/>but both compose profiles default LOOM_JEV to 1<br/>../loom/README.md:117<br/>../loom/deploy/compose.profile-a.yml:31<br/>../loom/deploy/compose.profile-b.yml:29"]
     ON --- DEF
     SEE["see ES-06 for the estate's privacy line around the Loom"]
     RES --- SEE

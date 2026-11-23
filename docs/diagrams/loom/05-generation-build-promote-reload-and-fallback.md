@@ -77,10 +77,14 @@ flowchart TB
     LOCK --> CAND
     CAND --> PARSE
     PARSE --> SAME
-    SAME -->|yes| CUR
-    SAME -->|"no, or reinstall a copy that fails verification"| OLDER
-    OLDER -->|yes| REFUSE
-    OLDER -->|newer| INSTALL --> LOG
+    SAME -->|yes, still verifies| CUR
+    SAME -->|yes, no longer verifies| INSTALL
+    SAME -->|no| OLDER
+    OLDER -->|yes, without allow-rollback| REFUSE
+    OLDER -->|newer, or allow-rollback set| INSTALL
+    INSTALL --> LOG
+    REPAIR["a same-id copy that fails verification is reinstalled without the ancestry check<br/>loom-facade/src/promote.rs:164,165,168,169,170"]
+    SAME --- REPAIR
     SWAP["sentinel first, marker rename is the commit, sentinel cleared after<br/>loom-facade/src/bundle.rs:361,364,410,419,425"]
     INSTALL --- SWAP
     INV["INVARIANT: any failure before install leaves the installed generation untouched<br/>loom-facade/src/promote.rs:22"]
@@ -99,6 +103,7 @@ stateDiagram-v2
     Probe --> Served: report proves the bundle and the disk is unchanged, reload.rs lines 418 to 426
     Probe --> Pending: no match, receipt reload-pending, reload.rs line 428
     Pending --> Polling: restart command ran, reload.rs line 429
+    Pending --> Failed: restart command failed or timed out, reload.rs line 429
     Polling --> Served: proven before the deadline, reload.rs lines 437 to 442
     Polling --> Refused: publication changed during reload, reload.rs lines 433 to 435
     Polling --> Failed: deadline passed, Timeout or Fallback, reload.rs lines 446 to 447

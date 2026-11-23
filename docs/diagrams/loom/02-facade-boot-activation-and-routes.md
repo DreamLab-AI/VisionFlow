@@ -18,6 +18,11 @@ sources:
   - ../loom/crates/loom-facade/src/bundle.rs
   - ../loom/crates/loom-facade/Cargo.toml
   - ../loom/crates/loom-attest-proofgate/src/lib.rs
+  - ../loom/crates/loom-backend-openai/src/lib.rs
+  - ../loom/crates/loom-scaffold/src/policy.rs
+  - ../loom/crates/loom-embed-xinference/src/lib.rs
+  - ../loom/crates/loom-graph-oxigraph/src/lib.rs
+  - ../loom/crates/loom-vector-ruvector/src/hnsw.rs
   - ../loom/deploy/compose.profile-a.yml
   - ../loom/README.md
 verified_commit: {loom: 355946dd2deacfdef21171d53eafd025887e447e}
@@ -193,3 +198,35 @@ sequenceDiagram
 ```
 
 **What it shows.** The ledger records who admitted what after the decision was made elsewhere; it is not an approval step (`loom-facade/src/routes/attest.rs:8,10,11`). Both profiles move it off the read-only data mount onto a named volume (`../loom/deploy/compose.profile-a.yml:27,98`).
+
+## LM-02.7 The configuration surface: one Config read once from env, plus adapter-local reads
+
+```mermaid
+flowchart TB
+    FE["Config from_env, every knob keeps its Python env name<br/>loom-facade/src/config.rs:9,115,116"]
+    subgraph CFG["Config groups, loom-facade/src/config.rs:15"]
+        T["transport: LOOM_FACADE_PORT, LOOM_TIMEOUT, LOOM_MAX_BODY_BYTES, LOOM_DEPLOY_PROFILE<br/>loom-facade/src/config.rs:17,18,19,20,118,119,120,121"]
+        BK["backend: DISTILL_BACKEND_URL, LOOM_MIN_MAX_TOKENS<br/>loom-facade/src/config.rs:23,24,122,123"]
+        SC["scaffold: ONTOLOGY_INDEX, ONTOLOGY_PROSE_INDEX, ONTOLOGY_BUDGET,<br/>LOOM_MAX_SEEDS, LOOM_SCAFFOLD_HOPS, LOOM_SCAFFOLD_PROSE<br/>loom-facade/src/config.rs:27,28,29,30,31,32,124,129"]
+        SE["semantic: LOOM_SEMANTIC_FALLBACK, LOOM_HNSW_ARTIFACT, LOOM_SEMANTIC_K,<br/>LOOM_SEMANTIC_MIN_INJECT, LOOM_SEMANTIC_SCORE_SCALE, LOOM_SEMANTIC_DEBUG_SURFACE<br/>loom-facade/src/config.rs:35,36,37,38,39,88,130,135"]
+        FX["F1 to F3: LOOM_VERBATIM_MODE, LOOM_VERBATIM_THRESHOLD, LOOM_EXPOSURE_APPEND,<br/>LOOM_BACKEND_NO_THINK, LOOM_THINK_TOKEN_FLOOR<br/>loom-facade/src/config.rs:45,54,60,67,81,139,143"]
+        LG["ledger and fallback: LOOM_LEDGER_PATH, LOOM_RETAINED_BUNDLES_DIR<br/>loom-facade/src/config.rs:95,104,144,145"]
+        JV["Jev: LOOM_JEV and the LOOM_JEV_* family<br/>loom-facade/src/config.rs:109,148"]
+    end
+    FE --> CFG
+    subgraph OUT["read outside Config"]
+        O1["gate: LOOM_CONFIDENCE_INJECTION and three thresholds<br/>loom-scaffold/src/policy.rs:61,68,69,70"]
+        O2["embedder: XINFERENCE_URL<br/>loom-embed-xinference/src/lib.rs:74"]
+        O3["SPARQL: LOOM_SPARQL_LIMIT, LOOM_SPARQL_MAX_ROWS<br/>loom-graph-oxigraph/src/lib.rs:275,276"]
+        O4["artefact contract from env<br/>loom-vector-ruvector/src/hnsw.rs:117"]
+    end
+    CFG --> OUT
+    INV["INVARIANT: max_seeds defaults to 4 and prose to false, the Python facade values,<br/>not the domain's 6 and true, or byte-parity breaks<br/>loom-facade/src/config.rs:4,5,6,7,175,177"]
+    SC --- INV
+    BOOL["truthiness: unset keeps the default, 0, false, no or empty is false<br/>loom-facade/src/config.rs:211,213,214,215"]
+    FE --- BOOL
+    DEBT["DEBT: the backend adapter re-reads DISTILL_BACKEND_URL, LOOM_TIMEOUT and<br/>LOOM_MIN_MAX_TOKENS itself, LOOM_TIMEOUT as a float where Config parses an integer<br/>loom-backend-openai/src/lib.rs:73,74,75,77<br/>loom-facade/src/config.rs:119"]
+    BK --- DEBT
+```
+
+**What it shows.** Most behaviour is set by environment at start and fixed for the process; nothing is reloaded. The gate thresholds and the adapter endpoints live outside `Config`, so `/health` and `--build-info` are the places to read what a node actually resolved (`loom-facade/src/main.rs:20`).
