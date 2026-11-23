@@ -17,7 +17,7 @@ sources:
   - ../dream-engine/crates/dream-gate/src/gate.rs
   - ../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md
   - ../dream-engine/docs/adr/ADR-DE-001-standalone-rust-engine.md
-verified_commit: 413f1bbd2927251fcd3a919f64b824837d80d1f5
+verified_commit: 881075377625a9e20e69e9137f679506e93f4b68
 ---
 ## For developers
 
