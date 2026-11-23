@@ -112,9 +112,9 @@ sequenceDiagram
     participant D as D1
     participant A as Audit logger
     C->>H: NIP-98 authenticated IDs and reason
-    Note over H: admin_events.rs:221<br/>validates auth and body
+    Note over H: admin_events.rs:233-249<br/>validates NIP-98 admin auth and body
     H->>D: Read each ID's stored kind
-    Note over H,D: admin_events.rs:257-259<br/>absent goes to notFound, other kinds skipped
+    Note over H,D: admin_events.rs:274-276<br/>absent goes to notFound, other kinds skipped
     H->>D: kind 42 - tombstone under the row's own author, fail-open
     Note over H,D: admin_events.rs:281-286<br/>relay-only, never served to clients
     H->>D: then DELETE the kind-42 row
@@ -219,11 +219,13 @@ flowchart TB
     DRIFT1["RESOLVED at nostr-rust-forum 4a73a7a: the comment now says<br/>since #94 the relay refuses such a kind 5 unless admin or TL3"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:18
     DRIFT2["RESOLVED at nostr-rust-forum 4a73a7a: comments now name<br/>tombstones::fold_deletion, also relay_do/nip_handlers.rs:2941"]
+    %% Source: ../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md:262
+    DRIFT3["DOC-DRIFT: ADR-2017 still records both comments as saying fold_deletions<br/>and left alone, citing nip_handlers.rs:2942; the code moved on at 4a73a7a"]
     O19 --> O19B --> DEAD
     O25 --> O25B --> O25C
     O18
     DRIFT1
-    DRIFT2
+    DRIFT2 --> DRIFT3
 ```
 
-The two `fold_deletions` comments, recorded as left alone in ADR-2017's 2026-11-22 section, were corrected by kit PR #99 (`../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md:262`); `tombstones::fold_deletion` replaced the function (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:166`).
+At 4a73a7a the two relay comments name `tombstones::fold_deletion` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:18`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2941`), the function that replaced `fold_deletions` (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:166`). ADR-2017's 2026-11-22 section was not updated: it still says both comments say `fold_deletions` and were left alone, and it places the second at `nip_handlers.rs:2942` (`../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md:262`). DOC-DRIFT, drawn as DRIFT3.

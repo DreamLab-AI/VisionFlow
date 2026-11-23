@@ -80,12 +80,15 @@ flowchart TB
     B["Sender: child selects derived key<br/>default tag agentbox-mirror-v1"]
     %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:45
     C["Sender: gateway and default select root"]
+    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:158
+    P["Gateway with identity port selected: gateway asks the port for key gateway,<br/>child and default ask for core gateway.cjs:156; custom tag refused gateway.cjs:159-160"]
     %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:172
-    D["Gateway: gateway selects derived key<br/>default tag agentbox-gateway-v1"]
+    D["Gateway without port: gateway derives key locally<br/>default tag agentbox-gateway-v1"]
     %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:174
-    E["Gateway: child and default select root"]
+    E["Gateway without port: child and default select root"]
     A --> B
     A --> C
+    A --> P
     A --> D
     A --> E
 ```
