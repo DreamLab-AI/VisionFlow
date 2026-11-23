@@ -47,7 +47,7 @@ Every record here is finished. None is updated.
 
 ## Documents that are no longer plans
 
-The [18-month business roadmap](business/roadmap-2026-11-to-2028-04.md) and its decision record, ADR-2021, were rejected by the owner on 16 November 2026 and are kept as history. The [roadmap](roadmap.md) predates that ruling; read it as a proposal.
+The [18-month business roadmap](business/roadmap-2026-11-to-2028-04.md) and its decision record, ADR-2021, were rejected by the owner on 16 November 2026 and are kept as history. The [roadmap](roadmap.md) points to it as rejected.
 
 ## Keeping this page true
 
