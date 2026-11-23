@@ -77,7 +77,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2013-loopback-publish-except-9096.md
   - ../project/agentbox/docker-compose.system-one.yml
-verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 ## ES-09.1 The host-vs-container build trap — wrong path vs sanctioned path
 ```mermaid
@@ -105,7 +105,7 @@ flowchart TB
     EDIT ---|"bind mount, always in sync"| HOSTSRC
     LAUNCHTRY -->|"socket-forwarded request"| BUILDREQ:::wrong
     SSHTRY -.->|"refused: no LAN IP path from CC to host shell"| REFUSED(("blocked")):::wrong
-    BUILDREQ -->|"resolves HOST_PROJECT_ROOT-relative<br/>bind-mount paths against ITS OWN (host-side)<br/>cwd/view, not the CC container path"| MISBIND["docker-compose.unified.yml:169-206<br/>bind source path mismatch"]:::wrong
+    BUILDREQ -->|"resolves HOST_PROJECT_ROOT-relative<br/>bind-mount paths against ITS OWN (host-side)<br/>cwd/view, not the CC container path"| MISBIND["docker-compose.unified.yml:190-227<br/>bind source path mismatch"]:::wrong
     MISBIND --> STALE["Running dev container serves the<br/>image-build-time COPY'd source,<br/>NOT the just-edited host file"]:::wrong
     STALE -.->|"the trap: container starts, health check passes,<br/>edits never take effect"| TRAPEND(("silent stale-code failure")):::wrong
 
@@ -136,7 +136,7 @@ sequenceDiagram
     participant CC as ClaudeCodeContainer<br/>bind:/home/devuser/workspace/project
     participant T6 as HostShellTmux6
     participant DD as HostDockerd
-    participant DC as visionclaw_container<br/>docker-compose.unified.yml:69
+    participant DC as visionclaw_container<br/>docker-compose.unified.yml:75
     participant W as rust-backend-wrapper.sh
 
     Dev->>CC: edit src/main.rs
@@ -144,9 +144,9 @@ sequenceDiagram
     rect rgb(230,235,245)
     Note over T6,DD: container/host process boundary — build MUST cross here, never from CC
     Dev->>T6: tmux send-keys -t 6 ./scripts/launch.sh up dev Enter
-    T6->>T6: sync_dev_inputs publishes Cargo.toml, Cargo.lock, build.rs and the Vite root files<br/>into the gitignored .dev-inputs, stamped with the source commit<br/>scripts/launch.sh:640-651
+    T6->>T6: sync_dev_inputs publishes Cargo.toml, Cargo.lock, build.rs and the Vite root files<br/>into the gitignored .dev-inputs, stamped with the source commit<br/>scripts/launch.sh:641-652
     T6->>DD: docker compose --profile dev up -d
-    DD->>DD: resolve HOST_PROJECT_ROOT bind mounts, directories only plus the<br/>stamped .dev-inputs (create_host_path false)<br/>docker-compose.unified.yml:169-206
+    DD->>DD: resolve HOST_PROJECT_ROOT bind mounts, directories only plus the<br/>stamped .dev-inputs (create_host_path false)<br/>docker-compose.unified.yml:190-227
     DD->>DC: recreate container with correct host-side binds
     end
     DC->>W: supervisord starts program:rust-backend<br/>supervisord.dev.conf:34
@@ -237,7 +237,7 @@ sequenceDiagram
     Note over U,P: ADR-2037 is proposed, implementation_status partial, activation staged<br/>(ADR-2037-production-build-excludes-dev-auth.md:5-7). Its CI half is ADR-2086,<br/>accepted, complete and live (ADR-2086-ci-gate-dev-auth-excluded-from-release.md:5-7):<br/>a hermetic text gate over the committed Dockerfiles, see ES-09.11. No gate<br/>inspects a BUILT image, so a mis-targeted pipeline that bypasses those files<br/>could still promote the stubbed-hygiene binary
 ```
 
-**Open (no gate inspects a built image):** ADR-2037 remains proposed and partial (`../project/docs/adr/ADR-2037-production-build-excludes-dev-auth.md:5-7`). Its CI half, ADR-2086, is live (`../project/docs/adr/ADR-2086-ci-gate-dev-auth-excluded-from-release.md:5-7`), but that gate is a text assertion over the committed Dockerfiles (`../project/.github/workflows/ci.yml:183-188`). A production binary built outside those files, still carrying the hygiene stub (`../project/src/main.rs:169`), would not be caught.
+**Open (no gate inspects a built image):** ADR-2037 remains proposed and partial (`../project/docs/adr/ADR-2037-production-build-excludes-dev-auth.md:5-7`). Its CI half, ADR-2086, is live (`../project/docs/adr/ADR-2086-ci-gate-dev-auth-excluded-from-release.md:5-7`), but that gate is a text assertion over the committed Dockerfiles (`../project/.github/workflows/ci.yml:184-189`). A production binary built outside those files, still carrying the hygiene stub (`../project/src/main.rs:169`), would not be caught.
 
 ## ES-09.6 supervisord.dev.conf — program set and restart policy
 ```mermaid
@@ -300,7 +300,7 @@ stateDiagram-v2
         binary already compiled, no wrapper script
     end note
     note left of supervisordRootProd
-        cross-estate compare (agentbox/docker-compose.yml:88-92,<br/>agentbox/flake.nix:2868-2871):
+        cross-estate compare (agentbox/docker-compose.yml:89-93,<br/>agentbox/flake.nix:2892-2895):
         agentbox supervisord also runs as PID1 root,
         the default service blocks drop to devuser
         per-program. Here the image switches to USER appuser
@@ -316,7 +316,7 @@ stateDiagram-v2
     end note
 ```
 
-**Divergence (which production path uses this file):** only `Dockerfile.unified`'s `production` target copies this config (`../project/Dockerfile.unified:414`) and execs it (`../project/scripts/prod-entrypoint.sh:23`). The compose `visionclaw-production` service builds `Dockerfile.production` instead (`../project/docker-compose.unified.yml:256-258`), whose entrypoint is `/app/start.sh` (`../project/Dockerfile.production:237`, `:245`). That script starts the backend on port 4001 in the background and runs nginx in the foreground itself, with no supervisord (`../project/scripts/production-startup.sh:38-41`, `:68-70`). From source, nothing on the compose production path restarts a backend that crashes after startup: nginx keeps the container alive, so `restart: unless-stopped` (`../project/docker-compose.unified.yml:323`) does not fire.
+**Divergence (which production path uses this file):** only `Dockerfile.unified`'s `production` target copies this config (`../project/Dockerfile.unified:414`) and execs it (`../project/scripts/prod-entrypoint.sh:23`). The compose `visionclaw-production` service builds `Dockerfile.production` instead (`../project/docker-compose.unified.yml:278-280`), whose entrypoint is `/app/start.sh` (`../project/Dockerfile.production:237`, `:245`). That script starts the backend on port 4001 in the background and runs nginx in the foreground itself, with no supervisord (`../project/scripts/production-startup.sh:38-41`, `:68-70`). From source, nothing on the compose production path restarts a backend that crashes after startup: nginx keeps the container alive, so `restart: unless-stopped` (`../project/docker-compose.unified.yml:346`) does not fire.
 
 **Debt (binary path):** the `rust-backend` program runs `/app/target/release/visionclaw-server` (`../project/supervisord.production.conf:29`), but the image that reads this file puts the binary at `/app/visionclaw-server` (`../project/Dockerfile.unified:406`, with `WORKDIR /app` at `:393`). Traced in source only and not run: from source, the `Dockerfile.unified` production target would fail its backend start. Closing it means pointing the command at `/app/visionclaw-server`, or retiring the target if `Dockerfile.production` is the only production build.
 
@@ -324,18 +324,18 @@ stateDiagram-v2
 ```mermaid
 flowchart TB
     subgraph PROFILES["docker-compose.unified.yml services block"]
-        DEVSVC["visionclaw<br/>docker-compose.unified.yml:80 target development, compose-hash label :75<br/>profiles development and dev, docker-compose.unified.yml:243-245<br/>ports 3001 and 4000, docker-compose.unified.yml:225-226<br/>source-bind volumes docker-compose.unified.yml:169-206,<br/>docker.sock read-only docker-compose.unified.yml:215"]
-        VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:219-222<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:680-682"]
-        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:248<br/>profiles production and prod, docker-compose.unified.yml:332-334<br/>port 3001 only, docker-compose.unified.yml:306-308<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:303-305"]
-        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:339, image cloudflare/cloudflared at a pinned<br/>digest :342, its OWN profile tunnel docker-compose.unified.yml:358-359 (ADR-2119)<br/>depends_on visionclaw OR visionclaw-production (optional)"]
-        LOOM["loom<br/>docker-compose.unified.yml:382, image loom:rust built outside this repo :384<br/>loom compose profile docker-compose.unified.yml:453-454<br/>host port 8090 to container port 8080 docker-compose.unified.yml:438<br/>hostname loom :385, alias ontology-loom docker-compose.unified.yml:443"]
-        CODESCAPE["codescape (ADR-2143, opt-in profile codescape)<br/>the Codescape submodule built and run as a sidecar on port 4100,<br/>ingest token as a compose secret<br/>docker-compose.unified.yml:463-476, docker-compose.unified.yml:659-660,<br/>docker-compose.unified.yml:668-669"]
-        SYS1["System One (VisionClaw ADR-2148, accepted / complete / live, close-out of ADR-2148-enable-local-typed-decisions, amended 2026-10-30): the x-system-one-environment anchor, docker-compose.unified.yml:2-11,<br/>is merged into the VisionClaw common environment :14,22, loom :387-395 and codescape :475,505. All three<br/>reach the agentbox proxy agentbox:8094 with JEV_ALLOW_CLOUD default 1, not the laya facade systemone:8097<br/>(still an opt-in local backend, agentbox docker-compose.system-one.yml:3 and :106). Thresholds stay unset and uncalibrated.<br/>Codescape command acceptance is qualified in VC-42. LIVE: both activation conditions (the agentbox rebuild and the host recreate)<br/>happened on 2026-10-30, per the ADR-2148 close-out"]
+        DEVSVC["visionclaw<br/>docker-compose.unified.yml:86 target development, compose-hash label :81<br/>profiles development and dev, docker-compose.unified.yml:265-267<br/>ports 3001 and 4000 on 127.0.0.1 unless VISIONCLAW_BIND=0.0.0.0, docker-compose.unified.yml:246-248<br/>source-bind volumes docker-compose.unified.yml:190-227,<br/>docker.sock read-only docker-compose.unified.yml:236"]
+        VAULTMOUNT["ADR-2114 corpus vault mount<br/>agent-workspace:/vault:ro docker-compose.unified.yml:240-243<br/>external named volume multi-agent-docker_workspace<br/>declared docker-compose.unified.yml:703-705"]
+        PRODSVC["visionclaw-production<br/>docker-compose.unified.yml:270<br/>profiles production and prod, docker-compose.unified.yml:355-357<br/>port 3001 only, docker-compose.unified.yml:329-331<br/>NO source mounts and NO docker.sock, docker-compose.unified.yml:325-328"]
+        CLOUDFLARED["cloudflared<br/>docker-compose.unified.yml:362, image cloudflare/cloudflared at a pinned<br/>digest :365, its OWN profile tunnel docker-compose.unified.yml:381-382 (ADR-2119)<br/>depends_on visionclaw OR visionclaw-production (optional)"]
+        LOOM["loom<br/>docker-compose.unified.yml:405, image loom:rust built outside this repo :407<br/>loom compose profile docker-compose.unified.yml:476-477<br/>host port 8090 to container port 8080 docker-compose.unified.yml:461<br/>hostname loom :408, alias ontology-loom docker-compose.unified.yml:466"]
+        CODESCAPE["codescape (ADR-2143, opt-in profile codescape)<br/>the Codescape submodule built and run as a sidecar on port 4100,<br/>ingest token as a compose secret<br/>docker-compose.unified.yml:486-499, docker-compose.unified.yml:682-683,<br/>docker-compose.unified.yml:691-692"]
+        SYS1["System One (VisionClaw ADR-2148, accepted / complete / live, close-out of ADR-2148-enable-local-typed-decisions, amended 2026-10-30): the x-system-one-environment anchor, docker-compose.unified.yml:2-11,<br/>is merged into the VisionClaw common environment :14,25, loom :410-418 and codescape :498,528. All three<br/>reach the agentbox proxy agentbox:8094, not the laya facade systemone:8097. CHANGED 2026-11-16 (owner ruling):<br/>JEV_ALLOW_CLOUD now defaults to 0 in all three, so private-content items use the proxy only when<br/>the backend is declared local, otherwise their non-judge fallback, docker-compose.unified.yml:19-23<br/>(still an opt-in local backend, agentbox docker-compose.system-one.yml:3 and :111). Thresholds stay unset and uncalibrated.<br/>Codescape command acceptance is qualified in VC-42. LIVE: both activation conditions (the agentbox rebuild and the host recreate)<br/>happened on 2026-10-30, per the ADR-2148 close-out"]
     end
     subgraph EXTFILE["docker-compose.cloudflared.yml (standalone)"]
         CFSTANDALONE["cloudflared<br/>joins external visionclaw_network<br/>alias visionclaw-server:3001"]
     end
-    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:671-674"]
+    NET["visionclaw_network (external, pre-created)<br/>docker-compose.unified.yml:694-697"]
     INGRESS["launch.sh up prod reads VISIONCLAW_INGRESS from .env.prod,<br/>lan or tunnel, undeclared means tunnel, scripts/launch.sh:177-190<br/>tunnel activates prod,tunnel, lan activates prod alone :296-300;<br/>dev adds the codescape profile only when the sidecar is chosen :270-275"]
     INGRESS -->|"tunnel"| CLOUDFLARED
     INGRESS -->|"prod in both modes"| PRODSVC
@@ -389,7 +389,7 @@ flowchart LR
     PHEALTH --> PUPRUST
     DAPI -.-> DXFH
     PAPI -.-> PXFH
-    XFHWHY["2026-10-02 (e7e6b61d8): a NIP-98 u tag signs the URL the client<br/>dialled, port included. nginx Host drops the port, so the backend<br/>rebuilds the URL from X-Forwarded-Proto and X-Forwarded-Host,<br/>auth.rs:170-189"]
+    XFHWHY["2026-10-02 (e7e6b61d8): a NIP-98 u tag signs the URL the client<br/>dialled, port included. nginx Host drops the port, so the backend<br/>rebuilds the URL from X-Forwarded-Proto and X-Forwarded-Host,<br/>auth.rs:239-258"]
     DXFH -.-> XFHWHY
     PXFH -.-> XFHWHY
     XFHOPEN["OPEN: the pod NIP-98 check also rebuilds its URL from<br/>X-Forwarded-Host, solid_proxy_handler.rs:207-222, but the /solid/ and<br/>/pods/ blocks still forward host without the port. Whether a LAN<br/>client signing host:3001 for a pod write is refused is untested."]
@@ -409,11 +409,11 @@ flowchart LR
 flowchart TB
     subgraph FLAKE["agentbox/flake.nix — image composition"]
         NIXPKG["Nix package set<br/>e.g. toolchains.ruflo gate agentbox/flake.nix:583"]
-        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2837, agentbox/flake.nix:2868,<br/>agentbox/flake.nix:2884<br/>program blocks e.g. management-api, bootstrap-seal"]
-        SUPWRITE["writeText supervisord.conf, asserting no JSS_ variable leaked<br/>agentbox/flake.nix:4215-4220"]
+        SUPTEXT["supervisorText string<br/>agentbox/flake.nix:2861, agentbox/flake.nix:2892,<br/>agentbox/flake.nix:2908<br/>program blocks e.g. management-api, bootstrap-seal"]
+        SUPWRITE["writeText supervisord.conf, asserting no JSS_ variable leaked<br/>agentbox/flake.nix:4244-4249"]
     end
     subgraph TOML["agentbox/agentbox.toml — RUNNING config, not a template"]
-        GATEKEY["gate key e.g. interaction_plane.enabled, now rebuild-class (ADR-2153)<br/>agentbox.toml:2156-2157, catalogue entry system-manifest.js:74-75"]
+        GATEKEY["gate key e.g. interaction_plane.enabled, now rebuild-class (ADR-2153)<br/>agentbox.toml:2190-2191, catalogue entry system-manifest.js:74-75"]
     end
     subgraph MANIFEST["agentbox/management-api/lib/system-manifest.js"]
         CATALOGUE["CATALOGUE entry<br/>system-manifest.js:39<br/>gate, service, apply_class"]
@@ -459,28 +459,28 @@ sequenceDiagram
     participant GH as GitHub pull request to main or manual dispatch (the push trigger was removed 2026-11-10)<br/>project/.github/workflows/ci.yml:41-62
     participant FMT as rust-fmt job<br/>project/.github/workflows/ci.yml:77 blocking
     participant CPU as rust-cpu job<br/>project/.github/workflows/ci.yml:92 blocking
-    participant CLI as client job<br/>project/.github/workflows/ci.yml:140 blocking
-    participant GATE as dev-auth-release-gate job<br/>project/.github/workflows/ci.yml:162 blocking
-    participant LINT as client-quality job<br/>project/.github/workflows/ci.yml:254 advisory, manual only :257
-    participant PW as playwright job<br/>project/.github/workflows/ci.yml:287 manual only
+    participant CLI as client job<br/>project/.github/workflows/ci.yml:141 blocking
+    participant GATE as dev-auth-release-gate job<br/>project/.github/workflows/ci.yml:163 blocking
+    participant LINT as client-quality job<br/>project/.github/workflows/ci.yml:255 advisory, manual only :258
+    participant PW as playwright job<br/>project/.github/workflows/ci.yml:288 manual only
 
     GH->>FMT: cargo fmt --all --check :89-90
-    GH->>CPU: cargo build CPU_CRATES :123, now built over<br/>vault-core and vault (ADR-2113), replacing vault-migrate :108-109
-    CPU->>CPU: cargo clippy CPU_CRATES --all-targets :127
-    CPU->>CPU: cargo test CPU_CRATES :129
-    CPU->>CPU: cargo clippy/test -p visionclaw-integration-tests, hermetic targets<br/>backup_posture, dev_build_inputs, prod_ingress (ADR-2119) and layer_direction :136,138
-    GH->>CLI: npm ci :155-156, then npm run test (vitest) :160
-    GH->>GATE: hermetic text assertion over the<br/>committed Dockerfiles/entrypoints :166-175
-    GATE->>GATE: no --release cargo line may name dev-auth :183-188
-    opt workflow_dispatch only :257 (gated 2026-11-15, Actions volume)
-        GH->>LINT: npm run lint (ESLint) :276, npx tsc --noEmit :278
+    GH->>CPU: cargo build CPU_CRATES :124, now built over<br/>vault-core and vault (ADR-2113), replacing vault-migrate :108-109
+    CPU->>CPU: cargo clippy CPU_CRATES --all-targets :128
+    CPU->>CPU: cargo test CPU_CRATES :130
+    CPU->>CPU: cargo clippy/test -p visionclaw-integration-tests, hermetic targets<br/>backup_posture, dev_build_inputs, prod_ingress (ADR-2119) and layer_direction :137,139
+    GH->>CLI: npm ci :156-157, then npm run test (vitest) :161
+    GH->>GATE: hermetic text assertion over the<br/>committed Dockerfiles/entrypoints :167-176
+    GATE->>GATE: no --release cargo line may name dev-auth :184-189
+    opt workflow_dispatch only :258 (gated 2026-11-15, Actions volume)
+        GH->>LINT: npm run lint (ESLint) :277, npx tsc --noEmit :279
     end
-    Note over LINT: continue-on-error true :263, never a required check
-    opt workflow_dispatch only :293
-        GH->>PW: npx playwright install :309, npm run test:e2e :311
+    Note over LINT: continue-on-error true :264, never a required check
+    opt workflow_dispatch only :294
+        GH->>PW: npx playwright install :310, npm run test:e2e :312
     end
-    Note over GATE: INVARIANT: ADR-2037 via ADR-2086 - a production/release<br/>image must never carry the dev-auth cargo feature (it compiles in<br/>the Bearer dev-session-token bypass and stubs<br/>enforce_release_env_hygiene to a no-op).<br/>Hermetic: no cargo, no docker, no network - project/.github/workflows/ci.yml:162,166
-    Note over CPU: DIVERGENCE: visionclaw-gpu and root server crate link<br/>CUDA at runtime, removed from hosted CI 2026-07-24 (project/.github/workflows/ci.yml:280-282)
+    Note over GATE: INVARIANT: ADR-2037 via ADR-2086 - a production/release<br/>image must never carry the dev-auth cargo feature (it compiles in<br/>the Bearer dev-session-token bypass and stubs<br/>enforce_release_env_hygiene to a no-op).<br/>Hermetic: no cargo, no docker, no network - project/.github/workflows/ci.yml:163,167
+    Note over CPU: DIVERGENCE: visionclaw-gpu and root server crate link<br/>CUDA at runtime, removed from hosted CI 2026-07-24 (project/.github/workflows/ci.yml:281-283)
     Note over CPU: GPU crates validated only on the developer CUDA<br/>host via scripts/launch.sh, not by any GitHub runner
 ```
 
@@ -518,54 +518,54 @@ sequenceDiagram
 
 **Open (the backlog rule has lapsed):** `ADR_RATCHET_UNTIL` defaults to 2026-10-20 (`../project/scripts/adr-ratchet.sh:45`), so on any run after that date a push that adds more undecided records than it closes is reported and passes (`../project/scripts/adr-ratchet.sh:119-123`). Only the evidence rule still fails a build. Whether the backlog rule should be extended or retired is the owner's decision; the workflow step's name still describes it as live (`../project/.github/workflows/docs-ci.yml:40`).
 
-## ES-09.13 VisionClaw ontology-publish.yml — vault build now runs in-repo, pull model to pod
+## ES-09.13 VisionClaw ontology-publish.yml — vault build now runs in-repo, pull model to pod, parked to manual dispatch
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GH as push, repository_dispatch or manual dispatch<br/>ontology-publish.yml:3-16 corpus-sync
-    participant VAL as validate-source job<br/>ontology-publish.yml:50
-    participant BLD as build-ontology job<br/>ontology-publish.yml:140
-    participant REL as publish-release job<br/>ontology-publish.yml:294
+    participant GH as manual dispatch only, parked 2026-11-16<br/>ontology-publish.yml:3-9
+    participant VAL as validate-source job<br/>ontology-publish.yml:43
+    participant BLD as build-ontology job<br/>ontology-publish.yml:133
+    participant REL as publish-release job<br/>ontology-publish.yml:287
     participant SRV as visionclaw-server boot<br/>src/services/ontology_pull.rs
-    participant DEP as deploy-jss job (push path)<br/>ontology-publish.yml:365
-    participant WS as notify-websocket job<br/>ontology-publish.yml:476
-    participant MIS as deploy-target-missing job<br/>ontology-publish.yml:560
+    participant DEP as deploy-jss job (push path)<br/>ontology-publish.yml:358
+    participant WS as notify-websocket job<br/>ontology-publish.yml:469
+    participant MIS as deploy-target-missing job<br/>ontology-publish.yml:553
 
-    GH->>VAL: preflight gh repo view on the private ontology source :74-80<br/>ONTOLOGY_SOURCE_TOKEN, falling back to GITHUB_TOKEN :74-75
+    GH->>VAL: preflight gh repo view on the private ontology source :67-73<br/>ONTOLOGY_SOURCE_TOKEN, falling back to GITHUB_TOKEN :67-68
     alt source unreadable
-        VAL--xGH: ::error + OPS ACTION naming the fine-grained PAT, exit 1 :81-94
+        VAL--xGH: ::error + OPS ACTION naming the fine-grained PAT, exit 1 :74-87
     end
-    GH->>VAL: checkout ontology source into vault-source/, same token :96-102,<br/>at the dispatch payload's source_sha or main :100
-    VAL->>VAL: detect changed markdown files :104-125
-    VAL->>BLD: has_changes true, needs validate-source :144-145
-    BLD->>BLD: checkout the source into vault-source/ again :156-162,<br/>pinned to validate-source's source_sha :160
-    BLD->>BLD: ADR-2113 — cargo build --release --locked -p vault :176<br/>(crates/vault in THIS repo, cached by Cargo.lock hash :164-172)
-    BLD->>BLD: ./target/release/vault --repo vault-source build<br/>--vault knowledge --out output/vault :178-181
-    BLD->>BLD: ADR-2147 vault certify writes an oo-cert/1 derivation certificate and<br/>exits 1 if the certified closure stops matching Whelk's :188-197, then a pinned<br/>Lean 4 oo-cert binary re-checks it by digest :199-216, reports and certificate uploaded :218-235
-    BLD->>BLD: pack-pod-resources.py output/vault output/pod — public-only<br/>TTL, JSON-LD compacted against the vault context, LDP index<br/>manifest, substance floor :249-255
-    BLD->>BLD: re-parse packed resources :257-273, upload<br/>ontology-ttl :278-279 and ontology-jsonld :285-286
-    BLD->>REL: main only, needs validate-source + build-ontology :298
-    REL->>REL: assemble five assets + SHA256SUMS :318-326,<br/>create or move release tag ontology-latest
-    REL->>REL: upload --clobber, verify the public<br/>download path diffs SHA256SUMS :359-362
+    GH->>VAL: checkout ontology source into vault-source/, same token :89-95,<br/>at the dispatch payload's source_sha or main :93
+    VAL->>VAL: detect changed markdown files :97-118
+    VAL->>BLD: has_changes true, needs validate-source :137-138
+    BLD->>BLD: checkout the source into vault-source/ again :149-155,<br/>pinned to validate-source's source_sha :153
+    BLD->>BLD: ADR-2113 — cargo build --release --locked -p vault :169<br/>(crates/vault in THIS repo, cached by Cargo.lock hash :157-165)
+    BLD->>BLD: ./target/release/vault --repo vault-source build<br/>--vault knowledge --out output/vault :171-174
+    BLD->>BLD: ADR-2147 vault certify writes an oo-cert/1 derivation certificate and<br/>exits 1 if the certified closure stops matching Whelk's :181-190, then a pinned<br/>Lean 4 oo-cert binary re-checks it by digest :192-209, reports and certificate uploaded :211-228
+    BLD->>BLD: pack-pod-resources.py output/vault output/pod — public-only<br/>TTL, JSON-LD compacted against the vault context, LDP index<br/>manifest, substance floor :242-248
+    BLD->>BLD: re-parse packed resources :250-266, upload<br/>ontology-ttl :271-272 and ontology-jsonld :278-279
+    BLD->>REL: main only, needs validate-source + build-ontology :291
+    REL->>REL: assemble five assets + SHA256SUMS :311-319,<br/>create or move release tag ontology-latest
+    REL->>REL: upload --clobber, verify the public<br/>download path diffs SHA256SUMS :352-355
     Note over SRV: ADR-2106 pull model — at boot and every<br/>ONTOLOGY_PULL_INTERVAL_SECS: GET index.jsonld, compare<br/>visionflow:buildSha and visionflow:sourceSha with the pod's, and if moved GET<br/>SHA256SUMS plus the files, verify every digest, then write<br/>via Storage in order: containers, .acl only if absent,<br/>content, manifest last. Fail-open. see ES-08.11
-    SRV->>REL: GET releases/download/ontology-latest/{index.jsonld, SHA256SUMS, ...}
+    SRV->>REL: production by default, dev only when ONTOLOGY_PULL_URL names this release (dev default is a local file:// release, see ES-08.11),<br/>GET releases/download/ontology-latest/{index.jsonld, SHA256SUMS, ...}
     alt vars.SOLID_POD_URL set (a pod a runner can reach)
-        BLD->>DEP: needs build-ontology, ref main :370
-        DEP->>DEP: backup current pod index for rollback :393
-        DEP->>DEP: PUT visionflow.ttl, context/ontology/index jsonld :411-428, verify :437-453
+        BLD->>DEP: needs build-ontology, ref main :363
+        DEP->>DEP: backup current pod index for rollback :386
+        DEP->>DEP: PUT visionflow.ttl, context/ontology/index jsonld :404-421, verify :430-446
         alt deployment fails
-            DEP->>DEP: rollback to backed-up index :469
+            DEP->>DEP: rollback to backed-up index :462
         end
         DEP->>WS: deployment_status success
-        WS->>WS: POST to SOLID_POD_URL/.notifications :520, PATCH index.jsonld :525
+        WS->>WS: POST to SOLID_POD_URL/.notifications :513, PATCH index.jsonld :518
     else unset (default: the in-process pod is not reachable from a hosted runner)
-        REL->>MIS: ::notice: push deploy skipped, pull model in effect :565-568
+        REL->>MIS: ::notice: push deploy skipped, pull model in effect :558-561
     end
-    Note over GH,BLD: pull_request trigger and the pr-preview job removed 2026-11-15<br/>(Actions volume): the push to main rebuilds, and publish-release<br/>needs build-ontology, so a broken build never publishes :12-13, :298
-    Note over VAL,WS: RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL now<br/>defaults to the loopback /solid scope :42-44 — what the embedded<br/>solid-pod-rs serves in-process (ADR-032 M3). The POST to<br/>/.notifications is annotated a best-effort no-op there:<br/>that path is a GET WebSocket upgrade
+    Note over GH,BLD: CHANGED 2026-11-16 (ADR-2106 amendment) — push, pull_request and the corpus-sync<br/>repository_dispatch are all removed: the pod ontology is built locally, and this<br/>workflow refreshes ontology-latest only when dispatched :4-9. publish-release still<br/>needs build-ontology, so a broken build never publishes :291
+    Note over VAL,WS: RESOLVED ADR-2098 (2026-09-05): SOLID_POD_URL now<br/>defaults to the loopback /solid scope :35-37 — what the embedded<br/>solid-pod-rs serves in-process (ADR-032 M3). The POST to<br/>/.notifications is annotated a best-effort no-op there:<br/>that path is a GET WebSocket upgrade
     Note over BLD: RESOLVED — ADR-2112/ADR-2113 replaced the Python<br/>pipeline.build converter (0 owl:Class from 380 pages on run<br/>34045488066, itself a fix of two earlier Logseq-only jobs) first<br/>with a vault-owned Python step, now with an IN-REPO Rust build:<br/>cargo build -p vault then ./target/release/vault build against<br/>the checked-out vault-source/, no external converter left to own
-    Note over GH,BLD: DRIFT resolved — the source repo is still checked out (path<br/>renamed logseq-source to vault-source, trigger renamed logseq-sync<br/>to corpus-sync :14-15) but it no longer runs anyone's pipeline in<br/>place: `vault build` reads it via --repo and writes output/vault.<br/>scripts/ontology/pack-pod-resources.py remains this repo's own<br/>script, unchanged, run from the repo root :239. see VG-04.1, KG-05
-    Note over GH,BLD: 2026-10 (805219679) — a corpus-sync dispatch may name the<br/>source repo :36 and sha :100, and the build job checks out exactly<br/>the sha validate-source detected :160, so a build can no longer<br/>publish a later corpus commit than the one it validated
+    Note over GH,BLD: DRIFT resolved — the source repo is still checked out (path<br/>renamed logseq-source to vault-source, and the corpus-sync trigger is now removed, :6)<br/>but it no longer runs anyone's pipeline in<br/>place: `vault build` reads it via --repo and writes output/vault.<br/>scripts/ontology/pack-pod-resources.py remains this repo's own<br/>script, run from the repo root :248. see VG-04.1, KG-05
+    Note over GH,BLD: 2026-10 (805219679) — the job still reads a dispatch payload's<br/>source repo :29 and sha :93, though no repository_dispatch trigger remains,<br/>and the build job checks out exactly the sha validate-source detected :153,<br/>so a build can no longer publish a later corpus commit than the one it validated
     Note over SRV,MIS: RESOLVED ADR-2106 (2026-09-06): deploy-jss had never<br/>run and could not from a hosted runner — delivery inverted to a<br/>boot pull from the ontology-latest release. see ES-08.11
 ```
 
@@ -615,8 +615,8 @@ sequenceDiagram
     J->>J: check-nnp.sh (no-new-privileges) invariants.yml:152
     J->>J: check-ports-loopback.sh invariants.yml:155
     Note over J: ADR-2013: sweeps EVERY docker-compose*.yml via a real<br/>YAML parser (check-ports-loopback.mjs), replacing an<br/>awk line-walker that missed nested-mapping publishes
-    Note over J: SANCTIONED allowlist: 9096 sovereign ingress,<br/>voice 8443/8444, browsercontainer 5903/8931/9222,<br/>gui-tools 5905/9876/9877, xr-runtime 5904
-    Note over J: ADR-2013 remains partial for effective deployment and active-listener acceptance.<br/>Its current Decision covers normalised short and long syntax,<br/>aliases and merges, with unsupported forms refused.<br/>ADR-2013-loopback-publish-except-9096.md:23,136-139
+    Note over J: SANCTIONED allowlist: 9096 sovereign ingress and voice 8443/8444 only,<br/>check-ports-loopback.mjs:100-104. CHANGED 2026-11-17 (ADR-2013 amendment,<br/>ADR-2013-loopback-publish-except-9096.md:553): the seven browsercontainer, gui-tools and xr-runtime<br/>ports left the list and publish as AGENTBOX_SIDECAR_BIND defaulting to 127.0.0.1,<br/>check-ports-loopback.mjs:97-98. see ES-10.8
+    Note over J: ADR-2013 remains partial for effective deployment and active-listener acceptance.<br/>Its current Decision covers normalised short and long syntax,<br/>aliases and merges, with unsupported forms refused.<br/>ADR-2013-loopback-publish-except-9096.md:36,149-152
     J->>J: check-listeners.test.mjs invariants.yml:158, the tests/security/**<br/>trigger path guards this gate's own unit tests
     J->>J: session-plane retirement test, AoE removed and no script attaches<br/>the operator client (scripts-never-switch-operator-tmux.test.mjs) invariants.yml:160-161
     J->>J: session-launch-contract (ADR-2153, live) invariants.yml:163-164, session-plane notify invariants.yml:166-167,<br/>then trust-seed invariants.yml:169-170, every seed resolves to a launch the pinned CLIs accept and every Claude config<br/>store a session reads is trusted
@@ -644,7 +644,7 @@ sequenceDiagram
     Note over J: DRIFT resolved — the vault-frontmatter unit test step<br/>(node --test mcp/servers/lib/__tests__/*.test.js) is GONE:<br/>ADR-2107/ADR-2108 deleted the V2 frontmatter writer it gated<br/>along with the ontology write path. The workflow comment now names<br/>ontomark validate as the successor contract check, run against the<br/>corpus not a helper (invariants.yml:276-279).
 ```
 
-**Open:** ADR-2153 has replaced Agent of Empires and is live, with implementation still recorded partial (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`): the supervisor runs `[program:agentbox-sessions]` and no longer `aoe serve` (`../project/agentbox/flake.nix:3129`), and the invariants job runs the contract and notify steps (`../project/agentbox/.github/workflows/invariants.yml:163-167`) and the generalised regression guard is now named `scripts-never-switch-operator-tmux.test.mjs` (`../project/agentbox/.github/workflows/invariants.yml:160-161`).
+**Open:** ADR-2153 has replaced Agent of Empires and is live, with implementation still recorded partial (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`): the supervisor runs `[program:agentbox-sessions]` and no longer `aoe serve` (`../project/agentbox/flake.nix:3153`), and the invariants job runs the contract and notify steps (`../project/agentbox/.github/workflows/invariants.yml:163-167`) and the generalised regression guard is now named `scripts-never-switch-operator-tmux.test.mjs` (`../project/agentbox/.github/workflows/invariants.yml:160-161`).
 
 ## ES-09.16 agentbox contract-tests.yml — adapter contract suites
 ```mermaid
@@ -688,11 +688,11 @@ sequenceDiagram
     end
     V->>V: assert JSON Schema well-formed manifest-validate.yml:133
     V->>V: CAD launcher policy and wheel lock, then supervised Python path<br/>static runner checks, image-dependent behaviour skips<br/>manifest-validate.yml:135-141
-    V->>V: ADR-2122 - the two supervisor configs cannot drift, the /run/secrets<br/>delivery tree, at-rest custody migrate/revert, and flag off boots as<br/>today manifest-validate.yml:143-162 - see ES-09.24
-    V->>V: sidechain-genesis.test.sh — document invariants, P21<br/>mainnet gate, no-key-in-git (ADR-2103) manifest-validate.yml:164-167
-    V->>V: mirror chain-event, producer parent gates, catalogue gates and<br/>mirror retry, the dream-inbox reminder manifest-validate.yml:169-184
-    V->>V: assert all W-codes route to warnings manifest-validate.yml:186-198
-    V->>V: assert E021 fires when exception block missing manifest-validate.yml:200-218
+    V->>V: ADR-2122 - the two supervisor configs cannot drift, the /run/secrets<br/>delivery tree, at-rest custody migrate/revert, and flag off boots as<br/>today manifest-validate.yml:143-166 - see ES-09.24.<br/>Between them, new: the NIP-98 door fails closed without its boot config (W3-05, ADR-2210) :150-153
+    V->>V: sidechain-genesis.test.sh — document invariants, P21<br/>mainnet gate, no-key-in-git (ADR-2103) manifest-validate.yml:168-171
+    V->>V: mirror chain-event, producer parent gates, catalogue gates and<br/>mirror retry, the dream-inbox reminder manifest-validate.yml:173-188
+    V->>V: assert all W-codes route to warnings manifest-validate.yml:190-202
+    V->>V: assert E021 fires when exception block missing manifest-validate.yml:204-222
     Note over V: same validator the TUI runs on every section<br/>transition and the flake evaluator runs at build time
 ```
 
@@ -724,7 +724,7 @@ flowchart LR
     COMPOSEUP["docker compose --profile dev|production up<br/>docker-compose.unified.yml"]
     CONTAINER["visionclaw_container: supervisord manages nginx, rust-backend, vite-dev<br/>visionclaw_prod_container: production-startup.sh runs the backend and nginx itself,<br/>no supervisord (ES-09.7)"]
     NGINXROUTE["nginx.dev.conf or nginx.production.conf<br/>route table (ES-09.9)"]
-    HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:236, docker-compose.unified.yml:325"]
+    HEALTH["/api/health, /readyz<br/>docker-compose.unified.yml:258, docker-compose.unified.yml:348"]
 
     SRC --> CIGATE
     CIGATE --> DOCKERBUILD
@@ -750,23 +750,23 @@ sequenceDiagram
     participant CB as "cargo build (dev container)"<br/>rust-backend-wrapper.sh:66
     participant URI as visionclaw-server src/uri<br/>src/uri/mod.rs:665
     participant FK as federation-kinds artefact<br/>agentbox/schema/federation-kinds.json:2-4
-    participant CMP as dev compose mounts<br/>docker-compose.unified.yml:203
+    participant CMP as dev compose mounts<br/>docker-compose.unified.yml:224
     participant BR as "BC20 bridge (agentbox, JS)"
 
     Note over URI,FK: ADR-2061 — federation-kinds.json is the SINGLE versioned<br/>authority for which urn:agentbox kinds cross the boundary.<br/>cross_from_agentbox derives its closed map from it — the JS bridge<br/>reads the same bytes at load. Neither side transcribes the list.
     URI->>FK: "const FEDERATION_KINDS_JSON = include_str!(\"../../agentbox/schema/federation-kinds.json\")"<br/>src/uri/mod.rs:665
     Note over URI: include_str! is COMPILE time, so the file must exist under /app<br/>or the lib cannot build at all — not a runtime read.
-    CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:203
+    CMP->>CB: "bind ${HOST_PROJECT_ROOT}/agentbox/schema -> /app/agentbox/schema:ro"<br/>docker-compose.unified.yml:224
     CB->>URI: compiles, artefact bytes baked into the binary
     FK-->>BR: EXTERNAL — the same file is read at load by the agentbox<br/>management-api bridge. see AB-17 and ES-03.1
-    Note over CMP: INVARIANT — mount schema/ ONLY, never the whole submodule.<br/>agentbox carries 262 files ADR-2008 counts as build inputs, so a<br/>full mount would turn every agentbox bump into a spurious ~12 min<br/>visionclaw rebuild — schema/ is JSON alone and matches no input glob<br/>(docker-compose.unified.yml:194-202)
-    Note over CB: RESOLVED 2026-09 — before this mount the dev image (which carries<br/>no source of its own) failed every build with<br/>the missing federation-kinds.json include<br/>docker-compose.unified.yml:203
+    Note over CMP: INVARIANT — mount schema/ ONLY, never the whole submodule.<br/>agentbox carries 262 files ADR-2008 counts as build inputs, so a<br/>full mount would turn every agentbox bump into a spurious ~12 min<br/>visionclaw rebuild — schema/ is JSON alone and matches no input glob<br/>(docker-compose.unified.yml:215-223)
+    Note over CB: RESOLVED 2026-09 — before this mount the dev image (which carries<br/>no source of its own) failed every build with<br/>the missing federation-kinds.json include<br/>docker-compose.unified.yml:224
 ```
 
 ## ES-09.21 scripts/launch.sh — env-file resolution and the two divergent code paths
 ```mermaid
 flowchart TB
-    START["launch.sh main()<br/>scripts/launch.sh:1555<br/>PROJECT_ROOT = dirname SCRIPT_DIR :15"]
+    START["launch.sh main()<br/>scripts/launch.sh:1556<br/>PROJECT_ROOT = dirname SCRIPT_DIR :15"]
 
     subgraph SANCTIONED["Sanctioned path — up / rebuild dev|prod"]
         LOADENV["load_env_config<br/>looks for .env.$ENVIRONMENT :193-194"]
@@ -777,17 +777,17 @@ flowchart TB
     end
 
     subgraph LEGACY["rebuild_agent_container — legacy MAD path"]
-        CD["cd $PROJECT_ROOT/multi-agent-docker :1021"]
-        MK[".env absent -> cp env.example .env :1026-1029<br/>then blocks on an interactive read :1031"]
+        CD["cd $PROJECT_ROOT/multi-agent-docker :1022"]
+        MK[".env absent -> cp env.example .env :1027-1030<br/>then blocks on an interactive read :1032"]
     end
 
     START --> LOADENV
     LOADENV --> INGR --> PRODREQ
     LOADENV --> DEVFALL
     LOADENV --> HPR
-    START -->|"launch.sh rebuild-agent, scripts/launch.sh:1632-1636"| CD --> MK
+    START -->|"launch.sh rebuild-agent, scripts/launch.sh:1633-1637"| CD --> MK
 
-    FIX["RESOLVED 2026-09-06 — the auto-create branch tested for a dotted<br/>.env.example that has never existed in the tree, so it always fell<br/>through to the error exit. It now copies env.example, the template<br/>that actually ships (scripts/launch.sh:1026-1029, env.example)."]
+    FIX["RESOLVED 2026-09-06 — the auto-create branch tested for a dotted<br/>.env.example that has never existed in the tree, so it always fell<br/>through to the error exit. It now copies env.example, the template<br/>that actually ships (scripts/launch.sh:1027-1030, env.example)."]
     DIV["DIVERGENCE — multi-agent-docker/ is not present in this checkout,<br/>so rebuild_agent_container cds into a missing directory before it<br/>reaches the fixed branch. The repaired .env creation is correct but<br/>currently unreachable; the MAD stack is the deprecated predecessor<br/>whose only surviving trace is the mad-workspace volume. see ES-01.4"]
     INV["INVARIANT ADR-2027 — profile selection is env-file driven, and the<br/>production branch fails closed: a missing or dev-contaminated<br/>.env.prod aborts the launch rather than defaulting. see ES-10"]
 
@@ -881,8 +881,8 @@ flowchart TB
     end
     subgraph MV["manifest-validate.yml, on the role table, config/lib or the entrypoint"]
         M1["the two supervisor configs cannot drift: only role programs' user=<br/>and environment= differ - agentbox/.github/workflows/manifest-validate.yml:143-148"]
-        M2["/run/secrets delivery builds the right owner and mode tree, chown stubbed,<br/>plus at-rest custody migrate/revert - agentbox/.github/workflows/manifest-validate.yml:150-159"]
-        M3["with role_isolation off the boot is today's<br/>agentbox/.github/workflows/manifest-validate.yml:161-162"]
+        M2["/run/secrets delivery builds the right owner and mode tree, chown stubbed,<br/>plus at-rest custody migrate/revert - agentbox/.github/workflows/manifest-validate.yml:154-163"]
+        M3["with role_isolation off the boot is today's<br/>agentbox/.github/workflows/manifest-validate.yml:165-166"]
     end
     subgraph TUI["tui-tests.yml, on services/agentbox-manifest and services/agentbox-sessions"]
         T1["cargo test agentbox-manifest, which carries the role_accounts unit tests<br/>agentbox/.github/workflows/tui-tests.yml:77"]
@@ -898,8 +898,8 @@ flowchart TB
         C1 --> C2
     end
     subgraph BC["browsercontainer.yml, for W9"]
-        B1["best-effort fetch of the pinned Podkey artefact, continue-on-error<br/>agentbox/.github/workflows/browsercontainer.yml:50-54"]
-        B2["fetch-podkey pin, sha256 and content, launch flags, podkey-ctl<br/>load-once, the profile volume - agentbox/.github/workflows/browsercontainer.yml:56-66"]
+        B1["best-effort fetch of the pinned Podkey artefact, continue-on-error<br/>agentbox/.github/workflows/browsercontainer.yml:59-63"]
+        B2["fetch-podkey pin, sha256 and content, launch flags, podkey-ctl<br/>load-once, the profile volume - agentbox/.github/workflows/browsercontainer.yml:65-75"]
         B1 --> B2
     end
     subgraph NONE["Custody tests no workflow runs at this revision"]
