@@ -42,7 +42,7 @@ sources:
   - docs/adr/ADR-2003-pages-artifact-deploy.md
   - docs/architecture/compatibility-matrix.md
   - ./README.md
-verified_commit: fdeab5dc36a859b3b881d7d587af067c88795217
+verified_commit: 3ae784ed0b547b562e1f94d017996f8ad197f5cb
 ---
 
 ## VF-02.1 The copy-only build — every step of website/build.sh
@@ -77,7 +77,7 @@ flowchart LR
     classDef ext fill:#f6efd8,stroke:#8a7020,color:#111
 
     subgraph STATIC["website/static/ — hand-written source"]
-        IDX["index.html — one page, ~112 KB<br/>one module entry at index.html:1300<br/>one local stylesheet at index.html:29"]:::src
+        IDX["index.html — one page, ~112 KB<br/>one module entry at index.html:1298<br/>one local stylesheet at index.html:27"]:::src
         CSS["css/styles.css — the sole stylesheet"]:::src
         MAIN["js/main.js — sole ES module entrypoint<br/>DOMContentLoaded wiring at main.js:908"]:::src
         MESH["js/mesh-webgl.js — hand-written WebGL2 ES module<br/>initMesh returns null without WebGL2<br/>mesh-webgl.js:15"]:::src
@@ -95,7 +95,7 @@ flowchart LR
     ASSETS["repo assets/diagrams, assets/generated,<br/>assets/heroes, assets/screenshots<br/>staged by the manifest, not by static/*"]:::src
     ASSETS ==>|"website-assets.mjs stage"| DIST
 
-    FONTS["EXTERNAL fetch: Google Fonts only<br/>Inter and JetBrains Mono, index.html:28<br/>preconnect at index.html:26"]:::ext
+    FONTS["CHANGED: no external font fetch — the Google Fonts link is gone;<br/>Inter and JetBrains Mono are self-hosted under fonts/<br/>@font-face at styles.css:4 and styles.css:13, preload at index.html:26"]:::src
     IDX -.-> FONTS
 
     NEG["ABSENT BY DECISION: no Cargo.toml, no rs, no wasm,<br/>no bundler, no framework, no CDN CSS<br/>ADR-2002-static-copy-only-website.md:53"]
@@ -111,9 +111,9 @@ flowchart TB
 
     M["website/assets.manifest.json<br/>manifest_version 1, site_root static, output dist<br/>assets.manifest.json:4"]
 
-    M --> REQ["required — 17 entries<br/>assets.manifest.json:6<br/>index.html, CNAME, robots.txt, css/styles.css, js/main.js,<br/>js/mesh-webgl.js, js/contact.js, js/nostr-contact.js, data/estate-health.json,<br/>img/og-card.png, five showcase webp, two mp4"]:::req
-    M --> DER["derived — required destinations sourced from OUTSIDE static/<br/>assets.manifest.json:61 img/og-card.png<br/>from ../assets/screenshots/visionflow-final.png"]:::der
-    M --> OPT["optional — four directory groups<br/>repo-diagrams, repo-generated, repo-heroes, repo-screenshots<br/>assets.manifest.json:25"]:::opt
+    M --> REQ["required — 22 entries<br/>assets.manifest.json:6<br/>index.html, CNAME, robots.txt, css/styles.css, two self-hosted woff2 fonts<br/>and their two OFL licences, js/main.js, js/mesh-webgl.js, js/contact.js,<br/>js/nostr-contact.js, data/estate-health.json, img/og-card.png,<br/>five showcase webp, the film poster, two mp4 — assets.manifest.json:11-14 and assets.manifest.json:26"]:::req
+    M --> DER["derived — required destinations sourced from OUTSIDE static/<br/>assets.manifest.json:66 img/og-card.png<br/>from ../assets/screenshots/visionflow-final.png"]:::der
+    M --> OPT["optional — four directory groups<br/>repo-diagrams, repo-generated, repo-heroes, repo-screenshots<br/>assets.manifest.json:30"]:::opt
 
     REQ -->|"absent or zero bytes in dist/"| F1["verify exits 1, naming the file and its 'why'<br/>website-assets.mjs:250"]:::req
     DER -->|"source file missing"| F2["stage exits 1 — a derived entry backs a REQUIRED dest<br/>website-assets.mjs:129"]:::der
@@ -122,11 +122,11 @@ flowchart TB
     HIST["The defect this closes: build.sh staged repo images with<br/>cp -r ... 2 dev null or true, so every optional copy could<br/>fail while the build still printed BUILD-COMPLETE<br/>website-assets.mjs:9"]
     M -.-> HIST
 
-    LINK["data/estate-health.json is REQUIRED specifically because<br/>the estate section links it by href, so the link-integrity<br/>gate must resolve it in dist/ — assets.manifest.json:15"]:::req
+    LINK["data/estate-health.json is REQUIRED specifically because<br/>the estate section links it by href, so the link-integrity<br/>gate must resolve it in dist/ — assets.manifest.json:19"]:::req
     REQ -.-> LINK
     ROBOTS["robots.txt is REQUIRED since dream PR 11 (2026-10-01 night):<br/>it reaches dist/ only through the wholesale static/* copy,<br/>so without the entry a copy regression would publish<br/>the site with no crawler policy — assets.manifest.json:9"]:::req
     REQ -.-> ROBOTS
-    CONTACT["js/contact.js and js/nostr-contact.js are REQUIRED since the contact form landed: the form gift-wraps the message (NIP-17)<br/>in the browser and publishes it to the DreamLab relay, nothing is stored by this site, and the vendored transport<br/>loads only on first submit — assets.manifest.json:13-14, contact.js:5-6, contact.js:112"]:::req
+    CONTACT["js/contact.js and js/nostr-contact.js are REQUIRED since the contact form landed: the form gift-wraps the message (NIP-17)<br/>in the browser and publishes it to the DreamLab relay, nothing is stored by this site, and the vendored transport<br/>loads only on first submit — assets.manifest.json:17-18, contact.js:5-6, contact.js:112"]:::req
     REQ -.-> CONTACT
 ```
 
@@ -215,7 +215,7 @@ flowchart TB
     G5 --> G6["BLOCKING 6 committed diagram baseline text visibility<br/>node scripts/check-diagram-text.js — deploy.yml:129"]:::block
     G6 --> G7["REPORTED 7 self-description drift counter<br/>blocks only when the agentbox checkout landed<br/>deploy.yml:138"]:::report
 
-    HEAD["what gates 4 and 5 now see in the head — dream PRs 12 to 16:<br/>a robots meta, index.html:9 (PR 16), og:site_name, index.html:11,<br/>og:image width and height 1280 x 720, index.html:16-17, an<br/>Organization block that carries legalName DreamLab AI Consulting<br/>Ltd, index.html:35, and a second JSON-LD block typed WebSite,<br/>index.html:41-47, which now links the Organization by @id (index.html:33, :43),<br/>plus og:locale en_GB, index.html:19"]
+    HEAD["what gates 4 and 5 now see in the head — dream PRs 12 to 16:<br/>a robots meta, index.html:9 (PR 16), og:site_name, index.html:11,<br/>og:image width and height 1280 x 720, index.html:16-17, an<br/>Organization block that carries legalName DreamLab AI Consulting<br/>Ltd, index.html:33, and a second JSON-LD block typed WebSite,<br/>index.html:39-45, which now links the Organization by @id (index.html:31, :41),<br/>plus og:locale en_GB, index.html:19"]
     G5 -.-> HEAD
     G7 --> REC["write gate verdicts and the published block into the receipt<br/>deploy.yml:151"]:::ok
     REC --> UPR["upload-artifact website-build-receipt — deploy.yml:176"]:::ok
@@ -295,7 +295,7 @@ flowchart LR
     S3 --> S4["npm run check:sidecar<br/>node scripts/check-cdp-sidecar.mjs — package.json:8"]:::needs
     S4 --> S5["npm run test:site<br/>playwright test — package.json:14"]:::needs
 
-    S3 --> SUITES["twelve suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit, drift-counter,<br/>release-manifest, website-assets, diagram-index, augmentation-citations,<br/>estate-health-ci (the CI-state-at-HEAD rule, see VF-03.4), jev-option,<br/>dream-evaluator-exit, and the ADR-2007 adr-evidence-field and<br/>adr-ratchet-evidence suites plus pele-pin — run-all.sh:18-31<br/>.cjs and .mjs suites run under node — run-all.sh:37<br/>sentinel GATE-TESTS-OK at run-all.sh:44"]:::step
+    S3 --> SUITES["thirteen suites, each driving a deliberate defect through its<br/>gate and asserting the gate goes red — harness-audit, drift-counter,<br/>release-manifest, website-assets, diagram-index, augmentation-citations,<br/>estate-health-ci (the CI-state-at-HEAD rule, see VF-03.4), jev-option,<br/>dream-evaluator-exit, and the ADR-2007 adr-evidence-field and<br/>adr-ratchet-evidence suites, pele-pin and open-work — run-all.sh:18-32<br/>.cjs and .mjs suites run under node — run-all.sh:38<br/>sentinel GATE-TESTS-OK at run-all.sh:45"]:::step
 
     SIDE["EXTERNAL, not in this repo: the browsercontainer Chrome sidecar<br/>in-network port 9223, from the host port 9222<br/>check-cdp-sidecar.mjs:15, probes /json/version at :31<br/>see ES-01 for the sidecar's place in the estate"]:::needs
     S4 --- SIDE
@@ -322,9 +322,10 @@ sequenceDiagram
     Note over FX,CH: "the sidecar rejects a non-localhost Host header on the<br/>WebSocket upgrade, so the hostname is resolved first<br/>fixtures/cdp.js:25"
     CH->>WS: navigate to baseURL
     WS-->>P: serve website/dist
-    P-->>T: "structure assertions: ten named sections, the mesh canvas,<br/>four particle canvases, zero console errors — site.spec.js:4-15 and site.spec.js:31-33"
-    P-->>T: "@a11y — axe-core analyze, violations must be empty<br/>site.spec.js:85"
-    P-->>T: "@perf — total transferSize at most 800 KB<br/>site.spec.js:108"
+    P-->>T: "structure assertions: twenty named sections, exactly one canvas,<br/>the WebGL mesh-gl, aria-hidden, and zero console errors<br/>site.spec.js:5-26 and site.spec.js:46-51"
+    P-->>T: "@a11y — axe-core analyze, violations must be empty<br/>site.spec.js:130"
+    P-->>T: "@perf — total transferSize at most 800 KB, mp4 and webm left out<br/>site.spec.js:163 and site.spec.js:176"
+    P-->>T: "@perf — media bytes read during load, counted over CDP,<br/>at most 64 KiB — site.spec.js:194 and site.spec.js:196"
     Note over T,CH: "INVARIANT: no local Chromium is installed in CI — both<br/>projects, chromium and mobile-chrome, drive the sidecar<br/>BASELINE-visionflow.md:309"
 ```
 
@@ -392,10 +393,10 @@ stateDiagram-v2
 
 **Invariant (supply chain):** every third-party action in the publication workflow is pinned to a commit sha rather than a moving tag, so a compromised `@v4` cannot enter the artefact (`.github/workflows/deploy.yml:52`, `.github/workflows/deploy.yml:55`).
 
-**Drift (page copy vs the graded table):** the page dates the augmentation grade to 14 September 2026 and says the estate is *partial* on control and recovery (`website/static/index.html:580`). The section it links is headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:24`), and that table grades C2 and C3 `measured` for all three substrates (`docs/architecture/compatibility-matrix.md:31-32`). The copy is stale on the grade itself, not only on the date.
+**Drift (page copy vs the graded table):** the page dates the augmentation grade to 14 September 2026 and says the estate is *partial* on control and recovery (`website/static/index.html:578`). The section it links is headed *graded 2026-09-15* (`docs/architecture/compatibility-matrix.md:24`), and that table grades C2 and C3 `measured` for all three substrates (`docs/architecture/compatibility-matrix.md:31-32`). The copy is stale on the grade itself, not only on the date.
 
 **Debt (reveal threshold):** `initScrollReveal` was moved from a 10 percent intersection threshold to zero because a tall section may never occupy a tenth of its own area in the viewport (`website/static/js/main.js:41`); nothing in the site tests asserts that a long section still reveals.
 
 **Drift (generated source, closed in this stamp):** this topic used to list `website/build-receipt.json` in `sources:` and cite four of its lines. The file is a gitignored build output (`website/.gitignore:8`). It exists in no commit, so the strict gate failed on it in a clean checkout, and its figures (51 files, 60,241,361 bytes) were true of one local build, not of a revision. The receipt's fields are now cited where they are written (`scripts/website-assets.mjs:202-237`), and the one-build figures are dropped. The four VF-02 entries for this file in `docs/diagrams/citation-allowlist.json` now match nothing and must be removed before a full-tree strict run.
 
-**Invariant (site states CUDA counts, README no longer does):** the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:296`, `website/static/index.html:1089`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); the repository README, which stated the same figures between 54e1d02 and the rewrite that cut it to 164 lines, no longer carries any CUDA count: its GPU, XR and haptics row says only that product-specific source and evidence links exist (`./README.md:130`). The drift counter still carries no CUDA axis, so the page's figures rest on review, not on a gate.
+**Invariant (site states CUDA counts, README no longer does):** the page states 83 CUDA kernels in 10 `.cu` files and 6,302 lines (`website/static/index.html:294`, `website/static/index.html:1087`), which matches VisionClaw at `7d3ea2edb` (10 tracked `.cu` files, 6,302 lines, 83 `__global__` definitions); the repository README, which stated the same figures between 54e1d02 and the rewrite that cut it to 164 lines, no longer carries any CUDA count: its GPU, XR and haptics row says only that product-specific source and evidence links exist (`./README.md:130`). The drift counter still carries no CUDA axis, so the page's figures rest on review, not on a gate.

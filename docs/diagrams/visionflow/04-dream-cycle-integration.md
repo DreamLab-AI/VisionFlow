@@ -29,7 +29,7 @@ sources:
   - ./README.md
   - package.json
   - ../project/agentbox/management-api/lib/dream-ledger.js
-verified_commit: {visionflow: fdeab5dc36a859b3b881d7d587af067c88795217, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
+verified_commit: {visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## VF-04.1 dream.config.json — the whole contract this repo offers the engine
@@ -105,7 +105,7 @@ flowchart TB
     EE --> A4["structured-data — bash scripts/dream-structured-data-scan.sh<br/>dream.config.json:50"]:::always
 
     EE --> S1["asset-refs — object form: required false,<br/>deeps [content-integrity]<br/>dream.config.json:51"]:::scoped
-    EE --> S2["estate-health — object form: node scripts/estate-health.mjs check,<br/>required false, deeps [estate-health]<br/>dream.config.json:58"]:::scoped
+    EE --> S2["estate-health — object form: git fetch, then a fast-forward-only merge<br/>of the upstream, then node scripts/estate-health.mjs check,<br/>required false, deeps [estate-health]<br/>dream.config.json:58 and dream.config.json:59"]:::scoped
 
     S1 -.->|"fires only on the content-integrity deep"| D1["content-integrity night"]
     S2 -.->|"fires only on the estate-health deep"| D2["estate-health night"]
@@ -150,9 +150,9 @@ flowchart LR
     E5 --> E5X["orphans are a MEASUREMENT, never a failure: optional groups<br/>are staged deliberately for deep links<br/>dream-asset-refs-scan.sh:22"]:::odd
 
     E6["estate-health.mjs check — offline read of the committed snapshot"]
-    E6 --> E6I["an INFO snapshot-age line on every path; it changes<br/>neither precedence nor exit code — estate-health.mjs:1031-1042"]:::odd
-    E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:1058"]:::pass
-    E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:1048 and estate-health.mjs:1054; a missing,<br/>unparseable or wrong-schema file is STALE earlier — estate-health.mjs:983-1001"]:::fail
+    E6 --> E6I["an INFO snapshot-age line on every path; it changes<br/>neither precedence nor exit code — estate-health.mjs:1096-1107"]:::odd
+    E6 --> E6P["ESTATE-HEALTH-OK, exit 0 — estate-health.mjs:1130"]:::pass
+    E6 --> E6F["ESTATE-HEALTH-RED or ESTATE-HEALTH-STALE, exit 1<br/>estate-health.mjs:1113 and estate-health.mjs:1124-1126, STALE with a CAUSE line<br/>from staleCause, estate-health.mjs:1123; a missing, unparseable<br/>or wrong-schema file is STALE earlier — estate-health.mjs:1048-1066"]:::fail
 ```
 
 **Drift (resolved 2026-10-12, `4159e08`):** this diagram recorded the build and link evaluators as exiting 0 on failure (`exit status is 0 either way`); `scripts/dream-build-check.sh:12-13` and `scripts/dream-link-check.sh:155-156` now print the FAIL marker and exit 1, and the script headers state that the printed marker remains the verdict the deploy gate and the dream engine read (`scripts/dream-build-check.sh:5-6`, `scripts/dream-link-check.sh:3-7`, engine side in AB-23). `deploy.yml` discards the code with an or-true and keeps the marker grep (`.github/workflows/deploy.yml:92`, `.github/workflows/deploy.yml:94`, `.github/workflows/deploy.yml:102`, `.github/workflows/deploy.yml:104`), and `tests/gates/dream-evaluator-exit.test.sh:36-65` pins marker and code together. The meta-tags and structured-data scans are unchanged and still exit 0 after printing their FAIL marker (`scripts/dream-meta-tags-scan.sh:9`, `scripts/dream-structured-data-scan.sh:9`).
@@ -221,7 +221,7 @@ flowchart TB
     L["docs/dream-cycle/LEDGER.md — LEDGER.md:3"]
 
     L --> A["ACCEPT nights (24): 08-17 x2, 08-29, 08-31, 09-01, 09-02,<br/>09-03, 09-04, 09-05, 09-10 seo-and-meta robots.txt via<br/>PR #3 — LEDGER.md:25 — then seven in a row, 09-30 to 10-06,<br/>then 10-08, 10-10 and 10-11 — LEDGER.md:40,42,43 — and later 10-13 (family 5 of the link gate, PR #21),<br/>10-14, 10-15 and 10-18 — LEDGER.md:44-47"]:::acc
-    L --> I["INCONCLUSIVE nights (11): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then six VETOED nights<br/>09-08, 09-09, 09-11, 09-13, 09-27, 09-29; and 10-07 estate-health<br/>(three red agentbox workflows, the collector source, lines 500 to 997 at the night, not shown to it)<br/>LEDGER.md:19,23,24,26,28,29,31,39"]:::inc
+    L --> I["INCONCLUSIVE nights (12): 08-16 content-integrity; three<br/>webgl-mesh nights 08-30, 09-06, 09-07; then six VETOED nights<br/>09-08, 09-09, 09-11, 09-13, 09-27, 09-29; and 10-07 estate-health<br/>(three red agentbox workflows, the collector source, lines 500 to 997 at the night, not shown to it)<br/>LEDGER.md:19,23,24,26,28,29,31,39 — and 11-15 estate-health, a snapshot<br/>231.5 h stale read as the collector idle since 11-05, LEDGER.md:52<br/>DRIFT: the collector names that night as a checkout 64 commits behind,<br/>not an idle collector — estate-health.mjs:1121-1122"]:::inc
     L --> B["BLOCKED-ENV nights (3): 09-12 and 09-28, both<br/>content-integrity, both VETOED — LEDGER.md:27,30 — and 10-09<br/>build-pipeline, VETOED when CNAME-versus-page-host drift failed the link gate<br/>LEDGER.md:41"]:::blk
     L --> R["REJECT nights (4), a verdict the ledger had not used before: 10-20 content-integrity, 10-21 build-pipeline,<br/>10-23 estate-health and 10-24 content-integrity, every one VETOED<br/>LEDGER.md:48-51"]:::bad
     L --> O["OPERATOR rows (5) — human audits, deliberately NOT counted<br/>toward the dry streak that parks a repo"]:::op
@@ -306,7 +306,7 @@ flowchart LR
 
     subgraph DREAMONLY["Dream only"]
         D1["dream-asset-refs-scan.sh — ASSET-SCAN-OK<br/>orphan and payload decomposition, no CI consumer<br/>dream.config.json:51 — and since 10-02 orphans are KEPT<br/>by owner decision: no night may propose a prune<br/>dream.config.json:74"]:::only
-        D2["estate-health.mjs check — read-only estate verdict<br/>dream.config.json:59; CI runs the same command but only<br/>as a reported step — estate-health.yml:105"]:::only
+        D2["estate-health.mjs check — estate verdict, dream.config.json:59<br/>CHANGED: the dream command first fetches and fast-forwards the checkout,<br/>so it is no longer read-only; CI runs only the check, as a reported step<br/>estate-health.yml:105"]:::only
     end
 
     subgraph CIONLY["Publication only"]
@@ -322,10 +322,10 @@ flowchart LR
     DREAMONLY -.-> NOBROWSER
 ```
 
-**Drift (ledger schema note vs agentbox):** the note calls the FR6.6 writer `unmerged, not deployed` (`docs/dream-cycle/LEDGER.md:1`). In agentbox at the pinned `720e0d89`, `19463a588` is an ancestor, and the writer declares the `reviewer` and `reviewMinutes` columns (`../project/agentbox/management-api/lib/dream-ledger.js:56-57`). The merge half of the note is stale. Whether the deployed engine writes the columns is runtime evidence this source trace does not establish, and the newest rows still carry no value in either column (`docs/dream-cycle/LEDGER.md:48-51`).
+**Drift (ledger schema note vs agentbox):** the note calls the FR6.6 writer `unmerged, not deployed` (`docs/dream-cycle/LEDGER.md:1`). In agentbox at the pinned `720e0d89`, `19463a588` is an ancestor, and the writer declares the `reviewer` and `reviewMinutes` columns (`../project/agentbox/management-api/lib/dream-ledger.js:56-57`). The merge half of the note is stale. Whether the deployed engine writes the columns is runtime evidence this source trace does not establish, and the newest rows still carry no value in either column (`docs/dream-cycle/LEDGER.md:48-52`).
 
 **Debt (ledger rows reach main by hand):** the engine writes each night's row to the working tree and never commits it; the 09-27 to 09-30 rows reached main only in a human commit (`f3d54a0`) and the 10-01 and 10-02 rows likewise in `e52dba7` (`docs/dream-cycle/LEDGER.md:29-34`); the 10-03 to 10-06 rows landed with their own ACCEPT PR merges, but only because each PR carried its row (`docs/dream-cycle/LEDGER.md:35-38`). The ledger the next night reads is therefore whatever an operator last committed, and the 09-14 to 09-26 silence cannot be told apart from rows that were written and lost.
 
 **Drift (2026-10-15, dream-engine extraction):** the tracking fork of ruvnet/dream-machine that earlier versions of this topic named as the engine is superseded. The Rust engine is split into the permissive repository DreamLab-AI/dream-engine (public, five crates at 0.1.0 on crates.io, checked 2026-10-16) and the agentbox adapter (AB-23, PR 28 merged as aa9b094c3, image rebuild pending). The TypeScript fork is renamed DreamLab-AI/dream-machine and archived. VF-04.1 now names the extracted engine. This topic draws only this repository's side of the contract, and its citations are true at the current stamp. The engine map is DE-01.
 
-**Debt:** the ledger has no row for 10-12, 10-16, 10-17, 10-19 or 10-22, and the four newest rows are all REJECT after an unbroken run of four ACCEPTs from 10-13 to 10-18 (`docs/dream-cycle/LEDGER.md:44-51`); no mechanism in the ledger records why a night is absent.
+**Debt:** the ledger has no row for 10-12, 10-16, 10-17, 10-19 or 10-22, the four rows from 10-20 to 10-24 are all REJECT after an unbroken run of four ACCEPTs from 10-13 to 10-18 (`docs/dream-cycle/LEDGER.md:44-51`), and the next row after 10-24 is 11-15, three weeks later (`docs/dream-cycle/LEDGER.md:52`); no mechanism in the ledger records why a night is absent.

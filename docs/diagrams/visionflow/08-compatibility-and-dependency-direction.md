@@ -32,7 +32,7 @@ sources:
   - docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md
   - docs/BASELINE-visionflow.md
   - ./README.md
-verified_commit: {visionflow: fdeab5dc36a859b3b881d7d587af067c88795217, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
+verified_commit: {visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
 ---
 
 Source reconciliation: 2026-09-07. These panels follow the current sections of the compatibility matrix and status reconciliation, plus the source audits named in frontmatter. Historical metrics and register cuts remain historical. This review did not certify a live federation, image, hardware session or replica-wide authentication contract.
@@ -55,15 +55,15 @@ flowchart TB
     RV -->|MCP and Postgres boundary| AB
     CLI["Ontomark corpus operations, pin 0.9.0<br/>lib/ontomark.nix:48<br/>ontology-apply.js:157"] --> AB
     VAULT["vault governance transport: propose and panel<br/>ontology-apply.js:153"] --> AB
-    GATE["Both packages share vaultCliActive<br/>flake.nix:1039 and flake.nix:1057"] --> CLI
+    GATE["Both packages share vaultCliActive<br/>flake.nix:1062 and flake.nix:1080"] --> CLI
     GATE --> VAULT
     SCOPE["Arrows identify implemented source seams, not a verified complete mesh"]
     VF -.-> SCOPE
 ```
 
-**Current Agentbox corpus dispatch, 2026-10-31:** `binFor` routes `propose` and `panel` through `vault`, and other corpus verbs through `ontomark` (`../project/agentbox/management-api/lib/ontology-apply.js:153`). Both are selected under the same Nix gate (`../project/agentbox/flake.nix:1039`, `../project/agentbox/flake.nix:1057`). The old vault-only statement did not describe the migrated consumer. This source trace is not a universal absence claim about every estate MCP adapter.
+**Current Agentbox corpus dispatch, 2026-10-31:** `binFor` routes `propose` and `panel` through `vault`, and other corpus verbs through `ontomark` (`../project/agentbox/management-api/lib/ontology-apply.js:153`). Both are selected under the same Nix gate (`../project/agentbox/flake.nix:1062`, `../project/agentbox/flake.nix:1080`). The old vault-only statement did not describe the migrated consumer. This source trace is not a universal absence claim about every estate MCP adapter.
 
-**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`scripts/diagram-index-gen.cjs:215-225`).** A missing repository pin can fall back to working-tree bytes, but the current checker reports that as unverified (`scripts/diagram-index-gen.cjs:579`) and strict mode rejects warnings (`scripts/diagram-index-gen.cjs:912`). Such a fallback must not be presented as revision-backed verification.
+**INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`scripts/diagram-index-gen.cjs:215-225`).** A missing repository pin can fall back to working-tree bytes, but the current checker reports that as unverified (`scripts/diagram-index-gen.cjs:583`) and strict mode rejects warnings (`scripts/diagram-index-gen.cjs:916`). Such a fallback must not be presented as revision-backed verification.
 
 Evidence: `repository-map.md`, the Agentbox audit and imported-scope review. This interaction view is not an exhaustive repository count.
 

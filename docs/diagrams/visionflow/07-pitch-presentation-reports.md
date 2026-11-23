@@ -32,7 +32,7 @@ sources:
   - docs/architecture/compatibility-matrix.md
   - docs/architecture/repository-map.md
   - .gitignore
-verified_commit: fdeab5dc36a859b3b881d7d587af067c88795217
+verified_commit: 3ae784ed0b547b562e1f94d017996f8ad197f5cb
 ---
 
 ## VF-07.1 Artefact map — what produces each output and where it lands

@@ -24,7 +24,7 @@ sources:
   - tests/gates/run-all.sh
   - ./README.md
   - docs/jev-option.md
-verified_commit: fdeab5dc36a859b3b881d7d587af067c88795217
+verified_commit: 3ae784ed0b547b562e1f94d017996f8ad197f5cb
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -81,10 +81,10 @@ sequenceDiagram
     CRON->>JOB: "cron plus workflow_dispatch, permissions contents:write, actions:write<br/>estate-health.yml:58"
     JOB->>JOB: "checkout with persist-credentials true — estate-health.yml:74"
     JOB->>COL: "GITHUB_TOKEN plus optional ESTATE_READ_TOKEN — estate-health.yml:97"
-    COL->>GH: "roster repos, surfaces and registries — three pools of 4 run at once,<br/>and each repo issues 5 calls together — estate-health.mjs:942-945, estate-health.mjs:564"
+    COL->>GH: "roster repos, surfaces and registries — three pools of 4 run at once,<br/>and each repo issues 5 calls together — estate-health.mjs:1007-1010, estate-health.mjs:564"
     GH-->>COL: "per-field answers, or a degraded field plus a note"
-    COL->>SNAP: "write the whole snapshot — estate-health.mjs:959"
-    COL-->>JOB: "summary line plus ESTATE-HEALTH-COLLECTED — estate-health.mjs:968"
+    COL->>SNAP: "write the whole snapshot — estate-health.mjs:1024"
+    COL-->>JOB: "summary line plus ESTATE-HEALTH-COLLECTED — estate-health.mjs:1033"
     JOB->>COL: "check, REPORTED only — estate-health.yml:105"
     COL-->>JOB: "verdict grepped into the step summary — estate-health.yml:107"
     Note over JOB: "INVARIANT: the job never fails on RED. Failing would abort<br/>before the commit, so the one night the estate breaks would be<br/>the night no snapshot is published — estate-health.yml:21"
@@ -100,7 +100,7 @@ sequenceDiagram
     DREAM->>SNAP: "reads the committed file offline, 30 minutes later"
 ```
 
-**Debt (concurrency is per pool, not estate-wide):** `CONCURRENCY = 4` is commented "≤ 4 in flight, estate-wide" (`scripts/estate-health.mjs:164`). But `mapPool` bounds only its own items (`scripts/estate-health.mjs:235-244`), the repo, surface and registry pools run together (`scripts/estate-health.mjs:942-945`), and each repo worker fires five calls at once (`scripts/estate-health.mjs:564`). The source therefore allows about 28 requests in flight, 20 of them to the GitHub API. This is a source reading only; no rate-limit failure has been observed.
+**Debt (concurrency is per pool, not estate-wide):** `CONCURRENCY = 4` is commented "≤ 4 in flight, estate-wide" (`scripts/estate-health.mjs:164`). But `mapPool` bounds only its own items (`scripts/estate-health.mjs:235-244`), the repo, surface and registry pools run together (`scripts/estate-health.mjs:1007-1010`), and each repo worker fires five calls at once (`scripts/estate-health.mjs:564`). The source therefore allows about 28 requests in flight, 20 of them to the GitHub API. This is a source reading only; no rate-limit failure has been observed.
 
 ## VF-03.3 What is collected per repository — six calls, each degrading alone
 ```mermaid
@@ -189,7 +189,7 @@ flowchart TB
     R2 --> HOLE
     TRAP["TRAP recorded in the workflow itself: a maintainer's full-scope<br/>local PAT reads visionGraph WITHOUT the fallback, so a readable<br/>row in a locally produced snapshot is NOT evidence that the CI<br/>path works — estate-health.yml:92"]:::bad
     HOLE --> TRAP
-    LIVE["Confirmed at this commit: summary.unreadable is 2 (visionGraph and visiontouch-rs, each HTTP 404 with both tokens tried)<br/>and summary.repos is 21 — estate-health.json:16, estate-health.json:10, estate-health.json:651 and estate-health.json:826"]:::bad
+    LIVE["Confirmed at this commit: summary.unreadable is 2 (visionGraph and visiontouch-rs, each HTTP 404 with both tokens tried)<br/>and summary.repos is 21 — estate-health.json:16, estate-health.json:10, estate-health.json:672 and estate-health.json:847"]:::bad
     HOLE --> LIVE
 ```
 
@@ -198,15 +198,15 @@ flowchart TB
 stateDiagram-v2
     direction TB
     [*] --> Load
-    state "async check() — reads CHECK_PATH, optional Jev advisory — estate-health.mjs:982" as Load
-    Load --> Stale1 : file missing — estate-health.mjs:983
+    state "async check() — reads CHECK_PATH, optional Jev advisory — estate-health.mjs:1047" as Load
+    Load --> Stale1 : file missing — estate-health.mjs:1048
     Load --> Stale2 : unparseable JSON
-    Load --> Stale3 : schema is not visionflow.estate-health/1 — estate-health.mjs:996
+    Load --> Stale3 : schema is not visionflow.estate-health/1 — estate-health.mjs:1061
     Load --> Scan
-    state "walk repos, then surfaces — estate-health.mjs:1007" as Scan
+    state "walk repos, then surfaces — estate-health.mjs:1072" as Scan
     Scan --> RedRepo : ci.state red — print one RED line per bad run
-    Scan --> AmberRepo : ci.state amber, or readable false — estate-health.mjs:1018
-    Scan --> DownSurface : a surface with ok false — estate-health.mjs:1024
+    Scan --> AmberRepo : ci.state amber, or readable false — estate-health.mjs:1083
+    Scan --> DownSurface : a surface with ok false — estate-health.mjs:1089
     RedRepo --> Verdict
     AmberRepo --> Verdict
     DownSurface --> Verdict
@@ -214,9 +214,9 @@ stateDiagram-v2
     Verdict --> RED : any red repo OR any unreachable surface — exit 1
     Verdict --> STALE : otherwise, invalid age or older than 36 h — exit 1
     Verdict --> OK : otherwise — exit 0
-    state "ESTATE-HEALTH-RED — estate-health.mjs:1048" as RED
-    state "ESTATE-HEALTH-STALE — estate-health.mjs:1054" as STALE
-    state "ESTATE-HEALTH-OK — estate-health.mjs:1058" as OK
+    state "ESTATE-HEALTH-RED — estate-health.mjs:1113" as RED
+    state "ESTATE-HEALTH-STALE — estate-health.mjs:1124-1126, after a CAUSE line from staleCause — estate-health.mjs:1123" as STALE
+    state "ESTATE-HEALTH-OK — estate-health.mjs:1130" as OK
     state "ESTATE-HEALTH-STALE" as Stale1
     state "ESTATE-HEALTH-STALE" as Stale2
     state "ESTATE-HEALTH-STALE" as Stale3
@@ -226,13 +226,13 @@ stateDiagram-v2
       bury the defect — estate-health.mjs:85
       AMBER prints a line but does NOT change the verdict.
       After a valid schema, finite age prints INFO against the limit
-      Missing files, bad JSON or schema return earlier — estate-health.mjs:983-1001
-      Optional Jev runs before the verdict — estate-health.mjs:1045
+      Missing files, bad JSON or schema return earlier — estate-health.mjs:1048-1066
+      Optional Jev runs before the verdict — estate-health.mjs:1110
       Missing arrays scan as empty, future dates pass the age test
-      estate-health.mjs:1007 and estate-health.mjs:1052
+      estate-health.mjs:1072 and estate-health.mjs:1117
       Lines are collected in a buffer and printed immediately before the sentinel;
       an opt-in advisory block may add JEV lines to it but never changes the
-      verdict or the exit code — estate-health.mjs:1004 and estate-health.mjs:1045
+      verdict or the exit code — estate-health.mjs:1069 and estate-health.mjs:1110
       Freshness window: --max-age-hours, default 36
       estate-health.mjs:218
     end note
@@ -270,7 +270,7 @@ sequenceDiagram
     participant F as "data/estate-health.json in the artefact"
 
     V->>P: "open www.visionflow.info and scroll to the estate section"
-    Note over P: "section id estate — index.html:1156<br/>the lead copy states the file is a committed snapshot,<br/>not a live query — index.html:1160"
+    Note over P: "section id estate — index.html:1154<br/>the lead copy states the file is a committed snapshot,<br/>not a live query — index.html:1158"
     P->>M: "DOMContentLoaded calls initEstateHealth — main.js:919"
     M->>F: "fetch('data/estate-health.json', cache no-cache) — main.js:838"
     alt fetch ok
@@ -283,42 +283,42 @@ sequenceDiagram
     end
     Note over M,P: "pill words since judgement calls 7 and 10: none reads 'no run on head'<br/>and exempt reads 'no CI by design' — main.js:598 and main.js:599"
     Note over P,F: "Relative times are computed in the browser, so a stale deploy<br/>reads as stale rather than quietly claiming freshness — main.js:628"
-    Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:15"
+    Note over P,F: "The file is a REQUIRED entry in website/assets.manifest.json,<br/>so a missing snapshot fails the asset gate — assets.manifest.json:19"
 ```
 
-## VF-03.11 Dated snapshot, 15 November 2026 — 17 of 21 green, 0 red, 1 none, 1 exempt by design, 2 unreadable
+## VF-03.11 Dated snapshot, 22 November 2026 — 16 of 21 green, 1 red, 1 none, 1 exempt by design, 2 unreadable
 ```mermaid
 flowchart TB
     classDef red fill:#f7dede,stroke:#a33333,color:#111
     classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
     classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
 
-    SNAP["schema visionflow.estate-health/1, generated 2026-11-15T09:39Z<br/>collected by the collector run at revision 2787cf0<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
+    SNAP["schema visionflow.estate-health/1, generated 2026-11-22T09:58Z<br/>collected by the collector run at revision 34cb5b5<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
 
-    SNAP --> SUM["summary — 21 repos: 17 green, 0 red, 0 amber,<br/>1 none, 1 exempt, 2 unreadable, 2 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
+    SNAP --> SUM["summary — 21 repos: 16 green, 1 red, 0 amber,<br/>1 none, 1 exempt, 2 unreadable, 11 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
 
-    SUM --> R4["RED — none in this snapshot<br/>estate-health.json:12"]:::green
-    SUM --> KG["knowledgeGraph declares ci_by_design and now reads GREEN, estate-health.json:466: a red<br/>verdict on HEAD is never exempted, only a none is —<br/>estate-health.mjs:112 and estate-health.mjs:591"]:::green
+    SUM --> R4["RED — nostr-rust-forum: its Security Audit workflow's latest run<br/>concluded failure while CI and the ADR ledger passed<br/>estate-health.json:12, estate-health.json:325 and estate-health.json:342-343"]:::red
+    SUM --> KG["knowledgeGraph declares ci_by_design and now reads GREEN, estate-health.json:487: a red<br/>verdict on HEAD is never exempted, only a none is —<br/>estate-health.mjs:112 and estate-health.mjs:591"]:::green
     SUM --> A1["AMBER — none this snapshot: summary.amber is 0<br/>estate-health.json:13"]:::amb
-    SUM --> N1["NONE — VisionClaw (no qualifying run on HEAD 2e7ecc2; its latest runs are on older commits and were red), so its older verdict is reported none<br/>estate-health.json:102 and estate-health.json:143 — estate-health.mjs:474"]:::amb
-    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:620 and estate-health.json:628"]:::amb
-    SUM --> U1["UNREADABLE — jjohare/visionGraph and visiontouch-rs, the known holes<br/>see VF-03.5 — estate-health.json:643, estate-health.json:651 and estate-health.json:826"]:::amb
-    SUM --> G1["GREEN — VisionFlow itself, agentbox, solid-pod-rs, nostr-rust-forum,<br/>dreamlab-ai-website, loom, knowledgeGraph, sidestr-rs,<br/>ontomark, ontomark-obsidian, vowl-wasm, prose-sanitiser, diagram-ir,<br/>dream-engine, codescape, sealmap and visioncraft"]:::green
+    SUM --> N1["NONE — VisionClaw (no qualifying run on HEAD de8352b; its latest runs are on older commits and were red), so its older verdict is reported none<br/>estate-health.json:123 and estate-health.json:164 — estate-health.mjs:474"]:::amb
+    SUM --> E2["EXEMPT — WasmVOWL, no workflows by design<br/>estate-health.json:641 and estate-health.json:649"]:::amb
+    SUM --> U1["UNREADABLE — jjohare/visionGraph and visiontouch-rs, the known holes<br/>see VF-03.5 — estate-health.json:664, estate-health.json:672 and estate-health.json:847"]:::amb
+    SUM --> G1["GREEN — VisionFlow itself, agentbox, solid-pod-rs,<br/>dreamlab-ai-website, loom, knowledgeGraph, sidestr-rs,<br/>ontomark, ontomark-obsidian, vowl-wasm, prose-sanitiser, diagram-ir,<br/>dream-engine, codescape, sealmap and visioncraft"]:::green
 
-    VERD["While fresh, the offline check returns ESTATE-HEALTH-OK:<br/>no red repository or failed surface, age within the limit.<br/>Unreadable rows print AMBER but do not change that verdict;<br/>none and exempt rows do not change it either.<br/>estate-health.mjs:1007-1021, estate-health.mjs:1047-1059"]:::green
+    VERD["The offline check returns ESTATE-HEALTH-RED on this snapshot, fresh or not:<br/>one red repository sets the verdict, and RED beats STALE.<br/>Unreadable rows print AMBER but do not change the verdict;<br/>none and exempt rows do not change it either.<br/>estate-health.mjs:1072-1086, estate-health.mjs:1112-1115"]:::red
     SUM --> VERD
 
     INV["INVARIANT: the collector reports GitHub's own conclusion for the<br/>latest run per workflow and asserts nothing about whether that<br/>conclusion is correct<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:104"]
     VERD -.-> INV
 ```
 
-**Snapshot boundary:** VF-03.11 is the committed 15 November 09:39 UTC sample at this topic's declared revision. Later collector runs can change the website without changing this dated panel. The repairs behind this sample are recorded in the [estate review](../../estate-review/2026-11-14-estate-green-and-diagram-refresh.md). The collector itself still records conclusions rather than their causes; trends require comparing committed snapshots. `ESTATE-HEALTH-OK` does not mean every repository has a passing current run: the two unreadable rows and VisionClaw's `none` remain unresolved (estate-health.json:14-16).
+**Snapshot boundary:** VF-03.11 is the committed 22 November 09:58 UTC sample at this topic's declared revision; it replaces the 15 November sample this panel showed at its previous stamp, which read 17 green and 0 red. Later collector runs can change the website without changing this dated panel. The collector records conclusions rather than their causes, so the panel names the failing workflow but not why it failed; trends require comparing committed snapshots. The verdict is RED, and the two unreadable rows and VisionClaw's `none` remain unresolved beside it (estate-health.json:14-16).
 
 **Debt (registry roster vs canon) — RESOLVED 2026-10-03, re-opened and RESOLVED again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`scripts/estate-health/roster.json:76-83`, estate register ER-3); the rewritten README no longer states a crate count (`./README.md:31`). The repository map still describes sidestr-rs as "seven published AGPL crates" (`docs/architecture/repository-map.md:18`), one behind the roster's eight (**Drift**).
 
 **Drift (2026-10-15, dream-engine extraction):** the roster row for `dream-engine` (`provenance: imported`, a fork of ruvnet/dream-machine) is stamped before the extraction. The slug now names the new Rust repository and the fork is renamed dream-machine and archived (checked 2026-10-16). The row has not been changed, because the release manifest and its gate assert two imported rows, see DE-01.
 
-**Since the earlier stamps:** `check` now builds its output in a buffer and prints it directly before the sentinel line, so a Jev advisory block, never able to change the verdict or exit code, can add `JEV priority` and `JEV triage` lines for the failed observations (`scripts/estate-health.mjs:1004`, `scripts/estate-health.mjs:1045`, `scripts/estate-health.mjs:1075`, `docs/jev-option.md:13-14`). The library default is off but agentbox projects `VISIONFLOW_JEV=all` into its shells, where these two items are public data and, since the 2026-10-30 System One unification, take the shared proxy's selected backend (TypeSafe by default) once the new agentbox image is activated, while hosted CI and the dream annexe do not inherit it (`docs/jev-option.md:3`, `docs/jev-option.md:13-14` and `docs/jev-option.md:16`). `collect` never calls it.
+**Since the earlier stamps:** `check` now builds its output in a buffer and prints it directly before the sentinel line, so a Jev advisory block, never able to change the verdict or exit code, can add `JEV priority` and `JEV triage` lines for the failed observations (`scripts/estate-health.mjs:1069`, `scripts/estate-health.mjs:1110`, `scripts/estate-health.mjs:1147`, `docs/jev-option.md:13-14`). The library default is off but agentbox projects `VISIONFLOW_JEV=all` into its shells, where these two items are public data and, since the 2026-10-30 System One unification, take the shared proxy's selected backend (TypeSafe by default) once the new agentbox image is activated, while hosted CI and the dream annexe do not inherit it (`docs/jev-option.md:3`, `docs/jev-option.md:13-14` and `docs/jev-option.md:16`). `collect` never calls it.
 
 
-**Debt (snapshot shape and clock bounds, reproduced 2026-10-31):** A schema tag and current timestamp without any repository/surface arrays returns `ESTATE-HEALTH-OK`; a 2099 timestamp also returns OK. A non-array `repos` object throws instead of returning a classified verdict. These follow from the optional empty-array scans and one-sided age test at `scripts/estate-health.mjs:1007`, `scripts/estate-health.mjs:1024` and `scripts/estate-health.mjs:1052`. The source is unchanged from this topic's declared revision. See the [estate-health adversarial review](../../estate-review/2026-10-31-diagram-drift-and-health.md). The literal verdict is not proof that the full roster was measured.
+**Debt (snapshot shape and clock bounds, reproduced 2026-10-31):** A schema tag and current timestamp without any repository/surface arrays returns `ESTATE-HEALTH-OK`; a 2099 timestamp also returns OK. A non-array `repos` object throws instead of returning a classified verdict. These follow from the optional empty-array scans and one-sided age test at `scripts/estate-health.mjs:1072`, `scripts/estate-health.mjs:1089` and `scripts/estate-health.mjs:1117`. The scans and the age test are unchanged at this topic's declared revision; only the STALE branch gained a cause line. See the [estate-health adversarial review](../../estate-review/2026-10-31-diagram-drift-and-health.md). The literal verdict is not proof that the full roster was measured.
