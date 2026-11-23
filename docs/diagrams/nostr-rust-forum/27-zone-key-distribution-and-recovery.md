@@ -22,7 +22,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_config.rs
-verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
+verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
 ---
 
 ## For developers
@@ -45,11 +45,11 @@ flowchart TB
     G["Creator adopts it only after the relay accepted<br/>every wrap of the run, its own included"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:96
     W["Other writers send under their highest held key<br/>no zone-wide activation barrier"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:644
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:648
     E["Encrypt new text with locally supplied key"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_config.rs:238
     R["Relay checks ciphertext and zk shape<br/>epoch binding only with ZONE_GROUPS_ENABLED, see NF-28.2"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:541
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:545
     D["Old key holder can decrypt obtained ciphertext<br/>read ACL remains a separate boundary"]
     A --> P --> G
     W --> E --> R --> D
@@ -66,7 +66,7 @@ flowchart TB
     P["Select recipients without newest-epoch ACK"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:164
     H["For selected recipients only<br/>include missing older epochs"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs:795
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs:811
     Q["Publish queues or sends and returns<br/>it does not wait for relay ACK"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/auto_grant.rs:285
     N["Positive ACK records that key<br/>negative ACK returns without changing report"]
@@ -107,11 +107,11 @@ flowchart TB
     O["New rows carry owner in field and id<br/>owner slash store id"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/key_owner.rs:60
     A["Owner set only while authenticated<br/>a locked session loads no keys"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:187
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:225
     S["switch_owner drops keys, conflicts, inbox key,<br/>grant subscriptions, plaintext back to placeholders"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/key_owner.rs:172
     V["Load own rows, then legacy rows<br/>for slots without one"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:550
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:589
     G["Grant sync once per sign-in<br/>only for the identity switched to"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/key_owner.rs:13
     L["OPEN O24 KF-26: legacy rows have no owner<br/>every signed-in identity on the browser sees them"]
@@ -121,7 +121,7 @@ flowchart TB
     L -.-> V
 ```
 
-**What it shows.** Logout itself still resets no key state (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs:676`); the store's auth effect does it (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1166-1170`). Rows are never deleted, so isolation is per identity in the UI, not access control (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/key_owner.rs:21-24`).
+**What it shows.** Logout itself still resets no key state (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/mod.rs:676`); the store's auth effect does it (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1226-1230`). Rows are never deleted, so isolation is per identity in the UI, not access control (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/key_owner.rs:21-24`).
 
 ## NF-27.5 Recovery proposal is superseded and unimplemented on main
 
@@ -138,7 +138,7 @@ flowchart TB
     %% Source: ../nostr-rust-forum/docs/adr/ADR-2026-zone-key-recovery-master.md:55
     F["Master holder can derive future epochs<br/>owner replacement and empty epochs need policy"]
     %% Source: ../nostr-rust-forum/README.md:124
-    B["DOC-DRIFT: README says NIP-171 is not merged into main<br/>main merged it at a80c572, dormant behind the flag"]
+    B["RESOLVED at nostr-rust-forum 4a73a7a: README now says NIP-171<br/>merged into main at a80c572, dormant behind the flag"]
     S --> M --> C --> K --> F
     S --> B
 ```
@@ -156,22 +156,22 @@ flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/admin/zone_encryption.rs:444
     ASK["Below an epoch seen in posts: explicit confirmation"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/key_owner.rs:131
-    MD["mint_decision in one transaction: Conflict or Superseded<br/>indexed_db.rs:466, store.rs:915,924"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:176
+    MD["mint_decision in one transaction: Conflict or Superseded<br/>indexed_db.rs:466, store.rs:968,977"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:177
     CF["conflicts: different secret or pubkey for one store id<br/>is a conflicting mint, never an update"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:804
-    RX["Received grant: memory check, then put_decision<br/>legacy row counts, store.rs:812,816, key_owner.rs:105"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:859
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:857
+    RX["Received grant: memory check, then put_decision<br/>legacy row counts, store.rs:865,869, key_owner.rs:105"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:912
     AD["Storage accepted, memory differs: memory adopts storage"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/keyset.rs:81
-    PD["pending_delivery key decrypts, never the send key<br/>cleared by mark_delivered store.rs:343"]
+    PD["pending_delivery key decrypts, never the send key<br/>cleared by mark_delivered store.rs:382"]
     PLAN --> BLK
     PLAN --> MINT --> ASK --> MD --> PD
     CF --> MD
     CF --> RX --> AD
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:205
-    DR["DOC-DRIFT: store_id comment says flag-off is last-write-wins<br/>conflicts now keeps the held key"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:211
+    DR["RESOLVED at nostr-rust-forum 4a73a7a: store_id comment now says<br/>flag-off conflicts refuse and keep the held key"]
     DR -.-> CF
 ```
 
-**What it shows.** Kit PRs #84 and #87: a held key is never replaced by a different one for its slot, and a refused grant is recorded and settled (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:816-826`). The stale code comment at `../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:206-208` predates that guard.
+**What it shows.** Kit PRs #84 and #87: a held key is never replaced by a different one for its slot, and a refused grant is recorded and settled (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:869-879`). Kit PR #99 corrected the `store_id` comment that predated that guard (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:208-212`).
