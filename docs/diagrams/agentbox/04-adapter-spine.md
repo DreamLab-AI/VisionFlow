@@ -696,7 +696,7 @@ sequenceDiagram
         SH-->>OP: print the raw payload, falls off the end with status 0 (agentbox.sh:1221-1224)
     end
     Note over H: /health computes degradedCount from adapterHealth (server.js:632) and emits keys status, uptime, image_hash,<br/>manifest_checksum, adapters, adapter_failures, adapter_failure_files, degraded_count, note — NO services key (server.js:633-643)
-    Note over SH,H: RESOLVED ADR-2037 — cmd_health derives failure from .adapters (a slot fails when its value<br/>is neither "healthy" nor "off", agentbox.sh:1158-1163) plus .degraded_count (agentbox.sh:1164),<br/>so exit 1 at agentbox.sh:1218-1219 is reachable. Same fix as AB-05.7.
+    Note over SH,H: RESOLVED ADR-2037 — cmd_health derives failure from .adapters (a slot fails when its value<br/>is neither "healthy" nor "off", agentbox.sh:1158-1163) plus .degraded_count (agentbox.sh:1164),<br/>so exit 1 at agentbox.sh:1218-1219 is reachable. Same fix as AB-47.3.
     Note over SH,SP: the exit condition carries a third term, speech_failed (agentbox.sh:1204, :1218):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
     Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:642)
     Note over PM: the agentbox_adapter_health gauge is declared but never set, so the sample lines carry no slot health, see AB-04.15
