@@ -39,7 +39,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/bc20-provenance-bridge.js
   - ../project/agentbox/management-api/routes/sessions-boundary.js
-verified_commit: 0693c761c782457066f081b46daf8f7f4ea29e3c
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-11.1 Identity, URN and mandate type model
@@ -727,9 +727,9 @@ sequenceDiagram
     rect rgb(255,240,240)
     Note over ADR,PX: STILL PROPOSED AND NOT ACTIVE — the ADR-2027 requirements below have no code behind them
     ADR-->>PX: restart-invalidation and multi-instance policy for NIP98_PROXY_SESSION_SECRET — today it still defaults to per-boot crypto.randomBytes unless the role-secret loader pins one (proxy.mjs:166-167)
-    ADR-->>BR: per-consumer key split — the 31403 governance decisions are signed by the operator's NIP-07 signer, while visionclaw-server signs 31402 under its own key (Q15, 2026-10-03, relay allowlist entry agentbox.toml:159-160 and legacy ADR-040 D3)
+    ADR-->>BR: per-consumer key split — the 31403 governance decisions are signed by the operator's NIP-07 signer, while visionclaw-server signs 31402 under its own key (Q15, 2026-10-03, relay allowlist entry agentbox.toml:160, the beema key, and legacy ADR-040 D3)
     ADR-->>AI: rotation cadence, revocation procedure, named custodian, maximum response window — every row is UNCONFIRMED
     end
 Note over ADR: DIVERGENCE SECURITY-profiles provisional custody register 2026-09-04 — seven<br/>credential roles are identified as ROLES TO ASSIGN, not accepted custodians. "No cadence is<br/>invented here." No dated failure/recovery receipt exists for any row. Since 2026-10-03 the same<br/>doc also carries a generated prompt-egress register (46 routes at this revision, devuser-class<br/>credentials under Q8) - it catalogues egress routes, it does not settle custody<br/>
-Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2613) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
+Note over BOOT,KF: DIVERGENCE — a 0600 file is a same-uid boundary only. With the shipped<br/>[security].role_isolation = false (agentbox.toml:2615) every agentbox process runs as devuser,<br/>so co-resident code can read the agent key and the bridge key alike. Role isolation is the<br/>staged remedy (SECURITY-profiles, Role isolation 2026-10-03). see AB-16 and AB-36
 ```

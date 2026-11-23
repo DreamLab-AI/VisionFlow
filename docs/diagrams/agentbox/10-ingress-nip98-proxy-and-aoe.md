@@ -40,7 +40,7 @@ sources:
   - ../project/agentbox/voice/console/Caddyfile
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/management-api/lib/action-plane.js
-verified_commit: 0693c761c782457066f081b46daf8f7f4ea29e3c
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-10.1 Door inventory and port topology
@@ -50,25 +50,25 @@ flowchart TB
     LAN["LAN client"]
     P9096["nip98-proxy<br/>agentbox/config/nip98-proxy/proxy.mjs:1065<br/>listen 0.0.0.0:9096"]
     MGMT9090["management-api<br/>agentbox/management-api/server.js:50,server.js:1543<br/>HOST 0.0.0.0 PORT 9090 in-container"]
-    BRIDGE8971["tab0-bridge<br/>agentbox/agentbox.toml:2216<br/>127.0.0.1:8971"]
-    IDE["code-server 8080 and jupyter 8888<br/>agentbox/agentbox.toml:2238,agentbox.toml:2243"]
+    BRIDGE8971["tab0-bridge<br/>agentbox/agentbox.toml:2218<br/>127.0.0.1:8971"]
+    IDE["code-server 8080 and jupyter 8888<br/>agentbox/agentbox.toml:2240,agentbox.toml:2245"]
     SOCK["agentbox-sessions socket<br/>agentbox/services/agentbox-sessions/src/api.rs:29<br/>unix 0660, no TCP port"]
-    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:2110-2111<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
+    RELAY7777["nostr-rs-relay<br/>agentbox/flake.nix:2111-2112<br/>binds relayCfg.bind, default 127.0.0.1:7777"]
     VOICE8444["voice cockpit Caddy origin<br/>docker-compose.voice.yml:41<br/>0.0.0.0:8444"]
 
     LAN -->|"9096:9096 SANCTIONED agentbox/scripts/ci/check-ports-loopback.mjs:101,check-ports-loopback.mjs:74-86 ADR-2013"| P9096
-    P9096 -->|"prefix mgmt, approvals, dream - bearer_env MANAGEMENT_API_KEY agentbox/agentbox.toml:2209-2228"| MGMT9090
-    P9096 -->|"prefix bridge and feed - bearer_env BRIDGE_TOKEN agentbox/agentbox.toml:2214-2234"| BRIDGE8971
-    P9096 -->|"prefix code and jupyter - preserve_host agentbox/agentbox.toml:2236-2245"| IDE
+    P9096 -->|"prefix mgmt, approvals, dream - bearer_env MANAGEMENT_API_KEY agentbox/agentbox.toml:2211-2230"| MGMT9090
+    P9096 -->|"prefix bridge and feed - bearer_env BRIDGE_TOKEN agentbox/agentbox.toml:2216-2236"| BRIDGE8971
+    P9096 -->|"prefix code and jupyter - preserve_host agentbox/agentbox.toml:2238-2247"| IDE
     P9096 -.->|"no prefix matches - routeFor returns null, 404 after auth, no upstream contact agentbox/config/nip98-proxy/proxy.mjs:866-871"| P9096
-    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3781 not LAN-reachable"| MGMT9090
+    LAN -.->|"127.0.0.1:9090:9090 host publish agentbox/flake.nix:3782 not LAN-reachable"| MGMT9090
     LAN -->|"8443/8444 SANCTIONED docker-compose.voice.yml:41 agentbox/scripts/ci/check-ports-loopback.mjs:102-103"| VOICE8444
     VOICE8444 -->|"slash lo and slash docs ONLY - direct to management-api voice/console/Caddyfile:71-76"| MGMT9090
     VOICE8444 -->|"slash approvals, mgmt, workspace, dream, feed, bridge, nip07 - Authorization forwarded to the NIP-98 door voice/console/Caddyfile:54-105"| P9096
 
 N1["RESOLVED ADR-2047, amended 2026-11-17: not a breach - a decided, enumerated exposure. The LAN surface is THREE<br/>sanctioned publishes across two compose files, matched on the normalised host_ip/published/<br/>target/protocol tuple: 9096 sovereign ingress, voice 8443 and 8444, cited at<br/>agentbox/scripts/ci/check-ports-loopback.mjs:100-104. The browsercontainer, gui-tools and xr-runtime sidecar ports<br/>are no longer sanctioned: they publish as AGENTBOX_SIDECAR_BIND defaulting to 127.0.0.1, accepted only in those<br/>three files, check-ports-loopback.mjs:97-98,check-ports-loopback.mjs:657-660. DEBT: the gate proves the default, not the deployed<br/>address - setting the variable to 0.0.0.0 still passes. 9096 is the sole IDENTITY ingress, now to<br/>named operator routes only; the others carry their own auth."]
-N2["RETIRED ADR-2153: there is no session board door. aoe serve, its port 9095 listener and the proxy default<br/>upstream are gone; the flake comment at agentbox/flake.nix:3776-3777 records that session control<br/>is a unix socket with no TCP port, and the voice Caddyfile has no slash aoe handle (voice/console/Caddyfile:54-105)."]
-N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:3786-3787 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:100-104. Default is expose=false, agentbox.toml:148."]
+N2["RETIRED ADR-2153: there is no session board door. aoe serve, its port 9095 listener and the proxy default<br/>upstream are gone; the flake comment at agentbox/flake.nix:3777-3778 records that session control<br/>is a unix socket with no TCP port, and the voice Caddyfile has no slash aoe handle (voice/console/Caddyfile:54-105)."]
+N6["INVARIANT ADR-2013: sovereign_mesh.relay.expose does NOT open a LAN door. When true it adds<br/>ONE publish and that publish is loopback-pinned - 127.0.0.1:port:port at<br/>agentbox/flake.nix:3787-3788 - so the relay never reaches the SANCTIONED LAN list at<br/>check-ports-loopback.mjs:100-104. Default is expose=false, agentbox.toml:148."]
 N3["INVARIANT ADR-2153: verification precedes routing. An unauthenticated request to an unknown path is<br/>refused 302 or 401 before routeFor runs, so the route table cannot be probed anonymously; only a verified<br/>caller sees the 404 (agentbox/config/nip98-proxy/proxy.mjs:843-871). The route table itself is projected from the<br/>manifest into nip98-proxy-config.json at every boot (agentbox/services/agentbox-manifest/src/proxy.rs:23-24,<br/>agentbox/config/lib/nip98-config.sh:17, called at agentbox/config/entrypoint-unified.sh:2346). A mistyped routes or<br/>allowed_pubkeys value is an error and writes nothing, proxy.rs:55-62 and :23-24, so the door is not silently opened"]
 N4["RESOLVED ADR-2047: the compose-exposure qualification is superseded in the governing doc.<br/>The line-walker bypass is fixed - check-ports-loopback.sh is a wrapper that execs<br/>check-ports-loopback.mjs, a strict YAML reader for the compose subset, and anything outside that<br/>subset is REJECTED with file and line, never skipped. ADR-2013 stays partial for the DEPLOYMENT<br/>half only: overlay order, interpolation, external files and active-listener evidence.<br/>Receipt: agentbox/docs/estate-closeout/2026-09-05/adr-2013-ports-gate.json."]
 N5["INVARIANT ADR-2013: the wrapper FAILS LOUDLY when the .mjs gate is missing - a copy of the<br/>wrapper without its gate exits 3 with an explicit message rather than looking like a pass<br/>agentbox/scripts/ci/check-ports-loopback.sh:38-42"]
@@ -121,7 +121,7 @@ sequenceDiagram
     else loaded
         BOOT-->>LOG: info nostr-bridge loaded proxy.mjs:408,proxy.mjs:433
     end
-    BOOT->>BOOT: REQUIRE_CONFIG = NIP98_PROXY_REQUIRE_CONFIG equals 1, set by the supervisor program proxy.mjs:260<br/>the [program:nip98-proxy] environment line carries it flake.nix:3169
+    BOOT->>BOOT: REQUIRE_CONFIG = NIP98_PROXY_REQUIRE_CONFIG equals 1, set by the supervisor program proxy.mjs:260<br/>the [program:nip98-proxy] environment line carries it flake.nix:3170
     BOOT->>FS: readFileSync CONFIG_FILE default workspace/.agentbox/nip98-proxy-config.json, text kept as LOADED_CONFIG_RAW proxy.mjs:271-272
     alt file absent or unreadable, ENOENT or EACCES
         alt REQUIRE_CONFIG set
@@ -156,11 +156,11 @@ sequenceDiagram
             alt CONFIG_PENDING or file text differs from LOADED_CONFIG_RAW
                 BOOT->>BOOT: return while process.uptime under 3.5 s, so the exit never falls inside startsecs proxy.mjs:1098,proxy.mjs:1113
                 BOOT-->>LOG: info config appeared or changed, exiting for a supervised restart proxy.mjs:1114
-                BOOT->>BOOT: process.exit(0), supervisord restarts it on the new file flake.nix:3171-3172 proxy.mjs:1115
+                BOOT->>BOOT: process.exit(0), supervisord restarts it on the new file flake.nix:3172-3173 proxy.mjs:1115
             end
         end
     end
-    Note over BOOT: DEBT - the restart reaches only a file that CHANGES. Stage B writes the projection from a program started alongside the proxy,<br/>flake.nix:2877-2883, entrypoint-unified.sh:2346 - until it lands the previous boot's allow-list and routes are served,<br/>and if projection fails the old file is served indefinitely, nip98-config.sh:26-27. ADR-2210 note of 2026-11-20
+    Note over BOOT: DEBT - the restart reaches only a file that CHANGES. Stage B writes the projection from a program started alongside the proxy,<br/>flake.nix:2878-2884, entrypoint-unified.sh:2346 - until it lands the previous boot's allow-list and routes are served,<br/>and if projection fails the old file is served indefinitely, nip98-config.sh:26-27. ADR-2210 note of 2026-11-20
 ```
 
 **Drift:** `agentbox/docs/INGRESS-identity.md:119-123` says an unset allowlist means any validly signed key and is silent on an absent or unreadable config file; under the supervisor that file now means refuse every identity until it is readable (`agentbox/config/nip98-proxy/proxy.mjs:183`, `agentbox/config/nip98-proxy/proxy.mjs:276`), and "any validly signed key" survives only as the explicit empty file the boot helper writes when the manifest has no section (`agentbox/config/lib/nip98-config.sh:30`). A validly signed key that is not on a non-empty allowlist is refused with `pubkey_not_allowed` (`agentbox/config/nip98-proxy/proxy.mjs:185`).
@@ -332,7 +332,7 @@ sequenceDiagram
         PX-->>BR: 404 NotFound, message No operator route, no upstream contact proxy.mjs:867-870
         Note over PX: WebSocket upgrades take the same decision after verifying: socket.end with 404 Not Found proxy.mjs:1000-1003
     end
-    Note over BR,SOCK: session control is not a proxy route at all - it is a unix socket with no TCP port, so there is nothing for this door to forward to (agentbox/flake.nix:3776-3777, agentbox/services/agentbox-sessions/src/api.rs:3-7)
+    Note over BR,SOCK: session control is not a proxy route at all - it is a unix socket with no TCP port, so there is nothing for this door to forward to (agentbox/flake.nix:3777-3778, agentbox/services/agentbox-sessions/src/api.rs:3-7)
 ```
 
 **Resolved in source:** `routeFor` returns the upstream, path, bearer and host-preservation choice without an AoE flag. HTTP and WebSocket forwarding select signed-header passthrough by auth mode directly (`agentbox/config/nip98-proxy/proxy.mjs:354`, `agentbox/config/nip98-proxy/proxy.mjs:906-914`, `agentbox/config/nip98-proxy/proxy.mjs:1036-1042`).
@@ -477,7 +477,7 @@ sequenceDiagram
     participant BR2 as Browser via port 9096
     participant PX2 as proxy /mgmt/ route<br/>agentbox/config/nip98-proxy/proxy.mjs:324
 
-    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:3781 - DC must already be container-internal or on the loopback publish
+    Note over DC,MAPI: port 9090 is published to the host only as 127.0.0.1:9090:9090 agentbox/flake.nix:3782 - DC must already be container-internal or on the loopback publish
     DC->>MAPI: request with its OWN Authorization Bearer API_KEY or Nostr header, no X-Agentbox-Pubkey
     MAPI->>AUTH: authMiddleware verifies bearer or nip98 directly agentbox/management-api/server.js:224-232
     AUTH-->>MAPI: allow, 401, or 403 for a task action token off its three agent-event routes agentbox/management-api/middleware/auth.js:207-219
@@ -518,7 +518,7 @@ sequenceDiagram
         GW->>CL: optional follow-up send, text then pause then Enter gateway.cjs:519-521, plane.rs:432-447
     end
     Note over SK: INVARIANT ADR-2153 - the ACL decides, never the file mode: the socket is 0660 in group ab-sessions (gid 973, members devuser and ab-gateway) but even root is refused unless listed<br/>api.rs:29,api.rs:128, config/role-accounts.json:139-144, config/custody/session-plane-acl.json:8-11
-    Note over SK: the daemon is supervised as devuser with the ACL path and gid in its environment, autostart true<br/>flake.nix:3152-3157, gid taken from the one role table at eval time flake.nix:1957-1966
+    Note over SK: the daemon is supervised as devuser with the ACL path and gid in its environment, autostart true<br/>flake.nix:3153-3158, gid taken from the one role table at eval time flake.nix:1958-1967
     Note over GW: before any command runs, handleWrap drops NIP-17 self-DM copies whose p tag<br/>names another identity and poker-coach table traffic, gateway.cjs:720,735-736,741 -<br/>and with the flag off the operator key is read only through hooks/lib/operator-key.cjs, while under role_isolation<br/>the gateway asks the identity port for public keys and holds no key (gateway.cjs:81-82,153-170)
 ```
 
