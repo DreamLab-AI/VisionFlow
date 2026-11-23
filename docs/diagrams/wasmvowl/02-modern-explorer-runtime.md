@@ -67,7 +67,7 @@ flowchart TB
     UPD --> SET
     SET --> VP
     N1["INVARIANT: helpers are plain functions so a nested action cannot run on stale state<br/>comment at useGraphStore.ts:72-76"]
-    N2["DEBT: loadOntology refills filteredNodes and filteredEdges with everything<br/>but keeps activeFilters, so listed filters are not applied to a new graph<br/>useGraphStore.ts:182-185,202,221"]
+    N2["INVARIANT: activeFilters is empty whenever loadOntology runs.<br/>loadOntology neither resets nor re-applies filters, useGraphStore.ts:182-185,<br/>but its only caller, the drop zone, renders only at nodeCount 0, App.tsx:23,35-36.<br/>Filters start empty, useGraphStore.ts:176, and New file runs clear,<br/>TopMenuBar.tsx:16, which empties them, useGraphStore.ts:238"]
     N3["DEBT: gravity, friction, maxFPS, lodEnabled, highContrast, reducedMotion<br/>are declared but nothing under src/components or src/hooks reads them<br/>useUIStore.ts:38-43"]
     HELP --- N1
     ST --- N2
@@ -101,6 +101,10 @@ flowchart TB
     EXP --> EXF["exportSVG builds markup from store positions, export.ts:10<br/>exportPNG draws on an off-screen canvas, export.ts:100,120<br/>download through an object URL, export.ts:246-254"]
     TMB --> VM["toggleViewMode and showLabels<br/>TopMenuBar.tsx:165,176"]
     SB["Sidebar tabs details, filters, statistics<br/>Sidebar.tsx:33-46"] --> FIL["three fixed filters: classes only, degree 2 or more, object properties<br/>Sidebar.tsx:163,173,183"]
+    CLK["ClassNode click toggles selectNode, ClassNode.tsx:43-46<br/>selectNode sets selectedNode, clears selectedEdge, useGraphStore.ts:286"] --> DET["details tab shows id, type, label, IRI, instances, edge counts<br/>of the selected node, Sidebar.tsx:26,54-96"]
+    SB --> DET
+    HOV["pointer over and out call hoverNode, ClassNode.tsx:48-58<br/>hoverNode sets hoveredNode, useGraphStore.ts:288"] --> D4["DEBT: nothing under src reads hoveredNode, the node colour comes from<br/>ClassNode local hovered state, ClassNode.tsx:19,36-40.<br/>selectEdge and hoverEdge have no caller under src, useGraphStore.ts:287,289"]
+    CLK --- HOV
     ZOOM --> D1["DEBT: GraphCanvas reads only viewport.mode, GraphCanvas.tsx:11-12,<br/>so the zoom and reset buttons change state that nothing renders"]
     EXF --> D2["DEBT: export ignores the active filters and draws hidden nodes too"]
     FIL --> D3["DOC-DRIFT: CLAUDE.md:90 says LOD for performance, no LOD code in src"]

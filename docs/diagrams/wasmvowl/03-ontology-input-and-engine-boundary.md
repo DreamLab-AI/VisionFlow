@@ -27,7 +27,7 @@ flowchart TB
     subgraph O2V["owl2vowl JSON, as the legacy app ships it"]
         LC["class entries carry only id and type<br/>legacy/src/app/data/foaf.json:47-51"]
         LCA["labels and IRIs live in classAttribute<br/>legacy/src/app/data/foaf.json:273-280"]
-        LPA["domain and range live in propertyAttribute, as scalar ids<br/>legacy/src/app/data/foaf.json:1423-1427"]
+        LPA["domain and range live in propertyAttribute, as scalar ids<br/>legacy/src/app/data/foaf.json:1423,1427,1450"]
     end
     subgraph HW["hand-written samples under modern/public"]
         MC["class entries with inline label and iri<br/>modern/public/ontologies/minimal.json:18-30"]
@@ -80,7 +80,7 @@ flowchart TB
     F1 --> F2["zip ids with getNodePositions, x at 2i, y at 2i+1<br/>one updateNodePosition call per node per frame<br/>useWasmSimulation.ts:151-155"]
     F2 --> F3["ClassNode lerps toward the new store position<br/>see WV-02.3"]
     INV["INVARIANT: index order of ids equals the position buffer order until the next load<br/>useWasmSimulation.ts:21-25,40-42"]
-    OPEN1["OPEN: ADR-001 asks for proof that ticks do not repeatedly reset topology,<br/>ADR-001-explorer-consumer-contract-closeout.md:29. A per-frame position write<br/>feeds the nodes value the load effect depends on, useWasmSimulation.ts:47,120"]
+    OPEN1["TENSION: ADR-001 still lists topology reset as open,<br/>ADR-001-explorer-consumer-contract-closeout.md:25,29,<br/>but the code answers it. updateNodePosition is an immer set on the nodes Map,<br/>useGraphStore.ts:260-265, MapSet enabled at useGraphStore.ts:16,<br/>so each frame that writes positions yields a new nodes reference.<br/>The hook subscribes to the whole store, useWasmSimulation.ts:47, the load effect<br/>depends on nodes, useWasmSimulation.ts:120, so every such frame re-runs<br/>loadOntology, getNodeIds and initSimulation, useWasmSimulation.ts:105-107.<br/>Latent today: the engine rejects the payload first, see WV-03.2,<br/>isRunning never turns true and useFrame returns, useWasmSimulation.ts:133"]
     L2 --- INV
     F2 --- OPEN1
     V["Vite excludes the package from dependency pre-bundling, wasm and top-level-await plugins<br/>vite.config.ts:8-20"] --> I1

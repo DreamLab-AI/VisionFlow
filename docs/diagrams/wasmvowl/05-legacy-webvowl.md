@@ -1,6 +1,6 @@
 ---
 id: WV-05
-title: Legacy WebVOWL - bundle, loading paths, parse and notation coverage
+title: Legacy WebVOWL - bundle, loading paths, parse, notation, menus and editor
 area: wasmvowl
 governing:
   - ../WasmVOWL/CLAUDE.md
@@ -16,6 +16,21 @@ sources:
   - ../WasmVOWL/legacy/src/app/js/app.js
   - ../WasmVOWL/legacy/src/app/js/loadingModule.js
   - ../WasmVOWL/legacy/src/app/js/menu/exportMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/exportTTLModule.js
+  - ../WasmVOWL/legacy/src/app/js/menu/configMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/debugMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/filterMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/gravityMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/modeMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/navigationMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/ontologyMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/pauseMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/resetMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/searchMenu.js
+  - ../WasmVOWL/legacy/src/app/js/menu/zoomSlider.js
+  - ../WasmVOWL/legacy/src/app/js/editSidebar.js
+  - ../WasmVOWL/legacy/src/app/js/directInputModule.js
+  - ../WasmVOWL/legacy/src/webvowl/js/options.js
   - ../WasmVOWL/legacy/src/webvowl/js/graph.js
   - ../WasmVOWL/legacy/src/webvowl/js/parser.js
   - ../WasmVOWL/legacy/src/webvowl/js/elements/nodes/nodeMap.js
@@ -97,3 +112,59 @@ flowchart TB
 ```
 
 The modern counterpart of each legacy stage is WV-02; the VOWL notation engine itself is the vowl-wasm area (VW-02).
+
+## WV-05.5 The menu layer: twelve menus wired by app.js, one export helper
+
+```mermaid
+flowchart TB
+    REQ["app.js requires twelve menu modules, each handed the graph<br/>legacy/src/app/js/app.js:13-23,27"] --> S1
+    subgraph S1["set up before the browser check, app.js:209-218"]
+        M1["exportMenu.setup, exportMenu.js:28<br/>gravityMenu.setup, gravityMenu.js:18"]
+        M2["filterMenu.setup takes six filter modules, app.js:211, filterMenu.js:45<br/>modeMenu.setup takes pick and pin, scaling, compact, externals<br/>app.js:212, modeMenu.js:40"]
+        M3["pauseMenu.setup, pauseMenu.js:16<br/>debugMenu.setup, greys editor helpers unless editing, debugMenu.js:8,16"]
+        M1 --> M2 --> M3
+    end
+    S1 --> S2
+    subgraph S2["set up only when the browser is supported, app.js:219-273"]
+        M4["resetMenu.setup takes gravity, filter, mode, focuser, details, pause<br/>app.js:237, resetMenu.js:19"]
+        M5["searchMenu.setup, searchMenu.js:112<br/>navigationMenu.setup, navigationMenu.js:242<br/>zoomSlider.setup, zoomSlider.js:42, app.js:238-240"]
+        M6["ontologyMenu.setup takes loadOntologyFromText, app.js:272, ontologyMenu.js:75<br/>configMenu.setup adds zoom controls and max label width<br/>app.js:273, configMenu.js:6,13-14"]
+        M4 --> M5 --> M6
+    end
+    S2 --> REG["ten of the twelve menus, all but debug and config,<br/>are registered on options for cross-module calls, app.js:243-262"]
+    TTL["exportTTLModule is not wired by app.js, exportMenu requires it<br/>exportMenu.js:16, called from the Turtle export, exportMenu.js:51-52"]
+    M1 --- TTL
+```
+
+Of these, `exportMenu` already appears in WV-05.4, `modeMenu` and `ontologyMenu` lead into WV-05.6.
+
+## WV-05.6 The experimental editor path
+
+```mermaid
+flowchart TB
+    subgraph ON["turning editing on"]
+        CB["Modes menu checkbox Editing, labelled experimental<br/>modeMenu.js:47,109-112, calls graph.editorMode, modeMenu.js:100-104"]
+        URL["URL option editorMode in the hash opts<br/>loadingModule.js:651, options.js:614-623"]
+        NEWO["new_ontology hash loads an empty ontology and forces editing<br/>app.js:411-426"]
+        CB --- URL --- NEWO
+    end
+    ON --> TOG["graph.editorMode sets editMode and the new-ontology entry state<br/>graph.js:2723-2760"]
+    TOG --> ENT["editing on: left edit sidebar shown, prefix UI, double click bound to create<br/>graph.js:2810-2815"]
+    ENT --> ACT
+    subgraph ACT["editing actions inside graph.js"]
+        A1["double click on canvas creates a node of the default class type<br/>graph.js:3480-3487,2835-2841"]
+        A2["double click on a node or label raises inline edit<br/>graph.js:732-737,791-795"]
+        A3["hover controls: delete a node, add a datatype property<br/>graph.js:3844-3849,3872-3877"]
+        A4["class dragger dropped on a node creates an object property<br/>after a sanity check, graph.js:321-332,3113-3119"]
+        A1 --- A2 --- A3 --- A4
+    end
+    ACT --> SIDE["editSidebar: IRI and label editors, element type change<br/>editSidebar.js:769-786,1242-1260<br/>into graph.changeNodeType and changePropertyType, graph.js:2541,2623"]
+    SIDE --> OUT["Turtle export walks the edited graph<br/>exportMenu.js:51-52, exportTTLModule.js:15-36"]
+    IDS["INVARIANT: after each load the editor id counters start past<br/>the loaded counts, graph.js:1531-1533"]
+    DI["direct input: pasted JSON loads locally, anything else is POSTed<br/>to directInput for conversion, directInputModule.js:16-40, ontologyMenu.js:387-398"]
+    EXT["EXTERNAL: the directInput converter endpoint is not in this repo, see WV-05.2"]
+    A1 --- IDS
+    DI --> EXT
+```
+
+The editor's starting state is set in two places, `editMode = true` in `graph.js:83` and an `editorMode` default of `"false"` in `options.js:333`; this diagram does not claim which wins at boot.
