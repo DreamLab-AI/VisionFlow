@@ -442,9 +442,9 @@ sequenceDiagram
     alt loom.manifest
         CT->>TH: manifest(salience)<br/>mcp_host.rs:94
     else loom.browse
-        CT->>TH: browse(query, kind, n)<br/>mcp_host.rs:121addresses only, never content
+        CT->>TH: browse(query, kind, n)<br/>mcp_host.rs:121 - addresses only, never content
     else loom.resolve
-        CT->>TH: resolve(iris)<br/>mcp_host.rs:149the ONLY tool returning corpus content
+        CT->>TH: resolve(iris)<br/>mcp_host.rs:149 - the ONLY tool returning corpus content
     else loom.sparql
         CT->>TH: sparql(query)<br/>mcp_host.rs:194
     else loom.neighbours / loom.paths
