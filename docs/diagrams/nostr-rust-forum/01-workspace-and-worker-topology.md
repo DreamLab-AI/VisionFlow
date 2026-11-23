@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-preview-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/wrangler.toml
   - ../nostr-rust-forum/.github/workflows/ci.yml
-verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
+verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
 ---
 
 ## NF-01.1 Twenty crates in four layers
@@ -112,9 +112,9 @@ flowchart TB
 
 **Drift:** the README draws the mesh as a dotted "configured peer routing" edge into the relay (`../nostr-rust-forum/README.md:60`), yet the relay-worker declares a normal path dependency on `nostr-bbs-mesh` with a `src/mesh.rs` wiring note (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml:27`).
 
-**Open:** does the "room" deployment profile (ADR-2029, proposed, no implementation) change the crate set? `docs/BASELINE-architecture.md` records it as "proposed, not implemented" (`../nostr-rust-forum/docs/BASELINE-architecture.md:334`). The NIP-17/NIP-171 interop work did not: `feat/upgrade-phase-0-1` merged into main at a80c572 and added no workspace member, only forum-client dependencies (`nostr`, and `bip39`, `hkdf`, `getrandom`, `unicode-normalization` for the NIP-171 recovery master: `../nostr-rust-forum/Cargo.toml:111-113`).
+**Open:** does the "room" deployment profile (ADR-2029, proposed, no implementation) change the crate set? `docs/BASELINE-architecture.md` records it as "proposed, not implemented" (`../nostr-rust-forum/docs/BASELINE-architecture.md:349`). The NIP-17/NIP-171 interop work did not: `feat/upgrade-phase-0-1` merged into main at a80c572 and added no workspace member, only forum-client dependencies (`nostr`, and `bip39`, `hkdf`, `getrandom`, `unicode-normalization` for the NIP-171 recovery master: `../nostr-rust-forum/Cargo.toml:111-113`).
 
-**Drift:** the README still says the NIP-17 and NIP-171 implementation is on that branch, "not merged into main" (`../nostr-rust-forum/README.md:124`); its phases 2 to 4 are ancestors of main, their features behind `RECIPIENT_KEYS_ENABLED` and `ZONE_GROUPS_ENABLED`, both off by default (NF-08.8); the relay-URL fail-closed change that came with phase 4 is not flagged (NF-08.8, NF-12).
+**Resolved (README, 4a73a7a):** the README now says the NIP-17 and NIP-171 work is on main, switched off: the upgrade branch merged at `a80c572`, its features dormant behind `RECIPIENT_KEYS_ENABLED` and `ZONE_GROUPS_ENABLED`, both off unless set to `"true"` (`../nostr-rust-forum/README.md:124`, NF-08.8). It still does not mention the relay-URL fail-closed change that came with phase 4 (NF-08.8, NF-12).
 
 ## NF-01.2 Build matrix — one target, one release profile
 
@@ -146,7 +146,7 @@ flowchart TB
     end
     subgraph cronentry["#[event(scheduled)] handlers"]
         AC["auth-worker scheduled<br/>nostr-bbs-auth-worker/src/lib.rs:894"]
-        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1622<br/>trigger nostr-bbs-relay-worker/wrangler.toml:123"]
+        RC["relay-worker scheduled - every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1622<br/>trigger nostr-bbs-relay-worker/wrangler.toml:125"]
         SC["search-worker cron - every 5 min<br/>nostr-bbs-search-worker/wrangler.toml:44"]
     end
     WSUP["WebSocket upgrade to the Durable Object<br/>nostr-bbs-relay-worker/src/lib.rs:230"]
@@ -192,7 +192,7 @@ classDiagram
     }
     Workspace --> SolidPodRs
 
-    note for Workspace "TENSION ADR-2007 vs Cargo.toml: ADR-2007 and BASELINE invariant 6 say solid-pod-rs stays an EXACT (=) pin docs/adr/ADR-2007-kit-exact-pin-beta-channel.md:30, docs/BASELINE-architecture.md:215, but the manifest now declares a caret range under estate register ER-35 nostr-rust-forum/Cargo.toml:184-188; Cargo.lock still fixes what a build resolves"
+    note for Workspace "TENSION ADR-2007 vs Cargo.toml: ADR-2007 and BASELINE invariant 6 say solid-pod-rs stays an EXACT (=) pin docs/adr/ADR-2007-kit-exact-pin-beta-channel.md:30, docs/BASELINE-architecture.md:226 (which since 4a73a7a carries a note that it does not hold, docs/BASELINE-architecture.md:228), but the manifest now declares a caret range under estate register ER-35 nostr-rust-forum/Cargo.toml:184-188; Cargo.lock still fixes what a build resolves"
     note for SolidPodRs "EXTERNAL: the consumer surface is enumerated in docs/consumer-surface-map.md:14 - see the solid-pod-rs area (SP-*) and NF-04"
 ```
 

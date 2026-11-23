@@ -42,6 +42,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/user_admin.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/recipient_keys.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0013_recipient_keys_proof.sql
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs
   - ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/recipient_keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
@@ -61,7 +62,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
-verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
+verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection
@@ -153,7 +154,7 @@ sequenceDiagram
 flowchart TB
     subgraph d1["D1 databases"]
         AUTHDB["nostr-bbs-auth<br/>auth-worker DB nostr-bbs-auth-worker/wrangler.toml:9"]
-        RELDB["nostr-bbs-relay<br/>relay-worker DB nostr-bbs-relay-worker/wrangler.toml:99"]
+        RELDB["nostr-bbs-relay<br/>relay-worker DB nostr-bbs-relay-worker/wrangler.toml:101"]
     end
     subgraph kv["KV namespaces"]
         SESS["SESSIONS nostr-bbs-auth-worker/wrangler.toml:27"]
@@ -167,7 +168,7 @@ flowchart TB
         VECS["nostr-bbs-vectors nostr-bbs-search-worker/wrangler.toml:15"]
     end
     subgraph do["Durable Object"]
-        RELAYDO["RELAY class NostrRelayDO<br/>nostr-bbs-relay-worker/wrangler.toml:115 sqlite class :120"]
+        RELAYDO["RELAY class NostrRelayDO<br/>nostr-bbs-relay-worker/wrangler.toml:117 sqlite class :122"]
     end
 
     AUTHW["auth-worker"] --> AUTHDB
@@ -177,7 +178,7 @@ flowchart TB
     AUTHW -->|"POD_META backwards-compat reads nostr-bbs-auth-worker/wrangler.toml:34"| PODMETA
     AUTHW -->|"PODS nostr-bbs-auth-worker/wrangler.toml:47"| PODS
     RELAYW["relay-worker"] --> RELDB
-    RELAYW -->|"REPLAY_DB points at nostr-bbs-auth nostr-bbs-relay-worker/wrangler.toml:110"| AUTHDB
+    RELAYW -->|"REPLAY_DB points at nostr-bbs-auth nostr-bbs-relay-worker/wrangler.toml:112"| AUTHDB
     RELAYW --> RELAYDO
     PODW["pod-worker"] --> PODS
     PODW --> PODMETA
@@ -188,7 +189,7 @@ flowchart TB
     SEARCHW -->|"REPLAY_DB nostr-bbs-search-worker/wrangler.toml:25"| AUTHDB
     PREVW["preview-worker"] --> RL
 
-    N1["INVARIANT: NIP-98 replay lives in ONE database - relay, pod and search bind REPLAY_DB, and auth uses DB, all to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:104-111<br/>auth DB is nostr-bbs-auth nostr-bbs-auth-worker/wrangler.toml:9-10. The preview worker binds no replay store."]
+    N1["INVARIANT: NIP-98 replay lives in ONE database - relay, pod and search bind REPLAY_DB, and auth uses DB, all to<br/>nostr-bbs-auth so cross-worker replay is detected nostr-bbs-relay-worker/wrangler.toml:106-113<br/>auth DB is nostr-bbs-auth nostr-bbs-auth-worker/wrangler.toml:9-10. The preview worker binds no replay store."]
     N2["ANOMALY O11 now DOCUMENTED, not removed: KV and SESSIONS are still the SAME physical namespace id<br/>nostr-bbs-auth-worker/wrangler.toml:28 and :44; the template says the key prefixes are disjoint<br/>nostr-bbs-auth-worker/wrangler.toml:22-25 and a unit test pins the admin cache key outside the rl: prefix<br/>nostr-bbs-auth-worker/src/admins.rs:347"]
     N3["The auth-worker RELAY_DB database_id is a ZERO placeholder that every deployment must override<br/>nostr-bbs-auth-worker/wrangler.toml:20 - shipped unusable on purpose"]
     N5["DRIFT: the pod template's older comment says admin checks use members.is_admin or whitelist.is_admin<br/>through REPLAY_DB nostr-bbs-pod-worker/wrangler.toml:19-20, the newer one beside the RELAY_DB block says<br/>the relay whitelist only nostr-bbs-pod-worker/wrangler.toml:29-30, and the code reads RELAY_DB only<br/>nostr-bbs-pod-worker/src/lib.rs:2022 - see NF-08.7"]
@@ -214,7 +215,7 @@ flowchart TB
     end
 
     N1["INVARIANT: both bootstraps are idempotent, so a newly added table exists before any handler touches it.<br/>The relay runs ensure_schema ONCE PER ISOLATE, before the WebSocket branch, and latches SCHEMA_READY only<br/>when every CREATE succeeded, so a transient D1 failure is retried on the next request<br/>nostr-bbs-relay-worker/src/lib.rs:197, nostr-bbs-relay-worker/src/lib.rs:202, nostr-bbs-relay-worker/src/lib.rs:224-227<br/>CREATE TABLE IF NOT EXISTS throughout schema.rs:28 and nostr-bbs-relay-worker/src/lib.rs:1233"]
-    N2["device_keys was the first cross-worker table: the AUTH worker creates and writes it into the RELAY's D1, so the relay DO<br/>resolves a device to its owner with no cross-worker call - on EVENT and REQ through effective_pubkey nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3779,<br/>NOT at NIP-42 AUTH, which binds the raw signing key nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2152 - see NF-08.12, NF-20.4 and NF-02.7"]
+    N2["device_keys was the first cross-worker table: the AUTH worker creates and writes it into the RELAY's D1, so the relay DO<br/>resolves a device to its owner with no cross-worker call - on EVENT and REQ through effective_pubkey nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3781,<br/>NOT at NIP-42 AUTH, which binds the raw signing key nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2152 - see NF-08.12, NF-20.4 and NF-02.7"]
     N3["events and channel_creators are created by the relay bootstrap since 66ca8d8, and checked in as migration 0009 - see NF-08.6"]
     N4["INVARIANT: migration 0006 is MIRRORED into ensure_schema, the live schema path, so the<br/>application-receipt and delegation tables exist on a cold start without the migration runner<br/>nostr-bbs-relay-worker/src/lib.rs:1341 nostr-bbs-relay-worker/src/lib.rs:1353"]
 ```
@@ -250,7 +251,7 @@ flowchart TB
     N3["Governance tables are created TWICE - by migration 0002_governance.sql:5,17,39,52 and inline by<br/>the relay bootstrap, agent_registry nostr-bbs-relay-worker/src/lib.rs:1306, broker_cases nostr-bbs-relay-worker/src/lib.rs:989, broker_decisions nostr-bbs-relay-worker/src/lib.rs:1013,<br/>broker_roles nostr-bbs-relay-worker/src/lib.rs:1315. Both use IF NOT EXISTS, so this is duplication, not drift.<br/>DRIFT: SETUP.md:123-125 states the duplication but credits the AUTH worker with the inline copy;<br/>the auth bootstrap nostr-bbs-auth-worker/src/schema.rs:19 creates no governance table"]
     N4["DEBT: the migration cannot repair an existing table - SQLite has no ADD COLUMN IF NOT EXISTS, so the<br/>0009 file adds no column and leaves the two ALTERs to its header comment or to ensure_schema, which<br/>discards their result (let _ =), so a real failure there is silent migrations/0009_events.sql:12-17 nostr-bbs-relay-worker/src/lib.rs:1094"]
     N5["TENSION with N1: the NIP-09 tombstone tables break the pattern - their DDL lives only in the bootstrap constants<br/>nostr-bbs-relay-worker/src/lib.rs:746 nostr-bbs-relay-worker/src/lib.rs:755 and no migration file records them,<br/>while recipient_keys and zone_epoch_keys keep it, each held identical to migrations 0012 and 0014 by a test<br/>nostr-bbs-relay-worker/src/recipient_keys.rs:29-31 nostr-bbs-relay-worker/src/zone_groups.rs:26-28"]
-    N6["DRIFT: the proof-column ALTER is labelled migration 0012 nostr-bbs-relay-worker/src/lib.rs:1146 and<br/>nostr-bbs-relay-worker/src/recipient_keys.rs:45; the checked-in file for it is 0013_recipient_keys_proof.sql"]
+    N6["RESOLVED at 4a73a7a: the proof-column ALTER is now labelled migration 0013 nostr-bbs-relay-worker/src/lib.rs:1146 and<br/>nostr-bbs-relay-worker/src/recipient_keys.rs:45, matching the checked-in file 0013_recipient_keys_proof.sql:10"]
 ```
 
 **What it shows.** Until 66ca8d8 no code in the repository created `events`: the
@@ -314,13 +315,13 @@ The [1 November membership review](../../estate-review/2026-11-01-forum-membersh
 flowchart LR
     DKA["auth-worker DEVICE_KEYS_ENABLED=false<br/>nostr-bbs-auth-worker/wrangler.toml:69"]
     DKR["relay-worker DEVICE_KEYS_ENABLED=false<br/>nostr-bbs-relay-worker/wrangler.toml:29"]
-    DKC["client window.__ENV__ third setting<br/>SETUP.md:171-174"]
+    DKC["client window.__ENV__ third setting<br/>SETUP.md:175-178"]
     GATEFN["auth gate reads its OWN binding<br/>nostr-bbs-auth-worker/src/devices.rs:100"]
     SHARED["shared parse rule only<br/>nostr-bbs-core feature_gate"]
     AM["AUTH_MODE=nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:39"]
-    MESH["MESH_MODE=standalone<br/>nostr-bbs-relay-worker/wrangler.toml:93"]
-    ESC["ESCALATION_DEFAULT_TIER=medium<br/>nostr-bbs-relay-worker/wrangler.toml:61"]
-    CAL["CALIBRATION_SELECTION_KEY - a SECRET, deliberately NOT a plaintext var<br/>nostr-bbs-relay-worker/wrangler.toml:64-67"]
+    MESH["MESH_MODE=standalone<br/>nostr-bbs-relay-worker/wrangler.toml:95"]
+    ESC["ESCALATION_DEFAULT_TIER=medium<br/>nostr-bbs-relay-worker/wrangler.toml:63"]
+    CAL["CALIBRATION_SELECTION_KEY - a SECRET, deliberately NOT a plaintext var<br/>nostr-bbs-relay-worker/wrangler.toml:66-69"]
 
     DKA --> GATEFN --> SHARED
     DKR --> SHARED
@@ -331,17 +332,17 @@ flowchart LR
     N1["INVARIANT ADR-2004: each worker reads its own binding and decides ALONE - no cross-worker call.<br/>Only the parse rule is shared, so the two cannot drift on what true means<br/>nostr-bbs-auth-worker/src/devices.rs:100-107, relay delegates at nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1003"]
     N2["INVARIANT: enables on the EXACT string true; unset, empty, padded, TRUE or 1 is off<br/>rule nostr-bbs-core/src/feature_gate.rs:65, asserted nostr-bbs-auth-worker/src/devices.rs:988"]
     N3["AUTH_MODE: anything other than allowlist resolves to the secure nip42 default<br/>nostr-bbs-relay-worker/wrangler.toml:37-39 - see NF-03"]
-    N4["ESCALATION_DEFAULT_TIER is a declared SCAFFOLD - the authoritative risk-tier schema is owned by<br/>agentbox, EXTERNAL: see AB-14 and AB-15; an unrecognised tier folds to medium<br/>nostr-bbs-relay-worker/wrangler.toml:54-61"]
-    N5["INVARIANT: calibration sampling is HMAC over a key the agent cannot read. The request id is the<br/>31402 d tag, which the agent chooses, so the key secrecy is the only thing stopping it grinding tags<br/>until it finds one sampling never selects nostr-bbs-relay-worker/wrangler.toml:69-74 - see NF-12"]
-    N6["Unset, the relay STILL samples and logs a warning on every projection - silently disabling<br/>oversight is treated as the worse failure nostr-bbs-relay-worker/wrangler.toml:76-79"]
-    PUSH["relay-worker PUSH_ENABLED=false, ADR-2023 content-free Web Push, off by default<br/>nostr-bbs-relay-worker/wrangler.toml:86 with VAPID_PUBLIC_KEY nostr-bbs-relay-worker/wrangler.toml:87 and PUSH_MAX_FANOUT nostr-bbs-relay-worker/wrangler.toml:90"]
-    RURL["RELAY_URL is blank by default and required in nip42 mode: blank now FAILS CLOSED, refusing every<br/>authenticated write, and logs an error on every AUTH nostr-bbs-relay-worker/wrangler.toml:42-47<br/>RELAY_URL_ALIASES adds extra hostnames nostr-bbs-relay-worker/wrangler.toml:51 - see NF-12"]
+    N4["ESCALATION_DEFAULT_TIER is a declared SCAFFOLD - the authoritative risk-tier schema is owned by<br/>agentbox, EXTERNAL: see AB-14 and AB-15; an unrecognised tier folds to medium<br/>nostr-bbs-relay-worker/wrangler.toml:56-63"]
+    N5["INVARIANT: calibration sampling is HMAC over a key the agent cannot read. The request id is the<br/>31402 d tag, which the agent chooses, so the key secrecy is the only thing stopping it grinding tags<br/>until it finds one sampling never selects nostr-bbs-relay-worker/wrangler.toml:71-76 - see NF-12"]
+    N6["Unset, the relay STILL samples and logs a warning on every projection - silently disabling<br/>oversight is treated as the worse failure nostr-bbs-relay-worker/wrangler.toml:78-81"]
+    PUSH["relay-worker PUSH_ENABLED=false, ADR-2023 content-free Web Push, off by default<br/>nostr-bbs-relay-worker/wrangler.toml:88 with VAPID_PUBLIC_KEY nostr-bbs-relay-worker/wrangler.toml:89 and PUSH_MAX_FANOUT nostr-bbs-relay-worker/wrangler.toml:92"]
+    RURL["RELAY_URL is blank by default and must be set in nip42 mode: while it and RELAY_URL_ALIASES are blank the relay FAILS CLOSED,<br/>refusing every NIP-42 AUTH, so every write and every protected-kind read is refused, and logs an error on every AUTH<br/>nostr-bbs-relay-worker/wrangler.toml:42-49, RELAY_URL_ALIASES adds extra hostnames nostr-bbs-relay-worker/wrangler.toml:53 - see NF-12"]
     N8["All three templates now ship System One advisory flags ON (relay JEV_TRIAGE=1 nostr-bbs-relay-worker/wrangler.toml:11, search JEV_SEARCH_RERANK=1 nostr-bbs-search-worker/wrangler.toml:32, auth JEV_RATIONALE_CHECK=1 nostr-bbs-auth-worker/wrangler.toml:53) pointing at TypeSafe jev-latest (nostr-bbs-relay-worker/wrangler.toml:12-13); TYPESAFE_API_KEY is a Worker secret named at :14 and never a plaintext var, and the auth worker declares no endpoint, so it resolves to TypeSafe through the same secret and stays private only when JEV_RATIONALE_CHECK_LOCAL_ONLY=1 (nostr-bbs-auth-worker/wrangler.toml:54-58)"]
     N9["TENSION: the workers enable only on exact true nostr-bbs-core/src/feature_gate.rs:65, but the client lower-cases<br/>and also accepts 1 - an operator who sets 1 in all three places gets a client that registers device keys<br/>and workers that 404 the device routes. Client parser: CLIENTPARSE above"]
     CLIENTPARSE -.- N9
-    RKA["auth-worker RECIPIENT_KEYS_ENABLED=false<br/>nostr-bbs-auth-worker/wrangler.toml:70, exact true nostr-bbs-auth-worker/src/recipient_keys.rs:71"]
+    RKA["auth-worker RECIPIENT_KEYS_ENABLED=false<br/>nostr-bbs-auth-worker/wrangler.toml:70, exact true nostr-bbs-auth-worker/src/recipient_keys.rs:72"]
     RKR["relay-worker RECIPIENT_KEYS_ENABLED and ZONE_GROUPS_ENABLED, exact true<br/>nostr-bbs-relay-worker/src/recipient_keys.rs:70 nostr-bbs-relay-worker/src/zone_groups.rs:47<br/>declared in NO relay template"]
-    RKT["recipient_keys table: created by the RELAY only when its flag is on<br/>nostr-bbs-relay-worker/src/lib.rs:1129-1139, written by the AUTH routes via RELAY_DB<br/>nostr-bbs-auth-worker/src/recipient_keys.rs:570"]
+    RKT["recipient_keys table: created by the RELAY only when its flag is on<br/>nostr-bbs-relay-worker/src/lib.rs:1129-1139, written by the AUTH routes via RELAY_DB<br/>nostr-bbs-auth-worker/src/recipient_keys.rs:571"]
     RKA --> RKT
     RKR --> RKT
     N10["TENSION: a third lockstep pair with no shared parse crate and no relay default - auth on with the relay off<br/>serves registration routes over a table the relay never created, and the relay gift-wrap gate stays on its old rule.<br/>Unlike DEVICE_KEYS_ENABLED N1, the relay template does not declare either flag"]
@@ -392,11 +393,11 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph writers["Writers - tombstone first, DELETE after, never one batch"]
-        K5["member kind-5 below TL3 - member_deletion_gate first<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1320-1321, gate nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3349"]
-        K5ANY["admin or TL3+ kind-5 - can_delete_any skips the gate<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1638-1640, process_deletion nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3510"]
-        ENV["sealed original named by a moderator: envelope deleted only when its<br/>author is a CURRENT admin nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3437-3448"]
+        K5["member kind-5 below TL3 - member_deletion_gate first<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1320-1321, gate nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3351"]
+        K5ANY["admin or TL3+ kind-5 - can_delete_any skips the gate<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1638-1640, process_deletion nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3512"]
+        ENV["sealed original named by a moderator: envelope deleted only when its<br/>author is a CURRENT admin nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3439-3450"]
         REP["POST /api/reports/resolve as delete, NIP-98 admin<br/>nostr-bbs-relay-worker/src/moderation.rs:240, tombstone nostr-bbs-relay-worker/src/moderation.rs:349"]
-        PURGE["POST /api/admin/events/delete, ADR-2017 purge<br/>nostr-bbs-relay-worker/src/admin_events.rs:231, tombstone nostr-bbs-relay-worker/src/admin_events.rs:279"]
+        PURGE["POST /api/admin/events/delete, ADR-2017 purge<br/>nostr-bbs-relay-worker/src/admin_events.rs:233, tombstone nostr-bbs-relay-worker/src/admin_events.rs:281"]
         USR["POST /api/admin/user/delete with delete_events<br/>nostr-bbs-relay-worker/src/user_admin.rs:154, tombstone nostr-bbs-relay-worker/src/user_admin.rs:225"]
     end
     TB["deleted_events and deleted_addresses<br/>nostr-bbs-relay-worker/src/lib.rs:746 nostr-bbs-relay-worker/src/lib.rs:755"]
@@ -414,16 +415,16 @@ flowchart TB
     RESET -->|"wipes all, markers kept"| TB
 
     N1["OPEN, NF-10 O15 / KF-14: no route removes ONE tombstone - reset-db is the only way out, and it wipes the events,<br/>whitelist and every tombstone together nostr-bbs-relay-worker/src/whitelist.rs:521-525"]
-    N2["OPEN, NF-10 O18 / KF-18: the envelope delete trusts current admin standing, not a migrator record -<br/>a migrator who has lost admin leaves the envelope in place nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3397-3399"]
+    N2["OPEN, NF-10 O18 / KF-18: the envelope delete trusts current admin standing, not a migrator record -<br/>a migrator who has lost admin leaves the envelope in place nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3399-3401"]
     N3["INVARIANT: every writer fails open - a tombstone error neither stops nor fails the deletion<br/>nostr-bbs-relay-worker/src/lib.rs:1564-1568, and the tables are never served to a client"]
     N4["A report resolved as hide records none: only delete tombstones nostr-bbs-relay-worker/src/moderation.rs:318"]
 ```
 
 Admin authority for every writer above is `require_nip98_admin` (the relay resolver of NF-08.7), except the kind-5 path, which trusts the trust ladder: TL3+ deletes anyone's events without being an admin (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1638-1640`). The ingest refusal fails open when its lookup fails, and the purge of a user by `pubkey` leaves device-key and gift-wrap rows untombstoned (NF-10 O17 / KF-16, see NF-25.5).
 
-**Open (NF-10 O13 / KF-17):** `process_deletion` writes an `(id, signer)` tombstone for any well-formed `e` target, stored or not (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3533-3543`), and the member gate then accepts a no-row target as already deleted on exactly such a row (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3055`), so a signer can re-name an id this relay never stored.
+**Open (NF-10 O13 / KF-17):** `process_deletion` writes an `(id, signer)` tombstone for any well-formed `e` target, stored or not (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3535-3545`), and the member gate then accepts a no-row target as already deleted on exactly such a row (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3057`), so a signer can re-name an id this relay never stored.
 
-**Open (NF-10 O19 / KF-19):** a member cannot delete their own migrated post: the gate classifies a sealed original before anything else, and the original author is not recorded (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2960-2962`, `:3054`). The purge's tombstones under the original author (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:279`) are therefore never consulted by it.
+**Open (NF-10 O19 / KF-19):** a member cannot delete their own migrated post: the gate classifies a sealed original before anything else, and the original author is not recorded (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2962-2964`, `:3056`). The purge's tombstones under the original author (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:281`) are therefore never consulted by it.
 
 **Open (NF-10 O12 / KF-21):** the member gate answers up to 2,000 targets with one `json_each` statement (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:793-796`); its tests run on rusqlite, never on Cloudflare D1, so D1's behaviour for that statement is unproven.
 
@@ -449,13 +450,13 @@ flowchart TB
 ```mermaid
 flowchart TB
     WL["whitelist - W auth: /api/admins add and remove nostr-bbs-auth-worker/src/admins.rs:162 nostr-bbs-auth-worker/src/admins.rs:240, invite seed and merge<br/>nostr-bbs-auth-worker/src/invites.rs:238 nostr-bbs-auth-worker/src/invites.rs:263, username claim nostr-bbs-auth-worker/src/username.rs:307, agent provision nostr-bbs-auth-worker/src/governance_api.rs:466;<br/>relay: grant nostr-bbs-relay-worker/src/whitelist.rs:373, set-admin nostr-bbs-relay-worker/src/whitelist.rs:450, cohort edit nostr-bbs-relay-worker/src/whitelist.rs:593, delete nostr-bbs-relay-worker/src/user_admin.rs:199<br/>R relay admission nostr-bbs-relay-worker/src/relay_do/storage.rs:445, relay admin nostr-bbs-relay-worker/src/auth.rs:194, check-whitelist nostr-bbs-relay-worker/src/whitelist.rs:135,<br/>auth is_admin nostr-bbs-auth-worker/src/admin.rs:72, admin list nostr-bbs-auth-worker/src/admins.rs:75, device owner check nostr-bbs-auth-worker/src/devices.rs:281, pod admin nostr-bbs-pod-worker/src/lib.rs:2022"]
-    AR["agent_registry - W auth register nostr-bbs-auth-worker/src/governance_api.rs:381, provision nostr-bbs-auth-worker/src/governance_api.rs:476, revoke nostr-bbs-auth-worker/src/governance_api.rs:532<br/>R auth list nostr-bbs-auth-worker/src/governance_api.rs:347 and is_registered_agent nostr-bbs-auth-worker/src/governance_api.rs:1102, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3798, relay disclosure nostr-bbs-relay-worker/src/agent_disclosure.rs:105"]
-    BC["broker_cases - W relay: case upsert on kind-31402 nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1033 - projection of kind-31403 nostr-bbs-relay-worker/src/relay_do/receipts.rs:192, supersession nostr-bbs-relay-worker/src/relay_do/receipts.rs:244,<br/>appeal reopen nostr-bbs-relay-worker/src/relay_do/receipts.rs:283, cron ageing nostr-bbs-relay-worker/src/cron.rs:844<br/>R auth case list and read nostr-bbs-auth-worker/src/governance_api.rs:572 nostr-bbs-auth-worker/src/governance_api.rs:600, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3993, cron nostr-bbs-relay-worker/src/cron.rs:622"]
-    BD["broker_decisions - W relay projection nostr-bbs-relay-worker/src/relay_do/receipts.rs:185, supersession nostr-bbs-relay-worker/src/relay_do/receipts.rs:234 nostr-bbs-relay-worker/src/relay_do/receipts.rs:242<br/>R auth GET /api/governance/decisions nostr-bbs-auth-worker/src/governance_api.rs:619 nostr-bbs-auth-worker/src/governance_api.rs:646, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4191"]
-    BR["broker_roles - W auth grant nostr-bbs-auth-worker/src/governance_api.rs:693, revoke nostr-bbs-auth-worker/src/governance_api.rs:757<br/>R auth list nostr-bbs-auth-worker/src/governance_api.rs:724, relay is_reviewer nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4010 and governance_rank nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4327"]
-    DK["device_keys - W auth register nostr-bbs-auth-worker/src/devices.rs:331, revoke nostr-bbs-auth-worker/src/devices.rs:526<br/>R auth list nostr-bbs-auth-worker/src/devices.rs:478; relay device_owner nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3761 through effective_pubkey nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3779<br/>on EVENT nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1162 and REQ viewer context nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2276 - never at NIP-42 AUTH"]
-    MA["moderation_actions, RELAY copy - W the admin kind-30910/30911 mirror nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4852<br/>R the ban gate nostr-bbs-relay-worker/src/relay_do/mod_cache.rs:117"]
-    RP["reports - W relay kind-1984 projection nostr-bbs-relay-worker/src/moderation.rs:75 from nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4796"]
+    AR["agent_registry - W auth register nostr-bbs-auth-worker/src/governance_api.rs:381, provision nostr-bbs-auth-worker/src/governance_api.rs:476, revoke nostr-bbs-auth-worker/src/governance_api.rs:532<br/>R auth list nostr-bbs-auth-worker/src/governance_api.rs:347 and is_registered_agent nostr-bbs-auth-worker/src/governance_api.rs:1102, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3800, relay disclosure nostr-bbs-relay-worker/src/agent_disclosure.rs:105"]
+    BC["broker_cases - W relay: case upsert on kind-31402 nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1033 - projection of kind-31403 nostr-bbs-relay-worker/src/relay_do/receipts.rs:192, supersession nostr-bbs-relay-worker/src/relay_do/receipts.rs:244,<br/>appeal reopen nostr-bbs-relay-worker/src/relay_do/receipts.rs:283, cron ageing nostr-bbs-relay-worker/src/cron.rs:844<br/>R auth case list and read nostr-bbs-auth-worker/src/governance_api.rs:572 nostr-bbs-auth-worker/src/governance_api.rs:600, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3995, cron nostr-bbs-relay-worker/src/cron.rs:622"]
+    BD["broker_decisions - W relay projection nostr-bbs-relay-worker/src/relay_do/receipts.rs:185, supersession nostr-bbs-relay-worker/src/relay_do/receipts.rs:234 nostr-bbs-relay-worker/src/relay_do/receipts.rs:242<br/>R auth GET /api/governance/decisions nostr-bbs-auth-worker/src/governance_api.rs:619 nostr-bbs-auth-worker/src/governance_api.rs:646, relay nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4193"]
+    BR["broker_roles - W auth grant nostr-bbs-auth-worker/src/governance_api.rs:693, revoke nostr-bbs-auth-worker/src/governance_api.rs:757<br/>R auth list nostr-bbs-auth-worker/src/governance_api.rs:724, relay is_reviewer nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4012 and governance_rank nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4329"]
+    DK["device_keys - W auth register nostr-bbs-auth-worker/src/devices.rs:331, revoke nostr-bbs-auth-worker/src/devices.rs:526<br/>R auth list nostr-bbs-auth-worker/src/devices.rs:478; relay device_owner nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3763 through effective_pubkey nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3781<br/>on EVENT nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1162 and REQ viewer context nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2276 - never at NIP-42 AUTH"]
+    MA["moderation_actions, RELAY copy - W the admin kind-30910/30911 mirror nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4854<br/>R the ban gate nostr-bbs-relay-worker/src/relay_do/mod_cache.rs:117"]
+    RP["reports - W relay kind-1984 projection nostr-bbs-relay-worker/src/moderation.rs:75 from nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:4798"]
     WL --> AR --> BC --> BD
     BR --> DK --> MA --> RP
 ```

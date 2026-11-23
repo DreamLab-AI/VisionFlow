@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
   - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
-verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
+verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
 ---
 
 ## NF-09.1 The CI gate graph
@@ -68,7 +68,7 @@ flowchart TB
     N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:185 - which is why it can check the WHOLE workspace, not the three crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:72. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:329"]
     N6["The drift job needs no Rust toolchain and checks out agentbox read-only into _agentbox so the JS derivation is pinned to the real call sites<br/>.github/workflows/ci.yml:281-284. DRIFT: the comment says it runs only when its scripts or fixtures change<br/>.github/workflows/ci.yml:272-273, but the job has no if: and the path filters are workflow-wide and include every .rs file<br/>.github/workflows/ci.yml:26 .github/workflows/ci.yml:275-278, so it runs on every CI run, still outside ci-pass"]
-    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:307-309. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
+    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:322-324. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
     CLIP -.- N5
     DG -.- N6
 ```
@@ -172,14 +172,14 @@ sequenceDiagram
     OP->>CF: create two R2 buckets SETUP.md:139
     OP->>OP: paste resource ids into each wrangler.toml SETUP.md:145
     OP->>CF: wrangler secret put for the two secrets SETUP.md:155
-    OP->>CF: wrangler deploy, one crate at a time SETUP.md:179
-    OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:190
-    OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:276
+    OP->>CF: wrangler deploy, one crate at a time SETUP.md:183
+    OP->>CF: DNS - CNAME or Workers Routes per subdomain SETUP.md:194
+    OP->>OP: FORUM_BASE=/community trunk build --release --public-url /community/ SETUP.md:280
 
     Note over OP: worker-build is pinned to 0.8.4 because 0.8.5 breaks the abort-handler codegen SETUP.md:29
     Note over OP: SETUP.md step 0 asks the operator to choose a deployment profile before creating any resource, but marks it proposed (ADR-2029), only forum deploys SETUP.md:32
-    Note over OP: RELAY_URL must be set in nip42 mode, blank skips the relay tag check and logs an error on every AUTH SETUP.md:158 - CALIBRATION_SELECTION_KEY is a relay secret SETUP.md:165
-    Note over OP: optional step 10, content-free Web Push (ADR-2023): VAPID keys, PUSH_ENABLED, VAPID_PRIVATE_KEY secret SETUP.md:373
+    Note over OP: RELAY_URL must be set in nip42 mode - since 4a73a7a the guide says a blank value fails CLOSED, refusing every NIP-42 AUTH and so every write and protected-kind read, and logs an error on every AUTH SETUP.md:158-166 - CALIBRATION_SELECTION_KEY is a relay secret SETUP.md:169
+    Note over OP: optional step 10, content-free Web Push (ADR-2023): VAPID keys, PUSH_ENABLED, VAPID_PRIVATE_KEY secret SETUP.md:377
     Note over OP: The client build is where FORUM_BASE is baked in - it is a COMPILE-TIME constant, so a base change is a rebuild, not a config flip. See NF-05.1.
     Note over CF: DIVERGENCE (narrowed at 66ca8d8): the auth schema step is still hand-run SQL pasted from the guide, two of the twelve auth tables, though the auth worker bootstraps all of them itself - the relay tables are migration files the relay also creates at startup - see NF-08.6
 ```
