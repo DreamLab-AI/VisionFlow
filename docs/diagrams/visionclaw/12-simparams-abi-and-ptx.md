@@ -25,7 +25,7 @@ sources:
   - ../project/src/utils/gpu_diagnostics.rs
   - ../project/src/gpu/mod.rs
   - ../project/src/physics/mod.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 ## For developers
 
@@ -153,7 +153,7 @@ classDiagram
     note for FeatureFlags_CUDA "crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu:124-129"
     note for FeatureFlags_Rust "ADR-2060: bit3/bit5 are RESERVED Rust-side<br/>zero hits in CUDA, not a defect"
     note for FeatureFlags_Rust "DRIFT: docs/GPU-wire-abi.md:86 places the bit constants at<br/>lines 113-119 of the domain file, they are at crates/visionclaw-domain/src/models/simulation_params.rs:117-125"
-    note for FeatureFlags_Rust "KEYSTONE: ENABLE_CONSTRAINTS is<br/>residency-owned (execution.rs:1137-1140)"
+    note for FeatureFlags_Rust "KEYSTONE: ENABLE_CONSTRAINTS is<br/>residency-owned (execution.rs:1139-1142)"
 ```
 
 ## VC-12.3 GPU core physics buffers: per-node, per-edge, per-grid-cell
@@ -188,6 +188,7 @@ classDiagram
         +f32 prev_force_y
         +f32 prev_force_z
         +f32 degree_weight
+        +f32 repulsion_strength
         +f32 node_constraint_force
         +i32 compute_mask
         +i32 cell_keys
@@ -208,7 +209,7 @@ classDiagram
         +i32 labels_current
         +i32 labels_next
         +i32 label_counts
-        +f32 node_degrees
+        +f32 community_degrees
         +i32 community_sizes
         +i32 label_mapping
         +curandState rand_states
@@ -224,7 +225,7 @@ classDiagram
         +i32 cell_end
     }
     class UnifiedGPUCompute {
-        production struct construction.rs:31-275
+        production struct construction.rs:32-290
     }
     class PhysicsV2Gated {
         +REMOVED_ADR_2055_PhysicsGpuBuffers
@@ -244,14 +245,15 @@ classDiagram
     PhysicsV2Gated ..> DeletedManager
     DeletedManager ..> MemoryBudgetTracker
 
-    note for PerNodeBuffers "stride 4B all fields except rand_states 48B<br/>count=allocated_nodes (construction.rs:46-273)"
-    note for PerEdgeBuffers "row_offsets=num_nodes+1<br/>col/weights/edge_rest_snapshot=num_edges (buffers.rs:158-161, allocated at construction.rs:428, see VC-60)<br/>edge_rest_snapshot holds the hold-overlay rest lengths, ADR-2169"
-    note for PerEdgeBuffers "per-node constraint index CSR (ADR-2173), constraint_node_offsets<br/>allocated_nodes+1 and constraint_node_ids, read by the force kernels<br/>through g_constraint_index (construction.rs:141-144, visionclaw_unified.cu:157)"
-    note for PerGridCellBuffers "max_grid_cells = 32768 fixed<br/>(construction.rs:432-434)"
-    note for UnifiedGPUCompute "production per-node buffer owner<br/>(construction.rs:31-275)<br/>also owns semantic Option SemanticGpu and semantic_active, ADR-2140 (construction.rs:251-254)"
+    note for PerNodeBuffers "stride 4B all fields except rand_states 48B<br/>count=allocated_nodes (construction.rs:47-288)"
+    note for PerNodeBuffers "CHANGED ADR-2204 D4 - repulsion_strength is the FA2 repulsion factor<br/>minus one, one producer (buffers.rs:154-157); the old node_degrees<br/>buffer is now community_degrees, owned by community detection (buffers.rs:186)"
+    note for PerEdgeBuffers "row_offsets=num_nodes+1<br/>col/weights/edge_rest_snapshot=num_edges (buffers.rs:162-165, allocated at construction.rs:444, see VC-60)<br/>edge_rest_snapshot holds the hold-overlay rest lengths, ADR-2169"
+    note for PerEdgeBuffers "per-node constraint index CSR (ADR-2173), constraint_node_offsets<br/>allocated_nodes+1 and constraint_node_ids, read by the force kernels<br/>through g_constraint_index (construction.rs:142-145, visionclaw_unified.cu:157)"
+    note for PerGridCellBuffers "max_grid_cells = 32768 fixed<br/>(construction.rs:448-450)"
+    note for UnifiedGPUCompute "production per-node buffer owner<br/>(construction.rs:32-290)<br/>also owns semantic Option SemanticGpu and semantic_active, ADR-2140 (construction.rs:266-269)"
     note for PhysicsV2Gated "DOC-DRIFT — no buffers.rs exists. REMOVED under ADR-2055 (src/gpu/mod.rs:10-15):<br/>PhysicsGpuBuffers was gated behind the physics-v2 feature, itself retired<br/>(src/physics/mod.rs:69-73). Never shipped in a build; UnifiedGPUCompute was<br/>always the sole per-node GPU buffer owner"
     note for DeletedManager "DRIFT: module deleted (src/gpu/mod.rs:24-27 lists only memory_manager,<br/>ADR-2054:172) yet memory_manager.rs:5 still names it as a consolidated source"
-    note for MemoryBudgetTracker "memory_manager.rs:127-152 GpuBuffer, :382 GpuMemoryManager<br/>force_compute_actor.rs:805-841"
+    note for MemoryBudgetTracker "memory_manager.rs:127-152 GpuBuffer, :382 GpuMemoryManager<br/>force_compute_actor.rs:812-848"
 ```
 
 ## VC-12.4 GPU analytics-adjacent buffers: cluster, community, block, scalar
@@ -283,15 +285,15 @@ classDiagram
         +f32 system_kinetic_energy
     }
     class UnifiedGPUCompute {
-        production struct construction.rs:31-275, see VC-12.3
+        production struct construction.rs:32-290, see VC-12.3
     }
     UnifiedGPUCompute *-- PerClusterBuffers
     UnifiedGPUCompute *-- PerCommunityBuffers
     UnifiedGPUCompute *-- PerBlockBuffers
     UnifiedGPUCompute *-- ScalarBuffers
 
-    note for PerClusterBuffers "stride 4B, max_clusters = 50 fixed (construction.rs:438)"
-    note for PerCommunityBuffers "stride 4B, count=Nodes capacity from the registered table, Louvain exceeds 50 (buffers.rs:177-181)"
+    note for PerClusterBuffers "stride 4B, max_clusters = 50 fixed (construction.rs:454)"
+    note for PerCommunityBuffers "stride 4B, count=Nodes capacity from the registered table, Louvain exceeds 50 (buffers.rs:181-185)"
     note for PerBlockBuffers "stride 4B, count = ceil(num_nodes/256) per reduction block"
     note for ScalarBuffers "stride 4B, count = 1 (single-element buffers)"
     note for UnifiedGPUCompute "same struct as VC-12.3, split here only for diagram width"
@@ -364,7 +366,7 @@ sequenceDiagram
     participant GRA as GPUResourceActor<br/>gpu_resource_actor.rs:41
     participant Loader as ptx_loader<br/>ptx_loader.rs:464
     participant Downgrade as downgrade_ptx_isa_if_needed<br/>ptx_loader.rs:328-353
-    participant UGC as UnifiedGPUCompute<br/>construction.rs:282
+    participant UGC as UnifiedGPUCompute<br/>construction.rs:297
     participant Cust as cust::module::Module<br/>CUDA driver JIT
 
     GRA->>Loader: load_ptx_module_sync(PTXModule::VisionflowUnified) (gpu_resource_actor.rs:89-91)
@@ -401,33 +403,33 @@ sequenceDiagram
             Loader-->>GRA: Some(content) (gpu_resource_actor.rs:129-135)
         end
     end
-    Note over Loader,GRA: PTXModule::SemanticForces is the ninth loadable module (ptx_loader.rs:221, all_modules at :291-302)<br/>but GPUResourceActor does not load it, ForceComputeActor::refresh_semantic does on each graph upload<br/>(force_compute_actor.rs:4906-4909) and hands the PTX to UnifiedGPUCompute::enable_semantic (execution.rs:1060)
-    GRA->>UGC: new_with_modules(num_nodes, num_edges, ptx, clustering_ptx, apsp_ptx)<br/>(gpu_resource_actor.rs:143) delegates to new_with_all_modules (construction.rs:282-289, :296-302)
-    UGC->>UGC: validate_ptx_content(ptx_content) (construction.rs:303, gpu_diagnostics.rs:185)
+    Note over Loader,GRA: PTXModule::SemanticForces is the ninth loadable module (ptx_loader.rs:221, all_modules at :291-302)<br/>but GPUResourceActor does not load it, ForceComputeActor::refresh_semantic does on each graph upload<br/>(force_compute_actor.rs:5075-5078) and hands the PTX to UnifiedGPUCompute::enable_semantic (execution.rs:1062)
+    GRA->>UGC: new_with_modules(num_nodes, num_edges, ptx, clustering_ptx, apsp_ptx)<br/>(gpu_resource_actor.rs:143) delegates to new_with_all_modules (construction.rs:297-304, :311-317)
+    UGC->>UGC: validate_ptx_content(ptx_content) (construction.rs:318, gpu_diagnostics.rs:185)
     alt primary PTX fails structural validation
-        UGC-->>GRA: Err PTX validation failed, plus diagnose_ptx_error()<br/>(construction.rs:304-306)
+        UGC-->>GRA: Err PTX validation failed, plus diagnose_ptx_error()<br/>(construction.rs:319-321)
     else Ok
-        UGC->>Cust: Module::from_ptx(ptx_content, empty_options) (construction.rs:311)
+        UGC->>Cust: Module::from_ptx(ptx_content, empty_options) (construction.rs:326)
         alt module load fails
-            UGC-->>GRA: Err Module::from_ptx() failed, plus diagnosis (construction.rs:312-315)
+            UGC-->>GRA: Err Module::from_ptx() failed, plus diagnosis (construction.rs:327-330)
         else module loads
             opt clustering_ptx is Some
-                UGC->>UGC: validate_ptx_content(clustering_ptx_content) (construction.rs:321-324)
+                UGC->>UGC: validate_ptx_content(clustering_ptx_content) (construction.rs:336-339)
                 alt validation fails
-                    UGC->>UGC: error! GPU DEGRADED, clustering_module=None<br/>(construction.rs:325-330)
+                    UGC->>UGC: error! GPU DEGRADED, clustering_module=None<br/>(construction.rs:340-345)
                 else validation ok
-                    UGC->>Cust: Module::from_ptx(clustering_ptx, opts)<br/>(construction.rs:332)
+                    UGC->>Cust: Module::from_ptx(clustering_ptx, opts)<br/>(construction.rs:347)
                     alt secondary load fails
-                        UGC->>UGC: error! GPU DEGRADED, clustering_module=None<br/>(construction.rs:337-344)
+                        UGC->>UGC: error! GPU DEGRADED, clustering_module=None<br/>(construction.rs:352-359)
                     else ok
-                        UGC->>UGC: clustering_module=Some(module) (construction.rs:333-336)
+                        UGC->>UGC: clustering_module=Some(module) (construction.rs:348-351)
                     end
                 end
             end
         end
     end
-    Note over UGC: DOC-DRIFT (predates this window, commit da2f5cac7) - apsp_ptx is NO LONGER loaded<br/>into a module. REMOVED under ADR-2054: apsp_module had zero read sites (nothing ever<br/>resolved a kernel from it), so the load cost a startup PTX parse and logged a false<br/>"GPU APSP is DISABLED" about a capability NFR-7 forbids permanently. The parameter is<br/>retained and ignored (let _ = apsp_ptx, construction.rs:351-357) so callers need not<br/>change shape. See VC-15 for ShortestPathActor::ComputeAPSP, which never used this module.
-    Note over UGC,Cust: get_function(name) resolves a kernel by string<br/>e.g. force_pass/integrate_pass_kernel (execution.rs:666, :985)<br/>a Rust ? propagates the error if absent
+    Note over UGC: DOC-DRIFT (predates this window, commit da2f5cac7) - apsp_ptx is NO LONGER loaded<br/>into a module. REMOVED under ADR-2054: apsp_module had zero read sites (nothing ever<br/>resolved a kernel from it), so the load cost a startup PTX parse and logged a false<br/>"GPU APSP is DISABLED" about a capability NFR-7 forbids permanently. The parameter is<br/>retained and ignored (let _ = apsp_ptx, construction.rs:366-372) so callers need not<br/>change shape. See VC-15 for ShortestPathActor::ComputeAPSP, which never used this module.
+    Note over UGC,Cust: get_function(name) resolves a kernel by string<br/>e.g. force_pass/integrate_pass_kernel (execution.rs:666, :987)<br/>a Rust ? propagates the error if absent
     Note right of UGC: INVARIANT - fallback-PTX for nvcc-less builds<br/>secondary-module failures DEGRADE, not crash<br/>Invariant 5 at docs/GPU-wire-abi.md:294
     Note right of UGC: DIVERGENCE - get_function by name, ONLY symbol check<br/>unguarded if build-time symbol gate bypassed<br/>e.g. a cached OUT_DIR artefact<br/>NARROWED by ADR-2030: a baked artefact whose bytes changed after the build<br/>is refused (ptx_loader.rs:452-462), a missing tag or file skips the check
 ```
