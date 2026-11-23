@@ -12,7 +12,7 @@ A change to shared knowledge is applied only when it cites a decision signed by 
 
 Between: nostr-rust-forum, agentbox, visionclaw.
 
-3 live, 0 unverified, 1 closed.
+5 live, 0 unverified, 1 closed.
 
 ### Live
 
@@ -21,6 +21,8 @@ Between: nostr-rust-forum, agentbox, visionclaw.
 | EA-04 | Live external mutation journey | nostr-rust-forum, agentbox, visionclaw | deployment | open | 2026-11-15 |
 | E-5 | Direct axiom writes need forum apply path (waits on N-2) | nostr-rust-forum, visionclaw | engineering | open | 2026-11-15 |
 | N-2 | Forum `vault propose` apply path | nostr-rust-forum, visionclaw | engineering | open | 2026-11-15 |
+| FORUM-KANBAN-APPROVAL-COL-CLIENT-ONLY | forum kanban: the approval-column gate is enforced only by the forum client; the relay admits a card version naming an approval column with no approved move | nostr-rust-forum | engineering | open | 2026-11-23 |
+| WEB-ADR-2012-FIRST-AGENT-BOARD (also ADR-2012 (dreamlab-ai-website)) | dreamlab ADR-2012 (proposed): first agent board is ontology review, activated only after the admin key split, ADR-2024 enforce, both forum findings closed, a probe agent and a named reviewer | dreamlab-ai-website, nostr-rust-forum | owner-decision | open | 2026-11-23 |
 
 <a id="governance-events"></a>
 
@@ -30,7 +32,7 @@ The shape of governance events (kinds 31400 to 31405): panel definitions, propos
 
 Between: nostr-rust-forum, agentbox, visionclaw.
 
-4 live, 3 unverified, 0 closed.
+6 live, 3 unverified, 0 closed.
 
 ### Live
 
@@ -40,6 +42,8 @@ Between: nostr-rust-forum, agentbox, visionclaw.
 | FORUM-PRIORITY-TAG | The forum relay parses the proposal priority tag as a number, so every label becomes 50, while the forum client and core crate use labels | nostr-rust-forum | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting forum release and deploy | 2026-11-20 |
 | GOV-CONTENT-KEY-ORDER | Governance event content built from free-form JSON (for example a proposal's `fields`) is serialised in a key order that depends on whether serde_json's preserve_order feature is unified into the build, so the same event can get a different id in different builds | nostr-rust-forum, visionclaw, agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting forum release and deploy | 2026-11-20 |
 | GOV-KEY-ORDER-ADOPTION | VisionClaw and agentbox have not adopted the governance content key-order rule: agentbox has JSON.stringify sites to sort and must re-copy the contract; VisionClaw needs a new nostr-bbs-core release and pin bump | visionclaw, agentbox, nostr-rust-forum | engineering | open | 2026-11-20 |
+| AB-INTENT-ACTOR-FROM-CARD-DTAG | agentbox intent dispatch: a forum kanban 38000 intent carries no actor tag, so resolveActorRef takes the card's own d-tag as the actor | agentbox, nostr-rust-forum | engineering | open | 2026-11-23 |
+| FORUM-ADR-2035-KANBAN-AGENT-COLUMNS (also ADR-2035 (nostr-rust-forum)) | forum ADR-2035 (proposed): kanban agent columns dispatch to a registered agent, and the result returns as a governed 31402 case | nostr-rust-forum, agentbox | owner-decision | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -132,7 +136,7 @@ Where private keys and credentials live, who can read or use them, how they are 
 
 Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 
-5 live, 8 unverified, 2 closed.
+6 live, 8 unverified, 2 closed.
 
 ### Live
 
@@ -143,6 +147,7 @@ Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 | W3-06 | Boot now creates a devuser-owned /run/secrets/ruvector-pg/ inside the role-only secrets mount in both modes, outside the role plan; ADR-2122 records that the activation rehearsal was not re-run with it present. | agentbox | deployment | open | 2026-11-20 |
 | CODEX-LEG-CONFINE | The Codex audit leg can read any file the cron user can read, and its turn count and spend are not bounded by the budget reservation | agentbox | deployment | open | 2026-11-20 |
 | NIP98-ROLE-READ | Under role isolation the NIP-98 proxy cannot read its own config file, so the door would stay closed | agentbox | deployment | open | 2026-11-20 |
+| WEB-ADMIN-KEY-SPLIT (also WP-3 AC2, ADR-040 D3) | dreamlab: the visionclaw-server service key is still the primary forum admin, so an agent key may decide other agents' governance cases; split staged in admin-key-split-runbook.md | dreamlab-ai-website, nostr-rust-forum | owner-act | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -190,7 +195,7 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-17 live, 4 unverified, 19 closed.
+19 live, 4 unverified, 19 closed.
 
 ### Live
 
@@ -213,6 +218,8 @@ Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-websi
 | SP-REMOTESTORAGE-RESIDUALS | solid-pod-rs: remoteStorage tokens can only be revoked all at once; dot-prefixed names are refused; quota is a separate bucket | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-WEBRTC-FORWARDED-TRUST | solid-pod-rs: with trust-proxy on, the WebRTC per-client cap trusts the proxy's forwarded address | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-AP-CIRCUIT-BREAKER-FLAKE | solid-pod-rs: `a_failing_host_is_backed_off_by_a_circuit_breaker` fails intermittently under heavy load | solid-pod-rs | engineering | open | 2026-11-22 |
+| SP-ADR-2012-WORK-RECORDS (also ADR-2012 (solid-pod-rs)) | solid-pod-rs ADR-2012 (proposed): PromptVersion, RunRecord and EvalCase as typed pod resources with provenance marks (work-records feature) | solid-pod-rs | owner-decision | open | 2026-11-23 |
+| WORK-RECORDS-HOME | Owner decision: do typed business records (projects, people, teams, customers) live as pod JSON-LD or as Nostr addressable kinds? | solid-pod-rs, nostr-rust-forum | owner-decision | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 

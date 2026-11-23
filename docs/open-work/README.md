@@ -17,14 +17,14 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 111 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 118 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
 | Closed | 149 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (17)
+## Waiting on the owner (22)
 
-### Waiting on an owner decision (11)
+### Waiting on an owner decision (15)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -39,8 +39,12 @@ Items are filed by **seam**: the contract between components that would have to 
 | SP-ACL-LAYOUT-RESIDUALS | solid-pod-rs: opt-in ACL layouts: an ACL can be planted before its container exists, a file's own Control grant no longer suffices, and copied relative rules change scope | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | DW-POKER-NO-LATE-PAY-PATH | poker: a member who lost and returns after the 10-minute Done window has no pay path (offer debt list is text-only, Offer.owed carries no destination or Agreed) and refusal() then locks them out | payments | nostr-rust-forum | owner-decision | open | 2026-11-23 |
 | NF-AUTH-MIGRATION-0005-UNAPPLIED | forum auth-worker migration 0005 (drop unused nip1984_reports) is not applied by the website deploy | none | nostr-rust-forum | owner-decision | open | 2026-11-23 |
+| FORUM-ADR-2035-KANBAN-AGENT-COLUMNS (also ADR-2035 (nostr-rust-forum)) | forum ADR-2035 (proposed): kanban agent columns dispatch to a registered agent, and the result returns as a governed 31402 case | governance-events | nostr-rust-forum, agentbox | owner-decision | open | 2026-11-23 |
+| SP-ADR-2012-WORK-RECORDS (also ADR-2012 (solid-pod-rs)) | solid-pod-rs ADR-2012 (proposed): PromptVersion, RunRecord and EvalCase as typed pod resources with provenance marks (work-records feature) | pod-api | solid-pod-rs | owner-decision | open | 2026-11-23 |
+| WEB-ADR-2012-FIRST-AGENT-BOARD (also ADR-2012 (dreamlab-ai-website)) | dreamlab ADR-2012 (proposed): first agent board is ontology review, activated only after the admin key split, ADR-2024 enforce, both forum findings closed, a probe agent and a named reviewer | decision-attribution | dreamlab-ai-website, nostr-rust-forum | owner-decision | open | 2026-11-23 |
+| WORK-RECORDS-HOME | Owner decision: do typed business records (projects, people, teams, customers) live as pod JSON-LD or as Nostr addressable kinds? | pod-api | solid-pod-rs, nostr-rust-forum | owner-decision | open | 2026-11-23 |
 
-### Waiting on an owner act (6)
+### Waiting on an owner act (7)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -50,18 +54,19 @@ Items are filed by **seam**: the contract between components that would have to 
 | G-23 | `ESTATE_READ_TOKEN` read on visionGraph, or mark it exempt | none | visionflow, visiongraph | owner-act | open | 2026-11-15 |
 | FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | forum-zones | nostr-rust-forum | owner-act | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | ISAAC-RUNNER-TOKEN | `ISAAC_RUNNER_TOKEN` must be set where `isaac-job.js` runs, or Isaac jobs are refused after the next rebuild | none | agentbox | owner-act | open | 2026-11-20 |
+| WEB-ADMIN-KEY-SPLIT (also WP-3 AC2, ADR-040 D3) | dreamlab: the visionclaw-server service key is still the primary forum admin, so an agent key may decide other agents' governance cases; split staged in admin-key-split-runbook.md | key-custody | dreamlab-ai-website, nostr-rust-forum | owner-act | open | 2026-11-23 |
 
 ## By seam
 
 | Seam | Between | Live | Unverified |
 |---|---|---|---|
-| [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 3 | 0 |
-| [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 4 | 3 |
+| [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 5 | 0 |
+| [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 6 | 3 |
 | [Agent control and activity](by-seam.md#agent-control-api) | agentbox, visionclaw | 1 | 11 |
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 11 | 12 |
-| [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 5 | 8 |
+| [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 6 | 8 |
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 1 | 4 |
-| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 17 | 4 |
+| [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 19 | 4 |
 | [Value transfer](by-seam.md#payments) | sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox | 5 | 8 |
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 3 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
@@ -77,10 +82,10 @@ An item that touches two components is counted under both.
 | Component | Live, on a seam | Live, inside the component | Unverified |
 |---|---|---|---|
 | visionclaw | 13 | 16 | 75 |
-| agentbox | 21 | 16 | 72 |
-| nostr-rust-forum | 10 | 5 | 28 |
-| dreamlab-ai-website | 0 | 1 | 8 |
-| solid-pod-rs | 23 | 1 | 31 |
+| agentbox | 23 | 16 | 72 |
+| nostr-rust-forum | 16 | 5 | 28 |
+| dreamlab-ai-website | 2 | 1 | 8 |
+| solid-pod-rs | 25 | 1 | 31 |
 | sidestr-rs | 2 | 1 | 11 |
 | loom | 3 | 2 | 10 |
 | ontomark | 0 | 1 | 12 |
@@ -97,9 +102,9 @@ An item that touches two components is counted under both.
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 11 |
-| Waiting on an owner act | 6 |
-| Ordinary engineering: can start now | 62 |
+| Waiting on an owner decision | 15 |
+| Waiting on an owner act | 7 |
+| Ordinary engineering: can start now | 64 |
 | Needs a live deployment | 20 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
