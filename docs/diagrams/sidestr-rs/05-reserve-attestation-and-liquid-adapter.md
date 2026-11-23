@@ -1,6 +1,6 @@
 ---
 id: SR-05
-title: Origin-neutral reserve attestations and the private Liquid adapter
+title: Origin-neutral reserve attestations, the private Liquid adapter and the Web Ledgers teller
 area: sidestr-rs
 governing:
   - ../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md
@@ -17,12 +17,21 @@ sources:
   - ../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md
   - ../project/agentbox/docs/adr/ADR-2117-private-owner-usd-unit-bridged-through-rgb-into-sidestr.md
   - ../project/docs/TODO-unified.md
-verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
+  - ../project/docs/archive/TODO-unified-2026-09-07-to-2026-11-15.md
+  - ../sidestr-rs/webledgers-teller/Cargo.toml
+  - ../sidestr-rs/webledgers-teller/src/lib.rs
+  - ../sidestr-rs/webledgers-teller/src/ledger.rs
+  - ../sidestr-rs/webledgers-teller/src/deposit.rs
+  - ../sidestr-rs/webledgers-teller/src/request.rs
+  - ../sidestr-rs/webledgers-teller/src/payout.rs
+  - ../sidestr-rs/webledgers-teller/tests/oracle.rs
+  - ../sidestr-rs/.github/workflows/ci.yml
+verified_commit: {sidestr-rs: 17da8b8e5b2c2decf94551ecb4ea47c732669214, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## For developers
 
-SideStr’s neutral reserve crate builds a deterministic statement with an aggregate amount, sorted credit ids, origin, tip, source and time. Its canonicaliser accepts a restricted RFC 8785 subset; signing commits those bytes through a tagged SHA-256 digest and BIP-340. The Liquid adapter reads a watch-only wallet and counts outputs confirmed at or below the reported tip. It does not enforce a configurable confirmation depth. The [audit and fourteen production-library probes](../../estate-review/2026-11-01-reserve-attestation-boundaries.md) separate construction, signature validity and future bridge policy.
+SideStr’s neutral reserve crate builds a deterministic statement with an aggregate amount, sorted credit ids, origin, tip, source and time. Its canonicaliser accepts a restricted RFC 8785 subset; signing commits those bytes through a tagged SHA-256 digest and BIP-340. The Liquid adapter reads a watch-only wallet and counts outputs confirmed at or below the reported tip. It does not enforce a configurable confirmation depth. The [audit and fourteen production-library probes](../../estate-review/2026-11-01-reserve-attestation-boundaries.md) separate construction, signature validity and future bridge policy. The publishable `webledgers-teller` crate (SR-05.4) is the other operator-held value surface: a custodial Web Ledgers teller whose upstream JCS CI also uses as the RFC 8785 oracle for the reserve bytes.
 
 ## For the business
 
@@ -79,4 +88,26 @@ flowchart TB
 
 **What it shows.** Publication restrictions, signing capability and runtime activation are independent facts. `SignedAttestation.verify` has no expected-authority, clock or replay-set argument (`../sidestr-rs/sidestr-reserve/src/lib.rs:688`). The CLI's unsigned output does not establish a live mint path. **Why it is this way.** ADR-0003 keeps the format project-private and leaves funding, deployment and consumer activation to separate estate evidence (`../sidestr-rs/docs/adr/ADR-0003-keep-reserve-attestations-origin-neutral-and-private.md:32-34`). An inactive source record does not prove a present-day wallet is unfunded.
 
-**Open:** the master board keeps reserve custody and service-account isolation open; library publication does not close those runtime gates (`../project/docs/TODO-unified.md:99`).
+**Open:** the archived board's N-6 row ties reserve wiring to custody and service-account isolation, and the regenerated board still lists N-6 open; library publication does not close those runtime gates (`../project/docs/archive/TODO-unified-2026-09-07-to-2026-11-15.md:99`, `../project/docs/TODO-unified.md:65`).
+
+## SR-05.4 Web Ledgers teller: custodial deposits, signed requests, checked payouts
+
+```mermaid
+flowchart TB
+    GEN["Genesis fixed at creation, ledger id is the SHA-256 of its JCS<br/>webledgers-teller/src/ledger.rs:246-249<br/>webledgers-teller/src/ledger.rs:256-284"]
+    DEP["One deposit address per account: operator point plus tagged tweak<br/>anyone can recompute it, only the operator can spend<br/>webledgers-teller/src/deposit.rs:95-124"]
+    CR["credit: once per outpoint, height recorded<br/>webledgers-teller/src/ledger.rs:399-423"]
+    REQ["Kind-3700 request: signature verified, ledger tag must match,<br/>op and id required, author is the account<br/>webledgers-teller/src/request.rs:217-262"]
+    TR["transfer and debit: once per request id, never overdrawn<br/>webledgers-teller/src/ledger.rs:446-470<br/>webledgers-teller/src/ledger.rs:490-519"]
+    PAY["Payout: each input signed with its deposit secret,<br/>script and fee rechecked before anything is returned<br/>webledgers-teller/src/payout.rs:292-333"]
+    CUST["Custodial and linkable by design: operator can refuse a withdrawal<br/>webledgers-teller/src/lib.rs:28-32"]
+    CONF["OPEN: genesis stores confirmations, credit never compares the<br/>deposit height with it, so depth is the caller's<br/>webledgers-teller/src/ledger.rs:262"]
+    ORA["Oracle suite skipped unless TELLER names a teller checkout<br/>webledgers-teller/tests/oracle.rs:89-92<br/>CI oracle job supplies it, .github/workflows/ci.yml:219"]
+    GEN --> DEP --> CR --> TR
+    REQ --> TR --> PAY
+    CUST -.- PAY
+    CONF -.- CR
+    ORA -. "parity evidence" .-> GEN
+```
+
+**What it shows.** The crate is pure: the caller passes time, request ids, coins and sighash rules and publishes what comes back (`../sidestr-rs/webledgers-teller/src/lib.rs:36-42`); it is a publishable port of solidpayorg/teller (`../sidestr-rs/webledgers-teller/Cargo.toml:10`, `../sidestr-rs/webledgers-teller/Cargo.toml:15`). **Why it is this way.** Every balance change traces to a deposit seen on-chain or a signed request (`../sidestr-rs/webledgers-teller/src/lib.rs:31-32`), and CI pins the upstream teller as its oracle (`../sidestr-rs/.github/workflows/ci.yml:26-30`). No agentbox, forum or VisionClaw manifest depends on the crate at the pinned heads, so it is source capability, not an activated estate surface.

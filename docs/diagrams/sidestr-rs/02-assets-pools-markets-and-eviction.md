@@ -17,7 +17,7 @@ sources:
   - ../sidestr-rs/sidestr-evm/src/rule.rs
   - ../sidestr-rs/sidestr-evm/tests/pools_markets.rs
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: c146f8b90f698bde23c75c58a40fc1eba57e346d}
+verified_commit: {sidestr-rs: 17da8b8e5b2c2decf94551ecb4ea47c732669214, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 
 ## For developers
