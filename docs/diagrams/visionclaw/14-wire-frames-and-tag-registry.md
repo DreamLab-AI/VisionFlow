@@ -27,7 +27,7 @@ sources:
   - ../project/client/src/features/graph/managers/dataManager/wsClient.ts
   - ../project/tests/sssp_integration_test.rs
   - ../project/tests/analytics_wire_snapshot_test.rs
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -122,7 +122,7 @@ flowchart TD
         T34["0x34 BroadcastAck client to server, 21 bytes with no generic header, one per applied position chunk (ADR-2141)<br/>MessageType::BroadcastAck :1788, decode_message arm :1853"]
         T02["0x02 VoiceData :1782"]
         T03c["0x03 ControlFrame in MessageType :1784"]
-        T04["0x04 RETIRED V4 delta frame, reserved and never reused<br/>no encoder exists, every decoder refuses it (ADR-2139)<br/>docs/PROTOCOL-registry.md:68"]
+        T04["0x04 RETIRED V4 delta frame, reserved and never reused<br/>no encoder exists, every decoder refuses it (ADR-2139)<br/>docs/PROTOCOL-registry.md:69"]
     end
     subgraph PRESENCE["/ws/presence socket - tag space A sibling"]
         T43["0x43 OPCODE_AVATAR_POSE<br/>crates/visionclaw-xr-presence/src/wire.rs:9"]
@@ -140,7 +140,7 @@ flowchart TD
     N5["OPEN: the settings binary protocol is still not fully enumerated in the registry - unchanged by the 2026-09-05 remediation"]
     N6["RESOLVED ADR-2060: the legacy 48B/28B ADR figures are marked retired in the governing docs - the wire is 52B, now compile-time locked"]
     N7["RESOLVED ADR-2139: tag 0x04 (V4 delta) is now an explicit RETIRED row in the registry, so nothing can be allocated over it"]
-    N8["INVARIANT ADR-2143: Codescape is recorded as a second, independent producer of the frozen 0x03, 0x05, 0x23 and 0x34 contract (its encoders exist, serving on port 4100 is phased) and allocates no tag byte and no flag bit, so this registry stays the only allocator - docs/PROTOCOL-registry.md:221-227"]
+    N8["INVARIANT ADR-2143: Codescape is recorded as a second, independent producer of the frozen 0x03, 0x05, 0x23 and 0x34 contract (its encoders exist, serving on port 4100 is phased) and allocates no tag byte and no flag bit, so this registry stays the only allocator - docs/PROTOCOL-registry.md:222-228"]
     T05 -.- N2
     T03 -.- N3
     T05 -.- N4
@@ -255,7 +255,7 @@ sequenceDiagram
         TS->>TS: parseBinaryNodeData dispatch on lead byte :174-215
         alt lead byte == PROTOCOL_V5 (0x05) types/binaryProtocol.ts:199-202
             TS->>TS: parseV5Nodes :328 - reject if byteLength < 9 :330, read u64 seq LE :335-337, decode body from offset 9 :340
-            TS->>TS: surface broadcastSequence :368 - handleLegacyBinaryData acknowledges that sequence<br/>after applying the chunk store/websocket/binaryProtocol.ts:407-409
+            TS->>TS: surface broadcastSequence :368 - handleLegacyBinaryData acknowledges that sequence<br/>after applying the chunk store/websocket/binaryProtocol.ts:415-417
         else lead byte == 0x02 (V2)
             TS->>TS: DECLINED with a diagnostic - the server rejects V2 at utils/binary_protocol.rs:610
         else lead byte == 0x04 (V4 delta)
@@ -264,7 +264,7 @@ sequenceDiagram
             TS->>TS: DECLINED - no size autodetection
         end
         Note over TS: CORRECTED ADR-2078. ADR-2057 Finding 1 was WRONG: the live TS path always<br/>had V5, including the short-payload guard that mirrors the server at<br/>utils/binary_protocol.rs:615.<br/>client/src/services/binaryProtocol/ is NOT the live position path - it has no<br/>52-byte decoding at all, so a V5 branch there would have been a SECOND decoder.<br/>The real defect was Finding 2 and it was worse than reported - see the next note
-        Note over TS: RESOLVED ADR-2078. V2 was DECODED, not merely advertised (36-byte records, the<br/>V2 case at client/src/types/binaryProtocol.ts:175-185, routed in at<br/>client/src/store/websocket/binaryProtocol.ts:469-473),<br/>and the default arm re-read any unknown frame from offset 0 as 36-byte records<br/>whenever its length divided by 36 - fabricating nodes from arbitrary payloads.<br/>Both now decline. BINARY_NODE_SIZE_V2 and the size-swap heuristic are deleted
+        Note over TS: RESOLVED ADR-2078. V2 was DECODED, not merely advertised (36-byte records, the<br/>V2 case at client/src/types/binaryProtocol.ts:175-185, routed in at<br/>client/src/store/websocket/binaryProtocol.ts:477-481),<br/>and the default arm re-read any unknown frame from offset 0 as 36-byte records<br/>whenever its length divided by 36 - fabricating nodes from arbitrary payloads.<br/>Both now decline. BINARY_NODE_SIZE_V2 and the size-swap heuristic are deleted
         Note over TS: RESOLVED ADR-2078. The TS decoder now has the fixture cross-check the two Rust<br/>decoders always had - client/src/types/__tests__/wireFixtures.test.ts, 12 tests<br/>pinning the same constants as wire_fixtures.rs plus a synthetic V5 round-trip
     end
     Note over ENC,TS: Shared fixtures (crates/visionclaw-protocol/src/wire_fixtures.rs:1-6 now only<br/>re-exports visionclaw_wire, whose node-record and ack constants are at<br/>crates/visionclaw-wire/src/lib.rs:83,92-95) pin the format for both decoders -<br/>utils/binary_protocol.rs:960-965 asserts fx::NODE_RECORD_BYTES == WIRE_V3_ITEM_SIZE<br/>and fx::NODE_ID_MASK == NODE_ID_MASK, and :968 guards the shared 0x23 fixture against<br/>encoder drift
@@ -426,15 +426,15 @@ sequenceDiagram
     autonumber
     participant SRV as ClientCoordinatorActor<br/>src/actors/client_coordinator_actor.rs:776
     participant WS as WebSocket /wss
-    participant WEB as Web client<br/>client/src/store/websocket/binaryProtocol.ts:352
+    participant WEB as Web client<br/>client/src/store/websocket/binaryProtocol.ts:360
     participant XR as XR Rust client<br/>xr-client/rust/src/binary_protocol.rs:922
     participant HDL as SocketFlowServer binary handler<br/>src/handlers/socket_flow_handler/binary_protocol.rs:30
 
     SRV->>WS: V5 chunk [0x05][u64 seq][52 B per node], seq is the chunk's own number<br/>src/actors/client_coordinator_actor.rs:691-722
     par web client
         WS->>WEB: chunk bytes
-        WEB->>WEB: apply through graphDataManager.updateNodePositions, an exception returns WITHOUT an ack<br/>client/src/store/websocket/binaryProtocol.ts:393-402
-        WEB->>WEB: sendPositionAck(seq, node count) after the apply, a V3 frame has no sequence and is never acknowledged<br/>client/src/store/websocket/binaryProtocol.ts:407-409
+        WEB->>WEB: apply through graphDataManager.updateNodePositions, an exception returns WITHOUT an ack<br/>client/src/store/websocket/binaryProtocol.ts:401-410
+        WEB->>WEB: sendPositionAck(seq, node count) after the apply, a V3 frame has no sequence and is never acknowledged<br/>client/src/store/websocket/binaryProtocol.ts:415-417
         WEB->>WS: createBroadcastAck builds [0x34][u64 seq][u32 nodes][u64 timestamp_ms], 21 bytes, no 6-byte header<br/>client/src/services/BinaryWebSocketProtocol.ts:245-255
     and XR client
         WS->>XR: chunk bytes
@@ -447,5 +447,5 @@ sequenceDiagram
     HDL->>SRV: ClientBroadcastAck{sequence_id, nodes_received, timestamp, client_id}<br/>src/handlers/socket_flow_handler/binary_protocol.rs:67-86
     Note over SRV: the ack commits that chunk's nodes as held by this client and the next chunk is built at once, see VC-13.4<br/>src/actors/client_coordinator_actor.rs:1540-1571
     Note over WS,SRV: INVARIANT the ack bytes are asserted against one golden frame by the server, the web client and the XR client<br/>crates/visionclaw-wire/src/lib.rs:92-95, :334 and src/utils/binary_protocol.rs:2159-2178
-    Note over WEB: RESOLVED handleBinaryFrame no longer drops a chunk that arrives within 16 ms of the last, so ADR-2141 decision 5 holds,<br/>an applied chunk is acknowledged, and a worker error is rethrown so the chunk is not<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:42 and client/src/features/graph/managers/dataManager/wsClient.ts:39-42, :78 and client/src/store/websocket/binaryProtocol.ts:393-409
+    Note over WEB: RESOLVED handleBinaryFrame no longer drops a chunk that arrives within 16 ms of the last, so ADR-2141 decision 5 holds,<br/>an applied chunk is acknowledged, and a worker error is rethrown so the chunk is not<br/>docs/adr/ADR-2141-positions-are-streamed-per-client-until-acknowledged.md:42 and client/src/features/graph/managers/dataManager/wsClient.ts:39-42, :78 and client/src/store/websocket/binaryProtocol.ts:401-417
 ```
