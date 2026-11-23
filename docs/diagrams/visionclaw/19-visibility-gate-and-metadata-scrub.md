@@ -29,6 +29,7 @@ sources:
   - ../project/src/handlers/api_handler/analytics/clustering_handlers.rs
   - ../project/src/handlers/api_handler/analytics/cycles_handlers.rs
   - ../project/src/handlers/api_handler/analytics/insights_handlers.rs
+  - ../project/src/handlers/api_handler/analytics/community_labels_handlers.rs
   - ../project/src/handlers/api_handler/semantic_forces.rs
   - ../project/src/handlers/api_handler/ontology/mod.rs
   - ../project/src/handlers/constraints_handler.rs
@@ -49,7 +50,7 @@ sources:
   - ../project/docs/PROTOCOL-registry.md
   - ../project/docs/SECURITY-profiles.md
   - ../project/docs/adr/ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -67,7 +68,7 @@ flowchart TB
     PARSE --> FE["filter_enabled, read once through OnceLock<br/>visibility_filter.rs:46-51"]
     ON["NodeVisibility::of_node: public iff metadata public equals true,<br/>owner_pubkey read only for a private node<br/>visibility_filter.rs:101-115"] --> DROP["is_dropped_for: public keeps,<br/>caller equal to owner keeps, anything else drops<br/>visibility_filter.rs:127-137"]
     DROP --> NIV["node_is_visible<br/>visibility_filter.rs:160-162"]
-    DROP --> CPO["compute_private_opaque_ids, the position-stream drop set<br/>visibility_filter.rs:144-153, private_nodes from of_node at<br/>src/actors/graph_state_actor.rs:173-179 (VC-03.9)"]
+    DROP --> CPO["compute_private_opaque_ids, the position-stream drop set<br/>visibility_filter.rs:144-153, private_nodes from of_node at<br/>src/actors/graph_state_actor.rs:186-192 (VC-03.9)"]
     FE --> VS
     NIV --> VS["visible_subgraph(graph, caller, filter_on)<br/>visibility_filter.rs:171-232"]
     VS --> OFF["filter off: the same Arc, unchanged<br/>visibility_filter.rs:176-178"]
@@ -82,7 +83,7 @@ flowchart TB
     FE --- DR
     OA["OptionalAuth yields None for a bad or absent credential, so that caller is anonymous<br/>src/settings/auth_extractor.rs:87, graph_access.rs:18-22"]
     OA --> VS
-    DEV["dev builds only: with DEV_AUTH_LOOPBACK=1 behind a same-host proxy any client is loopback<br/>and may name any pubkey, so the caller identity itself is forgeable<br/>src/utils/auth.rs:147, operator-accepted in ADR-2012, see VC-03.11"]
+    DEV["dev builds only: DEV_AUTH_LOOPBACK=1 and a loopback peer let a client name any pubkey<br/>src/utils/auth.rs:139-151, operator-accepted in ADR-2012, see VC-03.11.<br/>RESOLVED in part: a same-host proxy no longer makes every client loopback,<br/>each X-Real-IP or X-Forwarded-For hop must be loopback too, auth.rs:164-182"]
     DEV -.-> OA
 ```
 
@@ -121,28 +122,28 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant WS as send_full_state_sync<br/>src/handlers/socket_flow_handler/types.rs:177
-    participant IGL as initial_graph_load_projection<br/>src/handlers/socket_flow_handler/types.rs:492
-    participant REST as get_graph_data<br/>src/handlers/api_handler/graph/mod.rs:224
-    participant GDP as graph_data_projection<br/>src/handlers/api_handler/graph/mod.rs:341
+    participant IGL as initial_graph_load_projection<br/>src/handlers/socket_flow_handler/types.rs:531
+    participant REST as get_graph_data<br/>src/handlers/api_handler/graph/mod.rs:245
+    participant GDP as graph_data_projection<br/>src/handlers/api_handler/graph/mod.rs:372
     participant VS as visible_subgraph<br/>crates/visionclaw-domain/src/utils/visibility_filter.rs:171
-    participant T as visibility_parity_tests<br/>src/handlers/api_handler/graph/mod.rs:2403
+    participant T as visibility_parity_tests<br/>src/handlers/api_handler/graph/mod.rs:2434
 
     WS->>WS: caller_pubkey = session pubkey, visibility_filter_on (types.rs:183, :185)
-    WS->>WS: state_sync counts are the session's view, visible_counts (types.rs:210-221)
-    WS->>IGL: projection(graph, caller, filter_on, initial_node_limit) (types.rs:271-276)
-    IGL->>VS: visible_subgraph(graph, caller, filter_on), scrub included, review N1 (types.rs:505-513)
+    WS->>WS: state_sync counts are the session's view, visible_counts (types.rs:249-260)
+    WS->>IGL: projection(graph, caller, filter_on, initial_node_limit) (types.rs:310-315)
+    IGL->>VS: visible_subgraph(graph, caller, filter_on), scrub included, review N1 (types.rs:544-552)
     VS-->>IGL: the caller's view, scrubbed
-    IGL->>IGL: sort by quality_score, take initial_node_limit, keep edges inside the set (types.rs:516-540)
-    REST->>GDP: graph_data_projection(graph, query, caller, filter_enabled()) (graph/mod.rs:276-280)
-    GDP->>VS: visible_subgraph first (graph/mod.rs:352-356)
+    IGL->>IGL: sort by quality_score, take initial_node_limit, keep edges inside the set (types.rs:555-579)
+    REST->>GDP: graph_data_projection(graph, query, caller, filter_enabled()) (graph/mod.rs:307-311)
+    GDP->>VS: visible_subgraph first (graph/mod.rs:383-387)
     VS-->>GDP: the same view
     GDP->>GDP: then the population and linked-page filters, edges with both ends kept
-    T->>IGL: wss_view (graph/mod.rs:2477)
-    T->>GDP: rest_view (graph/mod.rs:2466)
-    Note over T: anonymous, non-owner and owner callers must see the same node ids on both paths<br/>(graph/mod.rs:2601, :2606, :2611), and wss node metadata is scrubbed like REST (graph/mod.rs:2495)
-    Note over IGL,GDP: INVARIANT: neither path reads the visibility keys itself, both call visible_subgraph<br/>(types.rs:509, graph/mod.rs:352). This is the ADR-2184 D1 precondition (graph/mod.rs:2403)
-    Note over IGL,VS: DRIFT: PROTOCOL-registry.md:405 places visible_subgraph at visibility_filter.rs line 184 and,<br/>with ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:40,<br/>initial_graph_load_projection at types.rs line 488. They are at visibility_filter.rs:171 and types.rs:492
-    Note over VS: TENSION: ids keep their gaps (visibility_filter.rs:201-208), so a gated load shows how many<br/>nodes are hidden. PROTOCOL records it as documented, not renumbered (PROTOCOL-registry.md:405)
+    T->>IGL: wss_view (graph/mod.rs:2508)
+    T->>GDP: rest_view (graph/mod.rs:2497)
+    Note over T: anonymous, non-owner and owner callers must see the same node ids on both paths<br/>(graph/mod.rs:2632, :2637, :2642), and wss node metadata is scrubbed like REST (graph/mod.rs:2526)
+    Note over IGL,GDP: INVARIANT: neither path reads the visibility keys itself, both call visible_subgraph<br/>(types.rs:548, graph/mod.rs:383). This is the ADR-2184 D1 precondition (graph/mod.rs:2434)
+    Note over IGL,VS: DRIFT: PROTOCOL-registry.md:418 places visible_subgraph at visibility_filter.rs line 184 and,<br/>with ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:40,<br/>initial_graph_load_projection at types.rs line 488. They are at visibility_filter.rs:171 and types.rs:531
+    Note over VS: TENSION: ids keep their gaps (visibility_filter.rs:201-208), so a gated load shows how many<br/>nodes are hidden. PROTOCOL records it as documented, not renumbered (PROTOCOL-registry.md:418)
 ```
 
 **What it shows.** The two first-load paths, the session counts sent before them, and the test that holds them equal. **Why it is this way.** ADR-2184 builds the desktop node table from the REST load and refuses a second read path; its precondition now reads "met 2026-11-06" (`../project/docs/adr/ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:40`).
@@ -157,18 +158,20 @@ flowchart TB
         CG["CallerGate: graph, view, VisibleIds, VisibleSlots<br/>graph_access.rs:82-87, newtypes :47, :53"]
         GFG["gate_for_graph: None when the view is the same Arc,<br/>else ids of the view, and slots whose node id equals the slot<br/>graph_access.rs:120-153, slot rule :140-146"]
         CGA["caller_gate: filter off is Ok None without fetching the graph,<br/>an unreadable graph is Err<br/>graph_access.rs:159-168"]
+        CNG["caller_node_gate: as caller_gate, but None unless a node is hidden,<br/>so an orphan metadata row alone no longer gates<br/>graph_access.rs:177-185, :188-197"]
         IAS["id_at_slot: a position names a node only when visible, fail closed<br/>graph_access.rs:109-114"]
-        VC["visible_counts: nodes, edges, metadata of the view<br/>graph_access.rs:224-236"]
-        HC["caller_hidden_classes, the ontology deny-list, VC-19.7<br/>graph_access.rs:200-208"]
+        VC["visible_counts: nodes, edges, metadata of the view<br/>graph_access.rs:253-265"]
+        HC["caller_hidden_classes, the ontology deny-list, VC-19.7<br/>graph_access.rs:229-237"]
         GFG --> CG
         CGA --> GFG
+        CNG --> GFG
         CG --> IAS
         CGA --> HC
     end
     subgraph RG["/api/graph, graph/mod.rs"]
-        G1["/data/paginated and /refresh<br/>graph/mod.rs:464, :554"]
-        G3["fetch_graph_view, view and a whole-graph flag<br/>graph/mod.rs:1155-1175"]
-        G4["/positions ids, node relations, expand, query pattern<br/>graph/mod.rs:814, :1195, :1230, :1666"]
+        G1["/data/paginated and /refresh<br/>graph/mod.rs:495, :585"]
+        G3["fetch_graph_view, view and a whole-graph flag<br/>graph/mod.rs:1186-1206"]
+        G4["/positions ids, node relations, expand, query pattern<br/>graph/mod.rs:845, :1226, :1261, :1697"]
         G5["/fold: a gated plan never enters the shared memo<br/>fold.rs:580, :597"]
         G3 --> G4
         G3 --> G5
@@ -178,13 +181,15 @@ flowchart TB
         S2["insights and insights/realtime<br/>insights_handlers.rs:44, :183"]
         S3["hierarchy-levels<br/>semantic_forces.rs:68"]
         S4["GET /api/constraints/list<br/>constraints_handler.rs:269"]
-        S5["refresh_graph and state_sync counts<br/>files/mod.rs:261, types.rs:210"]
+        S5["refresh_graph and state_sync counts<br/>files/mod.rs:261, types.rs:249"]
     end
     subgraph OTH["other users"]
         O1["export and share, the caller's view<br/>graph_export_handler.rs:111"]
         O2["semantic-path, query-traversal, chunk-traversal<br/>semantic_pathfinding_handler.rs:46, :76, :108"]
         O3["cycles, schema, layout mode, mock agents<br/>cycles_handlers.rs:66, schema_handler.rs:116-117,<br/>layout_handler.rs:141, bots_visualization_handler.rs:360"]
-        O4["analytics: community, anomaly, PageRank, SSSP, DBSCAN, VC-19.5<br/>analytics/mod.rs:78, :115, pagerank_handlers.rs:138,<br/>sssp_handlers.rs:229, clustering_handlers.rs:390"]
+        O4["analytics: SSSP, DBSCAN, VC-19.5<br/>sssp_handlers.rs:229, clustering_handlers.rs:390"]
+        O5["analytics GPU-or-CPU routing: community, anomaly, PageRank, VC-19.5<br/>analytics/mod.rs:79, :116, pagerank_handlers.rs:138, :200"]
+        O6["community labels: caller_pubkey, then visible_subgraph directly, not a CallerGate<br/>community_labels_handlers.rs:165, :107"]
     end
     CV --> G1
     CV --> G3
@@ -197,28 +202,29 @@ flowchart TB
     GFG --> S2
     VC --> S5
     CGA --> O4
-    DRS["DRIFT: SECURITY-profiles.md:105 places caller_gate at graph_access line 175 and<br/>SECURITY-profiles.md:107 places visible_counts at line 200, which is caller_hidden_classes (graph_access.rs:200).<br/>They are at graph_access.rs:159 and graph_access.rs:224"]
+    CNG --> O5
+    DRS["DRIFT: SECURITY-profiles.md:105 places caller_gate at graph_access line 175 and<br/>SECURITY-profiles.md:107 places visible_counts at line 200, which is caller_hidden_classes (graph_access.rs:229).<br/>They are at graph_access.rs:159 and graph_access.rs:253"]
     CGA -.- DRS
 ```
 
-**What it shows.** The module's one decision type and every route that runs a graph through it. **Why it is this way.** The sweep replaced four per-route "is anything hidden" helpers with `CallerGate`; ids and positions are separate types because they agree only while the graph is compact (`../project/src/handlers/graph_access.rs:49-51`), pinned by `ids_and_positions_are_distinct_sets_on_a_non_compact_graph` (`graph_access.rs:269`).
+**What it shows.** The module's one decision type and every route that runs a graph through it. **Why it is this way.** The sweep replaced four per-route "is anything hidden" helpers with `CallerGate`; ids and positions are separate types because they agree only while the graph is compact (`../project/src/handlers/graph_access.rs:49-51`), pinned by `ids_and_positions_are_distinct_sets_on_a_non_compact_graph` (`graph_access.rs:298`).
 
-**Debt (parallel):** three thin wrappers sit beside `caller_gate`: `gated_view`, which fetches the graph even with the filter off (`../project/src/handlers/api_handler/analytics/pathfinding.rs:456-478`), a private `caller_gate` with another signature (`../project/src/handlers/semantic_handler.rs:252-260`) and the `/positions` id set (`../project/src/handlers/api_handler/graph/mod.rs:812-815`). The graph itself is read three ways: through the supervisor (`../project/src/handlers/graph_access.rs:239-246`), straight from the graph state actor (`../project/src/handlers/api_handler/graph/mod.rs:1161-1171`) and from `graph_repository` in point-to-point (`../project/src/handlers/api_handler/analytics/pathfinding.rs:580`).
+**Debt (parallel):** three thin wrappers sit beside `caller_gate`: `gated_view`, which fetches the graph even with the filter off (`../project/src/handlers/api_handler/analytics/pathfinding.rs:456-478`), a private `caller_gate` with another signature (`../project/src/handlers/semantic_handler.rs:252-260`) and the `/positions` id set (`../project/src/handlers/api_handler/graph/mod.rs:843-846`). The graph itself is read three ways: through the supervisor (`../project/src/handlers/graph_access.rs:268-275`), straight from the graph state actor (`../project/src/handlers/api_handler/graph/mod.rs:1192-1202`) and from `graph_repository` in point-to-point (`../project/src/handlers/api_handler/analytics/pathfinding.rs:580`).
 
 ## VC-19.5 Gated analytics: computed over the view on the CPU, full access on the GPU
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as caller
-    participant R as analytics routes<br/>src/handlers/api_handler/analytics/mod.rs:71, :108
-    participant GA as caller_gate<br/>src/handlers/graph_access.rs:159
+    participant R as analytics routes<br/>src/handlers/api_handler/analytics/mod.rs:72, :109
+    participant GA as caller_node_gate<br/>src/handlers/graph_access.rs:188
     participant VA as visible_analytics<br/>src/handlers/api_handler/analytics/visible_analytics.rs:60
     participant DJ as single_source Dijkstra<br/>src/services/pathfinding.rs:180
     participant GR as GpuAnalyticsRoutes<br/>src/handlers/api_handler/analytics/gpu_routes.rs:24
     participant SPA as ShortestPathActor APSP<br/>src/actors/gpu/shortest_path_actor.rs:284
 
     C->>R: POST community/detect, pagerank/compute, pathfinding sssp, apsp, components, point-to-point
-    R->>GA: caller_gate or gate_for_graph (analytics/mod.rs:78-82, pagerank_handlers.rs:138-142, analytics/pathfinding.rs:456-478)
+    R->>GA: caller_node_gate (analytics/mod.rs:79-83, pagerank_handlers.rs:138-142), pathfinding through gated_view (analytics/pathfinding.rs:456-478)
     alt the view hides nodes
         R->>VA: visible_communities, Louvain local moving plus modularity over the view (community.rs:154-163, visible_analytics.rs:331-337)
         R->>VA: visible_pagerank over the view, keyed by visible id (pagerank_handlers.rs:144-157, visible_analytics.rs:408-416)
@@ -233,7 +239,7 @@ sequenceDiagram
         SPA-->>C: refused for every caller, NFR-7 (shortest_path_actor.rs:287-299)
     end
     C->>R: POST anomaly/detect
-    R->>R: GPU run, then gate_anomalies by VisibleSlots (analytics/mod.rs:121-133, visible_results.rs:14)
+    R->>R: GPU run, then gate_anomalies by VisibleSlots (analytics/mod.rs:122-134, visible_results.rs:14)
     Note over R: DEBT: anomalies are still filtered on the way out, LOF and Z-score over positions<br/>a hidden node helped lay out (visible_results.rs:1-7)
     Note over GR: INVARIANT: a gated caller never reaches the GPU actors or their PageRank cache,<br/>a cached result reads as nothing cached for them (pagerank_handlers.rs:197-214)
     Note over R,VA: DEBT: DBSCAN and semantic centrality are still whole-graph runs cut afterwards. gate_clusters<br/>recounts, but ids and membership were formed with hidden nodes (visible_analytics.rs:177-219)
@@ -252,7 +258,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph NODE["node-scoped reads"]
-        NR["GET /api/graph/node/id/relations and POST /node/id/expand<br/>graph/mod.rs:1188, :1220"] --> NV["the caller's view has no such id<br/>graph/mod.rs:1206, :1241"] --> NF["404 Node id not found, the same text for hidden and absent<br/>graph/mod.rs:1207-1208, :1242-1243"]
+        NR["GET /api/graph/node/id/relations and POST /node/id/expand<br/>graph/mod.rs:1219, :1251"] --> NV["the caller's view has no such id<br/>graph/mod.rs:1237, :1272"] --> NF["404 Node id not found, the same text for hidden and absent<br/>graph/mod.rs:1238-1239, :1273-1274"]
         SSP["POST /analytics/sssp/compute, a source outside gate.ids<br/>sssp_handlers.rs:229-239"] --> SNF["the same reply as a missing source, source_not_found<br/>sssp_handlers.rs:237"]
     end
     subgraph FILE["GET /api/files/get_content/filename, files/mod.rs:366"]
@@ -285,26 +291,26 @@ flowchart TB
 ```mermaid
 flowchart TB
     REQ["an ontology read: /api/ontology GETs, query and sparql,<br/>or /api/ontology-agent discover, read, query, traverse, validate, check<br/>ontology/mod.rs:1846-1869, ontology_agent_handler.rs:470-476"] --> CHC
-    CHC["caller_hidden_classes(supervisor, caller)<br/>graph_access.rs:200-208"] --> CHI["caller_hidden_class_iris: caller_gate, then hidden_class_iris,<br/>empty when nothing is hidden<br/>graph_access.rs:186-194"]
-    CHI --> HCI["hidden_class_iris: owl_class_iri of every graph node outside the caller's ids<br/>graph_access.rs:174-181"]
-    CHC --> F503["graph unreadable: 503, never the unfiltered store<br/>graph_access.rs:203-207"]
+    CHC["caller_hidden_classes(supervisor, caller)<br/>graph_access.rs:229-237"] --> CHI["caller_hidden_class_iris: caller_gate, then hidden_class_iris,<br/>empty when nothing is hidden<br/>graph_access.rs:215-223"]
+    CHI --> HCI["hidden_class_iris: owl_class_iri of every graph node outside the caller's ids<br/>graph_access.rs:203-210"]
+    CHC --> F503["graph unreadable: 503, never the unfiltered store<br/>graph_access.rs:232-236"]
     HCI --> HC["HiddenClasses, an empty set is a pass-through<br/>ontology_visibility.rs:20, :35-37"]
     HC --> SC["class and classes: a hidden class is None or dropped,<br/>survivors lose parents, ADR-014 lists, other relationships,<br/>IRI-valued properties and domains naming one<br/>ontology_visibility.rs:60-108"]
     HC --> AX["axioms, inference results, Whelk pairs: drop any naming a hidden class<br/>ontology_visibility.rs:126-135"]
     HC --> GR["graph: drop hidden class nodes and their axiom records, renumber ids densely<br/>ontology_visibility.rs:141-193"]
     HC --> SP["sparql_json and query_rows: drop a row with a binding equal to a hidden IRI<br/>ontology_visibility.rs:196-224"]
     HC --> TR["triples_json, validation_report, provenance_chain<br/>ontology_visibility.rs:228-301"]
-    SC --> USE["call sites: ontology_handler.rs:92, :173, :220, :1025, :1106,<br/>ontology/mod.rs:1088, :1741, ontology_agent_handler.rs:135, :200, :240"]
-    T["tests: ontology_handler hidden_class_tests, ontology_agent_handler hidden_class_tests,<br/>graph_access the_deny_list_is_the_class_iris_of_nodes_outside_the_view<br/>ontology_handler.rs:1421, ontology_agent_handler.rs:488, graph_access.rs:383"]
+    SC --> USE["call sites: ontology_handler.rs:94, :175, :222, :1027, :1108,<br/>ontology/mod.rs:1088, :1741, ontology_agent_handler.rs:135, :200, :240"]
+    T["tests: ontology_handler hidden_class_tests, ontology_agent_handler hidden_class_tests,<br/>graph_access the_deny_list_is_the_class_iris_of_nodes_outside_the_view<br/>ontology_handler.rs:1513, ontology_agent_handler.rs:488, graph_access.rs:451"]
     USE --- T
     RES["OPEN: SPARQL ASK, aggregates, queries that do not project the class and literal forms<br/>pass the row filter, which compares binding values to IRIs only (ontology_visibility.rs:204-211)"]
     SP -.- RES
-    COST["DEBT: each read builds the caller's whole scrubbed view only to collect IRIs<br/>(graph_access.rs:190-193, :166-167), and a gated /graph re-reads every axiom (ontology_handler.rs:114-115)"]
+    COST["DEBT: each read builds the caller's whole scrubbed view only to collect IRIs<br/>(graph_access.rs:219-222, :166-167), and a gated /graph re-reads every axiom (ontology_handler.rs:116-117)"]
     CHI -.- COST
 ```
 
-**What it shows.** How a class whose page is private disappears from every ontology read for a caller who cannot see the page. **Why it is this way.** The vault admits a formal class page with `public: false`, so the store holds classes the graph hides; the operator chose "hidden reads as unknown" and accepted hierarchy gaps (SECURITY-profiles 0.1.6, `../project/docs/SECURITY-profiles.md:111`; PROTOCOL 0.1.22, `../project/docs/PROTOCOL-registry.md:9`).
+**What it shows.** How a class whose page is private disappears from every ontology read for a caller who cannot see the page. **Why it is this way.** The vault admits a formal class page with `public: false`, so the store holds classes the graph hides; the operator chose "hidden reads as unknown" and accepted hierarchy gaps (SECURITY-profiles 0.1.6, `../project/docs/SECURITY-profiles.md:111`; PROTOCOL 0.1.22, `../project/docs/PROTOCOL-registry.md:10`).
 
-**Open (risk):** SECURITY-profiles lists the residuals the deny-list does not catch (`../project/docs/SECURITY-profiles.md:111`): inferences computed over the whole store on routes outside per-view reasoning (the SPARQL routes over the inferred graph and the validator's inferred triples), store-wide totals in validation reports (left as computed, `../project/src/services/ontology_visibility.rs:266-268`), ontology nodes stored under a slug IRI with no `owl_class_iri` (`hidden_class_iris` reads only that field, `../project/src/handlers/graph_access.rs:179`), and `jev_nlq` and `natural_language_query_service`, which query the store outside these routes. The per-view reasoning of 0.1.8 has since closed the stored-run reads and the `/inferred` run id (`../project/docs/SECURITY-profiles.md:112`).
+**Open (risk):** SECURITY-profiles lists the residuals the deny-list does not catch (`../project/docs/SECURITY-profiles.md:111`): inferences computed over the whole store on routes outside per-view reasoning (the SPARQL routes over the inferred graph and the validator's inferred triples), store-wide totals in validation reports (left as computed, `../project/src/services/ontology_visibility.rs:266-268`), ontology nodes stored under a slug IRI with no `owl_class_iri` (`hidden_class_iris` reads only that field, `../project/src/handlers/graph_access.rs:208`), and `jev_nlq` and `natural_language_query_service`, which query the store outside these routes. The per-view reasoning of 0.1.8 has since closed the stored-run reads and the `/inferred` run id (`../project/docs/SECURITY-profiles.md:112`).
 
-**Open (risk):** the deny-list is keyed by IRI, not by node. If a visible page and a hidden page carry the same `owl_class_iri`, the class is denied to a caller who can see one of them (`../project/src/handlers/graph_access.rs:174-181`). This fails closed, but nothing tests it.
+**Open (risk):** the deny-list is keyed by IRI, not by node. If a visible page and a hidden page carry the same `owl_class_iri`, the class is denied to a caller who can see one of them (`../project/src/handlers/graph_access.rs:203-210`). This fails closed, but nothing tests it.
