@@ -16,18 +16,18 @@ sources:
   - ../project/codescape/crates/codescape-server/src/xr_presence.rs
   - ../project/xr-client/rust/src/presence.rs
   - ../project/xr-client/scripts/graph_scene.gd
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
 
-Consumer scope checked on 16 November 2026: VisionClaw main `d2780e26f870ce21fa92bccb29fa47f001015b16` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
+Consumer scope checked on 23 November 2026: VisionClaw main `4900ec60bc1ba9075343fe848c62e64434126c7e` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check.
 
 The Codescape hub relays poses and roster events. The [production-library probes](../../estate-review/2026-10-31-codescape-presence-and-xr.md) expose stale membership and queue-loss boundaries; they do not measure a live socket race.
 
 ## For the business
 
-An avatar label is not authenticated identity here. Reconnects and slow readers can also leave a consumer with an inconsistent roster. The default XR scene uses VisionClaw presence, not this endpoint (`graph_scene.gd:2954,2958`).
+An avatar label is not authenticated identity here. Reconnects and slow readers can also leave a consumer with an inconsistent roster. The default XR scene uses VisionClaw presence, not this endpoint (`graph_scene.gd:2952,2956`).
 
 ## VC-43.1 Admission has an origin filter but no identity verifier
 
@@ -85,4 +85,4 @@ flowchart TD
 
 **Drift:** The baseline says presence carries no avatars (`../project/codescape/docs/BASELINE-codescape.md:109`), although the current hub forwards them (`xr_presence.rs:668`).
 
-**Tension (risk):** Both defects are fixed only upstream: standalone Codescape `d2c3c3b` adds a cancel fence and a separate control queue for roster messages, but VisionClaw `ec785afa9` still pins `e3b76f6`, where `relay` checks only room and avatar (`xr_presence.rs:668`) and `send_all` uses one `try_send` queue (`xr_presence.rs:524`).
+**Tension (risk):** Both defects are fixed only upstream: standalone Codescape `d2c3c3b` adds a cancel fence and a separate control queue for roster messages, but VisionClaw `4900ec6` still pins `e3b76f6`, where `relay` checks only room and avatar (`xr_presence.rs:668`) and `send_all` uses one `try_send` queue (`xr_presence.rs:524`).

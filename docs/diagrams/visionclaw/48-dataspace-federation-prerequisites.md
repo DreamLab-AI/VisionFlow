@@ -17,7 +17,7 @@ sources:
   - ../project/xr-client/scripts/backend_connection.gd
   - ../project/src/services/corpus_history.rs
   - ../project/src/actors/agent_demo_director.rs
-verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -50,9 +50,9 @@ flowchart TD
 flowchart TD
     FLAG["Visibility flag defaults ON, absent or unrecognised is ON, explicit false tokens opt out<br/>visibility_filter.rs:29 visibility_filter.rs:34-40"] --> OF["of_node reads public and owner_pubkey, the stated single reading<br/>visibility_filter.rs:97-101"]
     OF --> SUB["visible_subgraph: visible nodes, edges with both ends visible, metadata rows of visible nodes, hidden page names scrubbed, now also wiki links to hidden pages inside definitions<br/>visibility_filter.rs:171 visibility_filter.rs:302 visibility_filter.rs:367"]
-    SUB --> WSS["initial_graph_load_projection: visible_subgraph for the caller, then the top-N by quality<br/>types.rs:492 types.rs:509"]
+    SUB --> WSS["initial_graph_load_projection: visible_subgraph for the caller, then the top-N by quality<br/>types.rs:531 types.rs:548"]
     KINDS["Current typed URN kind set has no Dataspace arm<br/>uri/mod.rs:54,86,94"] --> SHARED["Compile shared agentbox crossing-kind artefact<br/>uri/mod.rs:665"]
-    SPEC["PROPOSED: viewer bound to one dataspace with selector and ACL<br/>PROTOCOL-registry.md:392"] --> RECHECK["PROPOSED: re-evaluate at least every 10 s and close access-losing connections<br/>PROTOCOL-registry.md:392"]
+    SPEC["PROPOSED: viewer bound to one dataspace with selector and ACL<br/>PROTOCOL-registry.md:405"] --> RECHECK["PROPOSED: re-evaluate at least every 10 s and close access-losing connections<br/>PROTOCOL-registry.md:405"]
     SUB -.->|"PROPOSED: selector and acl intersect after this"| SPEC
 ```
 
@@ -63,13 +63,13 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    OWN["PROPOSED: authored link is primary local data<br/>DATA-authority-erasure.md:179"] --> RENEW["Seven-day lease means re-announce, not discard local authorship<br/>DATA-authority-erasure.md:179,183"]
-    FOREIGN["PROPOSED: received link or viewer state is disposable<br/>DATA-authority-erasure.md:180"] --> RETRACT["Authoritative retraction removes display and tombstones links<br/>DATA-authority-erasure.md:182,183"]
-    RETRACT --> PURGE["Purge by earlier of receipt plus 24 hours or lease expiry<br/>DATA-authority-erasure.md:183"]
-    FOREIGN --> EXPIRE["Offline received references expire after seven days<br/>tombstones survive eight days<br/>DATA-authority-erasure.md:183"]
+    OWN["PROPOSED: authored link is primary local data<br/>DATA-authority-erasure.md:184"] --> RENEW["Seven-day lease means re-announce, not discard local authorship<br/>DATA-authority-erasure.md:184,188"]
+    FOREIGN["PROPOSED: received link or viewer state is disposable<br/>DATA-authority-erasure.md:185"] --> RETRACT["Authoritative retraction removes display and tombstones links<br/>DATA-authority-erasure.md:187,188"]
+    RETRACT --> PURGE["Purge by earlier of receipt plus 24 hours or lease expiry<br/>DATA-authority-erasure.md:188"]
+    FOREIGN --> EXPIRE["Offline received references expire after seven days<br/>tombstones survive eight days<br/>DATA-authority-erasure.md:188"]
 ```
 
 **What it shows.** The design has distinct ownership and expiry rules; the current resolver has no 410/tombstone implementation. **Why it is this way.** A received reference is reconstructible, while an authored assertion is primary data. This diagram records the proposal without asserting that its deadlines run today.
-**Open (risk):** graph shares are a durable copy of the creator's view, private nodes included, and no per-user erasure path reaches them (`DATA-authority-erasure.md:114-115`, `DATA-authority-erasure.md:129-131`). A federated render-only rule that forbids durable copies (`DATA-authority-erasure.md:182`) would need shares carved out or covered.
+**Open (risk):** graph shares are a durable copy of the creator's view, private nodes included, and no per-user erasure path reaches them (`DATA-authority-erasure.md:119-120`, `DATA-authority-erasure.md:134-136`). A federated render-only rule that forbids durable copies (`DATA-authority-erasure.md:187`) would need shares carved out or covered.
 
 **Transport boundary, 14 November source review:** `connect_graph` accepts `ws://` only; this build has no TLS backend and refuses `wss://` (`xr-client/rust/src/transport.rs:108-123`). Signing the upgrade establishes the configured identity carrier, not encrypted transport or a completed federation contract. VC-44.4 describes the separate byte-progress and reconnect behaviour.

@@ -12,7 +12,7 @@ sources:
   - ../project/xr-client/rust/src/webrtc_audio.rs
   - ../project/crates/visionclaw-domain/src/config/services.rs
   - ../project/src/services/audio_router.rs
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -31,7 +31,7 @@ flowchart TD
     ROUTER["Audio router stores optional participant id<br/>audio_router.rs:39,160,420"]
     TRACKS["Voice core: track positions and mute flags<br/>webrtc_audio.rs:43,62,88,99"] --> SNAP["Return track snapshot<br/>webrtc_audio.rs:113,115"]
     LISTENER["Store listener transform<br/>webrtc_audio.rs:103,105"] --> READ["Return listener snapshot<br/>webrtc_audio.rs:120,123"]
-    GAP["Documented media transport gap<br/>XR-client.md:1026-1029"]
+    GAP["Documented media transport gap<br/>XR-client.md:1035-1038"]
 ```
 
 **What it shows.** These are existing fields and state operations, not a connected media pipeline. **Why it is this way.** The native media transport remains unwired; passing state tests do not establish HRTF, microphone capture or a server token issuer.
@@ -40,10 +40,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    AUTH["PROPOSED: verified identity and RoomAdmission<br/>IDENTITY-authority-chain.md:242,244"] --> BOUND["PROPOSED: bound registered rooms only<br/>IDENTITY-authority-chain.md:244"]
-    BOUND --> MINT["PROPOSED: room-scoped grant, TTL at most 60 seconds<br/>IDENTITY-authority-chain.md:244"]
-    MINT --> KEY["PROPOSED: per-SFU signing key custody<br/>IDENTITY-authority-chain.md:244"]
-    REFRESH["PROPOSED: refuse removed members a refresh<br/>IDENTITY-authority-chain.md:244"] --> AUTH
+    AUTH["PROPOSED: verified identity and RoomAdmission<br/>IDENTITY-authority-chain.md:272,274"] --> BOUND["PROPOSED: bound registered rooms only<br/>IDENTITY-authority-chain.md:274"]
+    BOUND --> MINT["PROPOSED: room-scoped grant, TTL at most 60 seconds<br/>IDENTITY-authority-chain.md:274"]
+    MINT --> KEY["PROPOSED: per-SFU signing key custody<br/>IDENTITY-authority-chain.md:274"]
+    REFRESH["PROPOSED: refuse removed members a refresh<br/>IDENTITY-authority-chain.md:274"] --> AUTH
 ```
 
 **What it shows.** The intended application credential path is specified but absent from current source. **Why it is this way.** The authority document describes a proposal; the audit identifies an additional dependency refresh path that its system-wide argument must cover.
@@ -52,11 +52,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    VOL["PROPOSED: voluntary leave<br/>IDENTITY-authority-chain.md:244"] --> GRACE["PROPOSED: 25-second grace<br/>IDENTITY-authority-chain.md:244"]
-    KICK["PROPOSED: membership removal or staleness<br/>IDENTITY-authority-chain.md:242,244"] --> REMOVE["PROPOSED: RemoveParticipant<br/>IDENTITY-authority-chain.md:244"]
+    VOL["PROPOSED: voluntary leave<br/>IDENTITY-authority-chain.md:274"] --> GRACE["PROPOSED: 25-second grace<br/>IDENTITY-authority-chain.md:274"]
+    KICK["PROPOSED: membership removal or staleness<br/>IDENTITY-authority-chain.md:272,274"] --> REMOVE["PROPOSED: RemoveParticipant<br/>IDENTITY-authority-chain.md:274"]
     GRACE --> REMOVE
-    LOOP["PROPOSED: participant reconciler every 10 seconds<br/>IDENTITY-authority-chain.md:244"] --> REMOVE
-    PART["PROPOSED: API unreachable beyond 90 seconds<br/>IDENTITY-authority-chain.md:244"] --> ALARM["PROPOSED: stop minting and alarm<br/>connected window remains unenforced<br/>IDENTITY-authority-chain.md:244"]
+    LOOP["PROPOSED: participant reconciler every 10 seconds<br/>IDENTITY-authority-chain.md:274"] --> REMOVE
+    PART["PROPOSED: API unreachable beyond 90 seconds<br/>IDENTITY-authority-chain.md:274"] --> ALARM["PROPOSED: stop minting and alarm<br/>connected window remains unenforced<br/>IDENTITY-authority-chain.md:274"]
 ```
 
 **What it shows.** The proposal distinguishes voluntary reconnect grace, removal and an API-partition exception. **Why it is this way.** Token expiry does not disconnect an active participant; the separate 150-second rejoin claim is undercut by the issuer gap documented in the audit and must not be read as a current guarantee.
