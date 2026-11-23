@@ -47,7 +47,7 @@ sources:
   - ../project/agentbox/docs/PROTOCOL-registry.md
   - ../project/agentbox/schema/federation-kinds.json
   - ../project/docs/explanation/visionflow-coordination-platform.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 ## ES-02.1 Producer — POST /v1/agent-events/emit, NIP-98 gate, local publish
 ```mermaid
@@ -113,7 +113,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant PUB as agentEventPublisher<br/>agentbox/management-api/utils/agent-event-publisher.js:347
-    participant SUB as AgentEventWsSubscriber<br/>agentbox/management-api/utils/agent-event-ws-subscriber.js:30
+    participant SUB as AgentEventWsSubscriber<br/>agentbox/management-api/utils/agent-event-ws-subscriber.js:43
     participant VCW as agent_events_ws<br/>src/agent_events/ingest.rs:296-297
     participant NS as NostrService.get_session<br/>src/agent_events/ingest.rs:274
     participant PF as process_frame<br/>src/agent_events/ingest.rs:100
@@ -122,9 +122,10 @@ sequenceDiagram
 
     rect rgb(245,230,230)
     Note over SUB,VCW: TRUST BOUNDARY: agentbox container -> VisionClaw container, subprotocol vc-agent-events.v1
-    PUB->>SUB: subscribe callback, direction != 'inbound'<br/>agent-event-ws-subscriber.js:46-49
-    SUB->>SUB: new WebSocket(url,[SUBPROTOCOL])<br/>agent-event-ws-subscriber.js:94
-    SUB->>VCW: GET /wss/agent-events upgrade, Authorization: Bearer <token> or ?token=
+    PUB->>SUB: subscribe callback, direction != 'inbound'<br/>agent-event-ws-subscriber.js:61-64
+    SUB->>SUB: start() refuses to run without AGENTBOX_HOST_WS_TOKEN<br/>agent-event-ws-subscriber.js:75-81
+    SUB->>SUB: new WebSocket(url,[SUBPROTOCOL]) with an Authorization header<br/>agent-event-ws-subscriber.js:116-118
+    SUB->>VCW: GET /wss/agent-events upgrade, Authorization: Bearer from AGENTBOX_HOST_WS_TOKEN, never in the URL
     VCW->>NS: authenticate(req, app_state)<br/>src/agent_events/ingest.rs:257,302
     alt token present, session valid
         NS-->>VCW: Some(user.pubkey)
@@ -138,10 +139,10 @@ sequenceDiagram
     VCW->>VCW: WsResponseBuilder.protocols(&[SUBPROTOCOL]).start()<br/>src/agent_events/ingest.rs:311,316
     VCW-->>SUB: 101 Switching Protocols
     loop reconnect backoff on close/error
-        SUB->>SUB: delay = min(30000, 1000*2^attempt)<br/>agent-event-ws-subscriber.js:27-28,133-136
+        SUB->>SUB: delay = min(30000, 1000*2^attempt)<br/>agent-event-ws-subscriber.js:40-41,157-160
     end
-    PUB->>SUB: _forwardOutbound(event) -> ws.send(JSON.stringify(event))<br/>agent-event-ws-subscriber.js:144-151
-    SUB->>VCW: Text frame: the BARE publisher event, not the createMcpNotification envelope<br/>agent-event-ws-subscriber.js:147 versus agent-event-publisher.js:305
+    PUB->>SUB: _forwardOutbound(event), drops any type other than agent_action<br/>agent-event-ws-subscriber.js:168-178
+    SUB->>VCW: Text frame: the createMcpNotification envelope, jsonrpc/method/params<br/>agent-event-ws-subscriber.js:174, agent-event-publisher.js:305
     VCW->>PF: process_frame(&text)
     alt jsonrpc=="2.0" && method matches && kind=="agent_action" && event.version>=3
         PF->>PROV: record(&event)
@@ -164,9 +165,9 @@ sequenceDiagram
     end
 ```
 
-**Drift:** the cross-container forward carries the wrong shape. `_forwardOutbound` sends `JSON.stringify(event)`, the publisher's bare event object (`agentbox/management-api/utils/agent-event-ws-subscriber.js:144-151`), while the canonical `jsonrpc`/`method`/`params` envelope is built only by `createMcpNotification` (`agentbox/management-api/utils/agent-event-publisher.js:305-343`), which the subscriber never calls. `AgentActionNotification` requires `jsonrpc`, `method` and `params` with no serde default (`src/agent_events/schema.rs:26-29`), so the bare event fails to deserialise and `process_frame` returns `Malformed` (`src/agent_events/ingest.rs:101,149`); the socket answers `malformed_json` (`src/agent_events/ingest.rs:229-231`). Read at source, no forwarded frame from this path reaches the hub. Closing it means sending `createMcpNotification(event)` from the subscriber, with a cross-repo contract test on the bytes. Source tracing only.
+**Drift (resolved at agentbox 59b1aca):** the cross-container forward now carries the canonical shape. `_forwardOutbound` drops any event whose type is not `agent_action` and sends `createMcpNotification(event)` (`agentbox/management-api/utils/agent-event-ws-subscriber.js:168-178`), the `jsonrpc`/`method`/`params` envelope `AgentActionNotification` requires with no serde default (`src/agent_events/schema.rs:26-29`). VisionClaw pins the accepted frame in a shared fixture that agentbox is told to test its emitter against (`src/agent_events/ingest.rs:348-374`), but no agentbox file references that fixture at this stamp, so the contract test is one-sided. Source tracing only.
 
-**Drift:** the forwarder presents no credential. The subscriber opens `new WebSocket(this.url, [SUBPROTOCOL])` with no headers (`agentbox/management-api/utils/agent-event-ws-subscriber.js:94`), and the URL that `server.js` derives from `visionclaw_api_url` appends `/wss/agent-events` with no token (`agentbox/management-api/server.js:383`). Only an operator-set `AGENTBOX_HOST_WS_URL` carrying `?token=` could authenticate. Otherwise a release VisionClaw refuses the upgrade with 401 (`src/agent_events/ingest.rs:291-292`).
+**Drift (resolved at agentbox 59b1aca):** the forwarder now presents a credential. `start()` throws when `AGENTBOX_HOST_WS_TOKEN` is unset (`agentbox/management-api/utils/agent-event-ws-subscriber.js:75-81`) and every upgrade carries it as `Authorization: Bearer` (`agentbox/management-api/utils/agent-event-ws-subscriber.js:116-118`). The URL derived from `visionclaw_api_url` still holds no token (`agentbox/management-api/server.js:383`), so with the variable unset the forwarder logs a fail-open start failure (`agentbox/management-api/server.js:391-393`) rather than meeting the host's 401 (`src/agent_events/ingest.rs:291-292`).
 
 **Tension:** this ingest socket still reads `?token=` in every build (`src/agent_events/ingest.rs:267-271`), while ADR-2090's amendment compiles the query carrier out of release on `/ws/mcp-relay` and `/multi-mcp/ws` (`src/handlers/mcp_relay_handler.rs:482,496`). The agent-events socket is the one server-to-server door that keeps the bearer in the URL.
 
@@ -276,7 +277,7 @@ sequenceDiagram
     Note over BC: INVARIANT: past MAX_PENDING_ACTIONS=256 the OLDEST buffered action is evicted and<br/>dropped_total incremented - never a silent drop-and-spam
 ```
 
-**Drift:** since the previous stamp `AgentBeamActor` is no longer only the hub's beam forwarder. It also owns the real-agent roster: `GraphServiceSupervisor` forwards every `UpdateBotsGraph` to it (`src/actors/graph_service_supervisor.rs:2031-2037`), and it emits presence and state `0x23` frames from that roster on a 1 s tick (`src/actors/agent_beam_actor.rs:248,307-313`). Those roster frames go through `broadcast`, a plain `try_send` that logs and drops on a full mailbox (`src/actors/agent_beam_actor.rs:222-236`), so the held-backlog invariant below covers hub actions only. The comment at `src/actors/agent_beam_actor.rs:306` says the keep-alive fires every 5 s while the tick constant is 1 s; the 5 s cadence may live inside `RosterFeed::tick`, which this topic did not trace.
+**Drift:** since the previous stamp `AgentBeamActor` is no longer only the hub's beam forwarder. It also owns the real-agent roster: `GraphServiceSupervisor` forwards every `UpdateBotsGraph` to it (`src/actors/graph_service_supervisor.rs:2045-2051`), and it emits presence and state `0x23` frames from that roster on a 1 s tick (`src/actors/agent_beam_actor.rs:248,307-313`). Those roster frames go through `broadcast`, a plain `try_send` that logs and drops on a full mailbox (`src/actors/agent_beam_actor.rs:222-236`), so the held-backlog invariant below covers hub actions only. The comment at `src/actors/agent_beam_actor.rs:306` says the keep-alive fires every 5 s while the tick constant is 1 s; the 5 s cadence may live inside `RosterFeed::tick`, which this topic did not trace.
 
 ## ES-02.5 Binary wire 0x23 AGENT_ACTION — single event and batch layout
 ```mermaid
@@ -315,16 +316,16 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:456
+    participant WS as processBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:464
     participant DEC as decodeAgentActions<br/>client/src/services/binaryProtocol
-    participant DISP as dispatchAgentActions<br/>client/src/store/websocket/binaryProtocol.ts:434
+    participant DISP as dispatchAgentActions<br/>client/src/store/websocket/binaryProtocol.ts:442
     participant STORE as transientBeamStore<br/>client/src/store/transientBeamStore.ts:65
     participant LAYER as TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx:69
 
     WS->>WS: firstByte = DataView(data).getUint8(0)
     alt firstByte == MessageType.AGENT_ACTION (0x23)
-        WS->>WS: handleAgentActionTagged(data): decodeAgentActions(data.slice(1)) if byteLength>=18<br/>client/src/store/websocket/binaryProtocol.ts:427-431
-        Note over WS: RESOLVED ADR-2099 (2026-09-05): the 0x23 frame is a bare [tag][count]... layout, never the<br/>6-byte framed header. The unreachable handleAgentAction parseHeader branch is DELETED, not kept<br/>as a fallback - parseHeader reads type from offset 0, the same first byte processBinaryData tests at<br/>binaryProtocol.ts:467,476 before returning. Tests assert extractPayload is never reached for 0x23 - binaryProtocolAgentAction.test.ts
+        WS->>WS: handleAgentActionTagged(data): decodeAgentActions(data.slice(1)) if byteLength>=18<br/>client/src/store/websocket/binaryProtocol.ts:435-439
+        Note over WS: RESOLVED ADR-2099 (2026-09-05): the 0x23 frame is a bare [tag][count]... layout, never the<br/>6-byte framed header. The unreachable handleAgentAction parseHeader branch is DELETED, not kept<br/>as a fallback - parseHeader reads type from offset 0, the same first byte processBinaryData tests at<br/>binaryProtocol.ts:475,484 before returning. Tests assert extractPayload is never reached for 0x23 - binaryProtocolAgentAction.test.ts
     else firstByte in {PROTOCOL_V3, PROTOCOL_V5}
         WS->>WS: handleLegacyBinaryData(data)
     else any other lead byte
@@ -333,15 +334,15 @@ sequenceDiagram
     WS->>DEC: decodeAgentActions(payload)
     DEC-->>WS: AgentActionEvent[]
     WS->>DISP: dispatchAgentActions(actions)
-    DISP->>DISP: drop ADR-2142 state frames from the work set, binaryProtocol.ts:438
+    DISP->>DISP: drop ADR-2142 state frames from the work set, binaryProtocol.ts:446
     DISP->>DISP: emit('agent-action', work) [live transcript + attention heat]
     DISP->>STORE: pushTransientBeams(work)
-    DISP->>DISP: every action, state frames included, to the agent registry, binaryProtocol.ts:447
+    DISP->>DISP: every action, state frames included, to the agent registry, binaryProtocol.ts:455
     STORE->>STORE: pushBeams: clampDuration (MIN_BEAM_DURATION_MS=400, DEFAULT=1500), FIFO cap MAX_TRANSIENT_BEAMS=256, state frames filtered again<br/>client/src/store/transientBeamStore.ts:58-63,26,71
     LAYER->>STORE: useTransientBeams() reads beams, calls pruneExpired() every frame
     LAYER->>LAYER: render coloured cylinder agent-node -> KG-node, opacity fade-in/hold/fade-out over durationMs, shape by action_type
-    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:64, buffers.rs:147 (default charge 1.0, allocated by the registered table at construction.rs:428) memory.rs:95 upload_class_metadata<br/>execution.rs:990 with no per-node update path
-    Note over LAYER: DIVERGENCE: the transient-attractive-edge gluon is still DEFERRED and only the beam ships today. DOC-DRIFT: the rationale block this note used to cite<br/>(agent_beam_actor.rs gluon_deferral_note, four reasons including no incremental CSR insert) was deleted by 4a3452c91, so only the comment at agent_beam_actor.rs:406<br/>and the module docs (ingest.rs:11, mod.rs:13) assert the deferral. Still true in code: no UpsertTransientEdge message exists in src/, and edges reach the GPU<br/>as a wholesale packed CSR upload (memory.rs:215 upload_edges_csr, :844 initialize_graph, reallocation :472 resize_buffers)
+    Note over LAYER: DIVERGENCE: render is a beam coloured cylinder only, no attractive gluon edge is wired.<br/>archived draft ADR docs/archive/adr/ADR-059-bidirectional-agent-channel-server.md rationale<br/>only specified a class_charge-modulation gluon, retracted because class_charge is bulk<br/>ontology-clustering metadata uploaded whole-array at construction<br/>src/utils/unified_gpu_compute/construction.rs:65, buffers.rs:147 (default charge 1.0, allocated by the registered table at construction.rs:444) memory.rs:100 upload_class_metadata<br/>execution.rs:992 with no per-node update path
+    Note over LAYER: DIVERGENCE: the transient-attractive-edge gluon is still DEFERRED and only the beam ships today. DOC-DRIFT: the rationale block this note used to cite<br/>(agent_beam_actor.rs gluon_deferral_note, four reasons including no incremental CSR insert) was deleted by 4a3452c91, so only the comment at agent_beam_actor.rs:406<br/>and the module docs (ingest.rs:11, mod.rs:13) assert the deferral. Still true in code: no UpsertTransientEdge message exists in src/, and edges reach the GPU<br/>as a wholesale packed CSR upload (memory.rs:220 upload_edges_csr, :899 initialize_graph, reallocation :527 resize_buffers)
 ```
 
 ## ES-02.7 LEGACY — :9500 MCP-TCP relay lifecycle (docker-exec supervision)
@@ -382,7 +383,7 @@ sequenceDiagram
         MGR->>DOCKER: health_manager.check_service_now("mcp-relay")
     end
     Note over MGR: INVARIANT: RetryableError classifies DockerCommandFailed/HealthCheckFailed/Timeout as<br/>retryable, ContainerNotFound as terminal
-    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1149) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
+    Note over MGR: RESOLVED ADR-2090 — the /ws/mcp-relay upgrade (mcp_relay_handler.rs, route<br/>src/main.rs:1133) and /multi-mcp/ws (multi_mcp_websocket_handler.rs) previously accepted<br/>ANY non-empty string as a credential: neither referenced NostrService at all, and the sole<br/>gate was .is_empty(), so ?token=x opened the socket. Both now resolve the token through<br/>NostrService::get_session and fail closed on absent token, absent service, or a token that<br/>names no live unexpired session. Found by vc-core, fixed here as owner. see ADR-2044
     Note over MGR: RESOLVED ADR-2090 amendment / ADR-2058 — the ?token= query carrier is now<br/>DEV-ONLY on both sockets: compiled out of release behind cfg(any(debug_assertions,<br/>feature="dev-auth")), with a SECURITY warning on the dev arm and a SECURITY rejection<br/>warning on the release arm. The Authorization header is the only release carrier, so the<br/>bearer stops reaching access logs, proxy logs and Referer. Clients that cannot set headers<br/>use the post-connect NIP-98 authenticate envelope (kind 27235). Both cfg arms type-checked
     Note over MGR: RESOLVED ADR-2091 — the /multi-mcp scope also served two REST routes that<br/>returned FICTION: GET /status (get_mcp_server_status) emitted a hardcoded server list<br/>claiming claude-flow is_connected:true with agent_count:4, never querying anything, and<br/>POST /refresh (refresh_mcp_discovery) reported "Discovery refresh initiated" while doing<br/>nothing. Both took _app_state unused. Both REMOVED with their registrations — zero callers<br/>in src/, client/ or xr-client/. Real state lives in multi_mcp_agent_discovery.rs (ES-02.9)
     end
@@ -418,7 +419,7 @@ sequenceDiagram
             BC->>BC: Agent::from(mcp_agent) per entry incl did_nostr validate_did_nostr round-trip<br/>src/services/bots_client.rs:55-65,80-104
             opt graph_service_addr set
                 BC->>GSS: do_send(UpdateBotsGraph{source Mcp, agents, targets empty})<br/>src/services/bots_client.rs:205-215
-                GSS->>GSS: forward to AgentBeamActor, the roster producer of ES-02.4<br/>src/actors/graph_service_supervisor.rs:2031-2037
+                GSS->>GSS: forward to AgentBeamActor, the roster producer of ES-02.4<br/>src/actors/graph_service_supervisor.rs:2045-2051
             end
         else read timeout elapses
             SRV--xTCP: (no response)
@@ -432,7 +433,7 @@ sequenceDiagram
             BC->>BC: clear stored agents (agents_lock.clear())
         end
     end
-    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1167 with a boot poll at :1178-1203, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
+    Note over TCP: RESOLVED ADR-2084: ingest.rs no longer calls this deprecated. It is documented as legacy<br/>but LOAD-BEARING - the sole source of agent state snapshots (query_agent_list), constructed at<br/>app_state.rs:1132 with a boot poll at :1143-1168, no replacement built. ADR-2084 stages the WS cutover with an<br/>acceptance test rather than implying one already exists
 ```
 
 ## ES-02.9 LEGACY — multi-MCP agent discovery, concurrent fan-out poll, run only while a /multi-mcp/ws socket is attached
@@ -445,7 +446,7 @@ sequenceDiagram
     participant RS as ruv-swarm server<br/>RUV_SWARM_PORT default 9501, enabled only when set
     participant DAA as DAA server<br/>src/services/multi_mcp_agent_discovery.rs:254-259, enabled only when set
 
-    Note over CALLER,DISC: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to open with an unnamed start_discovery caller because nothing constructed the service.<br/>AppState::new now builds it and initialises the default servers (src/app_state.rs:1169-1171), and each /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
+    Note over CALLER,DISC: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - this diagram used to open with an unnamed start_discovery caller because nothing constructed the service.<br/>AppState::new now builds it and initialises the default servers (src/app_state.rs:1134-1136), and each /multi-mcp/ws socket attaches and calls sync_running (VC-05.13)
     CALLER->>DISC: attach() then sync_running() which calls start_discovery()<br/>src/services/multi_mcp_agent_discovery.rs:170-172, :184-193, :298
     alt discovery_running already true
         DISC-->>CALLER: warn Discovery already running, return<br/>src/services/multi_mcp_agent_discovery.rs:300-303
@@ -484,7 +485,7 @@ sequenceDiagram
 
     rect rgb(230,245,232)
     Note over VC,TASKS: TRUST BOUNDARY: VisionClaw container -> agentbox management-api, http://agentic-workstation:9090
-    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:219-249 -> agentbox/management-api/routes/tasks.js:16
+    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:221-334 -> agentbox/management-api/routes/tasks.js:16
     TASKS->>AUTH: authMiddleware(request)
     alt Bearer token matches API_KEY (authMode allows bearer)
         AUTH-->>TASKS: request.auth = bearerResult
@@ -497,13 +498,13 @@ sequenceDiagram
     else Bearer is a per-task action token, not the API key
         AUTH-->>TASKS: 403 "Task action tokens may only post agent actions"<br/>agentbox/management-api/middleware/auth.js:207-216
     end
-    VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:334-362 -> agentbox/management-api/routes/tasks.js:107
-    TASKS-->>VC: 200 TaskStatus{status:Running|Completed|Failed,exit_code?,claude_flow_agent_id?} or 4xx ApiError
-    VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:364-392 -> agentbox/management-api/routes/tasks.js:163
+    VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:336-364 -> agentbox/management-api/routes/tasks.js:107
+    TASKS-->>VC: 200 TaskStatus{status:TaskState(Running|Completed|Failed|Stopped),exit_code?,claude_flow_agent_id?} or 4xx ApiError<br/>TaskStatus src/services/management_api_client.rs:46-51, TaskState gains Stopped, terminal, not a failure, src/services/management_api_client.rs:70-75
+    VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:366-394 -> agentbox/management-api/routes/tasks.js:166
     TASKS-->>VC: 200 TaskListResponse{active_tasks:List~TaskInfo~,count}
-    VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:433-458 -> agentbox/management-api/routes/tasks.js:203
+    VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:435-460 -> agentbox/management-api/routes/tasks.js:211
     TASKS-->>VC: 200 (stopped) or ApiError
-    Note over VC: family: create_task/create_task_with_context, get_task_status, list_tasks, stop_task all<br/>share identical Bearer-header + StatusCode-match + ApiError(text,status) shape -<br/>src/services/management_api_client.rs:219-458
+    Note over VC: family: create_task/create_task_with_context, get_task_status, list_tasks, stop_task all<br/>share identical Bearer-header + StatusCode-match + ApiError(text,status) shape -<br/>src/services/management_api_client.rs:221-460
     end
 ```
 
@@ -514,24 +515,24 @@ sequenceDiagram
     participant VC as ManagementApiClient<br/>src/services/management_api_client.rs:27
     participant BRF as briefs handlers<br/>agentbox/management-api/routes/briefing.js:207
     participant STA as status route<br/>agentbox/management-api/routes/status.js:12
-    participant HLT as GET /health<br/>agentbox/management-api/server.js:582
+    participant HLT as GET /health<br/>agentbox/management-api/server.js:601
 
-    VC->>BRF: POST /v1/briefs {content,roles,user_context}<br/>src/services/management_api_client.rs:491-546
+    VC->>BRF: POST /v1/briefs {content,roles,user_context}<br/>src/services/management_api_client.rs:493-548
     BRF-->>VC: 201/200 BriefResponse{brief_id,brief_path,bead_id?} or ApiError
-    VC->>BRF: POST /v1/briefs/:brief_id/execute {brief_path,roles,user_context,epic_bead_id?}<br/>src/services/management_api_client.rs:547-596
+    VC->>BRF: POST /v1/briefs/:brief_id/execute {brief_path,roles,user_context,epic_bead_id?}<br/>src/services/management_api_client.rs:549-598
     BRF-->>VC: 202/200 ExecuteBriefResponse.role_tasks:List~RoleTask~ or ApiError
-    VC->>BRF: POST /v1/briefs/:brief_id/debrief {role_responses,user_context}<br/>src/services/management_api_client.rs:597-642
+    VC->>BRF: POST /v1/briefs/:brief_id/debrief {role_responses,user_context}<br/>src/services/management_api_client.rs:599-644
     BRF-->>VC: 201/200 DebriefResponse{debrief_path} or ApiError
-    VC->>STA: GET /v1/status (Bearer auth)<br/>src/services/management_api_client.rs:460-490
+    VC->>STA: GET /v1/status (Bearer auth)<br/>src/services/management_api_client.rs:462-492
     STA-->>VC: 200 SystemStatus{api,tasks,gpu?,providers,system} or ApiError
-    VC->>HLT: GET /health (no Authorization header sent)<br/>src/services/management_api_client.rs:644-655
+    VC->>HLT: GET /health (no Authorization header sent)<br/>src/services/management_api_client.rs:646-657
     alt Fastify preValidation hook exempts /health from auth<br/>agentbox/management-api/server.js:235-245
         HLT-->>VC: 200 -> health_check() Ok(true)
     else non-200
         HLT-->>VC: Ok(false)
     end
-    Note over VC,BRF: family: create_brief/execute_brief/create_debrief share identical Bearer + StatusCode-match<br/>+ ApiError(text,status) shape - src/services/management_api_client.rs:491-642
-    Note over BRF: RESOLVED ADR-2085/2072 (2026-09-05): all three routes now exist in<br/>agentbox/management-api/routes/briefing.js, registered at management-api/server.js:1289.<br/>Brief documents and the durable brief record go through the pods adapter slot, the epic and<br/>role child beads through the beads slot, and every identifier is minted via lib/uris.js.<br/>The execute step is gated by the same ADR-2041 action pipeline as POST /v1/tasks and fails<br/>closed with 503 when the execution journal has no live events adapter.<br/>Activation is staged - the routes go live at the next image rebuild.
+    Note over VC,BRF: family: create_brief/execute_brief/create_debrief share identical Bearer + StatusCode-match<br/>+ ApiError(text,status) shape - src/services/management_api_client.rs:493-644
+    Note over BRF: RESOLVED ADR-2085/2072 (2026-09-05): all three routes now exist in<br/>agentbox/management-api/routes/briefing.js, registered at management-api/server.js:1311.<br/>Brief documents and the durable brief record go through the pods adapter slot, the epic and<br/>role child beads through the beads slot, and every identifier is minted via lib/uris.js.<br/>The execute step is gated by the same ADR-2041 action pipeline as POST /v1/tasks and fails<br/>closed with 503 when the execution journal has no live events adapter.<br/>Activation is staged - the routes go live at the next image rebuild.
 ```
 
 ## ES-02.12 Colloquy kinds 38410-38415 — rebalanced out of the agent-response band, registered in both registries
