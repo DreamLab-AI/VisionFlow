@@ -777,7 +777,7 @@ The loopback allowance covers the operator's relay sockets alone (SP-MIRROR-WS-R
 ```mermaid
 classDiagram
     class StorageEvent {
-        Created, Updated or Deleted, each carrying a path
+        Created, Updated or Deleted, each carrying a path  solid-pod-rs/src/notifications/mod.rs:91-93
     }
     class ChangeNotification {
         +context, serialised as @context  solid-pod-rs/src/notifications/mod.rs:78
