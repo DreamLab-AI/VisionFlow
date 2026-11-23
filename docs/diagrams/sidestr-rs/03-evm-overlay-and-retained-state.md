@@ -19,7 +19,7 @@ sources:
   - ../sidestr-rs/sidestr-evm/tests/chain.rs
   - ../sidestr-rs/.github/workflows/ci.yml
   - ../project/agentbox/config/sidechain/dreamlab/chain.json
-verified_commit: {sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7, visionflow: baae32a, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {sidestr-rs: 17da8b8e5b2c2decf94551ecb4ea47c732669214, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## For developers
@@ -103,7 +103,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    J["pinned ethereumjs reference"] --> F["committed fixtures<br/>CI regeneration checks drift<br/>.github/workflows/ci.yml:186"]
+    J["pinned ethereumjs reference"] --> F["committed fixtures<br/>CI regeneration checks drift<br/>.github/workflows/ci.yml:190"]
     F --> R["Rust fixture replay"]
     R --> EQ["20 accepted and 15 refused blocks<br/>two KZG refusal roots excepted"]
     EQ --> SRC["bounded compatibility evidence"]
@@ -111,7 +111,7 @@ flowchart TB
     SRC -.-> LIVE["publication and chain activation<br/>require separate evidence"]
 ```
 
-**What it shows.** The Rust tests replay committed fixtures; CI is configured to regenerate them against the pinned module (`../sidestr-rs/.github/workflows/ci.yml:186`, `../sidestr-rs/sidestr-evm/tests/oracle.rs:155`). Two KZG refusal cases compare the error but deliberately skip intermediate-root equality (`../sidestr-rs/sidestr-evm/tests/oracle.rs:180`).
+**What it shows.** The Rust tests replay committed fixtures; CI is configured to regenerate them against the pinned module (`../sidestr-rs/.github/workflows/ci.yml:190`, `../sidestr-rs/sidestr-evm/tests/oracle.rs:155`). Two KZG refusal cases compare the error but deliberately skip intermediate-root equality (`../sidestr-rs/sidestr-evm/tests/oracle.rs:180`).
 
 **Why it is this way.** Reference compatibility is narrower than Ethereum equivalence: the profile disables block-gas enforcement, aborts at KZG and returns zero for BLOCKHASH (`../sidestr-rs/sidestr-evm/src/exec.rs:168-170`, `../sidestr-rs/sidestr-evm/src/exec.rs:78`, `../sidestr-rs/sidestr-evm/src/world.rs:227-228`). The dated audit found the withdrawal-matching gap in its pinned reference as well; passing that historical fixture suite did not establish payment multiplicity. The Rust source now enforces the distinct-output rule above.
 
