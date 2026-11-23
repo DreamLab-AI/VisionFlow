@@ -32,12 +32,12 @@ sources:
   - ../project/crates/visionclaw-gpu/build.rs
   - ../project/build.rs
   - ../project/docker-compose.unified.yml
-verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
 
-How the server reports on itself: what `/healthz` and `/readyz` actually check (VC-08.1), the knowledge-graph watchdog that drives the `kg_backend_up` gauge (VC-08.2), the liveness canary register and its Nostr tap (VC-08.3 to VC-08.5), and the ADR-2008 development restart loop with its build-input inventory (VC-08.9, VC-08.10). Image builds and the ADR-2037 dev-auth exclusion are in VC-08.11. At 809a859aa `/api/health` and `/api/health/physics` state the caller's view counts rather than the whole graph's (VC-08.1); nothing else in this topic changed mechanism.
+How the server reports on itself: what `/healthz` and `/readyz` actually check (VC-08.1), the knowledge-graph watchdog that drives the `kg_backend_up` gauge (VC-08.2), the liveness canary register and its Nostr tap (VC-08.3 to VC-08.5), and the ADR-2008 development restart loop with its build-input inventory (VC-08.9, VC-08.10). Image builds and the ADR-2037 dev-auth exclusion are in VC-08.11. At 809a859aa `/api/health` and `/api/health/physics` state the caller's view counts rather than the whole graph's (VC-08.1); nothing else in this topic changed mechanism. At 4900ec60 `/api/metrics` loses its event-bus counters with the deleted bus (VC-08.3).
 
 ## For the business
 
@@ -72,21 +72,21 @@ sequenceDiagram
     U-->>K: composed health JSON with a `status` field, which the counts never change (consolidated_health_handler.rs:111-124)
     Note over U: DEBT: caller_graph_counts builds the caller's view twice, once in gate_for_graph_with<br/>and again in visible_counts (consolidated_health_handler.rs:74-77)
     Note over U: this is the endpoint the KG watchdog self-polls — see VC-08.2
-    Note over K,U: registration — root /healthz and /readyz at src/main.rs:1143-1144 (outside /api, so no<br/>RbacGate and no PublicDemoGuard) — a second /api/healthz and /api/readyz pair for back-compat<br/>at src/handlers/consolidated_health_handler.rs:520-521. See VC-01.7
+    Note over K,U: registration — root /healthz and /readyz at src/main.rs:1127-1128 (outside /api, so no<br/>RbacGate and no PublicDemoGuard) — a second /api/healthz and /api/readyz pair for back-compat<br/>at src/handlers/consolidated_health_handler.rs:520-521. See VC-01.7
 ```
 
 ## VC-08.2 KG watchdog — the self-poll that drives kg_backend_up
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:1312-1327
+    participant M as main<br/>src/main.rs:1296-1311
     participant W as run_kg_watchdog<br/>src/services/liveness_harness.rs:444
     participant P as probe_once
     participant V as health_verdict<br/>src/services/liveness_harness.rs:505-507
     participant H as LivenessHarness::record_kg_state<br/>src/services/liveness_harness.rs:422
 
     M->>W: tokio::spawn(run_kg_watchdog(harness, self_url, period))
-    Note over M,W: VISIONCLAW_SELF_URL default http 127.0.0.1 port (src/main.rs:1314-1315)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1316-1319)
+    Note over M,W: VISIONCLAW_SELF_URL default http 127.0.0.1 port (src/main.rs:1298-1299)<br/>VISIONCLAW_KG_WATCHDOG_SECS default 30 (src/main.rs:1300-1303)
     loop every period (default 30s)
         W->>P: GET {self_url}/api/health
         Note over P: this server IS the KG backend — the watchdog polls itself
@@ -142,9 +142,9 @@ sequenceDiagram
     Note over LH: FRESHNESS_WINDOW_MS = 30 * 24 * 60 * 60 * 1000 (:41) — a 30-day staleness horizon
     Note over LH: current_sha() (:278) stamps each observation, from VISIONCLAW_GIT_SHA (:279)
     Note over API: VISIONCLAW_AGENT_KEY is read by the handler at src/handlers/liveness_harness_handler.rs:41 and checked by<br/>crate::utils::agent_key::check_agent_key (handler :46, src/utils/agent_key.rs:13) — fail closed, subtle::ConstantTimeEq (ADR-2093).<br/>The handler's former local constant_time_eq fold is gone. Env register see VC-09.10
-    Note over API: OPT-IN — when the Jev health-triage item is on (VISIONCLAW_JEV_HEALTH_TRIAGE, crates/visionclaw-jev/src/config.rs:134) and the state<br/>is degraded and Jev answers confidently, status_body (src/handlers/liveness_harness_handler.rs:213) adds a jev_triage field beside the unchanged probe fields.<br/>It is labelled a hypothesis for an operator, never a verdict (jev_health in liveness_harness_handler.rs:175, off in the library, on under Compose via docker-compose.unified.yml:21 and routed through the shared agentbox proxy (docker-compose.unified.yml:7-11), ADR-2148)
+    Note over API: OPT-IN — when the Jev health-triage item is on (VISIONCLAW_JEV_HEALTH_TRIAGE, crates/visionclaw-jev/src/config.rs:134) and the state<br/>is degraded and Jev answers confidently, status_body (src/handlers/liveness_harness_handler.rs:213) adds a jev_triage field beside the unchanged probe fields.<br/>It is labelled a hypothesis for an operator, never a verdict (jev_health in liveness_harness_handler.rs:175, off in the library, on under Compose via docker-compose.unified.yml:24 and routed through the shared agentbox proxy (docker-compose.unified.yml:7-11), ADR-2148)
     Note over B: sibling boot-time singleton — AgentTelemetryLogger (src/telemetry/agent_telemetry.rs:20) lives<br/>in a OnceCell (:303), init_telemetry_logger(log_dir, 100) called once from main.rs:282 (returns early without creating<br/>a sink when TELEMETRY_ENABLED is set to anything but 1 or true, src/telemetry/agent_telemetry.rs:309-311, telemetry_enabled :326), and every<br/>caller reaches it via src/telemetry/agent_telemetry.rs:335-336 get_telemetry_logger() Option —<br/>client_coordinator_actor.rs, gpu/gpu_manager_actor.rs, gpu/force_compute_actor.rs,<br/>services/mcp_relay_manager.rs and handlers/client_log_handler.rs all silently no-op if it is never initialised or telemetry is disabled
-    Note over API: GET /api/metrics (handlers/metrics_handler.rs:34) composes uptime + collect_event_bus_metrics<br/>(:63, walks the event-bus middleware list for a registered MetricsMiddleware — empty maps if none is)<br/>plus a circuit_breakers field that is HARDCODED EMPTY (:47-49) — no global breaker registry is wired<br/>into AppState yet, so that part of the response can never be non-empty today
+    Note over API: GET /api/metrics (handlers/metrics_handler.rs:26) composes uptime and active_connections (:30-31)<br/>plus a circuit_breakers field that is HARDCODED EMPTY (:33-36) — no global breaker registry is wired<br/>into AppState yet, so that part of the response can never be non-empty today. REMOVED (VisionClaw 745a46f12):<br/>the event_bus counters and collect_event_bus_metrics went with the deleted event bus (MetricsResponse, :16-20)
 ```
 
 ## VC-08.4 Canary identifier register
@@ -168,7 +168,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as main<br/>src/main.rs:1344-1351
+    participant M as main<br/>src/main.rs:1328-1335
     participant T as CanaryNostrTap::from_env<br/>src/services/canary_nostr_tap.rs:245
     participant R as Nostr relay
     participant E as TapEvent::from_value<br/>src/services/canary_nostr_tap.rs:88
@@ -178,7 +178,7 @@ sequenceDiagram
     alt CANARY_TAP_RELAY_URL is set (canary_nostr_tap.rs:246)
         M->>T: from_env(harness)
         T-->>M: Some(tap)
-        M->>T: tokio::spawn(tap.run()) (main.rs:1347)
+        M->>T: tokio::spawn(tap.run()) (main.rs:1331)
     else unset
         M->>M: log "canary Nostr tap not started"
     end
@@ -232,7 +232,7 @@ sequenceDiagram
     WR->>WR: RUST_BINARY = $APP_ROOT/target/dev-runtime/visionclaw-server (scripts/rust-backend-wrapper.sh:39)
     WR->>WR: export CARGO_PROFILE_DEV_RUNTIME_DEBUG_ASSERTIONS=true (scripts/rust-backend-wrapper.sh:45)
     WR->>WR: BUILD_STAMP = $APP_ROOT/target/.visionclaw-dev-runtime-build-stamp (scripts/rust-backend-wrapper.sh:46)
-    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:325-328, inherits release but keeps debug-assertions and overflow-checks, ADR-2156 also sets lto off, codegen-units 256 and incremental, Cargo.toml:329-331),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
+    Note over WR: INVARIANT (2026-09-07, ADR-2038) — the dev launcher builds profile dev-runtime<br/>(Cargo.toml:328-331, inherits release but keeps debug-assertions and overflow-checks, ADR-2156 also sets lto off, codegen-units 256 and incremental, Cargo.toml:332-334),<br/>NOT --release. Optimisation without letting a dev-auth artefact present itself as a<br/>production build to the boot-time profile assertion. The assertion override is exported<br/>so the identity is pinned rather than inherited
     alt SKIP_RUST_REBUILD != true
         WR->>DI: dev_inputs_install (scripts/rust-backend-wrapper.sh:91)
         Note over WR,DI: ADR-2008 2026-10-07 amendment — Cargo.toml, Cargo.lock, build.rs and the Vite root files reach /app by COPY<br/>from the read-only /app/.dev-inputs mount that the host publishes and stamps with launch.sh (scripts/lib/dev-inputs.sh:12-17),<br/>never by a single-file bind mount that pins a stale inode after a git operation. A missing or mismatched stamp makes the wrapper<br/>log FATAL and exit 1 (scripts/rust-backend-wrapper.sh:91-94) rather than build something stale. The stamp's source_sha is logged (scripts/rust-backend-wrapper.sh:95)
@@ -324,7 +324,7 @@ sequenceDiagram
     Note over RT: ADR-2037 — with dev-auth absent, every bypass codepath is #[cfg]-stripped.<br/>enforce_release_env_hygiene becomes the real impl (src/main.rs:118) rather than the stub (:169)
     end
     RT->>RT: enforce_release_env_hygiene() at src/main.rs:209 — see VC-09.3
-    RT->>RT: assert_effective_profile_or_exit() at src/main.rs:962 — see VC-09.4
+    RT->>RT: assert_effective_profile_or_exit() at src/main.rs:946 — see VC-09.4
     Note over RT: ADR-2038 — BuildIdentity::current() reports dev_auth true for a dev-auth artefact, which is<br/>itself the finding DevAuthFeatureInArtefact (src/config/security_profile.rs:275) when the artefact is NOT a debug build<br/>(src/config/security_profile.rs:519-520). A release dev-auth binary promoted to production refuses to bind at all.
     Note over DP,RT: PARTLY RESOLVED ADR-2049 — the production warm-up stage used to run cargo build --release || true twice,<br/>so a broken lockfile or an uncompilable dependency produced a green layer. It now gates on<br/>cargo fetch --locked (Dockerfile.production:100, must succeed). The stub-stage build pipes into tail with no pipefail<br/>(Dockerfile.production:101-102), so it still cannot fail, whether the crate or a DEPENDENCY breaks.<br/>The comment at Dockerfile.production:89-93 says the dependency build must succeed
 ```
@@ -341,7 +341,7 @@ sequenceDiagram
 
     B->>P: evaluate the effective security profile
     P->>L: info "security profile OK — build=X declared=Y classified=Z findings=N"
-    Note over P,L: EffectiveProfile::summary() src/config/security_profile.rs:393<br/>main logs it with observed_flags at src/main.rs:968-972 — the boot receipt
+    Note over P,L: EffectiveProfile::summary() src/config/security_profile.rs:393<br/>main logs it with observed_flags at src/main.rs:952-956 — the boot receipt
     alt production artefact with findings
         P->>O: eprintln FATAL per finding then "refusing to bind a listener (ADR-2038)" then exit(2)
         Note over P,O: the remediation line names the three options — remove the offending variables,<br/>rebuild without --features dev-auth, or set VISIONCLAW_SECURITY_PROFILE to what this really is

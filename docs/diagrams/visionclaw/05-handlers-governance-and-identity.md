@@ -6,7 +6,7 @@ governing:
   - ../project/docs/BASELINE-architecture.md
   - ../project/docs/IDENTITY-authority-chain.md
   - ../project/docs/SECURITY-profiles.md
-adrs: [ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2016, ADR-2020, ADR-2058, ADR-2067, ADR-2075, ADR-2090, ADR-2091, ADR-2093, ADR-2094, ADR-2116]
+adrs: [ADR-2006, ADR-2010, ADR-2011, ADR-2013, ADR-2016, ADR-2020, ADR-2058, ADR-2067, ADR-2075, ADR-2090, ADR-2091, ADR-2093, ADR-2094, ADR-2116, ADR-2205]
 sources:
   - ../project/docs/SECURITY-profiles.md
   - ../project/src/handlers/admin_rbac_handler.rs
@@ -60,12 +60,12 @@ sources:
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/src/handlers/ontology_agent_handler.rs
   - ../project/src/middleware/auth.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## For developers
 
-The handler families that decide who someone is and what they may change: RBAC administration (ADR-2010), Nostr sessions and per-user API keys, the XR presence socket, decision records, the shared enrichment-decide path, the broker inbox, briefings, the MCP relay, the Solid pod proxy and the speech socket. Each panel cites the route registration, the auth gate and the store it writes. At ec785afa9 the API-key read path is fixed: `GET /auth/nostr/api-keys` reads the same `NostrService` record that `POST` writes and is sent `no-store` (VC-05.3).
+The handler families that decide who someone is and what they may change: RBAC administration (ADR-2010), Nostr sessions and per-user API keys, the XR presence socket, decision records, the shared enrichment-decide path, the broker inbox, briefings, the MCP relay, the Solid pod proxy and the speech socket. Each panel cites the route registration, the auth gate and the store it writes. At ec785afa9 the API-key read path is fixed: `GET /auth/nostr/api-keys` reads the same `NostrService` record that `POST` writes and is sent `no-store` (VC-05.3). At 4900ec60 the scope gains the ADR-2205 session-key bind and revoke routes, the power-user and feature reads answer for a verified principal when a token is sent, the API-key read returns presence only (VC-05.3), a production decide is refused without a forum client (VC-05.7), and the Solid proxy refuses session-key tokens (VC-05.15).
 
 ## For the business
 
@@ -137,66 +137,80 @@ sequenceDiagram
     participant FA as FeatureAccess<br/>src/config/feature_access.rs
 
     Note over H: this scope is on the public allowlist (api/auth prefix, RbacGate<br/>src/middleware/rbac_gate.rs:55-61 PUBLIC_SEGMENT_PREFIXES) — no RbacGate check runs<br/>before these handlers, so login, logout, verify and refresh each do their own session check<br/>and only the /api-keys resource carries its own RequireAuth wrap
-    C->>H: POST empty-path login :55 -> login :130
-    H->>NS: verify_auth_event(AuthEvent) :135
+    C->>H: POST empty-path login :55 -> login :225
+    H->>NS: verify_auth_event(AuthEvent) :230
     alt Err(InvalidSignature)
-        NS-->>C: 401 "Invalid signature" (nostr_handler.rs:159-161)
+        NS-->>C: 401 "Invalid signature" (nostr_handler.rs:254-256)
     else Err(other)
-        NS-->>C: 500 "Authentication error: {e}" (nostr_handler.rs:162)
+        NS-->>C: 500 "Authentication error: {e}" (nostr_handler.rs:257)
     else Ok(user)
-        H->>H: expires_at = user.last_seen + AUTH_TOKEN_EXPIRY (env, :138-142, default 3600)
-        H->>FA: get_available_features(pubkey) :144
+        H->>H: expires_at = user.last_seen + AUTH_TOKEN_EXPIRY (env, :233-237, default 3600)
+        H->>FA: get_available_features(pubkey) :239
         H-->>C: 200 AuthResponse{user,token:session_token,expires_at,features}
     end
-    C->>H: DELETE empty-path logout :56 -> logout :166
-    H->>NS: validate_session(pubkey,token) :170
+    C->>H: DELETE empty-path logout :56 -> logout :261
+    H->>NS: validate_session(pubkey,token) :265
     alt invalid
-        NS-->>C: 401 "Invalid session" (nostr_handler.rs:174-176)
+        NS-->>C: 401 "Invalid session" (nostr_handler.rs:269-271)
     else valid
-        H->>NS: logout(pubkey) :179
+        H->>NS: logout(pubkey) :274
         NS-->>C: 200 "Logged out successfully"
     end
-    C->>H: POST /verify :57 -> verify :187
-    H->>NS: validate_session(pubkey,token) :192
-    H-->>C: 200 VerifyResponse{valid, user?, features} (nostr_handler.rs:214)
-    C->>H: POST /refresh :58 -> refresh :221
-    H->>NS: validate_session :226 then refresh_session(pubkey) :235
+    C->>H: POST /verify :57 -> verify :282
+    H->>NS: validate_session(pubkey,token) :287
+    H-->>C: 200 VerifyResponse{valid, user?, features} (nostr_handler.rs:309)
+    C->>H: POST /refresh :58 -> refresh :316
+    H->>NS: validate_session :321 then refresh_session(pubkey) :330
     alt invalid session
-        NS-->>C: 401 "Invalid session" (nostr_handler.rs:230-232)
+        NS-->>C: 401 "Invalid session" (nostr_handler.rs:325-327)
     else Ok(new_token)
-        H-->>C: 200 AuthResponse{token:new_token, expires_at (AUTH_TOKEN_EXPIRY, :238-242), features}
+        H-->>C: 200 AuthResponse{token:new_token, expires_at (AUTH_TOKEN_EXPIRY, :333-337), features}
     else Err
-        H-->>C: 500 "Session refresh error: {e}" (nostr_handler.rs:260)
+        H-->>C: 500 "Session refresh error: {e}" (nostr_handler.rs:355)
     end
-    C->>H: GET /power-user-status :65 -> check_power_user_status :71
-    H->>H: pubkey = X-Nostr-Pubkey header
-    alt header missing
-        H-->>C: 400 "Missing Nostr pubkey" (nostr_handler.rs:81-83)
+    C->>H: POST /session-key :67 -> bind_session_key :78 (ADR-2205, public but self-verifying)
+    H->>NS: bind_session_key(auth, url, body), NIP-98 with the body hash required (nostr_service.rs:880)
+    alt no Nostr Authorization header
+        H-->>C: 401 "NIP-98 authorization required" (nostr_handler.rs:89)
+    else bound
+        H-->>C: 200 {sessionPubkey, principal, expiresAt}
+    else a session key tries to bind, not admitted, rate-limited, or a bad body or proof
+        H-->>C: 403 session_key_scope or session_key_not_admitted, 429, or 400 (nostr_handler.rs:97-107)
+    end
+    C->>H: DELETE /session-key :68 -> revoke_session_key :115, signed by the key (drops it) or the principal (drops all of its keys)
+    H->>NS: revoke_session_key (nostr_service.rs:1028)
+    H-->>C: 200 {revoked} (nostr_handler.rs:129), or 401 session_key_expired
+    C->>H: GET /power-user-status :69 -> check_power_user_status :175
+    H->>H: request_identity :142 — a NIP-98 token yields the verified principal (:146-162),<br/>otherwise the unauthenticated X-Nostr-Pubkey header (:164-170)
+    alt neither present
+        H-->>C: 400 "Missing Nostr pubkey" (nostr_handler.rs:171)
+    else NIP-98 token fails
+        H-->>C: 401, or 401 session_key_expired
     end
     H-->>C: 200 (feature_access power-user check)
-    C->>H: GET /features :66 / GET /features/{feature} :67
+    C->>H: GET /features :70 / GET /features/{feature} :71, same request_identity (:196, :214)
     H->>FA: get_available_features(pubkey) / has_feature_access(pubkey,feature)
     H-->>C: 200 {features} / {has_access}
-    C->>RA: POST /api-keys (nostr_handler.rs:59-63) -> update_api_keys nostr_handler.rs:277 / GET /api-keys -> get_api_keys nostr_handler.rs:310
+    C->>RA: POST /api-keys (nostr_handler.rs:59-63) -> update_api_keys nostr_handler.rs:372 / GET /api-keys -> get_api_keys nostr_handler.rs:405
     RA->>RA: NIP-98 identity, or a legacy session when VISIONCLAW_LEGACY_SESSIONS is on
     RA->>H: handler runs with the verified identity in request extensions
-    H->>H: caller_pubkey(req) :267 reads get_authenticated_user — never the URL or body, so a caller acts only on their own record
-    H->>NS: POST writes update_user_api_keys(caller, keys) :293, a power user gets 403 (:303-305)
-    H->>NS: GET reads get_user(caller).api_keys from the SAME NostrService store (:319-321), 404 when no user (:328)
-    H-->>C: GET body sent with Cache-Control no-store (:322-325)
-    Note over H,NS: FIXED by VisionClaw 6b811f7a1 — GET used to read AppState::get_api_keys, which asked ProtectedSettingsActor<br/>(GetApiKeys), a store the POST never wrote, so saved keys never came back. RESOLVED (VisionClaw 7a0674e79):<br/>ProtectedSettingsActor, AppState::get_api_keys and get_nostr_user are deleted, so NostrService (:319-321) is the only key store
+    H->>H: caller_pubkey(req) :362 reads get_authenticated_user — never the URL or body, so a caller acts only on their own record
+    H->>NS: POST writes update_user_api_keys(caller, keys) :388, a power user gets 403 (:398-400)
+    H->>NS: GET reads get_user(caller) from the SAME NostrService store (:414), 404 when no user (:433)
+    H-->>C: GET body is presence only, {perplexity, openai, ragflow} booleans, never a stored key (:419-426), sent with Cache-Control no-store (:427-430)
+    Note over H,NS: FIXED by VisionClaw 6b811f7a1 — GET used to read AppState::get_api_keys, which asked ProtectedSettingsActor<br/>(GetApiKeys), a store the POST never wrote, so saved keys never came back. RESOLVED (VisionClaw 7a0674e79):<br/>ProtectedSettingsActor, AppState::get_api_keys and get_nostr_user are deleted, so NostrService (:414) is the only key store
     Note over H: RESOLVED ER-24 (VisionClaw cefd9d1d7) — the route used to be "/api-keys" with no {pubkey} segment<br/>while both handlers extracted web::Path~String~, so the extractor failed and the routes could not succeed<br/>they now take the pubkey from RequireAuth, and get_api_keys no longer does its own Bearer check
-    Note over H: INVARIANT: the pubkey an api-keys handler acts on comes from the authenticated request, nostr_handler.rs:267-275
+    Note over H: INVARIANT: the pubkey an api-keys handler acts on comes from the authenticated request, nostr_handler.rs:362-370
 ```
 
-**Tension:** `GET /power-user-status`, `/features` and `/features/{feature}` read the pubkey from an unauthenticated `X-Nostr-Pubkey` header (`src/handlers/nostr_handler.rs:75-79`, `:94-98`, `:115-119`) on a prefix the RbacGate leaves public (`src/middleware/rbac_gate.rs:55-61`). Anyone can ask whether any pubkey is a power user and which features it holds. Source tracing only. Close it by answering for the authenticated caller only.
+**Tension (narrowed):** `GET /power-user-status`, `/features` and `/features/{feature}` now answer for the verified principal when a NIP-98 token is sent, but still fall back to an unauthenticated `X-Nostr-Pubkey` header when none is (`src/handlers/nostr_handler.rs:164-170`) on a prefix the RbacGate leaves public (`src/middleware/rbac_gate.rs:55-61`). Anyone can still ask whether any pubkey is a power user and which features it holds. Source tracing only.
 
 ## VC-05.4 `presence_handler` — PRD-008 `/ws/presence` handshake (T-WS-1)
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as XR client<br/>Godot
-    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1153)
+    participant WS as PresenceSession<br/>src/handlers/presence_handler.rs:135 ws_presence :501 (route src/main.rs:1137)
     participant NC as SeenNonces LRU<br/>presence_handler.rs:51 cap 4096
     participant IV as IdentityVerifier<br/>visionclaw_xr_presence::ports
     participant REG as PresenceRoomRegistry<br/>presence_handler.rs:41 Arc~DashMap~String,Addr~PresenceActor~~~
@@ -363,9 +377,9 @@ sequenceDiagram
     participant AB as agentbox broker-bridge<br/>X-Agent-Key service caller
     participant OP as power-user operator<br/>via broker_inbox_handler scope
     participant GB as git-bridge write-back<br/>agentbox management-api
-    participant D as decide / decide_as_operator<br/>src/handlers/enrichment_proposals_handler.rs:424<br/>decide_as_operator :454
+    participant D as decide / decide_as_operator<br/>src/handlers/enrichment_proposals_handler.rs:438<br/>decide_as_operator :468
     participant WB as ingest_writeback_handler::writeback<br/>src/handlers/ingest_writeback_handler.rs:75
-    participant AD as apply_decision (shared core)<br/>enrichment_proposals_handler.rs:473
+    participant AD as apply_decision (shared core)<br/>enrichment_proposals_handler.rs:546
     participant OK as DecisionOrchestrator<br/>src/domain/broker/broker_decision.rs (ADR-130 Decision 2 kernel)
     participant OX as OntologyRepository::append_derived_summary
     participant FR as AcspClient::publish<br/>src/services/acsp/mod.rs kind 31403
@@ -382,26 +396,30 @@ sequenceDiagram
     D->>AD: apply_decision(case_id, body, state, client_coordinator) (both agent + operator routes)
     rect rgb(225,245,225)
     Note over AD: single decision core — validate, gate, mint provenance, persist, write-back, broadcast, project
-    AD->>AD: record_decision(case_id, req) :479 — trim outcome, classify(outcome)
+    AD->>AD: forum_gate(state.acsp_client.is_some()) :554, rule forum_gate_refusal :504
+    alt production profile (release artefact, or APP_ENV/NODE_ENV production, enrichment_proposals_handler.rs:491), no forum client, ALLOW_DECIDE_WITHOUT_FORUM unset (:485)
+        AD-->>D: 503 {code:"forum_not_configured"} (enrichment_proposals_handler.rs:533-537), before anything is minted or persisted
+    end
+    AD->>AD: record_decision(case_id, req) :557 — trim outcome, classify(outcome)
     alt empty case_id or empty outcome
         AD-->>D: Err "empty case id"/"empty decision outcome" -> 400
     end
-    AD->>AD: existing = repo.get(case_id) read ONCE :494 — supplies both the new-case round trip and the tier
-    AD->>AD: declared_tier_of(proposal_json) :369, then gate_tier(declared, body.effective_tier) :382 (call :508), then check_rationale(tier, outcome, reasoning) :396
+    AD->>AD: existing = repo.get(case_id) read ONCE :572 — supplies both the new-case round trip and the tier
+    AD->>AD: declared_tier_of(proposal_json) :383, then gate_tier(declared, body.effective_tier) :396 (call :586), then check_rationale(tier, outcome, reasoning) :410
     alt tier is high or critical, outcome is a human verdict, rationale under 20 trimmed chars
-        AD-->>D: 422 RationaleRejection{code:"rationale_required", tier, min_chars, received_chars} :516
+        AD-->>D: 422 RationaleRejection{code:"rationale_required", tier, min_chars, received_chars} :594
     end
-    Note over AD: ADR-2110 FR2.2 (EXP-AC-002) — the case queue's client-side gate is a courtesy,<br/>so the SAME rule runs here on the one shared core both routes funnel through, BEFORE<br/>anything is minted or persisted. check_rationale is a predicate, never a transformer:<br/>it refuses and names what is missing, it never authors the rationale, because a<br/>server-written rationale is the fabricated judgement DDD invariant 1 forbids :392-396
-    Note over AD: INVARIANT — MIN_RATIONALE_CHARS :320 and the client's MIN_RATIONALE_CHARS in<br/>brokerCaseQueue.ts are one rule enforced in two places, not two rules :310-312
-    Note over AD: ER-7 landed - gate_tier takes the STRICTER of the tier recorded on the case and the forum effective_tier the bridge forwards<br/>(request field :70, gate_tier :382-392, broker-bridge.js:488-497), so a forwarded tier can only tighten the gate<br/>A case with no row and no forwarded tier still carries no tier and the gate does not fire
-    Note over AD: DRIFT: the scope comment at enrichment_proposals_handler.rs:308-314 still says effective_tier has not landed<br/>while the request field and gate_tier at enrichment_proposals_handler.rs:70 and :382 read it
+    Note over AD: ADR-2110 FR2.2 (EXP-AC-002) — the case queue's client-side gate is a courtesy,<br/>so the SAME rule runs here on the one shared core both routes funnel through, BEFORE<br/>anything is minted or persisted. check_rationale is a predicate, never a transformer:<br/>it refuses and names what is missing, it never authors the rationale, because a<br/>server-written rationale is the fabricated judgement DDD invariant 1 forbids :406-410
+    Note over AD: INVARIANT — MIN_RATIONALE_CHARS :334 and the client's MIN_RATIONALE_CHARS in<br/>brokerCaseQueue.ts are one rule enforced in two places, not two rules :324-326
+    Note over AD: ER-7 landed - gate_tier takes the STRICTER of the tier recorded on the case and the forum effective_tier the bridge forwards<br/>(request field :70, gate_tier :396-406, broker-bridge.js:488-497), so a forwarded tier can only tighten the gate<br/>A case with no row and no forwarded tier still carries no tier and the gate does not fire
+    Note over AD: DRIFT: the scope comment at enrichment_proposals_handler.rs:322-328 still says effective_tier has not landed<br/>while the request field and gate_tier at enrichment_proposals_handler.rs:70 and :396 read it
     AD->>AD: attribution — 64-hex broker_pubkey -> did_nostr+kg URN, else unattributed
     AD->>AD: activity_urn = uri::execution(content-addressed over case_id,outcome,pubkey) — idempotent
     opt repo.get(case_id) is None
         AD->>AD: is_new_case=true, create pending StoredProposal stub
     end
-    AD->>AD: repo.record_decision(StoredDecision) :561 — atomic INSERT decision + UPDATE proposal.status
-    Note over AD: ADR-2006 — REST decisions carry decision_event_id:None (:558, in the<br/>StoredDecision built at :543-560) — no signed kind-31403 correlation is stored
+    AD->>AD: repo.record_decision(StoredDecision) :639 — atomic INSERT decision + UPDATE proposal.status
+    Note over AD: ADR-2006 — REST decisions carry decision_event_id:None (:636, in the<br/>StoredDecision built at :621-638) — no signed kind-31403 correlation is stored
     alt persist Err
         AD-->>D: 500 "failed to persist decision: {e}"
     end
@@ -442,7 +460,7 @@ sequenceDiagram
     AD-->>WB: 200 DecideResponse
 ```
 
-**Tension (X-Agent-Key callers behind the RbacGate):** both service routes in this panel sit inside the `/api` scope (`src/main.rs:1160`, `:1171`, decide mounted `:1263`, write-back `:1274`), so the RbacGate runs before either handler. A POST there needs `WriteGraph` (`src/middleware/rbac_gate.rs:179-189`), resolved through `verify_access`, which knows only the dev bypasses, NIP-98 and the legacy `X-Nostr-Pubkey`/`X-Nostr-Token` pair (`src/utils/auth.rs:211-218`, `:259-265`, `:329-353`). The agentbox bridge sends `X-Agent-Key` and no `Authorization` header (`../project/agentbox/management-api/routes/broker-bridge.js:105-115`, decide call `:576-579`), and the git-bridge write-back sends no credential at all (`src/handlers/ingest_writeback_handler.rs:19-23`). In a release build with the gate enforcing, both are refused with 401 before `require_agent_key` or `apply_decision` runs. The production Compose service requires `VISIONCLAW_AGENT_KEY` (`docker-compose.unified.yml:288`) for exactly these callers, while the dev service arms `VISIONCLAW_DEV_MODE=1` (`docker-compose.unified.yml:116`), whose full bypass grants every request (`src/utils/auth.rs:211-218`) and so hides the gap in development. Source tracing only; not exercised against a release build. Close it by allowlisting the two service routes in the gate and keeping their handler checks, or by giving the bridge a NIP-98 signer.
+**Tension (X-Agent-Key callers behind the RbacGate):** both service routes in this panel sit inside the `/api` scope (`src/main.rs:1144`, `:1155`, decide mounted `:1247`, write-back `:1258`), so the RbacGate runs before either handler. A POST there needs `WriteGraph` (`src/middleware/rbac_gate.rs:179-189`), resolved through `verify_access`, which knows only the dev bypasses, NIP-98 and the legacy `X-Nostr-Pubkey`/`X-Nostr-Token` pair (`src/utils/auth.rs:280-287`, `:328-334`, `:418-442`). The agentbox bridge sends `X-Agent-Key` and no `Authorization` header (`../project/agentbox/management-api/routes/broker-bridge.js:105-115`, decide call `:576-579`), and the git-bridge write-back sends no credential at all (`src/handlers/ingest_writeback_handler.rs:19-23`). In a release build with the gate enforcing, both are refused with 401 before `require_agent_key` or `apply_decision` runs. The production Compose service requires `VISIONCLAW_AGENT_KEY` (`docker-compose.unified.yml:310`) for exactly these callers, while the dev service now defaults `VISIONCLAW_DEV_MODE` to 0 (`docker-compose.unified.yml:126`, reversed by the 2026-11-15 estate review), so the gap shows in development too unless an operator sets it to 1, whose full bypass grants every request (`src/utils/auth.rs:280-287`) and hides it. Source tracing only; not exercised against a release build. Close it by allowlisting the two service routes in the gate and keeping their handler checks, or by giving the bridge a NIP-98 signer.
 
 ## VC-05.8 `broker_inbox_handler` — dedicated privileged read scope (WS-12)
 ```mermaid
@@ -454,7 +472,7 @@ sequenceDiagram
     participant ST as enrichment_proposals_handler::store<br/>same durable store as WS-9, no second store
 
     Note over SC: doc comment :254-258 — "Mounted as a dedicated web::scope(broker) so the<br/>privileged RequireAuth::power_user() middleware wraps exactly these read routes<br/>and nothing else, mirroring the isolated privileged scope at ontology_handler.rs lines 913-918"
-    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1275-1285), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
+    Note over SC: DOC-DRIFT — that cross-reference is itself stale: WS-0 removed ontology_handler.rs<br/>own web::scope entirely (ontology_handler.rs:1367-1377), re-using its handlers from the single<br/>canonical scope in api_handler::ontology::config instead, see VC-20. No isolated privileged<br/>scope exists there any more — /broker is the odd one out now, not a mirror of it.
     C->>SC: GET /api/broker/inbox (the bridge sends X-Agent-Key only, broker-bridge.js:345, :105-115)
     SC->>SC: RequireAuth::power_user()
     alt not power user
@@ -464,7 +482,7 @@ sequenceDiagram
         H->>ST: store::all()
         ST-->>H: Vec~EnrichmentProposal~
         H->>H: assemble_inbox (broker_inbox_handler.rs:197) projects each into BrokerCase{id,category:"knowledge_enrichment",status,metadata}
-        opt VISIONCLAW_JEV_PROPOSAL_TRIAGE=1 (Jev option: library default off, but the Compose master flag docker-compose.unified.yml:21 turns it on and ALLOW_CLOUD=1 at :22 lets this local-only item take the shared agentbox proxy, VisionClaw ADR-2148, accepted / complete / live - see VC-24.13)
+        opt VISIONCLAW_JEV_PROPOSAL_TRIAGE=1 (Jev option: library default off, the Compose master flag docker-compose.unified.yml:24 turns it on, but this item is local-only, and with ALLOW_CLOUD default 0 at :25 and BACKEND_LOCAL default 0 at :11 it resolves no endpoint and takes the fallback unless an operator declares the backend local (crates/visionclaw-jev/src/config.rs:316-318, :340-341), VisionClaw ADR-2148, accepted / complete / live - see VC-24.13)
             H->>H: pending and claimed cases may gain an advisory jev annotation and be reordered by triage priority within annotated slots (broker_inbox_handler.rs:197-219, jev field broker_inbox_handler.rs:80)
         end
         Note over H: INVARIANT: the Jev triage is advisory, decide routes and signed decisions never read it, broker_inbox_handler.rs:80
@@ -481,10 +499,10 @@ sequenceDiagram
     C->>SC: POST /api/broker/cases/{id}/decide (the bridge route broker-bridge.js:435 instead proxies its decision to /api/enrichment-proposals/{id}/decide at broker-bridge.js:576)
     SC->>H: delegates to enrichment_proposals_handler::decide_as_operator (see VC-05.7)
     Note over H: REC-2 / D3 (PRD-023 WP-4) — power-user-gated by the surrounding scope,<br/>funnels through the SAME decision core as the agentbox X-Agent-Key route
-    Note over SC: RequireAuth::power_user() delegates to verify_access (src/middleware/auth.rs:158-160), which has no X-Agent-Key path<br/>(src/utils/auth.rs:259-265, :329-353), so a bridge request carrying only X-Agent-Key is refused here even when public reads are on
+    Note over SC: RequireAuth::power_user() delegates to verify_access (src/middleware/auth.rs:158-160), which has no X-Agent-Key path<br/>(src/utils/auth.rs:328-334, :418-442), so a bridge request carrying only X-Agent-Key is refused here even when public reads are on
 ```
 
-**Drift:** the module doc and the scope comment in `broker_inbox_handler.rs` say the bridge "authenticates through the same middleware via its `X-Agent-Key` service credential" (`src/handlers/broker_inbox_handler.rs:27-33`, `:257-258`). `RequireAuth` delegates to `verify_access` (`src/middleware/auth.rs:158-160`), which has no `X-Agent-Key` path (`src/utils/auth.rs:191-195`, `:259-265`, `:329-353`), and the bridge sends only that header (`../project/agentbox/management-api/routes/broker-bridge.js:105-115`, inbox call `:345`). Outside the dev bypass, the bridge's inbox and case reads are refused with 401. Source tracing only. Close it by accepting the service credential in `RequireAuth` for this scope, or by correcting the comments and giving the bridge a NIP-98 identity.
+**Drift:** the module doc and the scope comment in `broker_inbox_handler.rs` say the bridge "authenticates through the same middleware via its `X-Agent-Key` service credential" (`src/handlers/broker_inbox_handler.rs:27-33`, `:257-258`). `RequireAuth` delegates to `verify_access` (`src/middleware/auth.rs:158-160`), which has no `X-Agent-Key` path (`src/utils/auth.rs:260-264`, `:328-334`, `:418-442`), and the bridge sends only that header (`../project/agentbox/management-api/routes/broker-bridge.js:105-115`, inbox call `:345`). Outside the dev bypass, the bridge's inbox and case reads are refused with 401. Source tracing only. Close it by accepting the service credential in `RequireAuth` for this scope, or by correcting the comments and giving the bridge a NIP-98 identity.
 
 ## VC-05.9 `briefing_handler` — brief submit / debrief, Management API bridge
 ```mermaid
@@ -530,7 +548,7 @@ sequenceDiagram
     end
 ```
 
-**Tension:** neither briefing handler takes an authenticated identity: `submit_brief` and `request_debrief` read `user_context` from the request body (`src/handlers/briefing_handler.rs:22-27`, `:54-61`), and the debrief's bead event is published with `user_context.pubkey` as the user (`src/handlers/briefing_handler.rs:86-95`). The `/api` RbacGate does require a `WriteGraph` caller for these POSTs (`src/middleware/rbac_gate.rs:179-189`), but nothing ties the body's pubkey to that caller, so any authenticated writer can file a brief or publish a bead completion in another user's name. Source tracing only. Close it by taking the pubkey from the request's authenticated user, as `nostr_handler::caller_pubkey` does (`src/handlers/nostr_handler.rs:267-275`).
+**Tension:** neither briefing handler takes an authenticated identity: `submit_brief` and `request_debrief` read `user_context` from the request body (`src/handlers/briefing_handler.rs:22-27`, `:54-61`), and the debrief's bead event is published with `user_context.pubkey` as the user (`src/handlers/briefing_handler.rs:86-95`). The `/api` RbacGate does require a `WriteGraph` caller for these POSTs (`src/middleware/rbac_gate.rs:179-189`), but nothing ties the body's pubkey to that caller, so any authenticated writer can file a brief or publish a bead completion in another user's name. Source tracing only. Close it by taking the pubkey from the request's authenticated user, as `nostr_handler::caller_pubkey` does (`src/handlers/nostr_handler.rs:362-370`).
 
 ## VC-05.10 `insight_loop_handler` — REC-10 Mesh Velocity trace reads
 ```mermaid
@@ -577,7 +595,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:438 (route src/main.rs:1149)
+    participant H as mcp_relay_handler<br/>src/handlers/mcp_relay_handler.rs:438 (route src/main.rs:1133)
     participant A as MCPRelayActor<br/>src/handlers/mcp_relay_handler.rs:39
     participant O as orchestrator WS<br/>ORCHESTRATOR_WS_URL env mcp_relay_handler.rs:78 in connect_to_orchestrator :77
 
@@ -636,14 +654,14 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant H as configure_multi_mcp_routes<br/>src/handlers/multi_mcp_websocket_handler.rs:867 scope /multi-mcp :869<br/>mounted inside /api, src/main.rs:1225
+    participant H as configure_multi_mcp_routes<br/>src/handlers/multi_mcp_websocket_handler.rs:867 scope /multi-mcp :869<br/>mounted inside /api, src/main.rs:1209
     participant U as multi_mcp_visualization_ws<br/>multi_mcp_websocket_handler.rs:776 upgrade guard
     participant WS as MultiMcpVisualizationWs<br/>multi_mcp_websocket_handler.rs:50 new :119, Actor::started :410
     participant DS as MultiMcpAgentDiscovery<br/>src/services/multi_mcp_agent_discovery.rs:101
 
     Note over H: RESOLVED - the /status and /refresh dead stubs this diagram used to<br/>document<br/>were DELETED in ac3e12dd1 under ADR-2091 (removal comment :870-875).<br/>The scope now<br/>registers exactly one route, /ws :876 - get_mcp_server_status and<br/>refresh_mcp_discovery<br/>no longer exist anywhere in src/
     C->>U: GET /api/multi-mcp/ws (Authorization: Bearer)
-    Note over U: the /api RbacGate runs first: a GET passes anonymously only with RBAC_PUBLIC_READS=1, and verify_access does not accept a Bearer<br/>session token (src/utils/auth.rs:259-265, :329-353), so with public reads off this upgrade is refused before the guard below
+    Note over U: the /api RbacGate runs first: a GET passes anonymously only with RBAC_PUBLIC_READS=1, and verify_access does not accept a Bearer<br/>session token (src/utils/auth.rs:328-334, :418-442), so with public reads off this upgrade is refused before the guard below
     U->>U: header_token = Authorization Bearer :812-817 (ADR-2058/ADR-2090 comment :806-811)
     Note over U: ADR-2058 - the ?token= carrier survives only under<br/>cfg(debug_assertions, feature dev-auth) :819-831 - a release build<br/>that sees<br/>token= logs a SECURITY warning and drops it :833-842
     alt no token
@@ -656,7 +674,7 @@ sequenceDiagram
     else Ok
         Note over U: ADR-2090 (:783-790) - this upgrade previously accepted ANY non-empty<br/>string. It now resolves the token through NostrService::get_session,<br/>which per<br/>ADR-2044 enforces AUTH_TOKEN_EXPIRY. Same fix as /ws/mcp-relay, see<br/>VC-05.12
         U->>WS: ws::start(MultiMcpVisualizationWs::new(app_state.multi_mcp_discovery.clone())) :861
-        Note over U,DS: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - new()<br/>used to take (app_state, None) and never touch<br/>the discovery service. It now takes the shared<br/>Arc<MultiMcpAgentDiscovery> built at boot<br/>(src/handlers/multi_mcp_websocket_handler.rs:119, AppState field<br/>src/app_state.rs:347-348, construction src/app_state.rs:1169-1171)
+        Note over U,DS: DOC-DRIFT (RESOLVED 2026-10-12, project 6a1a74b8b/4f4345503) - new()<br/>used to take (app_state, None) and never touch<br/>the discovery service. It now takes the shared<br/>Arc<MultiMcpAgentDiscovery> built at boot<br/>(src/handlers/multi_mcp_websocket_handler.rs:119, AppState field<br/>src/app_state.rs:342-343, construction src/app_state.rs:1134-1136)
         WS->>WS: started :410 - start_heartbeat :413 (5s ping :159-169)
         WS->>DS: discovery.attach() :419 - subscriber count +1 SYNCHRONOUSLY (multi_mcp_agent_discovery.rs:170)
         WS->>DS: actix::spawn sync_running() :421 - idempotent, serialised by a mutex (multi_mcp_agent_discovery.rs:184-193)
@@ -714,52 +732,53 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1773 configure_routes (feature solid-pod-embed), scope :1781
-    participant H as solid_proxy_handler<br/>solid_proxy_handler.rs:311 handle_solid_proxy, :1331 init_pod_nip98
-    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1171 (scope :1160, solid mounted :1242)
+    participant SC as scope /solid<br/>src/handlers/solid_proxy_handler.rs:1787 configure_routes (feature solid-pod-embed), scope :1795
+    participant H as solid_proxy_handler<br/>solid_proxy_handler.rs:319 handle_solid_proxy, :1339 init_pod_nip98
+    participant RG as RbacGate<br/>/api scope wrap src/main.rs:1155 (scope :1144, solid mounted :1226)
     participant SD as SolidPodState::extract_user_identity<br/>solid_proxy_handler.rs:188 own NIP-98 verification
 
     Note over SC: env SOLID_DATA_ROOT :130, SOLID_PROXY_SECRET_KEY :133, SOLID_ALLOW_ANONYMOUS :137
-    Note over SC: ADR-2067 — WITHOUT solid-pod-embed the twin configure_routes :1821 registers<br/>NOTHING (doc :1810-1819): /solid/*, /.well-known/did.json and /did/* all 404. The<br/>503-stub route tree this diagram used to show is gone, and so are the individual<br/>stub twins — each leaves a removal note (handle_solid_proxy :382, solid_health_check :1630,<br/>init_pod_nip98 :1326-1327, SolidPodState::new :180-183)
-    C->>SC: GET /health :1783 -> solid_health_check :1614
+    Note over SC: ADR-2067 — WITHOUT solid-pod-embed the twin configure_routes :1835 registers<br/>NOTHING (doc :1824-1833): /solid/*, /.well-known/did.json and /did/* all 404. The<br/>503-stub route tree this diagram used to show is gone, and so are the individual<br/>stub twins — each leaves a removal note (handle_solid_proxy :390, solid_health_check :1644,<br/>init_pod_nip98 :1334-1335, SolidPodState::new :180-183)
+    C->>SC: GET /health :1797 -> solid_health_check :1628
     SC-->>C: 200 {status:healthy, backend:solid-pod-rs, data_root}
-    C->>SC: GET /.notifications :1785-1788 -> handle_solid_notifications_ws :1588 (solid-0.1 WS protocol)
-    C->>SC: POST /pods :1790 -> create_pod :1186
-    C->>SC: GET /pods/check :1791 -> check_pod_exists :1244
-    C->>SC: POST /pods/init :1792 -> init_pod :1285
+    C->>SC: GET /.notifications :1799-1802 -> handle_solid_notifications_ws :1602 (solid-0.1 WS protocol)
+    C->>SC: POST /pods :1804 -> create_pod :1194
+    C->>SC: GET /pods/check :1805 -> check_pod_exists :1252
+    C->>SC: POST /pods/init :1806 -> init_pod :1293
     rect rgb(255,235,235)
-    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1242 configure_solid_routes, under scope :1160), so it is DOUBLE-authenticated (see VC-03.15)
-    C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1793 (Authorization: Nostr event)
+    Note over C,SD: DIVERGENCE — /api/solid/pods/init-nip98 sits inside the /api scope<br/>(main.rs:1226 configure_solid_routes, under scope :1144), so it is DOUBLE-authenticated (see VC-03.15)
+    C->>RG: POST /api/solid/pods/init-nip98 solid_proxy_handler.rs:1807 (Authorization: Nostr event)
     RG->>RG: RbacGate verify_access(WriteGraph) — mutating method under /api
     alt RbacGate denies
         RG-->>C: 401/403
     else Ok
-        RG->>H: init_pod_nip98(req, state) solid_proxy_handler.rs:1331
-        H->>SD: extract_user_identity(req) :1332 — SECOND, fully independent NIP-98 re-verification<br/>through validate_nip98_token (solid_proxy_handler.rs:225), which claims the event id again
-        alt SD returns None (bad/missing token)
-            SD-->>C: 401 {error:"NIP-98 authentication required"} :1335-1338
+        RG->>H: init_pod_nip98(req, state) solid_proxy_handler.rs:1339
+        H->>SD: extract_user_identity(req) :1340 — SECOND, fully independent NIP-98 re-verification<br/>through validate_nip98_token (solid_proxy_handler.rs:225), which claims the event id again
+        Note over SD: ADR-2205 — a token signed by a bound session key is refused here (solid_proxy_handler.rs:226-233),<br/>the pod acts only for the account's own signer, and pod management refuses one too (:1440-1446)
+        alt SD returns None (bad/missing token, or a session-key token)
+            SD-->>C: 401 {error:"NIP-98 authentication required"} :1343-1346
         else Some(identity)
-            H->>H: PublicKey::from_hex(identity.pubkey).to_bech32() -> npub :1343-1361
-            H->>H: ensure_pod_exists(state, npub, pubkey, pod_base_url) :1148 (call :1366)
-            H-->>C: 200 {pod_url, webid:structure.profile, created, structure, npub} :1369-1375
+            H->>H: PublicKey::from_hex(identity.pubkey).to_bech32() -> npub :1351-1369
+            H->>H: ensure_pod_exists(state, npub, pubkey, pod_base_url) :1156 (call :1374)
+            H-->>C: 200 {pod_url, webid:structure.profile, created, structure, npub} :1377-1383
         end
     end
     end
-    C->>SC: any method /{tail:.*} :1795-1799 plus PATCH :1800-1803 -> handle_solid_proxy :311 (LDP CRUD)
-    Note over H: handle_solid_proxy auth flow doc :306-309 — NIP-98 header -> WAC, else<br/>SOLID_ALLOW_ANONYMOUS -> public ACL check, else 401
-    C->>SC: GET /.well-known/did.json :1806 -> handle_did_wellknown :1639
-    C->>SC: GET /did/{tail:.*} :1807 -> handle_did_proxy :1677 -> solid_pod_rs::interop::did_nostr::did_nostr_document
+    C->>SC: any method /{tail:.*} :1809-1813 plus PATCH :1814-1817 -> handle_solid_proxy :319 (LDP CRUD)
+    Note over H: handle_solid_proxy auth flow doc :314-317 — NIP-98 header -> WAC, else<br/>SOLID_ALLOW_ANONYMOUS -> public ACL check, else 401
+    C->>SC: GET /.well-known/did.json :1820 -> handle_did_wellknown :1653
+    C->>SC: GET /did/{tail:.*} :1821 -> handle_did_proxy :1691 -> solid_pod_rs::interop::did_nostr::did_nostr_document
     Note over H: full pod/LDP internals (storage backend, ACL, containers) — see VC-26
 ```
 
-**Tension (the second NIP-98 check meets the single-use replay cache):** every successful NIP-98 validation claims the event id in a process-wide cache and a second claim of the same id fails with `TokenReplayed` (`src/utils/nip98.rs:164-168`, claim `:573`). For `POST /api/solid/pods/init-nip98` the RbacGate verifies the token first through `NostrService::verify_nip98_auth` (`src/utils/auth.rs:291-295`, `src/services/nostr_service.rs:648-662`), then the handler calls `extract_user_identity`, which runs `validate_nip98_token` on the same header (`src/handlers/solid_proxy_handler.rs:188`, `:225`). The second call is a replay, returns `None`, and the handler answers 401 (`src/handlers/solid_proxy_handler.rs:1332-1338`), so a genuine caller cannot initialise a pod through this route. `verify_access` already avoids the same trap for nested `RequireAuth` by reusing the identity the gate left in the request extensions (`src/utils/auth.rs:266-280`); `extract_user_identity` does not. The same applies to every `/api/solid/*` request the gate verifies (all mutations, and reads when public reads are off), which reach `handle_solid_proxy` without an identity. The `/pay` routes are not affected: they mount at the App root and verify once (`src/main.rs:1139`). A dev build with `VISIONCLAW_DEV_MODE=1` hides this, because `verify_access` returns before any NIP-98 verification (`src/utils/auth.rs:211-218`) and the gate claims no event id. Source tracing only; not exercised at runtime. Close it by having `extract_user_identity` read `get_authenticated_user` first.
+**Tension (the second NIP-98 check meets the single-use replay cache):** every successful NIP-98 validation claims the event id in a process-wide cache and a second claim of the same id fails with `TokenReplayed` (`src/utils/nip98.rs:164-168`, claim `:578`). For `POST /api/solid/pods/init-nip98` the RbacGate verifies the token first through `NostrService::verify_nip98_identity` (`src/utils/auth.rs:368-370`, `src/services/nostr_service.rs:811-825`), then the handler calls `extract_user_identity`, which runs `validate_nip98_token` on the same header (`src/handlers/solid_proxy_handler.rs:188`, `:225`). The second call is a replay, returns `None`, and the handler answers 401 (`src/handlers/solid_proxy_handler.rs:1340-1346`), so a genuine caller cannot initialise a pod through this route. `verify_access` already avoids the same trap for nested `RequireAuth` by reusing the identity the gate left in the request extensions (`src/utils/auth.rs:335-354`); `extract_user_identity` does not. The same applies to every `/api/solid/*` request the gate verifies (all mutations, and reads when public reads are off), which reach `handle_solid_proxy` without an identity. The `/pay` routes are not affected: they mount at the App root and verify once (`src/main.rs:1123`). A dev build with `VISIONCLAW_DEV_MODE=1` hides this, because `verify_access` returns before any NIP-98 verification (`src/utils/auth.rs:280-287`) and the gate claims no event id. Source tracing only; not exercised at runtime. Close it by having `extract_user_identity` read `get_authenticated_user` first.
 
 ## VC-05.16 `speech_socket_handler` — `/ws/speech`, ADR-2075 post-upgrade NIP-98
 ```mermaid
 sequenceDiagram
     autonumber
     participant C as Client (browser voice / XR)
-    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:989 (route src/main.rs:1148)
+    participant H as speech_socket_handler<br/>src/handlers/speech_socket_handler.rs:989 (route src/main.rs:1132)
     participant SS as SpeechSocket actor<br/>speech_socket_handler.rs:82 struct, new() :103, Actor::started :479
     participant NS as NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs
 
@@ -808,7 +827,7 @@ sequenceDiagram
     participant EA as ElevationActor/DecisionElevationActor<br/>src/actors/elevation_actor.rs:116, decision_elevation_actor.rs:128 (VC-02)
     participant FR as forum kind-31403<br/>src/services/acsp/client.rs:25 CaseDecision{event_id,created_at}
     participant DB as SqliteEnrichmentRepository::record_decision<br/>StoredDecision table — SHARED sink
-    participant D as decide/decide_as_operator -> apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:424 decide, :454 decide_as_operator, :473 apply_decision
+    participant D as decide/decide_as_operator -> apply_decision<br/>src/handlers/enrichment_proposals_handler.rs:438 decide, :468 decide_as_operator, :546 apply_decision
     participant BI as broker_inbox_handler::inbox<br/>src/handlers/broker_inbox_handler.rs:228
 
     Note over V,FR: no HTTP handler (decision_handler, enrichment_proposals_handler,<br/>broker_inbox_handler or any other) sends a message to ElevationActor or DecisionElevationActor —<br/>the only mention under src/handlers is a doc comment (src/handlers/ingest_writeback_handler.rs:17)
@@ -819,7 +838,7 @@ sequenceDiagram
     EA->>EA: decision_record(&CaseDecision) :1694 — correlation on event_id when present
     EA->>DB: repo.record_decision(StoredDecision{decision_event_id:Some(event_id), decision_created_at_s:Some(...)}) :1443, :1516, :1523
     Note over EA,DB: this producer DOES retain signed-event correlation — decision_event_id is<br/>set from the signed event id (elevation_actor.rs:1749), rationale :1710-1719
-    D->>DB: repo.record_decision(StoredDecision{decision_event_id:None,...}) :543-560 built, :561 written — REST path, no forum event to correlate
+    D->>DB: repo.record_decision(StoredDecision{decision_event_id:None,...}) :621-638 built, :639 written — REST path, no forum event to correlate
     Note over D,DB: DIVERGENCE — the agentbox/operator/git-bridge REST path (VC-05.7) writes<br/>decision_event_id:None every time, since it never carries a signed 31403 event
     BI->>DB: store::all() / store::get(id) — reads the SAME table both producers wrote to
     BI-->>BI: projects EITHER kind of row into the SAME BrokerCase shape, indistinguishable to the bridge

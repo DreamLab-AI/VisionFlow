@@ -23,8 +23,6 @@ sources:
   - ../project/src/handlers/nostr_handler.rs
   - ../project/src/middleware/rbac_gate.rs
   - ../project/crates/visionclaw-domain/src/config/graph_type.rs
-  - ../project/src/handlers/settings_handler/validation.rs
-  - ../project/src/handlers/settings_handler/write_handlers.rs
   - ../project/src/handlers/constraints_handler.rs
   - ../project/src/handlers/api_handler/analytics/sssp_handlers.rs
   - ../project/src/handlers/layout_handler.rs
@@ -38,16 +36,14 @@ sources:
   - ../project/src/handlers/socket_flow_handler/filter_auth.rs
   - ../project/docs/BASELINE-architecture.md
   - ../project/AGENTS.md
-  - ../project/tests/test_save_endpoint.rs
-  - ../project/tests/test_settings_persistence.rs
-verified_commit: {visionclaw: a6d05ed1a8d090e290944ebb8a9c122c7f59ef8c}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
 
 This topic follows a settings write from the REST route through `OptimizedSettingsActor`, the GPU actors and the SQLite adapter, then out to other sessions as a `settingsUpdated` broadcast. It also covers the API-key store and the generated client types. Physics has a single write path, `apply_physics_patch` (ADR-2140). Every other bucket is a JSON row under one fixed key.
 
-Three changes since the last stamp. `PUT /api/settings/rendering` now stores a `rendering` row, so lighting and background survive a restart (VC-06.10). A `visual` broadcast also re-reads the visual-bucket paths that sit in no named section. `ProtectedSettingsActor`, its model and both copies are deleted, so `NostrService` is the only API-key store (VC-06.6). Who may write which bucket is decided at the `RbacGate` (VC-03.6).
+Three changes since the last stamp. `PUT /api/settings/rendering` now stores a `rendering` row, so lighting and background survive a restart (VC-06.10). A `visual` broadcast also re-reads the visual-bucket paths that sit in no named section. `ProtectedSettingsActor`, its model and both copies are deleted, so `NostrService` is the only API-key store (VC-06.6). Who may write which bucket is decided at the `RbacGate` (VC-03.6). At 4900ec60 the unmounted `settings_handler` module and its dead helpers are deleted, leaving `settings_validation_fix.rs` with only `validate_constraint` (VC-06.8), and an API-key POST patches the key set while the GET reports presence only (VC-06.6).
 
 ## For the business
 
@@ -56,24 +52,24 @@ A settings change made in one browser, or by the settings assistant, now reaches
 ## VC-06.1 Settings route surface and the actor behind it
 ```mermaid
 flowchart TB
-    S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1177-1179"]
-    S --> CFG["settings::api::configure_routes<br/>src/settings/api/settings_routes.rs:2022"]
-    CFG --> P["GET|PUT physics settings_routes.rs:2025-2026<br/>POST physics/reset-layout :2027"]
-    CFG --> C["GET|PUT constraints settings_routes.rs:2028-2029"]
-    CFG --> R["GET|PUT rendering settings_routes.rs:2030-2031"]
-    CFG --> NF["GET|PUT node-filter settings_routes.rs:2032-2033"]
-    CFG --> QG["GET|PUT quality-gates settings_routes.rs:2034-2035"]
-    CFG --> V["GET|PUT visual settings_routes.rs:2036-2037"]
-    CFG --> AL["GET all settings_routes.rs:2038"]
-    CFG --> PR["POST|GET profiles settings_routes.rs:2039-2040<br/>GET|DELETE profiles/{id} :2041-2042"]
-    CFG --> U["nested scope /user<br/>GET|PUT /filter settings_routes.rs:2046-2048"]
-    ACT["state.settings_addr : Addr of OptimizedSettingsActor<br/>src/app_state.rs:310, built src/app_state.rs:1106, started :1115"]
-    REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1117"]
+    S["web::scope('/settings') + RateLimit::per_minute(60)<br/>src/main.rs:1161-1163"]
+    S --> CFG["settings::api::configure_routes<br/>src/settings/api/settings_routes.rs:2056"]
+    CFG --> P["GET|PUT physics settings_routes.rs:2059-2060<br/>POST physics/reset-layout :2061"]
+    CFG --> C["GET|PUT constraints settings_routes.rs:2062-2063"]
+    CFG --> R["GET|PUT rendering settings_routes.rs:2064-2065"]
+    CFG --> NF["GET|PUT node-filter settings_routes.rs:2066-2067"]
+    CFG --> QG["GET|PUT quality-gates settings_routes.rs:2068-2069"]
+    CFG --> V["GET|PUT visual settings_routes.rs:2070-2071"]
+    CFG --> AL["GET all settings_routes.rs:2072"]
+    CFG --> PR["POST|GET profiles settings_routes.rs:2073-2074<br/>GET|DELETE profiles/{id} :2075-2076"]
+    CFG --> U["nested scope /user<br/>GET|PUT /filter settings_routes.rs:2080-2082"]
+    ACT["state.settings_addr : Addr of OptimizedSettingsActor<br/>src/app_state.rs:305, built src/app_state.rs:1071, started :1080"]
+    REPO["settings_repo : web::Data of Arc of SqliteSettingsRepository<br/>injected src/main.rs:1101"]
     P --> ACT
     P --> REPO
-    N1["INVARIANT — /api/settings writes require the WriteSettings capability at the RbacGate<br/>src/main.rs:1165-1171. Request-time gate behaviour see VC-03.6"]
+    N1["INVARIANT — /api/settings writes require the WriteSettings capability at the RbacGate<br/>src/main.rs:1149-1155. Request-time gate behaviour see VC-03.6"]
     S --- N1
-    N2["DIVERGENCE — the settings hot-reload watcher is DISABLED, src/app_state.rs:1117-1121<br/>reason recorded in code: it was causing database deadlocks"]
+    N2["DIVERGENCE — the settings hot-reload watcher is DISABLED, src/app_state.rs:1082-1086<br/>reason recorded in code: it was causing database deadlocks"]
     ACT --- N2
     N3["OptimizedSettingsActor's wider message surface beyond the round trip shown here — ReloadSettings<br/>(optimized_settings_actor.rs:1182) is the dormant hot-reload handler N2's disabled watcher would<br/>have driven, and nothing sends it; GetSettingByPath/GetSettingsByPaths/SetSettingsByPaths (optimized_settings_actor.rs:812,<br/>:843, :902) give granular per-path read/write alongside the full-snapshot GetSettings/UpdateSettings<br/>used above; WarmCacheMessage (optimized_settings_actor.rs:761) and GetPerformanceMetrics/ClearCaches<br/>(optimized_settings_actor.rs:1154, :1169) handle cache warm-up and introspection"]
     ACT --- N3
@@ -87,50 +83,50 @@ sequenceDiagram
     autonumber
     participant CL as client
     participant RG as RbacGate<br/>src/middleware/rbac_gate.rs
-    participant H as update_physics_settings<br/>src/settings/api/settings_routes.rs:598-615
-    participant AP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:661-666
+    participant H as update_physics_settings<br/>src/settings/api/settings_routes.rs:632-649
+    participant AP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:695-700
     participant SA as OptimizedSettingsActor<br/>src/actors/optimized_settings_actor.rs:774
-    participant VA as validate_physics_settings and validate_for_gpu<br/>src/settings/api/settings_routes.rs:140, :131
+    participant VA as validate_physics_settings and validate_for_gpu<br/>src/settings/api/settings_routes.rs:146, :137
 
     CL->>RG: PUT /api/settings/physics
     Note over RG: WriteSettings capability required — see VC-03.6
     RG->>H: forward, AuthenticatedUser extracted (src/settings/auth_extractor.rs:70)
-    H->>AP: apply_physics_patch(state, repo, body, auth.pubkey) (settings_routes.rs:604-609)
-    Note over AP: ADR-2140 decision 3 — the ONE physics write path. POST /sssp/toggle (sssp_handlers.rs:126)<br/>and POST /api/layout/mode (layout_handler.rs:92) call it too (doc settings_routes.rs:657-660)
-    AP->>AP: debug-log updated_by and the raw patch (settings_routes.rs:667-670)
+    H->>AP: apply_physics_patch(state, repo, body, auth.pubkey) (settings_routes.rs:638-643)
+    Note over AP: ADR-2140 decision 3 — the ONE physics write path. POST /sssp/toggle (sssp_handlers.rs:126)<br/>and POST /api/layout/mode (layout_handler.rs:92) call it too (doc settings_routes.rs:691-694)
+    AP->>AP: debug-log updated_by and the raw patch (settings_routes.rs:701-704)
     AP->>SA: send(GetSettings)
-    Note over AP,SA: single GetSettings call — a full snapshot is fetched ONCE to avoid a TOCTOU race<br/>comment src/settings/api/settings_routes.rs:672
+    Note over AP,SA: single GetSettings call — a full snapshot is fetched ONCE to avoid a TOCTOU race<br/>comment src/settings/api/settings_routes.rs:706
     alt Ok(Ok(settings))
         SA-->>AP: AppFullSettings
     else Ok(Err(e))
-        SA-->>AP: Internal "Failed to fetch current settings" (settings_routes.rs:675-681)
+        SA-->>AP: Internal "Failed to fetch current settings" (settings_routes.rs:709-715)
     else Err(mailbox)
-        SA-->>AP: Internal "Actor communication error" (settings_routes.rs:682-688)
+        SA-->>AP: Internal "Actor communication error" (settings_routes.rs:716-722)
     end
-    AP->>AP: current = full_settings.visualisation.graphs.knowledge.physics (settings_routes.rs:692)
+    AP->>AP: current = full_settings.visualisation.graphs.knowledge.physics (settings_routes.rs:726)
     Note over AP: RESOLVED ADR-2041 by ADR-2115 — `knowledge` is the only accepted graph-type<br/>segment — the one-release `logseq` alias has expired and is now rejected everywhere<br/>(crates/visionclaw-domain/src/config/graph_type.rs:1-7). See VC-09.15
-    AP->>AP: merge_physics_patch(current, patch) (settings_routes.rs:696, defined :1504-1536)
-    Note over AP: normalize_physics_keys maps snake_case and legacy aliases to canonical camelCase (settings_routes.rs:1516). A layoutMode<br/>value is parsed strictly and refused if unknown (settings_routes.rs:1521-1533, ADR-2140). deep_merge_json (settings_routes.rs:1483-1496)<br/>merges NESTED objects recursively (settings_routes.rs:1534), so one nested slider patch no longer resets its sibling fields.<br/>A non-object body leaves the snapshot's physics unchanged (settings_routes.rs:698)
+    AP->>AP: merge_physics_patch(current, patch) (settings_routes.rs:730, defined :1538-1570)
+    Note over AP: normalize_physics_keys maps snake_case and legacy aliases to canonical camelCase (settings_routes.rs:1550). A layoutMode<br/>value is parsed strictly and refused if unknown (settings_routes.rs:1555-1567, ADR-2140). deep_merge_json (settings_routes.rs:1517-1530)<br/>merges NESTED objects recursively (settings_routes.rs:1568), so one nested slider patch no longer resets its sibling fields.<br/>A non-object body leaves the snapshot's physics unchanged (settings_routes.rs:732)
     alt merge fails
-        AP-->>CL: 400 "Invalid settings value" (settings_routes.rs:699-704)
+        AP-->>CL: 400 "Invalid settings value" (settings_routes.rs:733-738)
     end
-    AP->>VA: validate_physics_settings(&new_physics) (settings_routes.rs:709)
+    AP->>VA: validate_physics_settings(&new_physics) (settings_routes.rs:743)
     alt validation fails
-        VA-->>CL: 400 "Validation failed: ..." (settings_routes.rs:710-714)
+        VA-->>CL: 400 "Validation failed: ..." (settings_routes.rs:744-748)
     end
-    AP->>VA: validate_for_gpu(&new_physics) (settings_routes.rs:719)
-    Note over AP,VA: runs SimulationParams::validate BEFORE anything is persisted (doc settings_routes.rs:126-130). The route-level check is<br/>narrower (it never looked at ssspAlpha), so without this a value could pass, be stored, then be refused by the GPU actor<br/>while the response was still 200
+    AP->>VA: validate_for_gpu(&new_physics) (settings_routes.rs:753)
+    Note over AP,VA: runs SimulationParams::validate BEFORE anything is persisted (doc settings_routes.rs:132-136). The route-level check is<br/>narrower (it never looked at ssspAlpha), so without this a value could pass, be stored, then be refused by the GPU actor<br/>while the response was still 200
     alt GPU validation fails
-        VA-->>CL: 400 "Validation failed: GPU rejected these values: ..." (settings_routes.rs:720-724, prefix :136)
+        VA-->>CL: 400 "Validation failed: GPU rejected these values: ..." (settings_routes.rs:754-758, prefix :142)
     end
-    Note over H,AP: a PhysicsPatchError maps to 400 or 500 in into_response (settings_routes.rs:584-590). Continues in VC-06.3
+    Note over H,AP: a PhysicsPatchError maps to 400 or 500 in into_response (settings_routes.rs:618-624). Continues in VC-06.3
 ```
 
 ## VC-06.3 PUT /api/settings/physics — phase 2 write-back, GPU propagation, persistence
 ```mermaid
 sequenceDiagram
     autonumber
-    participant AP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:661
+    participant AP as apply_physics_patch<br/>src/settings/api/settings_routes.rs:695
     participant SA as OptimizedSettingsActor<br/>src/actors/optimized_settings_actor.rs:801
     participant GPU as GPUComputeActor<br/>via state.get_gpu_compute_addr()
     participant GM as GPUManagerActor<br/>state.gpu_manager_addr
@@ -138,107 +134,107 @@ sequenceDiagram
     participant GS as GraphServiceSupervisor<br/>state.graph_service_addr
     participant DB as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:511
 
-    AP->>AP: full_settings.visualisation.graphs.knowledge.physics = new_physics (settings_routes.rs:728)
-    AP->>SA: send(UpdateSettings { settings: full_settings }) (settings_routes.rs:729-734)
+    AP->>AP: full_settings.visualisation.graphs.knowledge.physics = new_physics (settings_routes.rs:762)
+    AP->>SA: send(UpdateSettings { settings: full_settings }) (settings_routes.rs:763-768)
     alt Ok(Ok(()))
-        AP->>AP: apply_ontology_constraint_policy first, so a SimParams refusal cannot leave the stored policy unapplied (settings_routes.rs:739-746), see VC-61
-        AP->>AP: SimulationParams::from(&new_physics) (settings_routes.rs:749-750)
+        AP->>AP: apply_ontology_constraint_policy first, so a SimParams refusal cannot leave the stored policy unapplied (settings_routes.rs:773-780), see VC-61
+        AP->>AP: SimulationParams::from(&new_physics) (settings_routes.rs:783-784)
         rect rgb(236,236,244)
         Note over AP,GM: GPU propagation with a startup fallback
         alt state.get_gpu_compute_addr() is Some
-            AP->>GPU: send(UpdateSimulationParams { params }) (settings_routes.rs:757-759)
+            AP->>GPU: send(UpdateSimulationParams { params }) (settings_routes.rs:791-793)
             alt the actor refuses the update
-                GPU-->>AP: Internal "GPU update failed" — early return, the snapshot already holds the value (settings_routes.rs:765-771)
+                GPU-->>AP: Internal "GPU update failed" — early return, the snapshot already holds the value (settings_routes.rs:799-805)
             end
         else direct address not yet cached
-            Note over AP,GM: fallback window is roughly the first 6s of startup while the async init task completes (settings_routes.rs:777-778)
+            Note over AP,GM: fallback window is roughly the first 6s of startup while the async init task completes (settings_routes.rs:811-812)
             alt state.gpu_manager_addr is Some
-                AP->>GM: send(UpdateSimulationParams) — routed (settings_routes.rs:780-781)
+                AP->>GM: send(UpdateSimulationParams) — routed (settings_routes.rs:814-815)
             else
-                AP->>AP: error — physics will NOT propagate to GPU (settings_routes.rs:790)
+                AP->>AP: error — physics will NOT propagate to GPU (settings_routes.rs:824)
             end
         end
         opt GPUComputeActor address available
-            AP->>GPU: do_send(UpdateClusteringParams { algorithm, resolution, iterations }) (settings_routes.rs:799-804)
-            Note over AP,GPU: community-detector params cannot ride in the 172-byte repr-C SimParams<br/>so they are dispatched separately — this is what makes the Physics tab controls live (settings_routes.rs:794-798)
+            AP->>GPU: do_send(UpdateClusteringParams { algorithm, resolution, iterations }) (settings_routes.rs:833-838)
+            Note over AP,GPU: community-detector params cannot ride in the 212-byte repr-C SimParams<br/>so they are dispatched separately — this is what makes the Physics tab controls live (settings_routes.rs:828-832)
         end
-        AP->>CC: do_send(stream_settings_message(&new_physics)) — ConfigureStream with chunk_nodes, move_threshold, ack_timeout_ms (settings_routes.rs:810-812, built :481-487)
-        Note over AP,CC: the three stream settings are not SimParams fields either, they go straight to the client coordinator<br/>that builds each client's chunks. If no GPUComputeActor address is cached, clustering parameters wait for its next boot push (settings_routes.rs:806)
+        AP->>CC: do_send(stream_settings_message(&new_physics)) — ConfigureStream with chunk_nodes, move_threshold, ack_timeout_ms (settings_routes.rs:844-846, built :515-521)
+        Note over AP,CC: the three stream settings are not SimParams fields either, they go straight to the client coordinator<br/>that builds each client's chunks. If no GPUComputeActor address is cached, clustering parameters wait for its next boot push (settings_routes.rs:840)
         end
-        AP->>GS: send(UpdateSimulationParams) (settings_routes.rs:815)
-        AP->>GS: send(ForceResumePhysics { reason: "Physics settings updated via API" }) (settings_routes.rs:824-828)
-        Note over GS: without ForceResumePhysics a converged system stays paused and the change is invisible (settings_routes.rs:821-822)
-        AP->>DB: set_setting("physics", SettingValue::Json(...), Some("Physics simulation settings")) (settings_routes.rs:839-844)
+        AP->>GS: send(UpdateSimulationParams) (settings_routes.rs:849)
+        AP->>GS: send(ForceResumePhysics { reason: "Physics settings updated via API" }) (settings_routes.rs:858-862)
+        Note over GS: without ForceResumePhysics a converged system stays paused and the change is invisible (settings_routes.rs:855-856)
+        AP->>DB: set_setting("physics", SettingValue::Json(...), Some("Physics simulation settings")) (settings_routes.rs:873-878)
         alt persist fails
-            DB-->>AP: warn only — the response still succeeds (settings_routes.rs:847)
+            DB-->>AP: warn only — the response still succeeds (settings_routes.rs:881)
         end
-        AP->>AP: broadcast_settings_change(state, "physics", updated_by) (settings_routes.rs:861, ADR-2047)
-        AP-->>AP: Ok(new_physics), or an Internal error when the write asked for the policy and it was not applied (settings_routes.rs:863-871), sent as 200 JSON by the route (:612)
+        AP->>AP: broadcast_settings_change(state, "physics", updated_by) (settings_routes.rs:895, ADR-2047)
+        AP-->>AP: Ok(new_physics), or an Internal error when the write asked for the policy and it was not applied (settings_routes.rs:897-905), sent as 200 JSON by the route (:646)
     else Ok(Err(e))
-        SA-->>AP: Internal "Failed to update physics settings" (settings_routes.rs:873-879)
+        SA-->>AP: Internal "Failed to update physics settings" (settings_routes.rs:907-913)
     else Err(mailbox)
-        SA-->>AP: Internal "Actor communication error" (settings_routes.rs:880-885)
+        SA-->>AP: Internal "Actor communication error" (settings_routes.rs:914-919)
     end
-    Note over AP,DB: RESOLVED ADR-2047 (was DIVERGENCE) — physics now DOES broadcast to other<br/>sessions via broadcast_settings_change (settings_routes.rs:861, comment :858-860 "the one that never announced<br/>itself"). Rendering (settings_routes.rs:1092) also calls broadcast_settings_change — node-filter uses a<br/>separate raw client_manager_addr.do_send(BroadcastMessage) instead (settings_routes.rs:1214-1217), same effect. See VC-06.4
+    Note over AP,DB: RESOLVED ADR-2047 (was DIVERGENCE) — physics now DOES broadcast to other<br/>sessions via broadcast_settings_change (settings_routes.rs:895, comment :892-894 "the one that never announced<br/>itself"). Rendering (settings_routes.rs:1126) also calls broadcast_settings_change — node-filter uses a<br/>separate raw client_manager_addr.do_send(BroadcastMessage) instead (settings_routes.rs:1248-1251), same effect. See VC-06.4
 ```
 
-**Tension:** a GPU actor that refuses the update makes `apply_physics_patch` return 500 "GPU update failed" (`../project/src/settings/api/settings_routes.rs:765-771`), but `UpdateSettings` has already replaced the actor snapshot (`../project/src/settings/api/settings_routes.rs:729-736`). The early return skips the SQLite write (`:839-844`) and the broadcast (`:861`). The in-memory snapshot then holds a value the GPU refused and the store never saw, and the next PATCH merges onto it. Source tracing cannot show how often the actor refuses a value that has already passed `validate_for_gpu` (`:719`).
+**Tension:** a GPU actor that refuses the update makes `apply_physics_patch` return 500 "GPU update failed" (`../project/src/settings/api/settings_routes.rs:799-805`), but `UpdateSettings` has already replaced the actor snapshot (`../project/src/settings/api/settings_routes.rs:763-770`). The early return skips the SQLite write (`:873-878`) and the broadcast (`:895`). The in-memory snapshot then holds a value the GPU refused and the store never saw, and the next PATCH merges onto it. Source tracing cannot show how often the actor refuses a value that has already passed `validate_for_gpu` (`:753`).
 
 ## VC-06.4 Broadcast asymmetry — which settings reach other sessions
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H1 as update_rendering_settings<br/>src/settings/api/settings_routes.rs:1034
-    participant H2 as update_node_filter_settings<br/>src/settings/api/settings_routes.rs:1160
-    participant H3 as apply_physics_patch<br/>src/settings/api/settings_routes.rs:661
-    participant H4 as reset_layout<br/>src/settings/api/settings_routes.rs:1907
-    participant H5 as update_visual_settings<br/>src/settings/api/settings_routes.rs:1560
-    participant BC as broadcast_settings_change<br/>src/settings/api/settings_routes.rs:457-473
+    participant H1 as update_rendering_settings<br/>src/settings/api/settings_routes.rs:1068
+    participant H2 as update_node_filter_settings<br/>src/settings/api/settings_routes.rs:1194
+    participant H3 as apply_physics_patch<br/>src/settings/api/settings_routes.rs:695
+    participant H4 as reset_layout<br/>src/settings/api/settings_routes.rs:1941
+    participant H5 as update_visual_settings<br/>src/settings/api/settings_routes.rs:1594
+    participant BC as broadcast_settings_change<br/>src/settings/api/settings_routes.rs:491-507
     participant CC as ClientCoordinatorActor<br/>state.client_manager_addr
     participant B as other browser sessions<br/>client/src/store/websocket/textMessageHandler.ts:149
 
-    H1->>BC: "rendering" (settings_routes.rs:1092), after the rendering row is stored (:1066-1078), see VC-06.10
-    H3->>BC: "physics" (settings_routes.rs:861), from PUT physics, SSSP toggle and layout mode
-    H4->>BC: "physics", "reset-layout", only after ResetPositions succeeded (settings_routes.rs:1999)
-    H5->>BC: "visual" after the row is written (settings_routes.rs:1585-1603), new in ec785afa9
-    BC->>CC: do_send(BroadcastMessage) (settings_routes.rs:466-468), category-only payload (:458-463)
+    H1->>BC: "rendering" (settings_routes.rs:1126), after the rendering row is stored (:1100-1112), see VC-06.10
+    H3->>BC: "physics" (settings_routes.rs:895), from PUT physics, SSSP toggle and layout mode
+    H4->>BC: "physics", "reset-layout", only after ResetPositions succeeded (settings_routes.rs:2033)
+    H5->>BC: "visual" after the row is written (settings_routes.rs:1619-1637), new in ec785afa9
+    BC->>CC: do_send(BroadcastMessage) (settings_routes.rs:500-502), category-only payload (:492-497)
     CC->>B: WS frame — other sessions converge
-    H2->>CC: own inline do_send(BroadcastMessage) (settings_routes.rs:1214-1217), bypasses the emitter
-    Note over H2,CC: payload built by node_filter_broadcast at settings_routes.rs:1209-1213, :1236-1248, fuller than BC's: the whole stored nodeFilter document, so maxNodes survives (ADR-2192).<br/> Comment "Propagate node filter changes..." at settings_routes.rs:1206-1208
+    H2->>CC: own inline do_send(BroadcastMessage) (settings_routes.rs:1248-1251), bypasses the emitter
+    Note over H2,CC: payload built by node_filter_broadcast at settings_routes.rs:1243-1247, :1270-1282, fuller than BC's: the whole stored nodeFilter document, so maxNodes survives (ADR-2192).<br/> Comment "Propagate node filter changes..." at settings_routes.rs:1240-1242
     CC->>B: WS frame
     B->>B: handleSettingsUpdated (textMessageHandler.ts:165)
     Note over B: own echo dropped (textMessageHandler.ts:173), stale timestamp dropped (:182),<br/>nodeFilter applied directly (:191-199), others re-read (:201, :205-228)
     Note over B: "visual" re-reads every visualisation path outside rendering and physics (client/src/store/settings/settingsHelpers.ts:252-264)
-    Note over H1,B: RESOLVED ADR-2047 — physics (PUT, reset-layout and the other apply_physics_patch callers) and rendering now ALL emit<br/>through the single broadcast_settings_change emitter (settings_routes.rs:457-473). node-filter keeps its own richer, separate<br/>broadcast. RESOLVED ADR-2080 (vc-clients) — the client now CONSUMES settingsUpdated (textMessageHandler.ts:149-151).<br/>Visual joined in ec785afa9. Still silent: constraints, quality-gates, profiles.
+    Note over H1,B: RESOLVED ADR-2047 — physics (PUT, reset-layout and the other apply_physics_patch callers) and rendering now ALL emit<br/>through the single broadcast_settings_change emitter (settings_routes.rs:491-507). node-filter keeps its own richer, separate<br/>broadcast. RESOLVED ADR-2080 (vc-clients) — the client now CONSUMES settingsUpdated (textMessageHandler.ts:149-151).<br/>Visual joined in ec785afa9. Still silent: constraints, quality-gates, profiles.
 ```
 
-**Open:** `reset_layout` writes the canonical defaults to the GPU actors and to SQLite (`../project/src/settings/api/settings_routes.rs:1939-1979`) but never sends `UpdateSettings` to `OptimizedSettingsActor`. `GET /api/settings/physics` reads SQLite first (`:495-500`), so it shows the reset. The next `apply_physics_patch` merges onto the actor snapshot instead (`:673`, `:692`), and that snapshot still holds the pre-reset values until the process restarts, because nothing sends `ReloadSettings`. On source evidence, the first physics PUT after a reset writes every field it does not name back to its pre-reset value. This needs a runtime check to confirm.
+**Open:** `reset_layout` writes the canonical defaults to the GPU actors and to SQLite (`../project/src/settings/api/settings_routes.rs:1973-2013`) but never sends `UpdateSettings` to `OptimizedSettingsActor`. `GET /api/settings/physics` reads SQLite first (`:529-534`), so it shows the reset. The next `apply_physics_patch` merges onto the actor snapshot instead (`:707`, `:726`), and that snapshot still holds the pre-reset values until the process restarts, because nothing sends `ReloadSettings`. On source evidence, the first physics PUT after a reset writes every field it does not name back to its pre-reset value. This needs a runtime check to confirm.
 
-**Tension (risk):** every server settings bucket is written under one constant key with no owner scope: `physics` (`../project/src/settings/api/settings_routes.rs:840-841`), `rendering` (`:1067-1068`), `constraints` (`:955-956`), `node_filter` (`:1193-1194`), `quality_gates` (`:1344-1345`) and `visual` (`:1585-1586`). They land in the global layer, so one viewer's save changes every viewer's settings. BASELINE records this as intended (`../project/docs/BASELINE-architecture.md:364-366`). Only `/api/user/filter` is scoped to its owner (`../project/src/settings/api/settings_routes.rs:1729`, `../project/src/settings/api/settings_routes.rs:1802-1811`).
+**Tension (risk):** every server settings bucket is written under one constant key with no owner scope: `physics` (`../project/src/settings/api/settings_routes.rs:874-875`), `rendering` (`:1101-1102`), `constraints` (`:989-990`), `node_filter` (`:1227-1228`), `quality_gates` (`:1378-1379`) and `visual` (`:1619-1620`). They land in the global layer, so one viewer's save changes every viewer's settings. BASELINE records this as intended (`../project/docs/BASELINE-architecture.md:364-366`). Only `/api/user/filter` is scoped to its owner (`../project/src/settings/api/settings_routes.rs:1763`, `../project/src/settings/api/settings_routes.rs:1836-1845`).
 
-**Drift (code comment vs code):** `CURRENT_OWNER_PUBKEY` is documented as "set by NIP-98 middleware before any handler runs" (`../project/src/adapters/sqlite_settings_repository.rs:119-120`). No middleware sets it. Only `get_all_settings`, the two user-filter handlers and the WebSocket filter save scope it (`../project/src/settings/api/settings_routes.rs:1628`, `../project/src/settings/api/settings_routes.rs:1729`, `../project/src/settings/api/settings_routes.rs:1802`, `../project/src/handlers/socket_flow_handler/filter_auth.rs:382`).
+**Drift (code comment vs code):** `CURRENT_OWNER_PUBKEY` is documented as "set by NIP-98 middleware before any handler runs" (`../project/src/adapters/sqlite_settings_repository.rs:119-120`). No middleware sets it. Only `get_all_settings`, the two user-filter handlers and the WebSocket filter save scope it (`../project/src/settings/api/settings_routes.rs:1662`, `../project/src/settings/api/settings_routes.rs:1763`, `../project/src/settings/api/settings_routes.rs:1836`, `../project/src/handlers/socket_flow_handler/filter_auth.rs:382`).
 
 ## VC-06.6 API keys — one NostrService store
 ```mermaid
 sequenceDiagram
     autonumber
-    participant HP as POST /api/auth/nostr/api-keys<br/>src/handlers/nostr_handler.rs:277
-    participant HG as GET /api/auth/nostr/api-keys<br/>src/handlers/nostr_handler.rs:310
-    participant NS as NostrService users map<br/>src/services/nostr_service.rs:479
+    participant HP as POST /api/auth/nostr/api-keys<br/>src/handlers/nostr_handler.rs:372
+    participant HG as GET /api/auth/nostr/api-keys<br/>src/handlers/nostr_handler.rs:405
+    participant NS as NostrService users map<br/>src/services/nostr_service.rs:602
 
-    HP->>NS: update_user_api_keys(caller, keys) (nostr_handler.rs:293, nostr_service.rs:484)
-    NS->>NS: user.api_keys = api_keys, persisted to Redis when the feature is on (nostr_service.rs:495-502)
-    HG->>NS: get_user(caller) (nostr_handler.rs:319)
+    HP->>NS: update_user_api_keys(caller, keys) (nostr_handler.rs:388, nostr_service.rs:609)
+    NS->>NS: patch each provider key — absent leaves it unchanged, an empty string clears it, any other value replaces it (nostr_service.rs:623-632),<br/>so saving one provider no longer erases the others, then persisted to Redis when the feature is on (nostr_service.rs:638-639)
+    HG->>NS: get_user(caller) (nostr_handler.rs:414)
     alt user known
-        NS-->>HG: 200 user.api_keys with Cache-Control no-store (nostr_handler.rs:320-326)
+        NS-->>HG: 200 presence only, {perplexity, openai, ragflow} booleans, the stored keys never leave the server (nostr_handler.rs:419-426), Cache-Control no-store (:427-430)
     else
-        NS-->>HG: 404 User not found (nostr_handler.rs:328)
+        NS-->>HG: 404 User not found (nostr_handler.rs:433)
     end
     Note over HP,NS: RESOLVED since 86cdd7635: the POST and the GET use the same NostrService store
     Note over HP,NS: RESOLVED (VisionClaw 7a0674e79): ProtectedSettingsActor (both copies), its ProtectedSettings model,<br/>AppState::get_api_keys and get_nostr_user are deleted, so no second key store is left in src or crates
 ```
 
-**What it shows.** Saving and reading a user's API keys. **Why it is this way.** The api-keys GET once read an empty `ProtectedSettingsActor`, so a saved key never came back. It now reads the same `NostrService` record the POST writes, the route test pins that (`../project/src/handlers/nostr_handler.rs:370`), and the dormant actor has since been deleted.
+**What it shows.** Saving and reading a user's API keys. **Why it is this way.** The api-keys GET once read an empty `ProtectedSettingsActor`, so a saved key never came back. It now reads the same `NostrService` record the POST writes, the route test pins that (`../project/src/handlers/nostr_handler.rs:475`), and the dormant actor has since been deleted. The GET now reports only which providers hold a key, and a POST patches the key set rather than replacing it.
 
 ## VC-06.7 Hexagonal hop — SettingsRepository port to the SQLite adapter
 ```mermaid
@@ -287,16 +283,13 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     IN["incoming settings JSON"]
-    IN --> N1["normalize_physics_keys<br/>src/settings/api/settings_routes.rs:74<br/>snake_case and legacy names to canonical camelCase, call site inside merge_physics_patch :1516"]
-    N1 --> V1["validate_physics_settings<br/>src/settings/api/settings_routes.rs:140 (call site :709)"]
-    V1 --> G1["validate_for_gpu<br/>src/settings/api/settings_routes.rs:131 (call site :719)<br/>SimulationParams::validate before persistence"]
+    IN --> N1["normalize_physics_keys<br/>src/settings/api/settings_routes.rs:74<br/>snake_case and legacy names to canonical camelCase, call site inside merge_physics_patch :1550"]
+    N1 --> V1["validate_physics_settings<br/>src/settings/api/settings_routes.rs:146 (call site :743)"]
+    V1 --> G1["validate_for_gpu<br/>src/settings/api/settings_routes.rs:137 (call site :753)<br/>SimulationParams::validate before persistence"]
     G1 --> OUT["PhysicsSettings"]
-    subgraph FIX["src/handlers/settings_validation_fix.rs"]
-        F1["validate_physics_settings_complete(&Value) settings_validation_fix.rs:5"]
-        F2["validate_constraint(&Value) settings_validation_fix.rs:67"]
-        F3["convert_to_snake_case_recursive(&mut Value) settings_validation_fix.rs:107"]
-        F4["get_complete_field_mappings() -> HashMap settings_validation_fix.rs:151"]
-        F5["apply_field_mappings(&mut Value, &mappings) settings_validation_fix.rs:271"]
+    subgraph FIX["src/handlers/settings_validation_fix.rs — GPU constraint validation only"]
+        F2["validate_constraint(&Value) settings_validation_fix.rs:4"]
+        FX["REMOVED (VisionClaw 688775d17, with the unmounted settings_handler module): validate_physics_settings_complete,<br/>convert_to_snake_case_recursive, get_complete_field_mappings, apply_field_mappings —<br/>the file now opens on GPU constraint validation (settings_validation_fix.rs:1-4)"]
     end
     subgraph DOM["canonical validators re-exported by src/config/mod.rs:28-31"]
         D1["validate_bloom_glow_settings"]
@@ -306,8 +299,8 @@ flowchart TB
         D5["validate_width_range"]
     end
     V1 -.-> DOM
-    FIX -.-> IN
-    NOTE["the two families are parallel — settings_routes.rs carries its own normalise/validate pair<br/>(plus validate_for_gpu) and the live physics write path apply_physics_patch calls those only.<br/>settings_validation_fix.rs is imported by other handlers: settings_handler/validation.rs:7,<br/>settings_handler/write_handlers.rs:12 and constraints_handler.rs:9"]
+    FIX -.-> CO["POST /api/constraints/* payloads"]
+    NOTE["one physics family is left — settings_routes.rs carries the normalise/validate pair<br/>(plus validate_for_gpu) that apply_physics_patch calls, and settings_validation_fix.rs<br/>keeps only validate_constraint for its one importer, constraints_handler.rs:9"]
     FIX --- NOTE
 ```
 
@@ -346,17 +339,17 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as update_rendering_settings<br/>src/settings/api/settings_routes.rs:1034
+    participant H as update_rendering_settings<br/>src/settings/api/settings_routes.rs:1068
     participant AD as SqliteSettingsRepository<br/>src/adapters/sqlite_settings_repository.rs:474
     participant ACT as OptimizedSettingsActor<br/>src/actors/optimized_settings_actor.rs:700
     participant B as other browser sessions<br/>client/src/store/websocket/textMessageHandler.ts:205
 
-    H->>H: validate_rendering_settings, 400 on failure (settings_routes.rs:1045-1050)
-    H->>ACT: GetSettings, then the snapshot's rendering is replaced (settings_routes.rs:1052-1054)
-    H->>AD: set_setting(RENDERING_ROW, Json(row)) (settings_routes.rs:1066-1072), 500 on failure (:1073-1078)
-    H->>ACT: UpdateSettings(full_settings) (settings_routes.rs:1079-1085)
-    H->>B: broadcast_settings_change rendering (settings_routes.rs:1092)
-    Note over H,ACT: TENSION: the row is stored before UpdateSettings, so an actor error returns 500<br/>(settings_routes.rs:1096-1107) while the store already holds the new document, which the next restart loads
+    H->>H: validate_rendering_settings, 400 on failure (settings_routes.rs:1079-1084)
+    H->>ACT: GetSettings, then the snapshot's rendering is replaced (settings_routes.rs:1086-1088)
+    H->>AD: set_setting(RENDERING_ROW, Json(row)) (settings_routes.rs:1100-1106), 500 on failure (:1107-1112)
+    H->>ACT: UpdateSettings(full_settings) (settings_routes.rs:1113-1119)
+    H->>B: broadcast_settings_change rendering (settings_routes.rs:1126)
+    Note over H,ACT: TENSION: the row is stored before UpdateSettings, so an actor error returns 500<br/>(settings_routes.rs:1130-1141) while the store already holds the new document, which the next restart loads
     Note over ACT,AD: on restart, started() calls load_all_settings (optimized_settings_actor.rs:710),<br/>which seeds rendering from the row (sqlite_settings_repository.rs:811-815, seed_rendering_from_blob :1163)
     Note over ACT: an all-zero rendering document is replaced by RenderingSettings defaults (optimized_settings_actor.rs:715-722)
     Note over AD: DEBT: the RENDERING_ROW doc lines sit directly under the ADR-2140 doc comment of seed_physics_from_blob<br/>(sqlite_settings_repository.rs:1148-1159), so rustdoc attaches that comment to the const and the fn at :1176 has none
@@ -366,4 +359,4 @@ sequenceDiagram
 
 **What it shows.** A rendering change now survives a restart, and a `visual` broadcast reaches the three visual-bucket subtrees that belong to no named section. **Why it is this way.** The settings audit of 2026-11-06 found that `UpdateSettings` persists nothing, so lighting and background were lost on every restart. The handler now writes the row itself, as `apply_physics_patch` does for physics (`../project/src/adapters/sqlite_settings_repository.rs:1157-1159`).
 
-**Debt (loose end):** two integration test files are entirely commented out: `tests/test_save_endpoint.rs` says it references removed modules (`../project/tests/test_save_endpoint.rs:1-3`), and `tests/test_settings_persistence.rs` says the same (`../project/tests/test_settings_persistence.rs:1-3`); each body is one block comment. Neither test covers any settings route.
+**RESOLVED (loose end):** the two commented-out integration test files, `tests/test_save_endpoint.rs` and `tests/test_settings_persistence.rs`, were deleted with the unmounted `settings_handler` module (VisionClaw 688775d17). This topic did not re-audit the other `tests/settings_*` files.
