@@ -184,7 +184,7 @@ flowchart TD
     BUN -.-> N2
 ```
 - INVARIANT: the refusal is a typed error so the CLI exits 2 (`build/publish.rs:66`, `ontomark-cli/src/main.rs:869-872`); `stage` without links is only a wrapper (`publish.rs:191-193`) and `run_with` never calls it.
-- DOC-DRIFT: `publish.rs` says `<out>/publish/` is the markdown that is published (`publish.rs:1`) but with `publish_out` it is not in `<out>` at all (`mod.rs:887-892`, `:1137-1139`).
+- DOC-DRIFT: `publish.rs` says `<out>/publish/` is the markdown that is published (`publish.rs:1`) but with `publish_out` it is not in `<out>` at all (`mod.rs:887-892`, `:1155-1157`).
 - Under `--scope machine` the gate still scans `working/`'s public pages though nothing is staged into the bundle (`build/mod.rs:685-697`, `build/mod.rs:880-882`), see OM-06.
 
 ## OM-03.5 Staged write-once and the promote

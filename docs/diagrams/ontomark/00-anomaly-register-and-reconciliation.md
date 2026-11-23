@@ -18,6 +18,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/ir/projection.rs
   - ../ontomark/crates/ontomark-compile/src/ir/closure.rs
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
+  - ../ontomark/crates/ontomark-compile/src/build/okf.rs
   - ../ontomark/crates/ontomark-compile/src/build/publish.rs
   - ../ontomark/crates/ontomark-compile/src/build/redact.rs
   - ../ontomark/crates/ontomark-compile/src/build/turtle.rs

@@ -87,7 +87,7 @@ flowchart TB
         direction TB
         N1["WITHDRAWN in code: the loom-raw SEED no longer holds a raw model door. openCodeConfig<br/>gives loom-lan, loom-agent and loom-raw the SAME LOOM_BASE_URL #40;session-provision.mjs:104,<br/>session-provision.mjs:131-147#41; and declines the scaffold per request<br/>instead #40;session-provision.mjs:118#41;, the ADR-139 answer to what the raw port was for.<br/>LOOM_RAW_BASE_URL survives only as a compose default #40;flake.nix:4199#41; that nothing seeds"]
         N2["RESOLVED ADR-2055: opf-router is the PRIVACY-FILTER redaction sidecar on OPF_PORT<br/>9092 (agentbox.toml [privacy_filter].port, scripts/opf-router.py:41, flake.nix<br/>[program:opf-router]). BASELINE-container previously described it as an<br/>OpenAI-compatible facade on port 8084 — corrected. No agentbox program serves<br/>port 8084 — that is the Loom facade on machinelearn"]
-        N3["The loom-facade implementation lives OUTSIDE this repo at /home/devuser/workspace/loom.<br/>This repo holds the deployment contract only (loom/README.md:8-15)"]
+        N3["The loom-facade implementation lives OUTSIDE this repo at /home/devuser/workspace/loom, area LM.<br/>loom/README.md here is VisionClaw's ../project/loom/README.md, the deployment notes only (loom/README.md:8-15).<br/>DRIFT: its endpoint table omits /mcp, /loom/search/semantic and /loom/attest (loom/README.md:26-34),<br/>which the facade routes (loom-facade/src/routes/mod.rs:63-74), see LM-02.3"]
         N1 ~~~ N2 ~~~ N3
     end
 ```
@@ -212,7 +212,7 @@ sequenceDiagram
     participant M as model behind DISTILL_BACKEND_URL
 
     rect rgb(235,242,250)
-        Note over C,FAC: retrieval tier — NO model needed (loom/README.md:21,26-32)
+        Note over C,FAC: retrieval tier — NO model needed (loom/README.md:21,26-32), route table see LM-02.3
         C->>FAC: GET /health
         FAC-->>C: liveness, corpus generation stamp, backend/graph/index readiness, injection_policy,<br/>and status serving or fallback, ok staying true on a start-up fallback (loom-facade/src/routes/health.rs:168-175)
         C->>FAC: GET /loom/generation
@@ -298,7 +298,7 @@ stateDiagram-v2
         docker build -f loom/deploy/Dockerfile -t loom:rust /home/devuser/workspace
         The build context is the workspace PARENT because loom path-depends
         on the sibling ruvector crate and COPY cannot escape its context.
-        loom/README.md:36-45
+        loom/README.md:36-45, Loom side see LM-06.1
     end note
     Staged --> Starting : docker compose --profile loom up -d loom
     note right of Staged
@@ -314,7 +314,7 @@ stateDiagram-v2
         HNSW index is repacked on open, so it cannot be served from the
         read-only mount. tmpfs uid/gid MUST stay 65532 to match the image's
         non-root user or the copy fails EACCES.
-        loom/README.md:78-81, docker-compose.unified.yml:455-459
+        loom/README.md:78-81, docker-compose.unified.yml:455-459, see LM-06.2
     end note
     RvdbCopied --> Healthy : GET /health returns 200
     RvdbCopied --> EmptyFloor : source empty or mis-pointed
@@ -322,7 +322,7 @@ stateDiagram-v2
         THE EMPTY-FLOOR TRAP. The facade still starts and /health still
         returns 200, but the log reads "lexical index NOT loaded ... empty
         floor". That is a STAGING bug, not a dead container — check the
-        mount before you check the process. loom/README.md:73-76
+        mount before you check the process. loom/README.md:73-76, see LM-02.1
     end note
     EmptyFloor --> Staged : repoint LOOM_DATA_SOURCE
     Healthy --> RetrievalOnly : DISTILL_BACKEND_URL blank
