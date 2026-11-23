@@ -57,14 +57,13 @@ How VisionClaw sees and directs agents: the management API (tasks, status), the 
 
 Between: agentbox, visionclaw.
 
-2 live, 11 unverified, 3 closed.
+1 live, 11 unverified, 4 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | L-1 | Signed model/mobile session canaries | agentbox, visionclaw | device | open | 2026-11-15 |
-| AB-EXEC-RECORD-NO-OPERATOR-GATE (also AB-03.1) | agentbox: POST /v1/exec/record is documented as operator-gated but has no requireOperator, so any valid NIP-98 signer can append to the execution journal | agentbox | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -90,7 +89,7 @@ How a caller proves who they are across components: NIP-98 request signing, did:
 
 Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website.
 
-8 live, 12 unverified, 11 closed.
+7 live, 12 unverified, 12 closed.
 
 ### Live
 
@@ -100,7 +99,6 @@ Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-websi
 | SP-NIP98-REPLAY-FILL | solid-pod-rs: the NIP-98 replay stores record straight after signature verification and refuse at capacity, so valid unique tokens can fill the store | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-WEBID-SCHEME-ONLY | solid-pod-rs: `extract_webid` judges a WebID by an http or https prefix only, and `verify_webid_issuer_binding` has no caller | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-WELLKNOWN-OIDC-ISSUER | solid-pod-rs: `/.well-known/solid` still publishes `solid_oidc_issuer` although resource routes honour no OIDC token | solid-pod-rs | engineering | open | 2026-11-21 |
-| AB-NIP98-MGMT-URL-MISMATCH (also AB-03.15) | agentbox: a NIP-98 request through the proxy's /mgmt/ route fails URL matching upstream (prefix stripped, header re-attached unchanged), so the signed request gets a 401 | agentbox | engineering | open | 2026-11-23 |
 | AB-MANDATE-REVOKE-NOT-PUBLISHED (also AB-11.7, AB-11.8, AB-11.13) | agentbox: mandate revocation only rewrites the local registry and signs; it writes no pod ACL and publishes nothing, and is unsigned when no operator stack is configured | agentbox | owner-decision | open | 2026-11-23 |
 | AB-MANDATE-GRANT-NEVER-ENFORCED | agentbox: mandate grants never reach a pod (ACL never PUT, wrong sidecar path and IRIs, no owner block, 30078 never published), so revocation has nothing to undo | agentbox | owner-decision | open | 2026-11-23 |
 | AB-NIP98-ADR-DOCS-STALE | agentbox: ADR-2210 Residuals and the ADR-2122 amendment still describe the old nip98-proxy config ownership and location | agentbox | engineering | open | 2026-11-23 |
@@ -130,7 +128,7 @@ Where private keys and credentials live, who can read or use them, how they are 
 
 Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 
-6 live, 8 unverified, 1 closed.
+5 live, 8 unverified, 2 closed.
 
 ### Live
 
@@ -141,7 +139,6 @@ Between: agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw.
 | W3-06 | Boot now creates a devuser-owned /run/secrets/ruvector-pg/ inside the role-only secrets mount in both modes, outside the role plan; ADR-2122 records that the activation rehearsal was not re-run with it present. | agentbox | deployment | open | 2026-11-20 |
 | CODEX-LEG-CONFINE | The Codex audit leg can read any file the cron user can read, and its turn count and spend are not bounded by the budget reservation | agentbox | deployment | open | 2026-11-20 |
 | NIP98-ROLE-READ | Under role isolation the NIP-98 proxy cannot read its own config file, so the door would stay closed | agentbox | deployment | open | 2026-11-20 |
-| AB-ROLE-ISOLATION-NIP98-CONFIG-OWNER (also AB-36.1) | agentbox: with role_isolation on, nip98-proxy cannot read its config (owned 1000:1000 mode 0600, but ab-ingress is uid 962), so it stays pending and the ingress is locked out | agentbox | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -164,14 +161,13 @@ Zone membership, encryption of zone and inbox messages, key grants and their led
 
 Between: nostr-rust-forum, dreamlab-ai-website, agentbox.
 
-2 live, 4 unverified, 1 closed.
+1 live, 4 unverified, 2 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | FORUM-PHASE-0-1 (also feat/upgrade-phase-0-1) | Forum Phase 0 to 4 branch integrated on integrate/phase-0-1: review, choose the core crate version, merge, then apply the D1 migrations | nostr-rust-forum | owner-act | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
-| NF-INVITE-REVOKE-BY-CODE-NOOP (also NF-25.4) | nostr-rust-forum: revoking an invite by code returns 200 and changes 0 rows | nostr-rust-forum | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -190,7 +186,7 @@ The pod server as others consume it: the storage and access-control interface, t
 
 Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website.
 
-18 live, 4 unverified, 18 closed.
+17 live, 4 unverified, 19 closed.
 
 ### Live
 
@@ -213,7 +209,6 @@ Between: solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-websi
 | SP-REMOTESTORAGE-RESIDUALS | solid-pod-rs: remoteStorage tokens can only be revoked all at once; dot-prefixed names are refused; quota is a separate bucket | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-WEBRTC-FORWARDED-TRUST | solid-pod-rs: with trust-proxy on, the WebRTC per-client cap trusts the proxy's forwarded address | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-AP-CIRCUIT-BREAKER-FLAKE | solid-pod-rs: `a_failing_host_is_backed_off_by_a_circuit_breaker` fails intermittently under heavy load | solid-pod-rs | engineering | open | 2026-11-22 |
-| SP-ACCOUNT-DELETE-EMPTY-STORE (also SP-02.13) | solid-pod-rs: `account delete` runs against a fresh in-memory user store, so it always reports no such user, and never removes pods or WebIDs | solid-pod-rs | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -232,20 +227,17 @@ Anything that moves or records value: pay routes, the teller and credit ledger, 
 
 Between: sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox.
 
-8 live, 8 unverified, 4 closed.
+5 live, 8 unverified, 8 closed.
 
 ### Live
 
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | SIDESTR-F1 | No remediation had landed for any of the 25 open sidestr rows since the audit pin 814b9e54 | sidestr-rs | untriaged | open | 2026-11-20 |
-| SP-MRC20-DEPOSIT-PROOF-UNBOUND (also SP-07.17, SP-07.9) | solid-pod-rs: a one-string MRC20 deposit proof is accepted and the credited amount is whatever the caller asserts, so a funded address can self-mint unbounded credits | solid-pod-rs | engineering | open | 2026-11-23 |
-| DW-POKER-BUYIN-NOT-RESERVED (also DW-10.2) | poker-citizen: buy-ins are not reserved, and the payout cap stops payment but not acceptance, so concurrent hands can commit more than the house holds | nostr-rust-forum, dreamlab-ai-website | engineering | open | 2026-11-23 |
-| DW-POKER-HANDS-LOST-ON-RESTART (also DW-10.3) | poker-citizen: in-flight hands are held in memory only and are lost on restart; only the ledger is saved | nostr-rust-forum, dreamlab-ai-website | engineering | open | 2026-11-23 |
-| DW-POKER-AUTOPAY-UNBOUND (also DW-10.4) | poker forum client: auto-pay amount and destination are not bound to the verified replay | nostr-rust-forum, dreamlab-ai-website | engineering | open | 2026-11-23 |
 | SP-MRC20-FOLLOWUPS-PREEXISTING | solid-pod-rs MRC20: RBF of an unconfirmed head keeps the credit; empty chains lets caller choose network; replay key ignores recipient; bt_address omits the pod so shared issuer+ticker pods each credit; every issuer mark spends the tip so deposits race the issuer | solid-pod-rs | engineering | open | 2026-11-23 |
 | SP-MRC20-PROOF-OMITS-OUTPOINT | solid-pod-rs: server-issued anchor proofs (anchor_proof_json) do not emit the new named outpoint, so honest depositors fall back to the sorted walk where earlier-confirmed dust can still crowd out the anchor | solid-pod-rs | engineering | open | 2026-11-23 |
 | DW-POKER-NO-LATE-PAY-PATH | poker: a member who lost and returns after the 10-minute Done window has no pay path (offer debt list is text-only, Offer.owed carries no destination or Agreed) and refusal() then locks them out | nostr-rust-forum | owner-decision | open | 2026-11-23 |
+| DW-POKER-ALERTS-UNMONITORED | poker house: Effect::Alert (halted payout debts, repeated producer refusals) goes only to stderr; halted debts hold bankroll until an operator pays on chain with memo hand:<root> | nostr-rust-forum | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -353,7 +345,7 @@ What one repository assumes about another's version: crate pins, submodule gitli
 
 Between: estate.
 
-6 live, 15 unverified, 3 closed.
+4 live, 15 unverified, 5 closed.
 
 ### Live
 
@@ -363,8 +355,6 @@ Between: estate.
 | COV-A-F1 | Agentbox builds diagram-ir v0.1.0, not the audited 15cba16 | agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
 | SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
 | PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
-| EST-POKER-CITIZEN-PIN-SKEW | agentbox: lib/poker-citizen.nix pins the forum kit at 6064622 while the website's KIT_REF is fd31193 | agentbox, nostr-rust-forum, dreamlab-ai-website | engineering | open | 2026-11-23 |
-| EST-SOLID-POD-RS-LOCKFILE-LEFTOVERS | agentbox: leftover lockfiles still pin older solid-pod-rs: crates/nostr-receipt at alpha.21 and the vendored forum lock at alpha.20 | agentbox, solid-pod-rs | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -417,7 +407,7 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-54 live, 102 unverified, 80 closed.
+48 live, 102 unverified, 87 closed.
 
 ### visionclaw
 
@@ -498,11 +488,6 @@ Recorded as open, not re-checked:
 | COV-A-F8 | `is_global` SSRF filter misses NAT64, 6to4, Teredo | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
 | COV-A-F10 | Rustdoc omits `GET /rules`; says c2pa 0.90, manifest 0.91 | agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting release tag and agentbox pin bump | 2026-11-20 |
 | ISAAC-RUNNER-TOKEN | `ISAAC_RUNNER_TOKEN` must be set where `isaac-job.js` runs, or Isaac jobs are refused after the next rebuild | agentbox | owner-act | open | 2026-11-20 |
-| AB-BEADS-DB-EMPTY-MEMORY-FALLBACK (also AB-26.7) | agentbox: AGENTBOX_BEADS_DB set to an empty string makes the substrate tools fall back to :memory: on every call | agentbox | engineering | open | 2026-11-23 |
-| AB-HEADROOM-MCP-TOOLS-NO-CALLER (also AB-26.3) | agentbox: management-api/lib/headroom-mcp-tools.js has no caller | agentbox | engineering | open | 2026-11-23 |
-| AB-SCHEMA-ADAPTERS-CONNECT-TIMEOUT (also AB-04.15) | agentbox: the config schema rejects [adapters].connect_timeout_ms, which the adapter lifecycle reads | agentbox | engineering | open | 2026-11-23 |
-| AB-AGENTBOX-SH-CONFIG-NOT-ALLOWLISTED (also AB-05.5) | agentbox: `agentbox.sh config` exits with "Unknown command" because config is missing from the command allowlist | agentbox | engineering | open | 2026-11-23 |
-| AB-ADR-2151-VOICELINK-ENABLED-WHILE-PROPOSED | agentbox: [voicelink] is enabled = true while ADR-2151 is still decision_status: proposed (activation inactive), and a stale line in the ADR says implementation_status stays none | agentbox | owner-decision | open | 2026-11-23 |
 
 Recorded as open, not re-checked:
 
@@ -539,7 +524,7 @@ Recorded as open, not re-checked:
 | AC-FORUM-1 | Forum: delete the three blank `audited_by` fields | nostr-rust-forum | engineering | fixed on an unmerged branch: merged to main 2026-11-17, awaiting rebuild | 2026-11-17 |
 | FORUM-INTENT-KEY-ORDER | `create_agent_intent_signer` builds its event content with `json!(...).to_string()`, the same build-dependent key order as GOV-CONTENT-KEY-ORDER, for a non-governance kind | nostr-rust-forum | deployment | fixed on an unmerged branch | 2026-11-21 |
 | FORUM-RUMOR-KEY-ORDER | nostr-rust-forum: `gift_wrap.rs` serialises the NIP-59 rumor with build-dependent key order, so seal ciphertext bytes differ by build | nostr-rust-forum | engineering | open | 2026-11-21 |
-| NF-MODERATION-REPORTS-EMPTY-TABLE (also NF-02.2, NF-08.13) | nostr-rust-forum: auth GET /api/moderation/reports reads nip1984_reports, which nothing writes | nostr-rust-forum | engineering | open | 2026-11-23 |
+| NF-AUTH-MIGRATION-0005-UNAPPLIED | forum auth-worker migration 0005 (drop unused nip1984_reports) is not applied by the website deploy | nostr-rust-forum | owner-decision | open | 2026-11-23 |
 
 Recorded as open, not re-checked:
 
@@ -552,10 +537,6 @@ Recorded as open, not re-checked:
 | FWP-13 | About 13 independent readers resolve `window.__ENV__` with divergent fallbacks | nostr-rust-forum | duplicate | 2026-11-01 |
 
 ### dreamlab-ai-website
-
-| Id | Item | Components | Blocked by | State | Checked |
-|---|---|---|---|---|---|
-| DW-AUTH-WORKER-TYPESAFE-KEY-UNCHECKED (also DW-05.1) | dreamlab-ai-website: deploy does not check the TYPESAFE_API_KEY secret on the auth worker | dreamlab-ai-website | engineering | open | 2026-11-23 |
 
 Recorded as open, not re-checked:
 
