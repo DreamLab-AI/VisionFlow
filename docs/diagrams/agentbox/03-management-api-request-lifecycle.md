@@ -57,7 +57,7 @@ sources:
   - ../project/agentbox/management-api/lib/agent-event-auth.js
   - ../project/agentbox/flake.nix
   - ../project/agentbox/scripts/agentbox-config-validate.js
-verified_commit: 0693c761c782457066f081b46daf8f7f4ea29e3c
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-03.1 server.js boot part 1 — Fastify construction, hooks, static route registers
@@ -682,7 +682,7 @@ flowchart LR
     Note1["no other routes/*.js or server.js require them; scripts/agentbox-config-validate.js<br/>only checks payments.consumer coherence for spend-policy, it does not import it"]
 ```
 
-**Drift:** this panel previously drew `spend-policy.js` and `consumer-payer.js` as "consumed only by scripts/agentbox-config-validate.js", with no `require()` from any route. Its own note contradicted that, and it misattributed the `chain-payments.js` line numbers to the two middleware files. At the pin, `routes/chain-payments.js` requires both (`../project/agentbox/management-api/routes/chain-payments.js:34-35`). The validator mentions spend-policy only in its rule text (`../project/agentbox/scripts/agentbox-config-validate.js:1741-1766`).
+**Drift:** this panel previously drew `spend-policy.js` and `consumer-payer.js` as "consumed only by scripts/agentbox-config-validate.js", with no `require()` from any route. Its own note contradicted that, and it misattributed the `chain-payments.js` line numbers to the two middleware files. At the pin, `routes/chain-payments.js` requires both (`../project/agentbox/management-api/routes/chain-payments.js:34-35`). The validator mentions spend-policy only in its rule text (`../project/agentbox/scripts/agentbox-config-validate.js:1742-1767`).
 
 ## AB-03.18 lib/elevation-stage.js — gateElevation, ADR-2116 vault-propose gate before federation
 
