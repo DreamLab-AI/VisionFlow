@@ -49,7 +49,7 @@ Split 2026-11-23: AB-08.8 and AB-08.10 to AB-08.14 moved to [AB-48](48-hook-hand
 
 Registration ground truth (2026-09-29): `~/.claude/settings.json` is boot-generated and never tracked, so AB-08.1–AB-08.7
 cite the sites that WRITE it — `config/entrypoint-unified.sh` for the root session and
-`services/agentbox-manifest/src/stacks.rs` `learning_hooks#40;#41;` for per-profile stacks — the split `config/hooks/README.md` owns. All hook `timeout` values are now SECONDS, not
+`services/agentbox-manifest/src/stacks.rs` `learning_hooks()` for per-profile stacks — the split `config/hooks/README.md` owns. All hook `timeout` values are now SECONDS, not
 milliseconds (`services/agentbox-manifest/src/stacks.rs:29-30`); a bare `UserPromptSubmit` → `route` per-profile hook no
 longer exists (ADR-2091 consolidated per-turn routing into `skill-route.cjs`, see AB-08.5).
 
@@ -128,10 +128,10 @@ flowchart TB
 flowchart TB
     subgraph PP["workspace/profiles/#60;stack#62;/.claude/settings.json"]
     direction TB
-    P0["build_profile starts from learning_hooks#40;env, gates#41; stacks.rs:290, fn at stacks.rs:34,<br/>then appends floor, voicelink, session-plane (stacks.rs:327-337) and activity-sink entries stacks.rs:293-340, writes hooks at stacks.rs:353<br/>see AB-08.16 for those four gated additions"]
-    P1["every learning_hooks entry is node ADAPTER action #124;#124; true<br/>stacks.rs:38, timeouts are SECONDS stacks.rs:29-30"]
-    P2["PreToolUse stacks.rs:69<br/>Bash → pre-command t=5 stacks.rs:70<br/>Write#124;Edit#124;MultiEdit → pre-edit t=5 stacks.rs:71"]
-    P3["PostToolUse :73<br/>Write#124;Edit#124;MultiEdit → post-edit t=10 :74<br/>Bash → post-command t=5 :75"]
+    P0["build_profile starts from learning_hooks(env, gates) stacks.rs:290, fn at stacks.rs:34,<br/>then appends floor, voicelink, session-plane (stacks.rs:327-337) and activity-sink entries stacks.rs:293-340, writes hooks at stacks.rs:353<br/>see AB-08.16 for those four gated additions"]
+    P1["every learning_hooks entry is node ADAPTER action || true<br/>stacks.rs:38, timeouts are SECONDS stacks.rs:29-30"]
+    P2["PreToolUse stacks.rs:69<br/>Bash → pre-command t=5 stacks.rs:70<br/>Write|Edit|MultiEdit → pre-edit t=5 stacks.rs:71"]
+    P3["PostToolUse :73<br/>Write|Edit|MultiEdit → post-edit t=10 :74<br/>Bash → post-command t=5 :75"]
     P4["SessionStart → session-restore t=15 :77<br/>NO UserPromptSubmit entry: the per-profile route hook<br/>is RETIRED, comment stacks.rs:31-33, test stacks.rs:530-531"]
     P5["SessionEnd :78 = session-end t=10 :43<br/>+ nostr summary hook when mobile_bridge, DETACHED via setsid :44-56<br/>+ ontology-monitor when ontology_monitor, also DETACHED t=10 :58-65"]
     P0 --> P1 --> P2 --> P3 --> P4 --> P5
@@ -167,28 +167,28 @@ sequenceDiagram
 
     Note over U,M: root registrations: entrypoint-unified.sh:1711 mirror, entrypoint-unified.sh:1916 turn-sink,<br/>entrypoint-unified.sh:2213 dream-inbox, entrypoint-unified.sh:2638 brain-ground, entrypoint-unified.sh:2782 skill-route — five on this one event, plus the gated decline-recorder, session-state entrypoint-unified.sh:1958 (ADR-2153) and activity-sink (AB-08.16).<br/>INVARIANT: stacks.rs learning_hooks registers no per-profile UserPromptSubmit route hook<br/>(stacks.rs:31-33, test stacks.rs:530-531) and only those gated additions add one — skill-route.cjs is the sole per-turn router (ADR-2091)
     U->>NM: node HOOK UserPromptSubmit, timeout 8 seconds<br/>entrypoint-unified.sh:1716
-    NM->>NM: bodyForEvent#40;#41; checks mirroredEvents#40;#41; first, returns null if not listed<br/>nostr-live-mirror.cjs:291-292
+    NM->>NM: bodyForEvent() checks mirroredEvents() first, returns null if not listed<br/>nostr-live-mirror.cjs:291-292
     NM-->>U: DEFAULT: null body on UserPromptSubmit, egress skipped — only Stop is<br/>mirrored by default, DEFAULT_MIRROR_EVENTS :279, widen via AGENTBOX_LIVE_MIRROR_EVENTS :280-283, see AB-13.9
     par independent root groups, unordered wrt each other
-        U->>RBG: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2651
-        RBG->>RBG: analyse#40;prompt#41;: DISTINCTIVE name fires alone,<br/>an ESTATE name needs an upstream-intent cue in the SAME sentence<br/>ruvnet-brain-ground.cjs:90-98
+        U->>RBG: node HOOK || true, timeout 5 seconds<br/>entrypoint-unified.sh:2651
+        RBG->>RBG: analyse(prompt): DISTINCTIVE name fires alone,<br/>an ESTATE name needs an upstream-intent cue in the SAME sentence<br/>ruvnet-brain-ground.cjs:90-98
         RBG->>RBG: CLASSICAL_SUBS match needs selection intent in the same sentence<br/>ruvnet-brain-ground.cjs:100-109
         RBG-->>M: emitContext via lib/hook-output.cjs, or nothing<br/>ruvnet-brain-ground.cjs:121-124, see AB-48.3
     and
-        U->>TS: node HOOK UserPromptSubmit #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1919
+        U->>TS: node HOOK UserPromptSubmit || true, timeout 5 seconds<br/>entrypoint-unified.sh:1919
         Note over TS: the sink is deployed to the workspace copy, not the baked one<br/>entrypoint-unified.sh:1908 — see AB-12 for the bridge itself
     and
-        U->>SR: ADR-2091 gate inlined as AGENTBOX_SKILL_ROUTER=jev<br/>entrypoint-unified.sh:2782, env prefix entrypoint-unified.sh:2806, timeout = max#40;8, ceil#40;2 times judge_ms / 1000#41;#41; entrypoint-unified.sh:2829
-        SR->>SR: lib.route#40;prompt, cfg#41;: one Choice over the configured candidate scope, passing the session cwd<br/>hooks/skill-route.cjs:38 via lib/skill-route.cjs
+        U->>SR: ADR-2091 gate inlined as AGENTBOX_SKILL_ROUTER=jev<br/>entrypoint-unified.sh:2782, env prefix entrypoint-unified.sh:2806, timeout = max(8, ceil(2 times judge_ms / 1000)) entrypoint-unified.sh:2829
+        SR->>SR: lib.route(prompt, cfg): one Choice over the configured candidate scope, passing the session cwd<br/>hooks/skill-route.cjs:38 via lib/skill-route.cjs
         SR->>SR: ADR-2090 per-project bypass: a cwd at or under a [skills.routing].bypass_projects root never reaches the judge,<br/>and a non-absolute cwd against a non-empty list bypasses too, fail-closed (lib/skill-route.cjs:524-542, gate lib/skill-route.cjs:762, list lib/skill-route.cjs:468-469)
         SR->>SR: candidates include synced and enabled-plugin skills, after deduplication.<br/>Baked bare names win, then plugins over identical synced copies. Desktop-only synced tools are excluded.<br/>lib/skill-route.cjs:304,328-405. Scope all is committed (agentbox.toml:1380),<br/>and an explicit frontmatter gate must be literally true (lib/skill-route.cjs:220-258).
-        SR-->>M: emitContext#40;lib.formatContext#40;r, cfg#41;#41; via lib/hook-output.cjs, or nothing<br/>hooks/skill-route.cjs:43
+        SR-->>M: emitContext(lib.formatContext(r, cfg)) via lib/hook-output.cjs, or nothing<br/>hooks/skill-route.cjs:43
         Note over SR: ADR-2139 behind the proxy, which this container dials on loopback (it also listens on the docker networks once network = true is live), the hook sends no Authorization and the no-key skip is waived (lib/skill-route.cjs:514, lib/skill-route.cjs:706, lib/skill-route.cjs:757, lib/skill-route.cjs:784-786),<br/>the flag rides the inlined command as AGENTBOX_SYSTEM_ONE_PROXY=1 (entrypoint-unified.sh:2793, entrypoint-unified.sh:2809), cost uses the proxy's x-system-one-usd-per-mtok-in header (lib/skill-route.cjs:817-820)
         Note over SR: INVARIANT fail-open — errors, timeout, 429/529 or a none pick return without injection.<br/>The deadline stays armed through JSON body parsing (lib/skill-route.cjs:776-810).<br/>The hook requests zero retries (hooks/skill-route.cjs:38), then emits advisory context only (hooks/skill-route.cjs:43).
     and
-        U->>DI: node HOOK #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:2227
-        DI->>DI: skip machine-generated turns #40;task-notification, agent-message,<br/>system-reminder#41;, then count OPEN items and rate-limit via a sidecar<br/>stamp file, dream-inbox-surface.cjs:40-51
-        DI-->>M: hookSpecificOutput.additionalContext = one-line pointer at the forum<br/>governance panel #40;ADR-2115#41;, or #123;#125;, dream-inbox-surface.cjs:52-61, see AB-48.4
+        U->>DI: node HOOK || true, timeout 5 seconds<br/>entrypoint-unified.sh:2227
+        DI->>DI: skip machine-generated turns (task-notification, agent-message,<br/>system-reminder), then count OPEN items and rate-limit via a sidecar<br/>stamp file, dream-inbox-surface.cjs:40-51
+        DI-->>M: hookSpecificOutput.additionalContext = one-line pointer at the forum<br/>governance panel (ADR-2115), or {}, dream-inbox-surface.cjs:52-61, see AB-48.4
     end
 ```
 
@@ -204,12 +204,12 @@ sequenceDiagram
 
     CC->>NM: node HOOK SessionStart, timeout 8 seconds<br/>entrypoint-unified.sh:1716
     NM-->>CC: DEFAULT: null body, skipped — SessionStart is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:279 and nostr-live-mirror.cjs:291-292, see AB-13.9
-    CC->>FS: bash HOOK #124;#124; true, timeout 8 seconds<br/>entrypoint-unified.sh:1736
+    CC->>FS: bash HOOK || true, timeout 8 seconds<br/>entrypoint-unified.sh:1736
     FS->>FTN: bash fleet-tab-name.sh, errors swallowed<br/>fleet-session-start.sh:17
     Note over FTN: no TMUX or no tmux binary → exit 0<br/>fleet-tab-name.sh:14-15
     FTN->>FTN: name = git remote basename → toplevel → cwd basename :19-27
     FTN->>FTN: pin the name: automatic-rename off, allow-rename off, rename-window :32-34
-    FTN->>FTN: write $HOME/.claude/fleet/#36;win#125;.json registry entry :37-40
+    FTN->>FTN: write $HOME/.claude/fleet/#36;win}.json registry entry :37-40
     FS->>FS: gateway not running and AGENTBOX_NOSTR_GATEWAY!=0<br/>fleet-session-start.sh:19-20 → nohup node gateway.cjs, disown fleet-session-start.sh:23-24
     FS->>FS: deploy.sh present and AGENTBOX_TAB0_BRIDGE!=0<br/>fleet-session-start.sh:34 → nohup bash deploy.sh, disown fleet-session-start.sh:35-36
     Note over CC: trust-seed.cjs is NOT registered here any more. It ran ONCE at boot,<br/>entrypoint-unified.sh:1818-1820, and is invoked by hand for a worktree made after<br/>boot: node trust-seed.cjs #60;path#62; — see AB-48.2
@@ -232,7 +232,7 @@ sequenceDiagram
     Note over CC,OM: SessionEnd
     CC->>NM: node HOOK SessionEnd, timeout 8 seconds<br/>entrypoint-unified.sh:1716
     NM-->>CC: DEFAULT: null body, skipped — SessionEnd is not in the default<br/>mirroredEvents set, nostr-live-mirror.cjs:279 and nostr-live-mirror.cjs:291-292, see AB-13.9
-    CC->>OM: node HOOK #124;#124; true, timeout 10 seconds when the gate is on<br/>entrypoint-unified.sh:1776 — the review itself budgets 180s but runs DETACHED,<br/>ontology-monitor.cjs:38
+    CC->>OM: node HOOK || true, timeout 10 seconds when the gate is on<br/>entrypoint-unified.sh:1776 — the review itself budgets 180s but runs DETACHED,<br/>ontology-monitor.cjs:38
     OM->>OM: not runInForeground: fork a detached child via spawn, stdio ignored<br/>except a logfile, unref, exit 0 at once — ontology-monitor.cjs:249-266
     Note over OM: master switch AGENTBOX_ONTOLOGY_MONITOR seeded by entrypoint-unified.sh:1781<br/>so the hook is never a registered no-op — see AB-48.3
     CC->>AD: PER-PROFILE ONLY: session-end, timeout 10 seconds<br/>stacks.rs:78 and stacks.rs:43
@@ -241,7 +241,7 @@ sequenceDiagram
     Note over CC,TR: Stop and SubagentStop
     CC->>NM: node HOOK Stop, timeout 8 seconds<br/>entrypoint-unified.sh:1716
     NM-->>CC: body is the last assistant text from transcript_path — Stop IS the default<br/>mirroredEvents entry, nostr-live-mirror.cjs:304-307, scan at nostr-live-mirror.cjs:252-265, see AB-13.9
-    CC->>TS: node HOOK Stop #124;#124; true, timeout 5 seconds<br/>entrypoint-unified.sh:1919
+    CC->>TS: node HOOK Stop || true, timeout 5 seconds<br/>entrypoint-unified.sh:1919
     CC->>TR: optional public identity prefix + node HOOK EVENT, timeout 10 seconds<br/>entrypoint-unified.sh:2072, prefix built at entrypoint-unified.sh:2055-2057, no gate and no database reach
     TR->>TR: Stop or SubagentStop runs handleClose, any other event returns 0<br/>trajectory-recorder.cjs:579-582, see AB-48.5
     Note over CC,TR: INVARIANT: enablement IS registration, the hook carries no env gate (trajectory-recorder.cjs:33-36),<br/>the entrypoint registers it only when both memory_learning flags are on (entrypoint-unified.sh:2045-2046)<br/>and gate off de-registers over all 4 legacy events (entrypoint-unified.sh:2090-2096)
