@@ -26,7 +26,7 @@ A reviewer needs to know which approved change reached which page. The applicati
 
 ```mermaid
 flowchart TD
-    A["approve outcome<br/>local-process-manager.js:219"] --> Q["Resolve same case and ontology panel;<br/>proposal digest must equal decision tag<br/>local-process-manager.js:380,398,401"]
+    A["approve outcome<br/>local-process-manager.js:218"] --> Q["Resolve same case and ontology panel;<br/>proposal digest must equal decision tag<br/>local-process-manager.js:380,398,401"]
     P["promote or demote outcome<br/>local-process-manager.js:227"] --> R["Roster and own-key refusal<br/>local-process-manager.js:233,509"]
     Q --> R
     R --> B["Resolve request; compare request tag and signed IRI<br/>local-process-manager.js:420,445,451"]
