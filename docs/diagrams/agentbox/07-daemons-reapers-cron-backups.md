@@ -378,7 +378,7 @@ sequenceDiagram
     end
     Note over B,PG: a raw volume tar of a LIVE PG datadir is not crash-consistent, so the backup carries pg_dump -Fc instead (agentbox.sh:313-315)
     Note over B: the memory DB, 2M+ rows, was previously absent from backups entirely — PRD-018 Phase 0 closes gap 12 (agentbox.sh:314)
-    Note over T: on-disk layout backups/ruvector-sidecar holds state.json, timestamped .copy.gz<br/>snapshots from the gated ops, and recall-runs/<utc>.json from the recall harness —<br/>see AB-05.6
+    Note over T: on-disk layout backups/ruvector-sidecar holds state.json, timestamped .copy.gz<br/>snapshots from the gated ops, and recall-runs/<utc>.json from the recall harness —<br/>see AB-47.2
 ```
 
 ## AB-07.9 Gated starts — networking, desktop and toolchain daemons

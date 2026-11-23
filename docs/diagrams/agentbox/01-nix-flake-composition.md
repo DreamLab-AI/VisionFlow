@@ -504,6 +504,6 @@ flowchart TB
     NOTE1["INVARIANT ADR-2080 - the npm @claude-flow/cli tarball ships no router<br/>artefacts (files list excludes assets/model-router), so ONE hash-verified<br/>manifest (config/model-router/artefacts.json) is the single source for both<br/>this Nix bake and scripts/model-router-fetch.sh's pre-rebuild fallback dir"]
     MRNASSETS --- NOTE1
 
-    NOTE2["see AB-46.5 (the router seed in the session plane),<br/>AB-05.11 (agentbox.sh model-router CLI), AB-29 (router console itself)"]
+    NOTE2["see AB-46.5 (the router seed in the session plane),<br/>AB-47.4 (agentbox.sh model-router CLI), AB-29 (router console itself)"]
     BAKE --- NOTE2
 ```
