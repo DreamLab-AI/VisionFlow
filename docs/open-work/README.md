@@ -17,14 +17,14 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 108 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 111 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
-| Closed | 147 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 149 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (19)
+## Waiting on the owner (17)
 
-### Waiting on an owner decision (13)
+### Waiting on an owner decision (11)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -37,8 +37,6 @@ Items are filed by **seam**: the contract between components that would have to 
 | SP-PATCH-WRITE-REBASE | solid-pod-rs: a Write holder without Read can send an insert-only PATCH with a hostile Host header and have every stored relative IRI rebased onto that origin | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-APPEND-UNBOUNDED | solid-pod-rs: Append-only appends are unbounded when no quota is configured, and the per-resource lock covers one process only | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
 | SP-ACL-LAYOUT-RESIDUALS | solid-pod-rs: opt-in ACL layouts: an ACL can be planted before its container exists, a file's own Control grant no longer suffices, and copied relative rules change scope | pod-api | solid-pod-rs | owner-decision | open | 2026-11-21 |
-| AB-MANDATE-REVOKE-NOT-PUBLISHED (also AB-11.7, AB-11.8, AB-11.13) | agentbox: mandate revocation only rewrites the local registry and signs; it writes no pod ACL and publishes nothing, and is unsigned when no operator stack is configured | identity | agentbox | owner-decision | open | 2026-11-23 |
-| AB-MANDATE-GRANT-NEVER-ENFORCED | agentbox: mandate grants never reach a pod (ACL never PUT, wrong sidecar path and IRIs, no owner block, 30078 never published), so revocation has nothing to undo | identity | agentbox | owner-decision | open | 2026-11-23 |
 | DW-POKER-NO-LATE-PAY-PATH | poker: a member who lost and returns after the 10-minute Done window has no pay path (offer debt list is text-only, Offer.owed carries no destination or Agreed) and refusal() then locks them out | payments | nostr-rust-forum | owner-decision | open | 2026-11-23 |
 | NF-AUTH-MIGRATION-0005-UNAPPLIED | forum auth-worker migration 0005 (drop unused nip1984_reports) is not applied by the website deploy | none | nostr-rust-forum | owner-decision | open | 2026-11-23 |
 
@@ -60,7 +58,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 3 | 0 |
 | [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 4 | 3 |
 | [Agent control and activity](by-seam.md#agent-control-api) | agentbox, visionclaw | 1 | 11 |
-| [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 8 | 12 |
+| [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 11 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 5 | 8 |
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 1 | 4 |
 | [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 17 | 4 |
@@ -79,7 +77,7 @@ An item that touches two components is counted under both.
 | Component | Live, on a seam | Live, inside the component | Unverified |
 |---|---|---|---|
 | visionclaw | 13 | 16 | 75 |
-| agentbox | 18 | 16 | 72 |
+| agentbox | 21 | 16 | 72 |
 | nostr-rust-forum | 10 | 5 | 28 |
 | dreamlab-ai-website | 0 | 1 | 8 |
 | solid-pod-rs | 23 | 1 | 31 |
@@ -99,9 +97,9 @@ An item that touches two components is counted under both.
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 13 |
+| Waiting on an owner decision | 11 |
 | Waiting on an owner act | 6 |
-| Ordinary engineering: can start now | 57 |
+| Ordinary engineering: can start now | 62 |
 | Needs a live deployment | 20 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |

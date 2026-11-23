@@ -89,7 +89,7 @@ How a caller proves who they are across components: NIP-98 request signing, did:
 
 Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website.
 
-8 live, 12 unverified, 12 closed.
+11 live, 12 unverified, 14 closed.
 
 ### Live
 
@@ -99,10 +99,13 @@ Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-websi
 | SP-NIP98-REPLAY-FILL | solid-pod-rs: the NIP-98 replay stores record straight after signature verification and refuse at capacity, so valid unique tokens can fill the store | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-WEBID-SCHEME-ONLY | solid-pod-rs: `extract_webid` judges a WebID by an http or https prefix only, and `verify_webid_issuer_binding` has no caller | solid-pod-rs | engineering | open | 2026-11-21 |
 | SP-WELLKNOWN-OIDC-ISSUER | solid-pod-rs: `/.well-known/solid` still publishes `solid_oidc_issuer` although resource routes honour no OIDC token | solid-pod-rs | engineering | open | 2026-11-21 |
-| AB-MANDATE-REVOKE-NOT-PUBLISHED (also AB-11.7, AB-11.8, AB-11.13) | agentbox: mandate revocation only rewrites the local registry and signs; it writes no pod ACL and publishes nothing, and is unsigned when no operator stack is configured | agentbox | owner-decision | open | 2026-11-23 |
-| AB-MANDATE-GRANT-NEVER-ENFORCED | agentbox: mandate grants never reach a pod (ACL never PUT, wrong sidecar path and IRIs, no owner block, 30078 never published), so revocation has nothing to undo | agentbox | owner-decision | open | 2026-11-23 |
 | AB-NIP98-ADR-DOCS-STALE | agentbox: ADR-2210 Residuals and the ADR-2122 amendment still describe the old nip98-proxy config ownership and location | agentbox | engineering | open | 2026-11-23 |
 | SP-ACCOUNT-DELETE-MISSES-ADMIN-PODS | solid-pod-rs: pods created through admin provisioning are not found by `account delete` and bypass the deleted-name tombstone | solid-pod-rs | engineering | open | 2026-11-23 |
+| AB-MANDATE-LOCK-STALE-TAKEOVER | agentbox mandates: the cross-process container lock can be taken over after 30 s during a slow pod, and its synchronous wait blocks the event loop | agentbox | engineering | open | 2026-11-23 |
+| AB-MANDATE-ADR2216-RESIDUAL-OVERCLAIM | agentbox ADR-2216: a uid-1000 process can still sign status=active for a revoked URN at current time and supersede the revoke on relays | agentbox | engineering | open | 2026-11-23 |
+| AB-MANDATE-NO-CASCADE-REVOKE | agentbox mandates: revoking a parent container leaves the same agent's active child mandates in force | agentbox | engineering | open | 2026-11-23 |
+| AB-MANDATE-GRANTING-STUCK-FOREIGN-ACL | agentbox mandates: a grant whose rollback meets a foreign sidecar stays granting and alerts every reconcile interval | agentbox | engineering | open | 2026-11-23 |
+| AB-MANDATE-CORRUPT-TOMBSTONE-BLOCKS | agentbox mandates: one tombstone whose legacy container does not normalise makes every lazy grant for that agent return 400 | agentbox | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
