@@ -33,7 +33,7 @@ sources:
   - ../project/xr-client/rust/src/render_store_pack.rs
   - ../project/xr-client/tests/unit/test_overview_lod.gd
   - ../project/xr-client/tests/unit/test_label_budget.gd
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -65,8 +65,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    SCENE["Count named graph and volume calls<br/>graph_scene.gd:3593,3603"] --> CALLS["Add agent, link and hull calls<br/>graph_scene.gd:3613,3617,3619"]
-    CALLS --> INPUT["Pass assembled call demand to allocator<br/>graph_scene.gd:3620,3623"]
+    SCENE["Count named graph and volume calls<br/>graph_scene.gd:3591,3601"] --> CALLS["Add agent, link and hull calls<br/>graph_scene.gd:3611,3615,3617"]
+    CALLS --> INPUT["Pass assembled call demand to allocator<br/>graph_scene.gd:3618,3621"]
     OTHER["Measured other triangles, but no other-call remainder<br/>frame_budget_pass.gd:127,151"] --> INPUT
     BENCH["Benchmark separately calibrates other calls<br/>benchmark.gd:230,572"]
     VISIBLE["Controller counts every visible frame<br/>eye_candy.gd:462,466,469"] --> PRICE["Cost clamps at eight frames<br/>frame_budget.rs:183"]
@@ -121,12 +121,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    POLL["_update_px_per_rad, once a second<br/>graph_scene.gd:1817,1819,1100"] --> XR{"XR interface live?<br/>graph_scene.gd:1830"}
-    XR -->|yes| EYE["eye 0 projection FOV against the per-eye render width<br/>graph_scene.gd:1831,1833,1834"]
-    XR -->|no| DESK["camera vertical FOV against viewport height<br/>graph_scene.gd:1835,1836"]
+    POLL["_update_px_per_rad, once a second<br/>graph_scene.gd:1815,1817,1098"] --> XR{"XR interface live?<br/>graph_scene.gd:1828"}
+    XR -->|yes| EYE["eye 0 projection FOV against the per-eye render width<br/>graph_scene.gd:1829,1831,1832"]
+    XR -->|no| DESK["camera vertical FOV against viewport height<br/>graph_scene.gd:1833,1834"]
     EYE --> PPR["px_per_rad = size / (2 tan(fov / 2)), 750 fallback<br/>overview_lod.gd:18,46,47,48,49"]
     DESK --> PPR
-    PPR --> MAT["written only when it changes, to the impostor and ribbon materials<br/>graph_scene.gd:1837,1841,1842"]
+    PPR --> MAT["written only when it changes, to the impostor and ribbon materials<br/>graph_scene.gd:1835,1839,1840"]
     MAT --> SHARE["every volume's MultiMesh reuses the template material<br/>connection_volume_source.gd:263"]
     SHARE --> IMP["impostor: floor = min(3 px of depth, 5 cm), grow only<br/>node_impostor.gdshader:45,46,60,61,62"]
     SHARE --> RIB["ribbon: 1.5 px wide at each end, never thinner than the cylinder,<br/>alpha 1 to 0.25 over 50 to 150 px projected length<br/>edge_ribbon.gdshader:33,55,56,63,64"]
@@ -138,7 +138,7 @@ flowchart TD
 
 **What it shows.** One per-second measurement drives both overview shaders through materials every volume shares, so a node never shrinks below 3 px and an edge is a 1.5 px line whose alpha falls with projected length. **Why it is this way.** ADR-2188 carries the desktop overview contract (ADR-2179, ADR-2181, ADR-2182) into the headset without bloom; headless Godot cannot compile shaders, so the maths is mirrored in GDScript for GUT (`xr-client/tests/unit/test_overview_lod.gd:79`).
 **Debt (parallel):** `overview_lod.gd` re-implements the impostor floor, ribbon width and length fade the shaders compute (`xr-client/scripts/overview_lod.gd:6-8`, `xr-client/materials/node_impostor.gdshader:60-62`, `xr-client/materials/edge_ribbon.gdshader:55-65`); GUT pins the copy and the shader defaults (`xr-client/tests/unit/test_overview_lod.gd:78-91`) but a change to a shader formula would pass it.
-**Open (risk):** `px_per_rad` is the centre-of-view value from eye 0's FOV (`xr-client/scripts/graph_scene.gd:1833-1834`), so on an asymmetric headset frustum the pixel floor and line width are approximate, as the doc concedes unverified (`docs/XR-client.md:836-837`).
+**Open (risk):** `px_per_rad` is the centre-of-view value from eye 0's FOV (`xr-client/scripts/graph_scene.gd:1831-1832`), so on an asymmetric headset frustum the pixel floor and line width are approximate, as the doc concedes unverified (`docs/XR-client.md:836-837`).
 **Tension (ADR-2188 D3 vs halo):** ADR-2188 says emphasis is "never glow" (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:33`), yet the halo quad still draws additively (`xr-client/materials/node_halo_quad.gdshader:18`); the doc reconciles this as emissive geometry rather than post-process bloom (`docs/XR-client.md:858-860`).
 
 ## VC-51.7 Each volume sizes its edge request from its own data and the HUD counts what it dropped (ADR-2188 D2, ADR-2179 P4)
@@ -150,22 +150,22 @@ flowchart TD
     LIMIT --> FETCH["edges_for_mask, heaviest first, and edge_total kept<br/>connection_volume_source.gd:132,133,134"]
     FETCH --> PACK["near cylinders plus far ribbons packed per frame<br/>connection_volume_source.gd:165,168"]
     PACK --> DRAWN["drawn_edges and dropped_edges<br/>connection_volume_source.gd:175,181"]
-    DRAWN --> SUM["_update_edge_readout sums visible volumes,<br/>touches the HUD only when a count changes<br/>graph_scene.gd:1788,1794,1804,1805,1806,1811"]
+    DRAWN --> SUM["_update_edge_readout sums visible volumes,<br/>touches the HUD only when a count changes<br/>graph_scene.gd:1786,1792,1802,1803,1804,1809"]
     SUM --> TXT["Edges N of M drawn, empty when nothing dropped<br/>overview_lod.gd:118,119,121"]
     TXT --> BADGE["EdgeBadge in the HUD header<br/>hud.gd:469,2575"]
-    OLD["Retained NODE_SAFETY_CEILING 20 000<br/>graph_scene.gd:50"] --> BUD["Node-count status budget only<br/>graph_scene.gd:4741-4746"]
-    BUD --> STATUS["status line nodes drawn at most N<br/>graph_scene.gd:2526"]
+    OLD["Retained NODE_SAFETY_CEILING 20 000<br/>graph_scene.gd:50"] --> BUD["Node-count status budget only<br/>graph_scene.gd:4739-4744"]
+    BUD --> STATUS["status line nodes drawn at most N<br/>graph_scene.gd:2524"]
 ```
 
 **What it shows.** The cap a viewer sees is the triangle-budget ceiling, applied per volume and reported in the header, not the old scene-wide safety constants. **Why it is this way.** ADR-2179 P4 forbids a silent cap; ribbons are 2 triangles, so 20 000 of them are 40 000 of the 100 000 budget (`xr-client/scripts/overview_lod.gd:33-38`).
-**Resolved source debt, 14 November review:** the scene's unused `_rerank_edges`, edge arrays, centrality mirror and `EDGE_SAFETY_CEILING` are removed. The retained node budget sizes the HUD readout (`xr-client/scripts/graph_scene.gd:990-992`, `xr-client/scripts/graph_scene.gd:4741-4746`, `xr-client/scripts/graph_scene.gd:2526`); the live per-volume edge count and cap remain the path above. No new frame-rate measurement follows from removing unused state.
-**Drift:** the node-budget comments still promise protection for MultiMesh buffers (`xr-client/scripts/graph_scene.gd:44-47`, `xr-client/scripts/graph_scene.gd:4736-4740`), although its readout is separate from the packing budget. The benchmark keeps its own 20 000 constant and still names the deleted GraphScene edge constant in its comment (`xr-client/perf/benchmark.gd:139-143`).
+**Resolved source debt, 14 November review:** the scene's unused `_rerank_edges`, edge arrays, centrality mirror and `EDGE_SAFETY_CEILING` are removed. The retained node budget sizes the HUD readout (`xr-client/scripts/graph_scene.gd:988-990`, `xr-client/scripts/graph_scene.gd:4739-4744`, `xr-client/scripts/graph_scene.gd:2524`); the live per-volume edge count and cap remain the path above. No new frame-rate measurement follows from removing unused state.
+**Drift:** the node-budget comments still promise protection for MultiMesh buffers (`xr-client/scripts/graph_scene.gd:44-47`, `xr-client/scripts/graph_scene.gd:4734-4738`), although its readout is separate from the packing budget. The benchmark keeps its own 20 000 constant and still names the deleted GraphScene edge constant in its comment (`xr-client/perf/benchmark.gd:139-143`).
 
 ## VC-51.8 The highlight mask is a Rust byte per slot, applied on the pack path (ADR-2188 D4, ADR-2183)
 
 ```mermaid
 flowchart TD
-    SCN["scene writers: search hits, hover held 250 ms, selection and up to 64 neighbours<br/>graph_scene.gd:2099,2123,2135,2136"] --> HW["HighlightWriter.write: dedup per connection and bit,<br/>never FILTERED_OUT<br/>highlight_writer.gd:23,37,41,45"]
+    SCN["scene writers: search hits, hover held 250 ms, selection and up to 64 neighbours<br/>graph_scene.gd:2097,2121,2133,2134"] --> HW["HighlightWriter.write: dedup per connection and bit,<br/>never FILTERED_OUT<br/>highlight_writer.gd:23,37,41,45"]
     HW --> GD["gdext set_highlight_ids<br/>binary_protocol.rs:1694,1704"]
     GD --> RS["RenderStore.set_highlight_ids masks out FILTERED_OUT<br/>render_store.rs:2624,2625"]
     FILT["Effective local or received nodeFilter writes FILTERED_OUT,<br/>greys instead of removing<br/>render_store.rs:2591,2615"] --> MASK
@@ -182,7 +182,7 @@ flowchart TD
 
 **What it shows.** Pointer and query state reach the renderer as one byte per node slot, folded to grey, normal or emphasised at pack time, so a hover never invalidates a pack plan. **Why it is this way.** ADR-2183 makes filters grey out rather than remove, and ADR-2188 D3 rules out glow, so emphasis is colour, size and an outline (`xr-client/rust/src/highlight.rs:1-18`).
 **Debt (parallel):** the five bit values are copied into GDScript with a "must match" comment (`xr-client/scripts/highlight_writer.gd:8-21`, `xr-client/rust/src/highlight.rs:21-29`), held only by a source-text GUT check (`xr-client/tests/unit/test_label_budget.gd:162-170`); `HighlightWriter.neighbours_of` mirrors the Rust `neighbours_in` for clients without it (`xr-client/scripts/highlight_writer.gd:79-98`).
-**Drift:** the ADR-2188 section of `docs/XR-client.md` places `_update_px_per_rad` at graph_scene line 1805 and `set_edge_readout` at hud line 2266 (`docs/XR-client.md:831-832`, `docs/XR-client.md:848-849`), but at this pin they sit at `xr-client/scripts/graph_scene.gd:1817` and `xr-client/scripts/hud.gd:2575`.
+**Drift:** the ADR-2188 section of `docs/XR-client.md` places `_update_px_per_rad` at graph_scene line 1805 and `set_edge_readout` at hud line 2266 (`docs/XR-client.md:831-832`, `docs/XR-client.md:848-849`), but at this pin they sit at `xr-client/scripts/graph_scene.gd:1815` and `xr-client/scripts/hud.gd:2575`.
 **Invariant (resolved Open):** the headset receipt is recorded. ADR-2188 notes OpenXR focused, 88-90 fps with all three volumes and zero script, shader, heartbeat or reconnect errors over 15 minutes on the HP (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`), with `activation_status: live`, corrected on 2026-11-07 from `active`, which the ledger does not accept (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:7`, `docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:56`) and the XR-client 0.1.35 changelog entry (`docs/XR-client.md:8`).
 **Drift:** RESOLVED at visionclaw 46edc196 — ADR-2188's Verification section now opens "All satisfied (2026-11-06)" and lists the headset receipt as satisfied (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:44`, `docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:48`), matching the status section (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`).
 **Open:** visual legibility of the rail and pages in the headset is still a human check (`docs/adr/ADR-2188-the-xr-client-adopts-the-overview-first-contract-without-bloom.md:52`); GL-gated GUT is not checkable from the container.
