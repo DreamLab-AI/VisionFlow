@@ -1,6 +1,6 @@
 ---
 id: AB-46
-title: Boot — shared MCP hub, session plane, launch contract, registry reconciliation and role isolation
+title: Boot — PID1 and bootstrap seal, shared MCP hub, session plane, launch contract, reconciliation and role isolation
 area: agentbox
 governing:
   - ../project/agentbox/docs/BASELINE-container.md

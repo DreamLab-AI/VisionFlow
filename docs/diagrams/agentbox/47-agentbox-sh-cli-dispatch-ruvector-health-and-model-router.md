@@ -42,7 +42,7 @@ flowchart LR
     SH -.-> RES1["ADR-2038 closed: cmd_shell agentbox.sh:1129 now uses<br/>cd /home/devuser/workspace/profiles/${profile} && exec fish — the old<br/>finding was that it execed the retired literal /workspace/profiles/PROFILE<br/>path (agentbox/CLAUDE.md 'Runtime model gotchas'); every other profile<br/>path in the script already used SCRIPT_DIR/workspace/profiles"]
 ```
 
-**Drift (fixed at 1d26ebe, successor to AB-05.5):** `config` is now on the allowlist (`../project/agentbox/agentbox.sh:2055`) and in the usage text (`../project/agentbox/agentbox.sh:62`), so the `config` arm (`../project/agentbox/agentbox.sh:2900`) is reachable and runs `cmd_config` (`../project/agentbox/agentbox.sh:2448-2454`): `plan` and `validate` only, anything else exits 2.
+**Invariant (successor to AB-05.5, true at 1d26ebe):** `config` is on the allowlist (`../project/agentbox/agentbox.sh:2055`) and in the usage text (`../project/agentbox/agentbox.sh:62`), so the `config` arm (`../project/agentbox/agentbox.sh:2900`) is reachable and runs `cmd_config` (`../project/agentbox/agentbox.sh:2448-2454`): `plan` and `validate` only, anything else exits 2.
 
 **Drift (resolved, `security` subcommand):** the `security` arm used to be unreachable because the allowlist omitted it; the allowlist at this stamp lists `security` (`../project/agentbox/agentbox.sh:2055`) and the arm runs `scripts/security-scan.sh` (`../project/agentbox/agentbox.sh:2889`), which `cmd_up --build` and `cmd_build` also call directly (`../project/agentbox/agentbox.sh:766`, `agentbox.sh:941`).
 
