@@ -41,7 +41,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## For developers
@@ -91,7 +91,7 @@ sequenceDiagram
     participant REPO as SqliteEnrichmentRepository<br/>adapters/sqlite_enrichment_repository.rs:401
     Note over EA: RunCycle scans owl_class frontier stubs<br/>ranked by voice demand then graph degree
     EA->>EA: case_for + pending_proposal build<br/>elevation_actor.rs:311, :373
-    EA->>ACSP: publish build_action_request kind 31402<br/>elevation_actor.rs:1293 acsp/events.rs:307
+    EA->>ACSP: publish build_action_request kind 31402<br/>elevation_actor.rs:1293 acsp/events.rs:365
     alt publish Ok
         EA->>REPO: create_or_update StoredProposal status pending<br/>elevation_actor.rs:1300
         REPO-->>EA: Ok case row upserted
@@ -107,62 +107,65 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant BR as agentbox broker-bridge
-    participant H as decide<br/>handlers/enrichment_proposals_handler.rs:424
+    participant H as decide<br/>handlers/enrichment_proposals_handler.rs:438
     participant AUTH as require_agent_key<br/>handlers/enrichment_proposals_handler.rs:141
-    participant AD as apply_decision<br/>handlers/enrichment_proposals_handler.rs:473
+    participant AD as apply_decision<br/>handlers/enrichment_proposals_handler.rs:546
     participant REPO as SqliteEnrichmentRepository
-    participant OXI as append_derived_summary call site<br/>handlers/enrichment_proposals_handler.rs:576
-    participant ACSPC as AppState.acsp_client<br/>app_state.rs:272
+    participant OXI as append_derived_summary call site<br/>handlers/enrichment_proposals_handler.rs:654
+    participant ACSPC as AppState.acsp_client<br/>app_state.rs:268
     BR->>H: POST /api/enrichment-proposals/:id/decide X-Agent-Key
-    H->>AUTH: require_agent_key compares X-Agent-Key to VISIONCLAW_AGENT_KEY<br/>via constant-time check_agent_key (subtle ct_eq, ADR-2093)<br/>utils/agent_key.rs:13, :15, handlers/enrichment_proposals_handler.rs:141, :146, :432
+    H->>AUTH: require_agent_key compares X-Agent-Key to VISIONCLAW_AGENT_KEY<br/>via constant-time check_agent_key (subtle ct_eq, ADR-2093)<br/>utils/agent_key.rs:13, :15, handlers/enrichment_proposals_handler.rs:141, :146, :446
     alt key invalid or missing
         AUTH-->>H: 401 Unauthorized
         H-->>BR: 401 invalid or missing X-Agent-Key header
     else key valid
         H->>AD: apply_decision case_id body
-        AD->>AD: record_decision pure core mints activity_urn<br/>handlers/enrichment_proposals_handler.rs:479 calling :168, :195
-        AD->>REPO: get(case_id) read ONCE - presence drives broker:new_case,<br/>recorded tier drives the rationale gate<br/>handlers/enrichment_proposals_handler.rs:494
-        AD->>AD: check_rationale(declared_tier, outcome, reasoning)<br/>handlers/enrichment_proposals_handler.rs:396, called at :510
+        alt production profile, no AcspClient and ALLOW_DECIDE_WITHOUT_FORUM unset
+            AD-->>BR: 503 forum_not_configured, refused before anything is recorded<br/>handlers/enrichment_proposals_handler.rs:554, forum_gate :524, :491, :485
+        end
+        AD->>AD: record_decision pure core mints activity_urn<br/>handlers/enrichment_proposals_handler.rs:557 calling :168, :195
+        AD->>REPO: get(case_id) read ONCE - presence drives broker:new_case,<br/>recorded tier drives the rationale gate<br/>handlers/enrichment_proposals_handler.rs:572
+        AD->>AD: check_rationale(declared_tier, outcome, reasoning)<br/>handlers/enrichment_proposals_handler.rs:410, called at :588
         alt tier high or critical and rationale shorter than MIN_RATIONALE_CHARS 20
-            AD-->>BR: 422 RationaleRejection code rationale_required<br/>handlers/enrichment_proposals_handler.rs:324, :516
-            Note right of AD: ADR-2110 FR2.2 INVARIANT: refused BEFORE anything is minted or<br/>persisted, so a gated request leaves no trace and no partial state,<br/>and the server NEVER fills the rationale in - a server-authored<br/>rationale is the fabricated judgement DDD invariant 1 forbids.<br/>handlers/enrichment_proposals_handler.rs:304-306
-            Note right of AD: INVARIANT one rule in two places, not two rules: the server<br/>constant must match the case queue's MIN_RATIONALE_CHARS.<br/>handlers/enrichment_proposals_handler.rs:320, mirrored at<br/>governance/brokerCaseQueue.ts:186 and asserted at :221
-            Note right of AD: TENSION: the gate tier is now gate_tier(declared, effective) - the stricter of the<br/>risk_tier recorded on the case and the effective_tier the bridge MAY forward in the body (ER-7), so a<br/>forwarded tier can only tighten it. handlers/enrichment_proposals_handler.rs:70, :382, :508 - yet the in-code<br/>scope note still says effective_tier has not landed. handlers/enrichment_proposals_handler.rs:308-314
-            Note right of AD: OPEN: a case with no row yet carries no recorded tier, so a first-contact bridge decision<br/>that forwards no effective_tier is still ungated. handlers/enrichment_proposals_handler.rs:502-508
+            AD-->>BR: 422 RationaleRejection code rationale_required<br/>handlers/enrichment_proposals_handler.rs:338, :594
+            Note right of AD: ADR-2110 FR2.2 INVARIANT: refused BEFORE anything is minted or<br/>persisted, so a gated request leaves no trace and no partial state,<br/>and the server NEVER fills the rationale in - a server-authored<br/>rationale is the fabricated judgement DDD invariant 1 forbids.<br/>handlers/enrichment_proposals_handler.rs:318-320
+            Note right of AD: INVARIANT one rule in two places, not two rules: the server<br/>constant must match the case queue's MIN_RATIONALE_CHARS.<br/>handlers/enrichment_proposals_handler.rs:334, mirrored at<br/>governance/brokerCaseQueue.ts:186 and asserted at :221
+            Note right of AD: TENSION: the gate tier is now gate_tier(declared, effective) - the stricter of the<br/>risk_tier recorded on the case and the effective_tier the bridge MAY forward in the body (ER-7), so a<br/>forwarded tier can only tighten it. handlers/enrichment_proposals_handler.rs:70, :396, :586 - yet the in-code<br/>scope note still says effective_tier has not landed. handlers/enrichment_proposals_handler.rs:322-328
+            Note right of AD: OPEN: a case with no row yet carries no recorded tier, so a first-contact bridge decision<br/>that forwards no effective_tier is still ungated. handlers/enrichment_proposals_handler.rs:580-586
         end
         opt case unknown to store
-            AD->>REPO: create_or_update stub status pending is_new_case<br/>handlers/enrichment_proposals_handler.rs:537
+            AD->>REPO: create_or_update stub status pending is_new_case<br/>handlers/enrichment_proposals_handler.rs:615
         end
-        AD->>REPO: record_decision atomic INSERT decision + UPDATE proposal.status<br/>handlers/enrichment_proposals_handler.rs:561 sqlite_enrichment_repository.rs:608
+        AD->>REPO: record_decision atomic INSERT decision + UPDATE proposal.status<br/>handlers/enrichment_proposals_handler.rs:639 sqlite_enrichment_repository.rs:608
         alt outcome approve and attributed pubkey hex
             AD->>OXI: append_derived_summary owner_did activity_urn summary_triples
             OXI-->>AD: Ok fenced :summary write landed
-            AD->>REPO: mark_writeback_committed case_id activity_urn now_ms<br/>handlers/enrichment_proposals_handler.rs:589
+            AD->>REPO: mark_writeback_committed case_id activity_urn now_ms<br/>handlers/enrichment_proposals_handler.rs:667
             Note right of AD: writeback_committed=true only on real Oxigraph write -<br/>writeback_triggered=true just means outcome qualified (approve+attributed)
         else unattributed or non-approve
             Note right of AD: writeback_committed stays false - no owner DID<br/>to scope an owner-less KG node, by design
         end
-        AD->>AD: derive_kernel_decision via DecisionOrchestrator<br/>handlers/enrichment_proposals_handler.rs:616 calling :244 (domain broker kernel)
+        AD->>AD: derive_kernel_decision via DecisionOrchestrator<br/>handlers/enrichment_proposals_handler.rs:694 calling :258 (domain broker kernel)
         Note over AD: DIVERGENCE: BrokerActor never merged (BASELINE-architecture.md<br/>Known divergences) - main uses this stateless ACSP producer plus the<br/>cherry-picked storage-agnostic domain kernel (BrokerCase/DecisionOrchestrator)<br/>invoked here, never a resurrected actor+transport
         alt case newly entered queue
-            AD->>AD: broker_events.broadcast_new_case broker:new_case<br/>handlers/enrichment_proposals_handler.rs:618
+            AD->>AD: broker_events.broadcast_new_case broker:new_case<br/>handlers/enrichment_proposals_handler.rs:696
         end
-        AD->>AD: broker_events.broadcast_case_decided broker:case_decided<br/>handlers/enrichment_proposals_handler.rs:625
-        alt ACSP client configured (handlers/enrichment_proposals_handler.rs:638)
-            AD->>ACSPC: publish build_action_response kind 31403<br/>handlers/enrichment_proposals_handler.rs:643
+        AD->>AD: broker_events.broadcast_case_decided broker:case_decided<br/>handlers/enrichment_proposals_handler.rs:703
+        alt ACSP client configured (handlers/enrichment_proposals_handler.rs:716)
+            AD->>ACSPC: publish build_action_response kind 31403<br/>handlers/enrichment_proposals_handler.rs:721
             alt publish Ok
                 ACSPC-->>AD: event id
-                Note right of AD: forum_projection=published<br/>handlers/enrichment_proposals_handler.rs:646, :648
+                Note right of AD: forum_projection=published<br/>handlers/enrichment_proposals_handler.rs:724, :726
             else publish Err
-                Note right of AD: forum_projection=failed - decision recorded<br/>locally but NOT visible in forum broker_decisions<br/>handlers/enrichment_proposals_handler.rs:654
+                Note right of AD: forum_projection=failed - decision recorded<br/>locally but NOT visible in forum broker_decisions<br/>handlers/enrichment_proposals_handler.rs:732
             end
-        else no AcspClient (FORUM_RELAY_URL unset)
-            Note right of AD: forum_projection=skipped - degraded, not silent<br/>handlers/enrichment_proposals_handler.rs:638, :662
+        else no AcspClient (FORUM_RELAY_URL unset), reachable only outside production or with the opt-out
+            Note right of AD: forum_projection=skipped - degraded, not silent<br/>handlers/enrichment_proposals_handler.rs:716, :740
         end
         AD-->>H: DecideResponse success writeback_triggered writeback_committed forum_projection
         H-->>BR: 200 OK
     end
-    Note over H,AD: EXTERNAL VC-24 addendum: a second entry point, decide_as_operator<br/>(handlers/enrichment_proposals_handler.rs:454, control-centre power-user<br/>session auth), funnels through the SAME apply_decision core - the auth differs,<br/>the decision path does not, and ADR-2110's rationale gate therefore binds both.
+    Note over H,AD: EXTERNAL VC-24 addendum: a second entry point, decide_as_operator<br/>(handlers/enrichment_proposals_handler.rs:468, control-centre power-user<br/>session auth), funnels through the SAME apply_decision core - the auth differs,<br/>the decision path does not, and ADR-2110's rationale gate therefore binds both.
 ```
 
 ## VC-24.4 ElevationActor — draft → PR → GOV-2 merge poll → concept_elevated
@@ -176,7 +179,7 @@ sequenceDiagram
     participant GH as GitHubPRService.create_ontology_pr
     participant POLL as run_interval PR_POLL_INTERVAL 120s<br/>elevation_actor.rs:63, :1112
     CYCLE->>EA: RunCycle (frontier scan)<br/>elevation_actor.rs:1209
-    EA->>ACSP: publish build_action_request kind 31402<br/>acsp/events.rs:307
+    EA->>ACSP: publish build_action_request kind 31402<br/>acsp/events.rs:365
     Note over EA: pending case held in-memory HashMap self.pending<br/>(elevation_actor.rs:140), capped at MAX_OPEN_CASES=5 concurrent<br/>cases (elevation_actor.rs:58, :1215, :1226)
     Note over EA: ADR-2110: pending is no longer only in memory. A Reconcile at boot<br/>reloads durable pending rows through the pure plan_elevation_reconciliation<br/>BEFORE the first cycle, so a kind-31403 arriving after a restart no longer<br/>hits an empty map and drops the human's signed decision.<br/>elevation_actor.rs:1009, :1330, :1340
     Note over EA: INVARIANT: a case past OPEN_CASE_TTL of 14 days is closed with an<br/>elevation_expired kind-31404 receipt AND a terminal durable status, and<br/>the store write does NOT depend on the receipt publishing.<br/>elevation_actor.rs:68, :70, :72, :1347, :1368
@@ -261,7 +264,7 @@ sequenceDiagram
     autonumber
     participant DS as DecisionService.record_decision<br/>services/decision_service.rs:546 maybe_elevate
     participant SIG as is_significant<br/>services/decision_elevation.rs:75
-    participant SINK as ActorElevationSink.elevate<br/>actors/decision_elevation_actor.rs:1014
+    participant SINK as ActorElevationSink.elevate<br/>actors/decision_elevation_actor.rs:970
     participant DEA as DecisionElevationActor<br/>actors/decision_elevation_actor.rs:128
     participant ACSP as AcspClient
     participant GH as create_ontology_pr call site<br/>decision_elevation_actor.rs:356
@@ -273,10 +276,10 @@ sequenceDiagram
     else significant (mutation/causal/precedent/influenced edges)
         SIG-->>DS: true
         DS->>SINK: elevate(ElevatedDecision)
-        SINK->>DEA: try_send ElevateDecision (actor mailbox, non-blocking)<br/>decision_elevation_actor.rs:1014
+        SINK->>DEA: try_send ElevateDecision (actor mailbox, non-blocking)<br/>decision_elevation_actor.rs:970
         DEA->>DEA: draft_decision_page (services/decision_elevation.rs:257), open case CASE_PREFIX vc-decelev-<br/>decision_elevation_actor.rs:59, :607
-        DEA->>ACSP: publish build_action_request kind 31402 PANEL_ID vc-decision-elevation<br/>decision_elevation_actor.rs:692
-        ACSP-->>DEA: CaseDecision kind 31403<br/>decision_elevation_actor.rs:721
+        DEA->>ACSP: publish build_action_request kind 31402 PANEL_ID vc-decision-elevation<br/>decision_elevation_actor.rs:648, spec from case_spec_for :614, :979<br/>category knowledge_enrichment, the contract has none for decisions (:1015-1017)
+        ACSP-->>DEA: CaseDecision kind 31403<br/>decision_elevation_actor.rs:677
         alt action approve
             DEA->>GH: create_ontology_pr decision page (NO consistency gate), inside the<br/>spawn_decision_outcome future<br/>decision_elevation_actor.rs:284, :356
             Note right of DEA: Deliberately leaner than ElevationActor (module doc :12-14):<br/>decisions are ABox prov:Activity individuals adding no TBox<br/>axioms, so there is NO EL++ Whelk gate here (contrast VC-24.4<br/>approve_with_gate GOV-7)
@@ -287,15 +290,15 @@ sequenceDiagram
         end
     end
     loop every PR_POLL_INTERVAL=120s
-        DEA->>DEA: PollPrs calls terminal_for_pr_state<br/>decision_elevation_actor.rs:901, :921, :949
+        DEA->>DEA: PollPrs calls terminal_for_pr_state<br/>decision_elevation_actor.rs:857, :877, :905
         alt Merged
-            DEA->>ACSP: publish build_case_status_update decision_elevated kind 31404<br/>decision_elevation_actor.rs:953
-            Note right of DEA: terminal_case_status maps decision_elevated to case_status::PUBLISHED<br/>(not elevated - the enrichment-proposal vocabulary), decision_elevation_actor.rs:910<br/>decision_elevation_store.rs:79. See VC-24.1 for the two vocabularies sharing one column
+            DEA->>ACSP: publish build_case_status_update decision_elevated kind 31404<br/>decision_elevation_actor.rs:909
+            Note right of DEA: terminal_case_status maps decision_elevated to case_status::PUBLISHED<br/>(not elevated - the enrichment-proposal vocabulary), decision_elevation_actor.rs:866<br/>decision_elevation_store.rs:79. See VC-24.1 for the two vocabularies sharing one column
         else ClosedUnmerged
             DEA->>ACSP: publish decision_abandoned kind 31404
         end
     end
-    Note over DEA: RESOLVED ADR-2101 (2026-09-05): the actor now holds a<br/>DecisionElevationStore, a typed facade over the SAME data/enrichment.sqlite3<br/>SqliteEnrichmentRepository the ElevationActor uses (decision_elevation_store.rs:60,<br/>202) - case rows tagged category=decision-elevation, decision rows carrying the<br/>ADR-2006 signed-event correlation. Every transition is durable and ordered - the<br/>case row is written BEFORE the 31402 publish, the PR url BEFORE the in-memory<br/>tracking insert (decision_elevation_actor.rs:363, :381), and the GOV-2 terminal<br/>status BEFORE the case leaves the map. At boot plan_reconciliation reloads every<br/>non-terminal case and re-arms the merge poll, re-opens a PR whose approval crashed<br/>before it landed, re-arms a case still awaiting a human, or expires it past a<br/>14-day TTL with a 31404 receipt (decision_elevation_actor.rs:824). A case tracking<br/>an open PR is never expired. Remaining gap - a resumed approval can open a<br/>duplicate PR, recorded as follow-on 1 in ADR-2101
+    Note over DEA: RESOLVED ADR-2101 (2026-09-05): the actor now holds a<br/>DecisionElevationStore, a typed facade over the SAME data/enrichment.sqlite3<br/>SqliteEnrichmentRepository the ElevationActor uses (decision_elevation_store.rs:60,<br/>202) - case rows tagged category=decision-elevation, decision rows carrying the<br/>ADR-2006 signed-event correlation. Every transition is durable and ordered - the<br/>case row is written BEFORE the 31402 publish, the PR url BEFORE the in-memory<br/>tracking insert (decision_elevation_actor.rs:363, :381), and the GOV-2 terminal<br/>status BEFORE the case leaves the map. At boot plan_reconciliation reloads every<br/>non-terminal case and re-arms the merge poll, re-opens a PR whose approval crashed<br/>before it landed, re-arms a case still awaiting a human, or expires it past a<br/>14-day TTL with a 31404 receipt (decision_elevation_actor.rs:780). A case tracking<br/>an open PR is never expired. Remaining gap - a resumed approval can open a<br/>duplicate PR, recorded as follow-on 1 in ADR-2101
 ```
 
 ## VC-24.8 nostr_bead_publisher / nostr_bridge — governance event publish
@@ -325,7 +328,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    subgraph kinds["ACSP Nostr kinds - services/acsp/events.rs:18-23"]
+    subgraph kinds["ACSP Nostr kinds, narrowed from the nostr-bbs-core governance consts<br/>services/acsp/events.rs:23-28, import :21"]
         K31400["31400 PanelDefinition"]
         K31401["31401 PanelState"]
         K31402["31402 ActionRequest"]
@@ -333,18 +336,18 @@ flowchart LR
         K31404["31404 PanelUpdate / CaseStatusUpdate"]
         K31405["31405 PanelRetired"]
     end
-    B31400["build_panel_definition<br/>acsp/events.rs:210"] -->|producer| K31400
-    B31401["build_panel_state<br/>acsp/events.rs:219"] -->|producer| K31401
+    B31400["build_panel_definition<br/>acsp/events.rs:268"] -->|producer| K31400
+    B31401["build_panel_state<br/>acsp/events.rs:277"] -->|producer| K31401
     B31402A["ElevationActor RunCycle publish<br/>elevation_actor.rs:1293, voice-commanded case :1173"] -->|producer| K31402
-    B31402B["DecisionElevationActor handle ElevateDecision then acsp.publish<br/>decision_elevation_actor.rs:692"] -->|producer| K31402
+    B31402B["DecisionElevationActor handle ElevateDecision then acsp.publish<br/>decision_elevation_actor.rs:648"] -->|producer| K31402
     B31402C["voice_intent_client.build_voice_action_request<br/>voice_intent_client.rs:297, calls build_action_request :316"] -->|producer| K31402
-    B31403A["build_action_response<br/>acsp/events.rs:288 enrichment_proposals_handler.rs:642"] -->|producer| K31403
-    B31404A["build_case_status_update<br/>acsp/events.rs:237 elevation_actor.rs:1633"] -->|producer| K31404
-    B31404B["build_panel_update<br/>acsp/events.rs:228"] -->|producer| K31404
-    B31405["build_panel_retired<br/>acsp/events.rs:265"] -->|producer| K31405
+    B31403A["build_action_response<br/>acsp/events.rs:346 enrichment_proposals_handler.rs:720"] -->|producer| K31403
+    B31404A["build_case_status_update<br/>acsp/events.rs:295 elevation_actor.rs:1633"] -->|producer| K31404
+    B31404B["build_panel_update<br/>acsp/events.rs:286"] -->|producer| K31404
+    B31405["build_panel_retired<br/>acsp/events.rs:323"] -->|producer| K31405
     K31403 -->|consumer| C31403A["AcspClient.run_decision_subscription<br/>acsp/client.rs:164,169-171 filters since Timestamp::now"]
     C31403A -->|consumer| C31403B["ElevationActor.Decision handler<br/>elevation_actor.rs:1412"]
-    C31403A -->|consumer| C31403C["DecisionElevationActor Decision handler<br/>decision_elevation_actor.rs:721"]
+    C31403A -->|consumer| C31403C["DecisionElevationActor Decision handler<br/>decision_elevation_actor.rs:677"]
     K31402 -->|consumer| C31402["forum relay agent_registry gate<br/>acsp/client.rs:9-13 (relay-side, not this repo)"]
     Note1["Note: relay only accepts kinds 31400-31402 from<br/>registered pubkeys (acsp/client.rs:9) - 31403/31404/31405<br/>are consumer/admin-only, enforced relay-side"]
 ```
@@ -390,26 +393,26 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant BOOT as AppState::new<br/>app_state.rs:1303-1330
+    participant BOOT as AppState::new<br/>app_state.rs:1268-1295
     participant ENV as env FORUM_RELAY_URL + panel key:<br/>KEY_FILE vars or privkey vars (acsp/key_file.rs:13-15)
     participant ACSP as AcspClient::connect<br/>acsp/client.rs:78
     participant RELAY as forum relay (nostr_sdk Client, auto-reconnect)
-    BOOT->>ENV: read FORUM_RELAY_URL :1304, then panel secret via<br/>key_file::load_panel_secret (file first, env fallback)<br/>app_state.rs:1304-1311 acsp/key_file.rs:310
+    BOOT->>ENV: read FORUM_RELAY_URL :1269, then panel secret via<br/>key_file::load_panel_secret (file first, env fallback)<br/>app_state.rs:1269-1276 acsp/key_file.rs:310
     alt relay and secret both Some
         BOOT->>ACSP: connect(secret, relay)
         ACSP->>RELAY: add_relay + connect (nostr_sdk relay pool)<br/>acsp/client.rs:83-89
         alt connect Ok
             RELAY-->>ACSP: relay added, nostr-sdk connects in the background and keeps retrying (acsp/client.rs:87-89)
             ACSP-->>BOOT: Arc AcspClient
-            BOOT->>BOOT: acsp_client = Some(client)<br/>app_state.rs:1316 log relay set - REST/bridge decisions project as kind-31403
+            BOOT->>BOOT: acsp_client = Some(client)<br/>app_state.rs:1281 log relay set - REST/bridge decisions project as kind-31403
         else connect Err
             ACSP-->>BOOT: Err(e)
-            BOOT->>BOOT: acsp_client = None, warn FAILED to connect - degraded, visible<br/>app_state.rs:1320
+            BOOT->>BOOT: acsp_client = None, warn FAILED to connect - degraded, visible<br/>app_state.rs:1285
         end
     else unconfigured or key unusable
-        BOOT->>BOOT: acsp_client = None, info OFF (key_file load error logs error!) -<br/>decisions record forum_projection=skipped<br/>app_state.rs:1326
+        BOOT->>BOOT: acsp_client = None, info OFF (key_file load error logs error!) -<br/>decisions record forum_projection=skipped,<br/>or are refused in production without the opt-out, see VC-24.3<br/>app_state.rs:1291
     end
-    Note over BOOT,RELAY: DEBT: connect Ok does not prove the relay is reachable - an unreachable relay surfaces later as a publish error,<br/>i.e. forum_projection=failed at decide time, not as the FAILED-to-connect branch above. acsp/client.rs:87-89, handlers/enrichment_proposals_handler.rs:654
+    Note over BOOT,RELAY: DEBT: connect Ok does not prove the relay is reachable - an unreachable relay surfaces later as a publish error,<br/>i.e. forum_projection=failed at decide time, not as the FAILED-to-connect branch above. acsp/client.rs:87-89, handlers/enrichment_proposals_handler.rs:732
     Note over BOOT,RELAY: this is the SAME AcspClient type ElevationActor and<br/>DecisionElevationActor each construct independently at their own<br/>startup (elevation_actor.rs:1056, decision_elevation_actor.rs:510) -<br/>three separate relay connections under three panel ids can exist<br/>concurrently, all signing with the same panel secret from<br/>key_file::load_panel_secret (elevation_actor.rs:199, decision_elevation_actor.rs:183)
 ```
 
@@ -438,14 +441,14 @@ sequenceDiagram
     autonumber
     participant BR as agentbox broker-bridge
     participant H as inbox<br/>handlers/broker_inbox_handler.rs:228
-    participant ST as store::all projection over SqliteEnrichmentRepository<br/>handlers/enrichment_proposals_handler.rs:742
+    participant ST as store::all projection over SqliteEnrichmentRepository<br/>handlers/enrichment_proposals_handler.rs:820
     participant TR as assemble_inbox<br/>handlers/broker_inbox_handler.rs:197
     participant JV as visionclaw_jev proposal_triage<br/>broker_inbox_handler.rs:44
 
     BR->>H: GET /api/broker/inbox - scope wrapped in RequireAuth::power_user, service credential accepted<br/>broker_inbox_handler.rs:259-263
-    H->>ST: store::all - up to 500 proposals via repo.list, the bridge filters category and status itself<br/>broker_inbox_handler.rs:229 handlers/enrichment_proposals_handler.rs:742-753
+    H->>ST: store::all - up to 500 proposals via repo.list, the bridge filters category and status itself<br/>broker_inbox_handler.rs:229 handlers/enrichment_proposals_handler.rs:820-831
     H->>TR: assemble_inbox(proposals, jev_triage())<br/>broker_inbox_handler.rs:230
-    alt Jev unconfigured, item off or no endpoint - library default off, Compose sets VISIONCLAW_JEV=1 at docker-compose.unified.yml:21 (jev_triage resolves to None once via OnceLock)
+    alt Jev unconfigured, item off or no endpoint - library default off, Compose sets VISIONCLAW_JEV=1 at docker-compose.unified.yml:24 (jev_triage resolves to None once via OnceLock)
         TR-->>H: plain projection, same cases, same order, no jev key<br/>broker_inbox_handler.rs:151-172, :202-205
     else triage state present
         TR->>JV: triage_queue over facts for pending or claimed cases only<br/>broker_inbox_handler.rs:174-177, :206-208
@@ -454,6 +457,6 @@ sequenceDiagram
     end
     H-->>BR: 200 {cases, total} - total is the unfiltered proposal count<br/>broker_inbox_handler.rs:218, :235
     Note over JV,H: INVARIANT: Jev annotates and orders only - it never approves, rejects or promotes, and the decide route (VC-24.3), signed decisions and receipts are untouched.<br/>crates/visionclaw-jev/src/proposal_triage.rs:8-10
-    Note over TR,JV: RESOLVED 2026-10-30 (routing, configured): the laya declaration is gone. PROPOSAL_TRIAGE is still local-only in code (Item::local_only<br/>crates/visionclaw-jev/src/config.rs:155-160, refusal :340-342), but ALLOW_CLOUD=1 (docker-compose.unified.yml:22, config.rs:316-318) and the shared block's<br/>agentbox:8094 with BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11) send the private proposal text via the proxy to the selected backend, typesafe (agentbox.toml:915),<br/>by operator decision (docs/adr/ADR-2148-enable-local-typed-decisions.md:65-66, docs/reference/configuration.md:417-427, :468).<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91) - docs/BASELINE-architecture.md:53-55 agrees, live since the host recreate,<br/>ALLOW_CLOUD=0 with JEV_LOCAL=1 and a local endpoint keeps it on a LAN model
-    Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:738-745, handlers/broker_inbox_handler.rs:201
+    Note over TR,JV: CHANGED 2026-11-16 (routing, owner ruling): ALLOW_CLOUD now defaults to 0<br/>(docker-compose.unified.yml:25, docs/adr/ADR-2148-enable-local-typed-decisions.md:114)<br/>and BACKEND_LOCAL stays 0 (docker-compose.unified.yml:11), so PROPOSAL_TRIAGE, local-only in code<br/>(Item::local_only crates/visionclaw-jev/src/config.rs:155-160), is not declared local<br/>(config.rs:316-318) and resolves no endpoint (refusal :340-342). By default the inbox<br/>takes the plain projection and the private proposal text does not leave.<br/>The agentbox proxy backend is now laya, local (agentbox.toml:914), but VisionClaw is not told so.<br/>DRIFT: docs/reference/configuration.md:424-428 still describes ALLOW_CLOUD=1<br/>as the shared route for the local-only items.<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live<br/>(docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate<br/>both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91).<br/>docs/BASELINE-architecture.md:56-58 agrees, live since the host recreate,<br/>but it too still names ALLOW_CLOUD=1 as the cloud path
+    Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:816-823, handlers/broker_inbox_handler.rs:201
 ```
