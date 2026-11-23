@@ -472,7 +472,7 @@ flowchart TB
 
     N1["suspend and silence are the two states the admission pipeline reads at NF-03.4 step 8 -<br/>written here, enforced there"]
     N2["profiles::batch is what the forum client's ProfileCache fetches over HTTP rather than by relay REQ -<br/>see NF-05.6; profiles::search is the REST GET /api/profiles/search profiles.rs:248, separate from<br/>the relay's NIP-50 REQ search, see NF-11.6"]
-    N3["agent_disclosure is a PUBLIC endpoint - the client's agent badge reads it without auth, see NF-05.10.<br/>It is how a reader can tell a human post from an agent post."]
+    N3["agent_disclosure is a PUBLIC endpoint - the client's agent badge reads it without auth, see NF-30.2.<br/>It is how a reader can tell a human post from an agent post."]
     N4["The user_admin and moderation mutations call log_admin_action nostr-bbs-relay-worker/src/audit.rs:25 -<br/>user_admin.rs:245 user_admin.rs:329 user_admin.rs:392 user_admin.rs:487 user_admin.rs:647 moderation.rs:390 -<br/>into admin_log, the table the trust sweep also writes trust_sweep.rs:441 - see NF-08.5.<br/>DEBT: every call discards the result, so a failed audit write never fails the mutation"]
     N5["A key REPLACED via pubkey_aliases is excluded from both search shapes - roster mode profiles.rs:307<br/>and query mode profiles.rs:318 - so a renamed pubkey never shows twice under two identities"]
     N7["OPEN (NF-10 O16, KF-15): GET /api/reports lists reportedPubkey exactly as the reporter's p tag claimed it<br/>relay_do/nip_handlers.rs:4767 moderation.rs:211, with no join to the stored event - handle_list_reports moderation.rs:142.<br/>Only the resolve route reads the stored row's real author, after the decision moderation.rs:337-345"]

@@ -239,7 +239,7 @@ flowchart LR
     GITG["is_git_request git.rs:44 | is_dot_git_path git.rs:53<br/>git_dir_forbidden git.rs:58 | git_not_implemented git.rs:76"]
 
     N1["INVARIANT: .git paths are FORBIDDEN, not merely unimplemented - the two outcomes are distinct<br/>responses nostr-bbs-pod-worker/src/git.rs:58 versus nostr-bbs-pod-worker/src/git.rs:76. The CF-Workers<br/>tier is non-git BY DESIGN; the git-capable pod is the agentbox native tier."]
-    N2["EXTERNAL: the forum client's git control panel talks to the NATIVE server's /_git/* REST API, never<br/>to this worker - see NF-05.10 and the solid-pod-rs area (SP-*)"]
+    N2["EXTERNAL: the forum client's git control panel talks to the NATIVE server's /_git/* REST API, never<br/>to this worker - see NF-30.2 and the solid-pod-rs area (SP-*)"]
     N3["This worker serves a pod-resident /.well-known/nostr.json nostr-bbs-pod-worker/src/lib.rs:547, while<br/>the AUTH worker owns the central NIP-05 registry - see NF-02.2"]
 ```
 
