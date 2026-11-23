@@ -30,7 +30,7 @@ verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 
 ## For developers
 
-One page per force term on the default path at main 4900ec60b: the law the kernel computes, the flag or pointer that switches it on, and the stored setting or code constant it reads. VC-11 draws the step that runs them, VC-58 the edge data they consume. The physics rework planned in November 2026 appears only as register entries.
+One page per force term on the default path at main 4900ec60b: the law the kernel computes, the flag or pointer that switches it on, and the stored setting or code constant it reads. VC-11 draws the step that runs them, VC-58 the edge data they consume. Of the physics rework (ADR-2204, proposed), the landed slices are drawn: the FA2 repulsion buffer (D4) and schema-held edge weights (S2); the opt-in weighting modes are off by default and the rest appears only as register entries.
 
 ## For the business
 
@@ -114,7 +114,7 @@ flowchart TB
 
 **Debt:** the attribute spring's rest length assumes a weight in 0–1 (`../project/crates/visionclaw-gpu/src/cuda_sources/semantic_forces.cu:385-388`), but it is fed the edge's stored weight (`../project/src/utils/unified_gpu_compute/semantic.rs:189`), which for a typed edge is the relation's `legacy_weight` (`../project/src/services/github_sync_service.rs:2149-2151`) and reaches 1.6 for `hierarchical` (`../project/crates/visionclaw-domain/data/relations.yaml:65`); with the defaults (`../project/crates/visionclaw-domain/src/types/semantic_config.rs:129-132`) the rest length is negative above a weight of about 1.18.
 
-## VC-59.5 One registry strength, three springs
+## VC-59.5 One relation strength, held twice, three springs
 
 ```mermaid
 flowchart TB

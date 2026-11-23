@@ -5,7 +5,7 @@ area: visionclaw
 governing:
   - ../project/docs/adr/ADR-2191-graph-sized-gpu-buffers-are-declared-once-and-sssp-spring-adjust-is-off-by-default.md
   - ../project/docs/GPU-wire-abi.md
-adrs: [ADR-2191, ADR-2140, ADR-2143, ADR-2169, ADR-2173]
+adrs: [ADR-2191, ADR-2140, ADR-2143, ADR-2169, ADR-2173, ADR-2204]
 sources:
   - ../project/src/utils/unified_gpu_compute/buffers.rs
   - ../project/src/utils/unified_gpu_compute/memory.rs
@@ -64,7 +64,7 @@ flowchart TB
     UP["upload_edges_csr<br/>memory.rs:915"] --> SSSPI["invalidate_graph_derived_state, SSSP only<br/>memory.rs:227, buffers.rs:276-279"]
 ```
 
-**What it shows:** a resize, or the same counts with a different topology, clears every piece of node-indexed host state, so a term is off until the actor re-uploads it rather than acting on whichever nodes now hold old indices. **Why it is this way:** ADR-2191 decision 9 (review round 1).
+**What it shows:** a resize, or the same counts with a different topology, clears every piece of node-indexed host state, so a term is off until the actor re-uploads it rather than acting on whichever nodes now hold old indices. **Why it is this way:** ADR-2191 decision 9 (review round 1); the FA2 repulsion buffer joined the list with ADR-2204 S4a (`../project/docs/adr/ADR-2191-graph-sized-gpu-buffers-are-declared-once-and-sssp-spring-adjust-is-off-by-default.md:91`).
 
 **Open:** constraints still name nodes by index and are not cleared on a graph change (`../project/src/utils/unified_gpu_compute/buffers.rs:295-296`); between a topology change and the constraint actors' next send, a resident constraint can act on the wrong node.
 
