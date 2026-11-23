@@ -67,6 +67,6 @@ flowchart TB
 
 **What it shows.** A request beyond EOF is honoured with zero bytes and a reversed displayed line interval. Clipping markers make body usage exceed both the requested half-budget and the overall budget. At default settings the probe records 30,134 requested bytes and 60,134 total body bytes, before section headers.
 
-**Why it is this way.** File status is based on completing the rendering branch rather than validating meaningful range coverage. The caller needs refusal records even when every file fails; the current Option return loses those details. AB-23.21 shows how the adapter settles requests from these markers.
+**Why it is this way.** File status is based on completing the rendering branch rather than validating meaningful range coverage. The caller needs refusal records even when every file fails; the current Option return loses those details. AB-44.9 shows how the adapter settles requests from these markers.
 
 **Drift (ADR-DE-008 delivery):** the half-byte allocation and complete honoured/refused accounting are weaker than the decision describes. Empty ranges, duplicate ranges and all-refused reads are reproduced in the audit.

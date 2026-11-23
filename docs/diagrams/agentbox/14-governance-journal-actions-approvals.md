@@ -704,7 +704,7 @@ sequenceDiagram
 
 **Drift (resolved 2026-10-02, `e8460a2e3`):** ADR-2087's Consequences used to say the forum receipts endpoint did not exist yet on the deployed edge; they now record it deployed, with `forum_auth_api` pointing at it, so the queue drains once a real governance response exists (`docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md:100-104`), matching the staged section (`docs/adr/ADR-2087-task-properties-receipts-and-manual-continuation.md:170-172`) and the manifest (`agentbox.toml:199`).
 
-**Invariant:** ADR-2071 clause (c) cannot pass on a night of failed journal posts alone: C3 also requires the one-shot's state file to record a clean stop and a `night-record` or `deadline` restart, and an `interrupted` night fails (`scripts/activation/adr-2087-check.sh:407-417`, `scripts/activation/adr-2071-api-down-night.sh:136-145`). AB-23.19 draws the one-shot.
+**Invariant:** ADR-2071 clause (c) cannot pass on a night of failed journal posts alone: C3 also requires the one-shot's state file to record a clean stop and a `night-record` or `deadline` restart, and an `interrupted` night fails (`scripts/activation/adr-2087-check.sh:407-417`, `scripts/activation/adr-2071-api-down-night.sh:136-145`). AB-44.7 draws the one-shot.
 
 **Open:** the EXP-B8 tick takes two outward side effects when its stopping rule fires, a signed forum post (`scripts/experiments/exp-b8-label-log.cjs:546-559`) and a pull request opened with `gh` (`scripts/experiments/exp-b8-label-log.cjs:569-602`), and records neither through `POST /v1/exec/record` or the authority journal; no record says whether an unattended experiment tick is meant to sit outside the governance journal that ADR-2071 put round the dream night.
 

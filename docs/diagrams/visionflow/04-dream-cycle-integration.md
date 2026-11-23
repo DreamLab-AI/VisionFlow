@@ -261,7 +261,7 @@ stateDiagram-v2
     Measured --> Inconclusive
     state "ACCEPT — a change is earned" as Accept
     state "INCONCLUSIVE — the night could not observe its subject" as Inconclusive
-    state "BLOCKED-ENV — engine-raised harness or environment fault, bypassing Measured;<br/>never parsed from the model's report and never counted toward the dry streak —<br/>see AB-23.4, AB-23.18 — observed here 2026-09-12 — LEDGER.md:27" as BlockedEnv
+    state "BLOCKED-ENV — engine-raised harness or environment fault, bypassing Measured;<br/>never parsed from the model's report and never counted toward the dry streak —<br/>see AB-23.4, AB-44.6 — observed here 2026-09-12 — LEDGER.md:27" as BlockedEnv
     BlockedEnv --> LedgerOnly
     Accept --> Branch
     state "branch dream/<deep>-<date> — prefix at dream.config.json:77" as Branch

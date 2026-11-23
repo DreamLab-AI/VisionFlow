@@ -479,7 +479,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     CRATE["loom-client, published from the loom repository under MIT OR Apache-2.0<br/>ADR-2084-one-published-loom-client-for-every-facade-caller.md:47-49"]
-    CRATE --> A["dream-engine - see AB-23.15"]
+    CRATE --> A["dream-engine - see AB-44.3"]
     CRATE --> B["podcast-ingest - extraction and promotion"]
     CRATE --> C["explainer-tools explainer-loom-draft<br/>agentbox/services/explainer-tools/src/bin/loom_draft.rs:22"]
     CRATE --> D["agentbox-mcp web-summary<br/>agentbox/services/agentbox-mcp/src/web_summary/llm.rs:65"]
