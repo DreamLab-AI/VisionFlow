@@ -52,7 +52,7 @@ sources:
   - ../nostr-rust-forum/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/payments.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/pay_ledger.rs
-verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, solid-pod-rs: 27e18995fc20790fa956acb41f7d8420544a13ec, nostr-rust-forum: 7e1f036ebd9ebd6c922db6f9acea041775730071}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb, solid-pod-rs: a28a74832dd0a6e47a531e34e4adc46a3946dfd3, nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
 ---
 ## ES-03.1 Shared wire envelope: AgentActionNotification (agentbox emit -> VisionClaw ingest)
 ```mermaid
@@ -251,7 +251,7 @@ flowchart TD
     end
 ```
 
-**Tension:** ADR-2061 is recorded `live`, but only its JS half is CI-gated; the Rust half (`cargo test --lib uri`) is not, because the crate owning `src/uri` is outside the CPU crate list (`../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md:232-237`). That still holds at the VisionClaw stamp: the CPU job's own comment (`../project/.github/workflows/ci.yml:98`) leaves `visionclaw-server` to a GPU job, but that job was removed and the crate is compiled and run only on the developer's CUDA host (`../project/.github/workflows/ci.yml:280-281`). A one-sided artefact edit that breaks only Rust is caught locally, not in CI.
+**Tension:** ADR-2061 is recorded `live`, but only its JS half is CI-gated; the Rust half (`cargo test --lib uri`) is not, because the crate owning `src/uri` is outside the CPU crate list (`../project/agentbox/docs/adr/ADR-2061-federation-kind-map-parity.md:232-237`). That still holds at the VisionClaw stamp: the CPU job's own comment (`../project/.github/workflows/ci.yml:98`) leaves `visionclaw-server` to a GPU job, but that job was removed and the crate is compiled and run only on the developer's CUDA host (`../project/.github/workflows/ci.yml:281-282`). A one-sided artefact edit that breaks only Rust is caught locally, not in CI.
 ## ES-03.6 Content address byte-identity: sha256-12, first 6 bytes, lowercase hex (ADR-2023)
 ```mermaid
 sequenceDiagram
@@ -399,7 +399,7 @@ sequenceDiagram
     participant AA as assertPrivacyFilterApplied<br/>privacy-filter.js:595
     participant Ad as Adapter impl call
     rect rgb(240,240,255)
-    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:343.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
+    Note over Rt,Ad: DOC-DRIFT RESOLVED BY CORRECTION (ADR-2036) - the governing doc's own<br/>THREE-LAYER dispatch claim was the error, retracted at BASELINE-container.md:352.<br/>Observability and privacy wrap the dispatch (metrics.js:125, privacy-filter.js:649),<br/>JSON-LD encoding is a SEPARATE caller action, deliberately, not a third wrapper layer.
     Rt->>WD: instrumentedDispatch(...args)
     WD->>WD: executionId = uris.mint kind event,pubkey,payload
     WD->>PF: privacyWrapped(...args)
@@ -440,11 +440,11 @@ sequenceDiagram
         end
     end
     Note over LD: INVARIANT DDD-004 par L08 - privacy redaction completes before the encoder runs, verified<br/>per-dispatch not per-module-load
-    Note over Ad: DIVERGENCE BASELINE-container.md:271 - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
-    Note over Ad: CORRECTED 2026-11-02 (ADR-2035) - connectAdapters races EVERY slot against its OWN<br/>deadline (lifecycle.js:31), and failure and timeout both quarantine the adapter (lifecycle.js:273,296).<br/>They are NOT equally fatal and one slot IS privileged: orchestrator is the only fail-closed slot<br/>(lifecycle.js:75) and aborts startup (lifecycle.js:298-302,329-335). Every other failed slot gets<br/>an off stand-in whose dispatch refuses (lifecycle.js:178,312), and if that cannot be built the slot<br/>stays quarantined and dispatch throws AdapterQuarantined (lifecycle.js:318-326).<br/>toLegacyHealth feeds adapterHealth (server.js:1377), and /ready blocks on any non-off<br/>manifest slot that is not healthy (server.js:511-513).
+    Note over Ad: DIVERGENCE BASELINE-container.md:279 - adapter contract versions are STALE<br/>PLACEHOLDERS. pods, memory, events and orchestrator all still declare 1.0.0 despite live<br/>churn, so a breaking change would need a MAJOR bump that has NOT happened. A consumer<br/>cannot tell from the version whether the contract it compiled against still holds.
+    Note over Ad: CORRECTED 2026-11-02 (ADR-2035) - connectAdapters races EVERY slot against its OWN<br/>deadline (lifecycle.js:31), and failure and timeout both quarantine the adapter (lifecycle.js:273,296).<br/>They are NOT equally fatal and one slot IS privileged: orchestrator is the only fail-closed slot<br/>(lifecycle.js:75) and aborts startup (lifecycle.js:298-302,329-335). Every other failed slot gets<br/>an off stand-in whose dispatch refuses (lifecycle.js:178,312), and if that cannot be built the slot<br/>stays quarantined and dispatch throws AdapterQuarantined (lifecycle.js:318-326).<br/>toLegacyHealth feeds adapterHealth (server.js:1399), and /ready blocks on any non-off<br/>manifest slot that is not healthy (server.js:518-520).
 ```
 
-**Drift:** the governing doc's own resolution paragraph still cites `adapters/lifecycle.js:256`, `:274` and the range 292 to 299 (`../project/agentbox/docs/BASELINE-container.md:343`); at the agentbox stamp the first two hold a readiness record and the `reason` assignment, the range holds the late-settle callback's close and the quarantine call (`../project/agentbox/management-api/adapters/lifecycle.js:296`), and the replacement-failed branch is at `../project/agentbox/management-api/adapters/lifecycle.js:318-326`. It also says failure and timeout "no longer have different outcomes", which is true of quarantine but not of startup: `orchestrator` aborts (`../project/agentbox/management-api/adapters/lifecycle.js:75`).
+**Drift:** the governing doc's own resolution paragraph still cites `adapters/lifecycle.js:256`, `:274` and the range 292 to 299 (`../project/agentbox/docs/BASELINE-container.md:352`); at the agentbox stamp the first two hold a readiness record and the `reason` assignment, the range holds the late-settle callback's close and the quarantine call (`../project/agentbox/management-api/adapters/lifecycle.js:296`), and the replacement-failed branch is at `../project/agentbox/management-api/adapters/lifecycle.js:318-326`. It also says failure and timeout "no longer have different outcomes", which is true of quarantine but not of startup: `orchestrator` aborts (`../project/agentbox/management-api/adapters/lifecycle.js:75`).
 ## ES-03.10 Partial convergence: typed operational crossings and remaining RDF identity seams
 ```mermaid
 flowchart TD
@@ -498,7 +498,7 @@ flowchart TB
 
     INV["CORRECTED 2026-11-02 — not every record is proposed. ADR-2097, the sidestr rail<br/>superseding Lightning-first, is accepted, complete and staged<br/>(ADR-2097-sidestr-rail-supersedes-lightning-first.md:5-7). Every other record carries<br/>decision_status proposed. implementation_status partial: ADR-2096 (ADR-2096:5-6),<br/>ADR-2098 (ADR-2098:5-6), ADR-2103<br/>(ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:5-6),<br/>the canon entry, partial and inactive<br/>(ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7), the solid-pod-rs port, partial and staged<br/>(ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7),<br/>and the forum D1 demotion, partial but inactive<br/>(ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7). implementation_status none:<br/>the host at ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:5-6,<br/>ADR-2099 at ADR-2099-the-chain-is-the-ledger-of-record.md:5-6,<br/>ADR-2100-every-settlement-passes-the-authority-gate.md:5-6,<br/>ADR-2101-federation-topology-and-key-separation.md:5-6 and<br/>ADR-2102-assets-are-bridged-in-rgb-as-a-wrapped-asset.md:5-6."]
     CANON --> INV
-    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:276."]
+    SRCST["PARTIAL, INACTIVE — the canon entry now records that sidestr-rs<br/>publishes seven crates and carries inactive pool, market, EVM and<br/>Hitch code. EVM executes inside a sidestr chain and Hitch speaks to<br/>no Lightning peer, so neither is an estate rail,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:36-40.<br/>The one running piece is agentbox's interim testnet producer,<br/>mirror and faucet under the sidechain gates, with no sidestr-node,<br/>bridge or port 9097 bind, BASELINE-container.md:284."]
     CANON --> SRCST
 
     RET["RETIRED — Lightning-first is superseded. x402 and l402 stay<br/>payable false permanently and Lightning may return only as a<br/>bridge on-ramp, never as the planned rail.<br/>agentbox/docs/developer/economy-loop.md:143"]
@@ -515,7 +515,7 @@ flowchart LR
 
     subgraph TODAY["Today — three stores of record"]
         L1["solid-pod-rs StoragePaymentStore (solid-pod-rs-server/src/handlers/pay.rs:130) and WebLedger<br/>(solid-pod-rs/src/payments.rs:283), a stored number mutated by credit and debit<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:43.<br/>At the stamp credit and debit are already pub(crate) (solid-pod-rs/src/payments.rs:565,579)<br/>and an outpoint-keyed credit_by_outpoint is public (solid-pod-rs/src/payments.rs:450)"]
-        L2["host FsPaymentStore behind the 402 route set, whose own<br/>deposit handler returns 501 so no value ever entered it<br/>ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:22-25;<br/>still so at the stamp, pay_handler.rs:202,504,511"]
+        L2["host FsPaymentStore behind the 402 route set, whose own<br/>deposit handler returns 501 so no value ever entered it<br/>ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md:22-25;<br/>still so at the stamp, pay_handler.rs:202,509,516"]
         L3["forum pod-worker D1 ledger. The ADR describes D1PaymentStore with an atomic<br/>credit and debit pair (ADR-2012-d1-ledger-becomes-a-chain-view.md:22-26); at the stamp<br/>that type is gone: D1Ledger implements the pay_ledger LedgerDb seam<br/>(nostr-bbs-pod-worker/src/payments.rs:61,82; pay_ledger.rs:289) and sats enter only from a confirmed<br/>output credited once by outpoint (nostr-bbs-pod-worker/src/payments.rs:10-11, ADR-2012 D6)"]
     end
     FACT --> TODAY
@@ -531,6 +531,6 @@ flowchart LR
     GATE["OPEN — the payment_settlement authority class is declared today<br/>and currently GATES NOTHING. The settlement pack is what would<br/>give it work to do.<br/>agentbox/docs/developer/economy-loop.md:270"]
     CHAIN --> GATE
 
-    SKEW["DOC-DRIFT — the forum record still reads the host at solid-pod-rs 0.4.0-alpha.15<br/>and the forum at 0.5.0-alpha.7 (ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30),<br/>as does the proposal (sovereign-settlement.md:61). Both are stale: the forum workspace now<br/>requires 0.5.0-alpha.20 (nostr-rust-forum/Cargo.toml:185) and the VisionClaw checkout<br/>0.5.0-alpha.22 (project/Cargo.toml:240). The skew is narrower than recorded, still two<br/>pre-releases apart, and no gate compares them. see ES-01.1"]
+    SKEW["DOC-DRIFT — the forum record still reads the host at solid-pod-rs 0.4.0-alpha.15<br/>and the forum at 0.5.0-alpha.7 (ADR-2012-d1-ledger-becomes-a-chain-view.md:28-30),<br/>as does the proposal (sovereign-settlement.md:61). Both are stale: the forum workspace now<br/>requires 0.5.0-alpha.24 (nostr-rust-forum/Cargo.toml:188) and the VisionClaw checkout<br/>0.5.0-alpha.22 (project/Cargo.toml:243). The skew is narrower than recorded, still two<br/>pre-releases apart with the forum now ahead, and no gate compares them. see ES-01.1"]
     TODAY --> SKEW
 ```

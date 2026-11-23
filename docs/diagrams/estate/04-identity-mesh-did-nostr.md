@@ -37,18 +37,19 @@ sources:
   - ../project/src/settings/auth_extractor.rs
   - ../project/client/src/services/nostrAuthService.ts
   - ../project/agentbox/docs/INGRESS-identity.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: 0693c761c782457066f081b46daf8f7f4ea29e3c}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 ## ES-04.1 verification mesh — who signs, who verifies whom
 ```mermaid
 flowchart TB
     subgraph browser["Browser (untrusted)<br/>trust boundary"]
         BX["window.nostr<br/>NIP-07 extension"]
+        SK["ADR-2205 bound session key, browser memory only<br/>bound once by a real NIP-07 signature, nostrAuthService.ts:373<br/>then signs each request with a session tag, nostrAuthService.ts:490-494"]
     end
     subgraph vc["VisionClaw process<br/>src/"]
         AE["AuthenticatedUser extractor<br/>src/settings/auth_extractor.rs:89"]
-        NS["NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:648"]
-        N98["validate_nip98_token<br/>src/utils/nip98.rs:428"]
+        NS["NostrService::verify_nip98_auth<br/>src/services/nostr_service.rs:789"]
+        N98["validate_nip98_token<br/>src/utils/nip98.rs:431"]
         NIV["NostrIdentityVerifier<br/>src/services/nostr_identity_verifier.rs:34"]
         NB["NostrBridge (re-sign)<br/>src/services/nostr_bridge.rs:28"]
         MAC["ManagementApiClient<br/>src/services/management_api_client.rs:27"]
@@ -72,11 +73,13 @@ flowchart TB
         VF["VisionFlow canon<br/>read-only KG consumer"]
     end
 
-    BX -- "NIP-07 signEvent()<br/>nostrAuthService.ts:276" --> AE
+    BX -- "NIP-07 signEvent() per request: the real-signer list, nostrAuthService.ts:214,<br/>or no bind held, nostrAuthService.ts:514" --> AE
+    BX -. "binds via POST session-key<br/>nostr_service.rs:880" .-> SK
+    SK -- "NIP-98 kind-27235 with session tag, resolved to the principal<br/>nostr_service.rs:837-854" --> AE
     AE -- "NIP-98 kind-27235" --> NS --> N98
     NS -- "Bearer + X-Nostr-Pubkey<br/>explicit migration flag; default off" --> AE
     NIV -. "XR presence Schnorr(nonce||ts)<br/>NOT NIP-98" .-> NB
-    MAC -- "Authorization: Bearer api_key<br/>management_api_client.rs:305" --> PROXY
+    MAC -- "Authorization: Bearer api_key<br/>management_api_client.rs:307" --> PROXY
     PROXY -- "NIP-98 kind-27235<br/>proxy-verified" --> NBB
     PROXY -- "X-Agentbox-Pubkey<br/>injected, never trusted inbound<br/>proxy.mjs:898" --> MGMT
     DOORN["INVARIANT ADR-2210 fail closed: the door refuses every identity while its boot config is absent or unreadable,<br/>and a signed key off a non-empty allowlist, pubkey_not_allowed - proxy.mjs:183-185<br/>DEBT the previous boot allow-list is served from proxy start until the config is re-projected,<br/>and indefinitely if projection fails - agentbox/config/lib/nip98-config.sh:26-27, see AB-10.2"]
@@ -97,7 +100,7 @@ flowchart TB
 
 **Debt:** the stamp's strength is the same-UID boundary of the agentbox container, because any process inside it reaches management-api over loopback (TODO-unified X-1; `agentbox/management-api/lib/agent-event-auth.js:36-39`).
 
-**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its port 9095 listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and port 9096 forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on port 9095 (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:350`); `partial` stays because the all-seed acceptance gap remains open (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:353`).
+**Drift (resolved at this stamp):** ADR-2153 is live (`decision_status: accepted`, `implementation_status: partial`, `activation_status: live`; `../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`). Agent of Empires, its port 9095 listener, its bearer token and the proxy hop to it are gone; session control is a 0660 `ab-sessions` unix socket authorised by `SO_PEERCRED` against uids 1000 and 961 (`../project/agentbox/services/agentbox-sessions/src/api.rs:74`, `../project/agentbox/config/custody/session-plane-acl.json:8-11`), and port 9096 forwards named routes only (`../project/agentbox/docs/INGRESS-identity.md:69-71,244-247`). The 2026-10-30 close-out re-checks the running image and leaves the axes unchanged: `command -v aoe` finds nothing and nothing listens on port 9095 (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:358`); `partial` stays because the all-seed acceptance gap remains open (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:361`).
 
 **Open (PROPOSED 2026-10-30, not implemented):** VisionClaw's identity-authority record now carries a Proposed room-admission section (ADR-2157, ADR-2160, ADR-2161): a `RoomAdmission` port after the presence handshake, fed by the home relay's signed NIP-29 39002 member list, and a single agentbox-held node federation key that VisionClaw never holds (`docs/IDENTITY-authority-chain.md`, section "Proposed"). Today the handshake alone admits a DID to any room, and the diagrams here describe only that shipped path.
 
@@ -106,7 +109,7 @@ flowchart TB
 sequenceDiagram
     autonumber
     participant C as caller
-    participant V as validate_nip98_token<br/>src/utils/nip98.rs:428
+    participant V as validate_nip98_token<br/>src/utils/nip98.rs:431
     participant R as claim_signed_id<br/>src/utils/nip98.rs:227
     participant CACHE as REPLAY_CACHE<br/>Mutex-guarded, src/utils/nip98.rs:221
 
@@ -116,21 +119,21 @@ sequenceDiagram
     else decoded
         V->>V: kind check
         alt kind is not 27235
-            V-->>C: Err InvalidKind — nip98.rs:463
+            V-->>C: Err InvalidKind — nip98.rs:466
         else kind ok
             V->>V: FRESHNESS — compare created_at to now
             alt age exceeds TOKEN_MAX_AGE_SECONDS 60
-                V-->>C: Err TokenExpired — nip98.rs:478
+                V-->>C: Err TokenExpired — nip98.rs:481
             else created_at is in the future
-                V-->>C: Err TokenFromFuture — nip98.rs:483
+                V-->>C: Err TokenFromFuture — nip98.rs:486
             else fresh
                 V->>V: TAG MATCH — host-checked u tag
                 alt url differs
-                    V-->>C: Err UrlMismatch{expected, actual} — nip98.rs:511
+                    V-->>C: Err UrlMismatch{expected, actual} — nip98.rs:516
                 else method differs
-                    V-->>C: Err MethodMismatch{expected, actual} — nip98.rs:519
+                    V-->>C: Err MethodMismatch{expected, actual} — nip98.rs:524
                 else payload hash present and differs
-                    V-->>C: Err PayloadHashMismatch — nip98.rs:537
+                    V-->>C: Err PayloadHashMismatch — nip98.rs:542
                 else tags match
                     V->>V: SIGNATURE verification
                     alt signature invalid
@@ -153,7 +156,7 @@ sequenceDiagram
             end
         end
     end
-    Note over C,CACHE: INVARIANT — the replay CLAIM is the LAST step<br/>(nip98.rs:573). It must never precede signature verification,<br/>or a forged token would burn a legitimate event id.
+    Note over C,CACHE: INVARIANT — the replay CLAIM is the LAST step<br/>(nip98.rs:578). It must never precede signature verification,<br/>or a forged token would burn a legitimate event id.
     Note over V,CACHE: INVARIANT — REPLAY_CACHE_TTL must stay at 2x the freshness<br/>window (nip98.rs:178). A token created at now+60 stays valid<br/>until now+120, so a shorter TTL would let it replay after<br/>its entry prunes.
     Note over R,CACHE: REPLAY_CACHE_PRUNE_THRESHOLD = 4096 triggers an opportunistic<br/>O(n) sweep on insert (nip98.rs:183). INVARIANT — on a FULL cache the code<br/>REFUSES new auth (ReplayCacheFull) and must NOT evict the oldest live<br/>entry — evicting would let a flooder purge a genuine still-valid id and<br/>re-enable the very replay this layer prevents (nip98.rs:189-197).<br/>Bounded memory beats availability.
 ```
@@ -169,7 +172,7 @@ sequenceDiagram
     participant POD as Solid pod
 
     CALLER->>B: buildPodNip98(manifest, deps)
-    alt sign_requests on (agentbox.toml:590) and no identity port selected
+    alt sign_requests on (agentbox.toml:589) and no identity port selected
         B-->>CALLER: async (method, url, body) => header<br/>pod-signer.js:124
         CALLER->>H: nip98(method, url, body)
         H->>S: resolve signer (loaded lazily on first use, then cached)
