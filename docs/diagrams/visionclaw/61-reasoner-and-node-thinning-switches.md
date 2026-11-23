@@ -4,7 +4,7 @@ title: Reasoner, sync-pipeline and node-thinning switches — five stored keys a
 area: visionclaw
 governing:
   - ../project/docs/adr/ADR-2192-the-reasoner-the-sync-pipeline-and-node-thinning-are-stored-operator-switches.md
-adrs: [ADR-2192, ADR-2140, ADR-2183, ADR-2189, ADR-2173, ADR-2071]
+adrs: [ADR-2192, ADR-2140, ADR-2183, ADR-2189, ADR-2173, ADR-2071, ADR-2204]
 sources:
   - ../project/crates/visionclaw-domain/src/types/physics_config.rs
   - ../project/src/settings/models.rs
@@ -14,12 +14,13 @@ sources:
   - ../project/src/actors/gpu/force_compute_actor.rs
   - ../project/src/actors/gpu/physics_supervisor.rs
   - ../project/src/services/github_sync_service.rs
+  - ../project/src/physics/ontology_constraint_mapper.rs
   - ../project/src/handlers/api_handler/ontology_physics/mod.rs
   - ../project/src/actors/client_filter.rs
   - ../project/src/actors/client_coordinator_actor.rs
   - ../project/src/handlers/api_handler/graph/mod.rs
   - ../project/docs/adr/ADR-2192-the-reasoner-the-sync-pipeline-and-node-thinning-are-stored-operator-switches.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -35,36 +36,37 @@ An operator can now turn off the reasoner's pull on the layout, stop the reasone
 ```mermaid
 sequenceDiagram
     autonumber
-    participant PATCH as apply_physics_patch<br/>settings_routes.rs:661
-    participant APPLY as apply_ontology_constraint_policy<br/>settings_routes.rs:639
+    participant PATCH as apply_physics_patch<br/>settings_routes.rs:695
+    participant APPLY as apply_ontology_constraint_policy<br/>settings_routes.rs:673
     participant SUP as restore_saved_physics<br/>physics_supervisor.rs:204
-    participant OCA as OntologyConstraintActor<br/>ontology_constraint_actor.rs:650
-    participant FCA as constraint_sync_action<br/>force_compute_actor.rs:1827
-    Note over PATCH: physics.ontologyConstraintsEnabled default true, ontologyConstraintStrength default 0.6<br/>physics_config.rs:123, :128, :431, :439
-    PATCH->>APPLY: on every physics write, before SimParams (settings_routes.rs:741)
-    APPLY->>OCA: SetOntologyConstraintPolicy from the stored physics (settings_routes.rs:643)
+    participant OCA as OntologyConstraintActor<br/>ontology_constraint_actor.rs:725
+    participant FCA as constraint_sync_action<br/>force_compute_actor.rs:1915
+    Note over PATCH: physics.ontologyConstraintsEnabled default true, ontologyConstraintStrength default 0.6<br/>physics_config.rs:124, :129, :465, :473
+    PATCH->>APPLY: on every physics write, before SimParams (settings_routes.rs:775)
+    APPLY->>OCA: SetOntologyConstraintPolicy from the stored physics (settings_routes.rs:677)
     SUP->>OCA: the same policy on every supervisor start (physics_supervisor.rs:216)
-    OCA->>OCA: an identical applied policy answers unchanged (ontology_constraint_actor.rs:668)
-    OCA->>OCA: live buffer rebuilt from the unscaled base (ontology_constraint_actor.rs:679, :96)
-    OCA->>FCA: notify, or clear applied_policy so the next write retries (ontology_constraint_actor.rs:689-690)
-    FCA->>FCA: an empty pending cache over a non-empty engine is Clear (force_compute_actor.rs:1834)
+    OCA->>OCA: an identical applied policy answers unchanged (ontology_constraint_actor.rs:743)
+    OCA->>OCA: live buffer rebuilt from the unscaled base (ontology_constraint_actor.rs:754, :160)
+    OCA->>FCA: notify, or clear applied_policy so the next write retries (ontology_constraint_actor.rs:764-765)
+    FCA->>FCA: an empty pending cache over a non-empty engine is Clear (force_compute_actor.rs:1922)
 ```
 
-**What it shows:** the two physics keys travel as one policy message on every physics write; the actor skips an unchanged policy and keeps the unscaled set so switching back on needs no sync. **Why it is this way:** ADR-2140 decision 1, one stored definition per value; the store is written first, so only the actor can tell whether a policy was applied (comment at `settings_routes.rs:634-638`).
+**What it shows:** the two physics keys travel as one policy message on every physics write; the actor skips an unchanged policy and keeps the unscaled set so switching back on needs no sync. **Why it is this way:** ADR-2140 decision 1, one stored definition per value; the store is written first, so only the actor can tell whether a policy was applied (comment at `settings_routes.rs:668-672`).
 
 ## VC-61.2 Three sync-time switches read from quality gates
 
 ```mermaid
 flowchart TB
-    QG["qualityGates document, global layer<br/>sync_switches github_sync_service.rs:334-338"] --> SW["SyncSwitches.from_quality_gates, a missing key reads as on<br/>github_sync_service.rs:233"]
-    SW --> R["ontologyReasoning<br/>github_sync_service.rs:241"]
-    SW --> D["materialiseDomainRoots<br/>github_sync_service.rs:242"]
-    SW --> I["materialiseInferredEdges<br/>github_sync_service.rs:243"]
-    R -->|"off"| NOWH["start-up Whelk load skipped<br/>github_sync_service.rs:1444-1448"]
-    R -->|"off"| ASSERT["post-sync: inference forgotten, inferred edges purged,<br/>asserted axioms only as constraints<br/>github_sync_service.rs:1476-1480"]
-    D --> ROOTS["materialise_domain_roots with the switch<br/>github_sync_service.rs:714, github_sync_service.rs:991"]
-    I --> WIE["writes_inferred_edges needs reasoning and the edge switch<br/>github_sync_service.rs:249"]
-    WIE -->|"false"| PURGE["purge_inferred_edges<br/>github_sync_service.rs:1547-1552, github_sync_service.rs:1646"]
+    QG["qualityGates document, global layer<br/>sync_switches github_sync_service.rs:293-297"] --> SW["SyncSwitches.from_quality_gates, a missing key reads as on<br/>github_sync_service.rs:192"]
+    SW --> R["ontologyReasoning<br/>github_sync_service.rs:200"]
+    SW --> D["materialiseDomainRoots<br/>github_sync_service.rs:201"]
+    SW --> I["materialiseInferredEdges<br/>github_sync_service.rs:202"]
+    R -->|"off"| NOWH["start-up Whelk load skipped<br/>github_sync_service.rs:1416-1420"]
+    R -->|"off"| ASSERT["post-sync: inference forgotten, inferred edges purged,<br/>asserted axioms only as constraints<br/>github_sync_service.rs:1448-1452"]
+    R -->|"on"| INF["constraints: asserted axioms plus inferred ones that do not attract,<br/>the subClassOf and partOf closure is dropped since ADR-2204 D5<br/>ontology_constraint_mapper.rs:166, github_sync_service.rs:1691"]
+    D --> ROOTS["materialise_domain_roots with the switch<br/>github_sync_service.rs:676, github_sync_service.rs:963"]
+    I --> WIE["writes_inferred_edges needs reasoning and the edge switch<br/>github_sync_service.rs:208"]
+    WIE -->|"false"| PURGE["purge_inferred_edges<br/>github_sync_service.rs:1519-1524, github_sync_service.rs:1618"]
 ```
 
 **What it shows:** reasoning, domain roots and inferred edges are each a stored quality gate defaulting to on, read at every sync and at start-up. **Why it is this way:** ADR-2192 decision 2; on the dev stack the operator could not switch off reasoning whose output buried the graph.
@@ -78,7 +80,7 @@ flowchart TB
     REC --> CAP{"more nodes pass than the cap<br/>client_filter.rs:72-73"}
     CAP -->|"yes"| TOP["top_nodes: quality, then degree, then id<br/>client_filter.rs:140, client_filter.rs:160"]
     REC --> COUNT["filter_update_success, visible of considered<br/>client_coordinator_actor.rs:113, client_coordinator_actor.rs:150"]
-    REC --> REST["GET graph data with the caller's node_filter snapshot<br/>same function, bad JSON gives 400<br/>graph/mod.rs:110, graph/mod.rs:265-272"]
+    REC --> REST["GET graph data with the caller's node_filter snapshot<br/>same function, bad JSON gives 400<br/>graph/mod.rs:110, graph/mod.rs:296-303"]
     TOP -.-> SCOPE["thins what a client receives and draws,<br/>not the shared GPU simulation"]
 ```
 
