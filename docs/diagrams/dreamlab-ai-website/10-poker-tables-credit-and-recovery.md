@@ -26,12 +26,12 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs
-verified_commit: {dreamlab-ai-website: 567bed67f54c2be66edf7e1333442f9458294241, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5, nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## For developers
 
-Follow the website overlay into the consumed kit's house state machine and browser settlement path. The associated estate review separates native counterexamples, mocked script results, source-only findings and process observations. The kit sources here are pinned at `6064622`, the house service's revision. The website's client now builds from `3c48e26`, where the cited poker files are unchanged but the cited `relay.rs` and `dm/mod.rs` differ; those two were not re-read at `3c48e26`.
+Follow the website overlay into the consumed kit's house state machine and browser settlement path. The associated estate review separates native counterexamples, mocked script results, source-only findings and process observations. The kit sources here are verified at `4a73a7a`. The cited poker files are unchanged from `6064622`, the house service's revision, and from `fd31193`, the website client's `KIT_REF`; the cited `relay.rs` and `dm/mod.rs` differ from `6064622` and were re-read at `4a73a7a`, which matches `fd31193` for both.
 
 ## For the business
 
@@ -45,13 +45,13 @@ flowchart TB
     A["Website enables poker and configures<br/>DREAM and BLAKES7 house identities"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:265
     B["Client offers a table for each configured<br/>chain with an asset and house key"]
-    %% Source: ../project/agentbox/agentbox.toml:2057-2078
+    %% Source: ../project/agentbox/agentbox.toml:2091-2112
     C["Agentbox enables two house services<br/>with separate keys, chains and daily caps"]
     %% Source: ../project/agentbox/config/poker/run-citizen.sh:23
     D["Runner chooses chain-specific state path<br/>and executes the baked binary"]
     %% Source: ../project/agentbox/lib/poker-citizen.nix:31
-    E["DRIFT: REOPENED at website 567bed6<br/>service pin 6064622 at agentbox e458b308<br/>differs from website client pin 3c48e26"]
-    %% Source: ../dreamlab-ai-website/.github/workflows/deploy.yml:130
+    E["DRIFT: open at website e255b2b<br/>service pin 6064622 at agentbox 59b1aca<br/>differs from website client pin fd31193"]
+    %% Source: ../dreamlab-ai-website/.github/workflows/deploy.yml:131
     F["Website consumes KIT_REF independently<br/>equal poker source does not prove all dependencies equal"]
     A --> B
     B --> C
@@ -60,7 +60,7 @@ flowchart TB
     E --> F
 ```
 
-**What it shows:** Configuration has expanded beyond the single DREAM seat described by ADR-2009. The service and client pins name different kit commits again: the website moved to `3c48e26` on 2026-11-22 while the house service stays at `6064622`; equal pins would not certify the dependency graph or binary provenance anyway.
+**What it shows:** Configuration has expanded beyond the single DREAM seat described by ADR-2009. The service and client pins name different kit commits again: the website moved to `fd31193` on 2026-11-22 while the house service stays at `6064622`; equal pins would not certify the dependency graph or binary provenance anyway.
 **Why it is this way:** ADR-2009 places forum behaviour in the kit and service custody in agentbox. Its exact-commit lockstep wording rests on two separately edited pins; the website's nine repins of 2026-11-21 to 22 moved only its own.
 
 ## DW-10.2 Admission grants unsecured play credit
@@ -149,13 +149,13 @@ flowchart TB
     A["Schedule button requires client is_admin<br/>rather than an explicit moderator predicate"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs:154
     B["Create calendar event with poker hashtag,<br/>chain tag and invited participant keys"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs:640
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs:811
     C["Register event ACK callback<br/>then queue publication"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs:200
     D["Immediately start individual invitation DMs<br/>without awaiting event acceptance"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs:202
     E["DEBT: count synchronous DM acceptance<br/>as invitations sent, then close modal"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs:472
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/mod.rs:602
     F["DM submission first updates local state<br/>before its asynchronous encrypted delivery"]
     A --> B
     B --> C

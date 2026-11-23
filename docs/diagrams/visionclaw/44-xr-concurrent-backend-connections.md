@@ -16,7 +16,7 @@ sources:
   - ../project/xr-client/rust/src/binary_protocol.rs
   - ../project/nginx.dev.conf
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -33,30 +33,30 @@ Knowledge, ontology and code can be fed by concurrent connections. Source separa
 
 ```mermaid
 flowchart TD
-    SC["GraphScene builds two BackendConnections<br/>graph_scene.gd:1380"] --> VC["VisionClaw client<br/>graph_scene.gd:1382"]
-    SC --> CS["Codescape client with empty signing secret<br/>graph_scene.gd:1383"]
+    SC["GraphScene builds two BackendConnections<br/>graph_scene.gd:1378"] --> VC["VisionClaw client<br/>graph_scene.gd:1380"]
+    SC --> CS["Codescape client with empty signing secret<br/>graph_scene.gd:1381"]
     VC --> K["Knowledge volume<br/>test_backend_switch.gd:26"]
     VC --> O["Ontology volume<br/>test_backend_switch.gd:27"]
     CS --> C["Codescape volume<br/>test_backend_switch.gd:28"]
-    SC --> SRC["Each binding creates ConnectionVolumeSource<br/>graph_scene.gd:1412,1413"]
-    SC --> PR["Presence URL derives from VisionClaw base<br/>graph_scene.gd:2954,2958"]
-    CS --> CSB["Codescape base: XR_CODESCAPE_WS, else XR_BACKEND_WS<br/>(default port 4000) with /codescape appended<br/>graph_scene.gd:2976,2977,2980 backend_connection.gd:87,88"]
+    SC --> SRC["Each binding creates ConnectionVolumeSource<br/>graph_scene.gd:1410,1411"]
+    SC --> PR["Presence URL derives from VisionClaw base<br/>graph_scene.gd:2952,2956"]
+    CS --> CSB["Codescape base: XR_CODESCAPE_WS, else XR_BACKEND_WS<br/>(default port 4000) with /codescape appended<br/>graph_scene.gd:2974,2975,2978 backend_connection.gd:87,88"]
     CSB --> NGX["Only the dev nginx on port 3001 routes /codescape/<br/>to codescape port 4100, the backend has no such route<br/>nginx.dev.conf:56,74,75"]
     CS --> OWN["Each instance owns its client, caps, pins, HTTP and backoff<br/>backend_connection.gd:39,50,61,62,68"]
     VC --> OWN
-    SC -.-> D44["DRIFT: the doc section still headed accepted, not built says nothing exists<br/>and the client has one scene and one backend<br/>XR-client.md:1152,1154"]
+    SC -.-> D44["DRIFT: the doc section still headed accepted, not built says nothing exists<br/>and the client has one scene and one backend<br/>XR-client.md:1161,1163"]
 ```
 
 **What it shows.** The scene keeps both graph connections and one separately configured room-presence path; graph and presence go straight to the backend on port 4000 while Codescape is reached through nginx on port 3001 (`docs/XR-client.md:307`). **Why it is this way.** Node ids, acknowledgements and request state belong to their content connection; changing focus no longer selects an exclusive graph backend.
-**Open (risk):** with `XR_CODESCAPE_WS` unset, the Codescape connection dials `XR_BACKEND_WS` plus `/codescape` (`xr-client/scripts/graph_scene.gd:2980`), which on the default port 4000 reaches a backend with no `/codescape` route; only the nginx location at `nginx.dev.conf:74` serves it, so that volume retries under backoff until the operator sets the variable.
-**Drift:** `docs/XR-client.md:1316-1317` still says to point `XR_BACKEND_WS` at Codescape or press the Session tab's Backend toggle, and `docs/XR-client.md:1327` launches with `XR_BACKEND_MODE=codescape`; the toggle is retired and no client script reads that variable, while the per-source base is `xr-client/scripts/graph_scene.gd:2976-2980`.
+**Open (risk):** with `XR_CODESCAPE_WS` unset, the Codescape connection dials `XR_BACKEND_WS` plus `/codescape` (`xr-client/scripts/graph_scene.gd:2978`), which on the default port 4000 reaches a backend with no `/codescape` route; only the nginx location at `nginx.dev.conf:74` serves it, so that volume retries under backoff until the operator sets the variable.
+**Drift:** `docs/XR-client.md:1325-1326` still says to point `XR_BACKEND_WS` at Codescape or press the Session tab's Backend toggle, and `docs/XR-client.md:1336` launches with `XR_BACKEND_MODE=codescape`; the toggle is retired and no client script reads that variable, while the per-source base is `xr-client/scripts/graph_scene.gd:2974-2978`.
 
 ## VC-44.2 Requests and drags gate through a volume's connection
 
 ```mermaid
 flowchart TD
-    FOCUS["Focused volume resolves connection<br/>graph_scene.gd:2248,2273"] --> CAP["Connection supports and gate<br/>backend_connection.gd:196,203"]
-    REQ["Request helpers use _gate_for_volume<br/>graph_scene.gd:2258"] --> CAP
+    FOCUS["Focused volume resolves connection<br/>graph_scene.gd:2246,2271"] --> CAP["Connection supports and gate<br/>backend_connection.gd:196,203"]
+    REQ["Request helpers use _gate_for_volume<br/>graph_scene.gd:2256"] --> CAP
     DRAG["Drag start, update and end call DRAG gate<br/>backend_connection.gd:331,340,349"] --> CAP
     CAP -->|unsupported| NO["Emit refused and return false<br/>backend_connection.gd:206,208"]
     CAP -->|supported drag| SEND["Call this client's drag method<br/>backend_connection.gd:335,344,353"]
@@ -70,15 +70,15 @@ flowchart TD
 ```mermaid
 flowchart TD
     VIS["Visible volume demand summed<br/>frame_budget_pass.gd:20"] --> BUD["Allocate once and split caps<br/>frame_budget_pass.gd:149,166"]
-    BUD --> PACK["Pack each visible connected volume with its caps<br/>graph_scene.gd:1761,1779,1784"]
-    PACK --> HIDE["Hidden or offline clears instances and overlay slot<br/>graph_scene.gd:1779,1780,1782"]
+    BUD --> PACK["Pack each visible connected volume with its caps<br/>graph_scene.gd:1759,1777,1782"]
+    PACK --> HIDE["Hidden or offline clears instances and overlay slot<br/>graph_scene.gd:1777,1778,1780"]
     PRE["Rust loopback preflight drives production graph transport<br/>two_clients.rs:442,451"] --> ACK["Independent frame and ack sequences, stall and pump timing checks<br/>two_clients.rs:551-555,564,565,581,582"]
     ACK --> LIMIT["Test thread substitutes for Godot pump<br/>no engine or render-store load measurement<br/>two_clients.rs:7,11,38"]
 ```
 
 **What it shows.** Budget allocation, transport fairness and headset frame time are separate claims. **Why it is this way.** The preflight exercises real transport with simulated main-thread pumping; ADR-2159 still requires E8 on the headset before activation.
 
-**Drift:** ADR-2159's verification says no BackendConnection exists; current construction is wired into the scene (`graph_scene.gd:1380`). Its inactive status is not overturned by this source observation.
+**Drift:** ADR-2159's verification says no BackendConnection exists; current construction is wired into the scene (`graph_scene.gd:1378`). Its inactive status is not overturned by this source observation.
 
 ## VC-44.4 Reconnect liveness tracks bytes and an applied position frame
 
@@ -90,7 +90,7 @@ flowchart TD
     DOWN --> UPGRADE["Socket upgrade alone keeps attempt count<br/>backend_connection.gd:428-436"]
     UPGRADE --> FRAME["First applied position frame emits stream_live once<br/>binary_protocol.rs:2902-2904"]
     FRAME --> RESET["Reset backoff attempts<br/>backend_connection.gd:446-447"]
-    RESUME["App or XR session resumes or regains focus<br/>graph_scene.gd:1685-1687,1707-1721"] --> DIAL["Redial an open, disconnected connection now;<br/>leave connected or already dialling alone<br/>backend_connection.gd:187-194"]
+    RESUME["App or XR session resumes or regains focus<br/>graph_scene.gd:1683-1685,1705-1719"] --> DIAL["Redial an open, disconnected connection now;<br/>leave connected or already dialling alone<br/>backend_connection.gd:187-194"]
     DIAL --> UPGRADE
 ```
 

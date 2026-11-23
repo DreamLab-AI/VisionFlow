@@ -13,7 +13,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/filter.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs
-verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
+verified_commit: {nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
 ---
 
 ## For developers

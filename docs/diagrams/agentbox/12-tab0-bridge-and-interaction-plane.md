@@ -47,25 +47,25 @@ sources:
   - ../project/agentbox/config/tmux-autostart.sh
   - ../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: 0693c761c782457066f081b46daf8f7f4ea29e3c
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-12.2 Bridge boot — reconcile, listen, coordinator resolve
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sup as Supervisor<br/>agentbox/flake.nix:3195
+    participant Sup as Supervisor<br/>agentbox/flake.nix:3196
     participant Dep as deploy.sh<br/>agentbox/config/tab0-bridge/deploy.sh:1
     participant Node as server.mjs<br/>agentbox/config/tab0-bridge/server.mjs:46
     participant Sock as agentbox-sessions socket<br/>agentbox/config/session-plane/client.cjs:4
 
-    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:3196)
+    Sup->>Dep: bash deploy.sh reconcile, one supervisor command line (flake.nix:3197)
     Dep->>Dep: copy server.mjs, turn-sink.cjs, start.sh, package.json via md5 compare (deploy.sh:27-35)
     opt node_modules/ws missing
         Dep->>Dep: npm install --omit=dev (deploy.sh:37-39)
     end
     Dep-->>Sup: exit 0, reconcile-only mode, no launch (deploy.sh:44-46)
-    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:3196)
+    Sup->>Node: exec node server.mjs, foreground, autorestart, same command line (flake.nix:3197)
     Node->>Node: read BRIDGE_PORT, default 8971 (server.mjs:46)
     Node->>Node: read BRIDGE_TMUX_SESSION, default agentbox (server.mjs:48)
     Node->>Node: read BRIDGE_TOKEN, default empty string (server.mjs:50)
@@ -208,7 +208,7 @@ sequenceDiagram
 
     rect rgb(255,240,240)
     Note over Mic,UBE: trust boundary — LAN door 1, port 8444 published 0.0.0.0
-    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:2317), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1-5) - the manifest describes the<br/>surface, the overlay governs it
+    Note over Mic,Cad: TENSION resolved in the manifest's own terms — [voice].enabled is now TRUE<br/>(agentbox.toml:2319), descriptive sidecar state for /v1/system. The gate stays apply-class<br/>sidecar, so the voice compose overlay still has its own lifecycle and `agentbox up`<br/>never consults the flag (docker-compose.voice.yml:1-5) - the manifest describes the<br/>surface, the overlay governs it
     Mic->>Cad: HTTPS, mic audio via /embed and /api/* (Caddyfile handle /embed*, handle_path /api/*)
     Cad->>UFE: reverse_proxy frontend:3000 (Caddyfile handle /embed*)
     Cad->>UBE: reverse_proxy backend:80, /v1/realtime (Caddyfile handle_path /api/*)
@@ -301,7 +301,7 @@ Note over Ca,M: SCOPE — this route is not reached from the tab0-bridge cockpit
     D-->>M: signedRequest with id
     M->>M: emitAgentAction, beam-parity notification (routes/voice-intent.js:286-297)
     M-->>Ca: 200, dispatched true, speaker_did, actor_did, event_id, intent, dispatch, plus interpretation when the Jev option answered (routes/voice-intent.js:305-329)
-    Note over M,VI: INVARIANT — the Jev option runs only after the speaker, mandate and target checks, and its sole power<br/>over the outcome is to abstain: it never picks a verb, subject or target, never signs or dispatches<br/>(routes/voice-intent.js:223-226, lib/voice-intent-jev.js:17-23). It is local-only only when<br/>AGENTBOX_JEV_VOICE_LOCAL_ONLY=1 (default 0, configured 2026-10-30, live with the new image) and fails to null,<br/>so a miss leaves the route behaving as before (lib/voice-intent-jev.js:25-28)
+    Note over M,VI: INVARIANT — the Jev option runs only after the speaker, mandate and target checks, and its sole power<br/>over the outcome is to abstain: it never picks a verb, subject or target, never signs or dispatches<br/>(routes/voice-intent.js:223-226, lib/voice-intent-jev.js:17-23). It is local-only only when<br/>AGENTBOX_JEV_VOICE_LOCAL_ONLY=1 (default 0 in code, projected 1 because the manifest lists voice_intent<br/>in [system_one].local_only, agentbox.toml:927, live with the new image) and fails to null,<br/>so a miss leaves the route behaving as before (lib/voice-intent-jev.js:25-28)
 Note over ACS: SCOPE — agent-control-surface.js mints unsigned NIP-33 events (kinds 31400-31405)<br/>consumed by the EXTERNAL nostr-rust-forum forum-client's GovernancePage, which<br/>dreamlab-ai-website shallow-clones at build time (agent-control-surface.js:4-19) — it is not an<br/>agentbox-native operator dashboard. PANEL_SCHEMAS, LAYOUT_HINTS and ACTION_PRIORITIES are frozen<br/>module constants (agent-control-surface.js:43,46,48) — publishPanelEvent is a thin delegate over<br/>an ALREADY-CONNECTED NostrBridge, no in-request relay I/O (agent-control-surface.js:238)
 ```
 
@@ -325,7 +325,7 @@ Pr->>M: GET /v1/approvals, strip prefix, route table<br/>(routes/approvals.js:55
 M-->>Op: 200, approvals empty, wired false, note<br/>(routes/approvals.js:88-90)
     end
     M->>M: annotateApprovals(c.listPending()), Jev option adds an advisory review_aid only when AGENTBOX_JEV_APPROVAL_REVIEW=1 (routes/approvals.js:47,91-94)
-    Note over M: INVARIANT — the review aid never reorders or hides a request and the decide route does not consult it<br/>(routes/approvals.js:91-93, lib/approval-review-jev.js:16-18), local-only only when AGENTBOX_JEV_APPROVAL_LOCAL_ONLY=1, default 0 (lib/approval-review-jev.js:20-24)
+    Note over M: INVARIANT — the review aid never reorders or hides a request and the decide route does not consult it<br/>(routes/approvals.js:91-93, lib/approval-review-jev.js:16-18), local-only only when AGENTBOX_JEV_APPROVAL_LOCAL_ONLY=1, default 0 in code (lib/approval-review-jev.js:20-24),<br/>projected 1 at boot because the manifest lists approval_review in [system_one].local_only (agentbox.toml:928)
 M-->>Op: 200, approvals array, count, wired true<br/>(routes/approvals.js:95)
 Op->>Op: operator reviews the list, signs a kind-27235 NIP-98 header via<br/>window.nostr for the decide POST
 Op->>Cad: POST /approvals/:id/decide, body outcome or decision,<br/>reasoning
@@ -554,4 +554,4 @@ flowchart TD
 
 **Review scope.** The 15 November source review updates this topic to `e458b308`, including legacy adoption and the retired voice-board references. AB-39 details the lifecycle probes; no new live provider round trip is claimed here.
 
-**Acceptance boundary (ADR-2151 vs manifest):** ADR-2151 records the VoiceLink edge voice slot as proposed, implementation partial, inactive (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`agentbox.toml:2333,2340`); that path reaches the container by `voice-paned --stdio` over ssh and bypasses tab0-bridge and the Unmute loop (`agentbox.toml:2323-2327`).
+**Acceptance boundary (ADR-2151 vs manifest):** ADR-2151 records the VoiceLink edge voice slot as proposed, implementation partial, inactive (`docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`), while the live manifest sets `[voicelink] enabled = true` and `record_events = true` (`agentbox.toml:2335,2342`); that path reaches the container by `voice-paned --stdio` over ssh and bypasses tab0-bridge and the Unmute loop (`agentbox.toml:2325-2329`).

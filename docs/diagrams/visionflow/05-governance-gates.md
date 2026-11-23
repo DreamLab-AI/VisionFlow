@@ -42,7 +42,8 @@ sources:
   - .github/workflows/adr-index.yml
   - scripts/adr-ratchet.sh
   - tests/gates/estate-health-ci.test.mjs
-verified_commit: fdeab5dc36a859b3b881d7d587af067c88795217
+  - tests/gates/open-work.test.sh
+verified_commit: 3ae784ed0b547b562e1f94d017996f8ad197f5cb
 ---
 
 ## VF-05.1 Gate route table — trigger, script, verdict, blocking
@@ -74,8 +75,8 @@ flowchart TB
     WHARN --> J1["job harness-audit<br/>harness-audit.sh --target 50<br/>harness-fitness-gates.yml:56"]:::tool
     WHARN --> J2["job fixture-parity<br/>inline jq template schema check<br/>harness-fitness-gates.yml:108"]:::tool
     WHARN --> J3["job release-manifest<br/>release-manifest.test.sh, then dream-evaluator-exit.test.sh<br/>harness-fitness-gates.yml:166 and harness-fitness-gates.yml:171"]:::tool
-    WHARN --> J4["job gate-suites<br/>bash tests/gates/run-all.sh, agentbox checked out at the drift pin<br/>harness-fitness-gates.yml:178 and harness-fitness-gates.yml:206"]:::tool
-    J4 --> VH4["exit 1 when any suite fails<br/>run-all.sh:47-50"]:::block
+    WHARN --> J4["job gate-suites<br/>bash tests/gates/run-all.sh, agentbox checked out at the drift pin<br/>harness-fitness-gates.yml:178 and harness-fitness-gates.yml:215<br/>after cargo fetch for the offline open-work build, harness-fitness-gates.yml:209-210"]:::tool
+    J4 --> VH4["exit 1 when any suite fails<br/>run-all.sh:48-51"]:::block
     J1 --> VH["exit 1 when pairing ratio &lt; target<br/>harness-audit.sh:430"]:::block
     J2 --> VH2["exit 1 on bad JSON, missing field,<br/>duplicate id or dangling pairing ref<br/>harness-fitness-gates.yml:144"]:::block
     J3 --> VH3["exit 1 when a candidate manifest<br/>can be cut with no fixture comparison"]:::block
@@ -326,7 +327,7 @@ flowchart LR
     TRIG --> B["job fixture-parity<br/>Template schema validation"]:::job
     TRIG --> C["job release-manifest<br/>Roster and fixture gate"]:::job
     TRIG --> D["job gate-suites<br/>All governance-gate regression suites<br/>harness-fitness-gates.yml:178"]:::job
-    D --> D1["check out agentbox at the drift-counter pin, then<br/>bash tests/gates/run-all.sh with DRIFT_AGENTBOX_DIR set<br/>harness-fitness-gates.yml:188-192 and harness-fitness-gates.yml:206"]:::block
+    D --> D1["check out agentbox at the drift-counter pin, then<br/>bash tests/gates/run-all.sh with DRIFT_AGENTBOX_DIR set<br/>harness-fitness-gates.yml:188-192 and harness-fitness-gates.yml:215"]:::block
 
     A --> A1["FIRST prove the audit can fail:<br/>tests/gates/harness-audit.test.sh<br/>harness-fitness-gates.yml:44"]
     A1 --> A2["then bash harness-audit.sh --target 50,<br/>exit code captured, NOT propagated directly<br/>harness-fitness-gates.yml:56"]
@@ -344,15 +345,15 @@ flowchart LR
     C --> C2["then tests/gates/dream-evaluator-exit.test.sh (4159e08):<br/>dream-build-check.sh and dream-link-check.sh must print<br/>the FAIL marker AND exit 1 on a broken tree<br/>harness-fitness-gates.yml:171"]:::block
 
     NOTE1["TARGET SCOPE: the script default is 80 (harness-audit.sh:57).<br/>Historical Harness Coverage totals at compatibility-matrix.md:97<br/>record July's PASS at target 80%, while this workflow passes --target 50"]
-    NOTE4["the same suite also runs from run-all.sh, which now lists twelve suites, so job D runs it a second time<br/>run-all.sh:18-31"]
+    NOTE4["the same suite also runs from run-all.sh, which now lists thirteen suites, so job D runs it a second time<br/>run-all.sh:18-32"]
     NOTE2["INVARIANT: the missing template directory is a skip, not a failure —<br/>job B exits 0 when docs/engineering/templates does not exist"]
 ```
 
 **Drift (resolved 2026-10-12, `4159e08`):** the release-manifest job gained a second step, `tests/gates/dream-evaluator-exit.test.sh` (`.github/workflows/harness-fitness-gates.yml:170-171`), which copies `scripts/dream-build-check.sh` and `scripts/dream-link-check.sh` into a scratch tree and asserts each prints its marker and exits with it (`tests/gates/dream-evaluator-exit.test.sh:36-65`); the evaluators it pins are described in VF-02.7 and VF-04.4.
 
-**Debt:** the workflow's path filter names `tests/gates/**` but neither dream script (`.github/workflows/harness-fitness-gates.yml:5-12`), so an edit to `scripts/dream-build-check.sh` alone does not run the suite that pins its exit code. `tests/gates/run-all.sh` lists it (`tests/gates/run-all.sh:27`), and job `gate-suites` runs that list in CI (`.github/workflows/harness-fitness-gates.yml:206`), but under the same path filter, so only a local run covers a dream-script-only edit.
+**Debt:** the workflow's path filter names `tests/gates/**` but neither dream script (`.github/workflows/harness-fitness-gates.yml:5-12`), so an edit to `scripts/dream-build-check.sh` alone does not run the suite that pins its exit code. `tests/gates/run-all.sh` lists it (`tests/gates/run-all.sh:27`), and job `gate-suites` runs that list in CI (`.github/workflows/harness-fitness-gates.yml:215`), but under the same path filter, so only a local run covers a dream-script-only edit.
 
-**Drift (corrected 2026-11-02):** this panel said three jobs. Since `5a3107d` (2026-10-14) the workflow has a fourth job, `gate-suites`, which runs `tests/gates/run-all.sh` (`.github/workflows/harness-fitness-gates.yml:178`, `.github/workflows/harness-fitness-gates.yml:206`). The topic's previous stamp post-dated that change, so the panel was already stale when it was stamped.
+**Drift (corrected 2026-11-02):** this panel said three jobs. Since `5a3107d` (2026-10-14) the workflow has a fourth job, `gate-suites`, which runs `tests/gates/run-all.sh` (`.github/workflows/harness-fitness-gates.yml:178`, `.github/workflows/harness-fitness-gates.yml:215`). The topic's previous stamp post-dated that change, so the panel was already stale when it was stamped.
 
 ## VF-05.8 harness-audit.sh — the three defects the counting rules close
 ```mermaid
@@ -425,7 +426,7 @@ flowchart TB
 
     LICN["LICENSES/README.md: repo documents an MPL-2.0 / AGPL-3.0 mix;<br/>until a root licence file is added, repo-local docs and website<br/>assets need explicit maintainer confirmation before reuse outside<br/>the ecosystem — a prose obligation, this gate the only automated one<br/>LICENSES/README.md:3,5"]:::ok
     MNTN["MAINTAINERS.md triage rule: security/protocol issues go to the<br/>OWNING substrate first; cross-repository architecture issues<br/>belong in VisionFlow docs<br/>MAINTAINERS.md:10"]
-    DIVL["RESOLVED: README.md carries no AGPL-3.0 badge and README.md:163<br/>states that this checkout has no root licence grant — matching<br/>LICENSES/README.md:5, whose reuse-confirmation condition (a root licence file) is still unmet"]:::block
+    DIVL["RESOLVED: README.md carries no AGPL-3.0 badge and README.md:164<br/>states that this checkout has no root licence grant — matching<br/>LICENSES/README.md:5, whose reuse-confirmation condition (a root licence file) is still unmet"]:::block
     T -.-> LICN
     LICN -.-> DIVL
 ```
@@ -439,23 +440,25 @@ flowchart TB
 
     WHY["A gate nobody tests is a gate nobody knows is broken:<br/>the harness audit scored duplicate pairings 200% PASS,<br/>the drift counter policed two archived files forever, and<br/>a release candidate could assert fixture parity nothing compared<br/>run-all.sh:5"]
 
-    WHY --> RUN["bash tests/gates/run-all.sh — twelve suites, one verdict<br/>run-all.sh:18-31"]
-    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:44"]
+    WHY --> RUN["bash tests/gates/run-all.sh — thirteen suites, one verdict<br/>run-all.sh:18-32"]
+    RUN --> PRINT["GATE-TESTS-OK or GATE-TESTS-FAIL<br/>run-all.sh:45"]
 
     RUN --> S1["drift-counter.test.sh"]:::suite
     RUN --> S2["harness-audit.test.sh"]:::suite
     RUN --> S3["release-manifest.test.sh"]:::suite
     RUN --> S4["website-assets.test.sh"]:::suite
-    RUN --> S5["diagram-index.test.cjs — the .cjs and .mjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:37"]:::suite
+    RUN --> S5["diagram-index.test.cjs — the .cjs and .mjs suites are run<br/>with node rather than bash, chosen per suite by extension<br/>run-all.sh:38"]:::suite
     RUN --> S6["augmentation-citations.test.cjs — see VF-05.13<br/>run-all.sh:24"]:::suite
     RUN --> S7["estate-health-ci.test.mjs — imports the collector's pure<br/>CI-state functions and drives the 2026-09-23 knowledgeGraph<br/>false red through them — run-all.sh:25<br/>estate-health-ci.test.mjs:1 — see VF-03.4"]:::suite
     RUN --> S8["jev-option.test.cjs — the opt-in Jev option must fall back to the pre-change output of each script<br/>run-all.sh:26"]:::suite
     RUN --> S9["dream-evaluator-exit.test.sh — the dream build and link evaluators print their marker and exit with it<br/>run-all.sh:27"]:::suite
     RUN --> S10["adr-evidence-field.test.sh, adr-ratchet-evidence.test.sh and pele-pin.test.sh —<br/>the three suites added since, see VF-05.14 for the ratchet one<br/>run-all.sh:28-30"]:::suite
+    RUN --> S11["open-work.test.sh — builds scripts/open-work offline, then drives four defects<br/>through the open-work register gate: reused id, undefined seam, undated state, stale view<br/>run-all.sh:31, open-work.test.sh:20 and open-work.test.sh:43-58"]:::suite
     S7 --> E1["a verdict on an older commit reads none, not red<br/>estate-health-ci.test.mjs:24"]
     E1 --> E2["a red run on HEAD stays red<br/>estate-health-ci.test.mjs:28"]
     E2 --> E3["only documentation carries a verdict to HEAD<br/>estate-health-ci.test.mjs:44"]
     E3 --> E4["importing the collector runs no CLI; run bare it exits 2<br/>estate-health-ci.test.mjs:68-70"]
+    E4 --> E5["case 9: staleCause names why a snapshot is stale — behind upstream,<br/>or level with it and the collector idle; no upstream, no line<br/>estate-health-ci.test.mjs:74 and estate-health-ci.test.mjs:88<br/>DEBT: it runs after the OK sentinel at estate-health-ci.test.mjs:72;<br/>a failure still exits non-zero, but the log shows OK first"]
 
     S5 --> DI1["allowlist waives topic+diagram+path+line EXACTLY —<br/>wrong line, wrong diagram or wrong topic still fails,<br/>and an entry matching no citation fails as stale<br/>diagram-index.test.cjs:96,107,141"]
     DI1 --> DI2["VERIFICATION.md freshness — a topic re-stamped without<br/>its citations re-resolved invalidates it<br/>diagram-index.test.cjs:166"]
@@ -465,7 +468,7 @@ flowchart TB
     D2 --> D3["a policed pattern that no longer matches fails<br/>drift-counter.test.sh:111"]
     D3 --> D4["a sibling checkout off the pin fails, now against a throwaway one-commit repo<br/>standing in for agentbox so it needs no real checkout<br/>drift-counter.test.sh:123 and drift-counter.test.sh:130"]
     D4 --> D5["allow-pin-drift downgrades that to a warning<br/>drift-counter.test.sh:139"]
-    D5 --> D6["the COMMITTED allowlist passes with no unreadable site — this section alone still needs<br/>the real agentbox checkout and prints a note when DRIFT_AGENTBOX_DIR is unset<br/>drift-counter.test.sh:147 and drift-counter.test.sh:151"]
+    D5 --> D6["the COMMITTED allowlist passes with no unreadable site — drift-counter.test.sh:147<br/>CHANGED: with DRIFT_AGENTBOX_DIR unset it shared-clones the pinned agentbox from a local<br/>repository, drift-counter.test.sh:167 and drift-counter.test.sh:171; with none it SKIPS,<br/>never passes, drift-counter.test.sh:185, refuses to skip under CI, drift-counter.test.sh:183,<br/>and the summary reads INCOMPLETE, drift-counter.test.sh:204"]
 
     S2 --> H1["duplicate pairing edges de-duplicated<br/>harness-audit.test.sh:59"]
     H1 --> H2["a fabricated source path is NOT source-backed<br/>harness-audit.test.sh:71"]
@@ -488,7 +491,7 @@ flowchart TB
 
     CI1["drift-counter.yml runs its suite BEFORE trusting the counter<br/>drift-counter.yml:75"]
     CI2["harness-fitness-gates.yml runs the audit suite first<br/>harness-fitness-gates.yml:44"]
-    CI3["run-all.sh runs in CI as job gate-suites, harness-fitness-gates.yml:206,<br/>but only when that workflow's path filter fires, harness-fitness-gates.yml:4-12;<br/>locally through package.json's test:gates script, package.json:17"]
+    CI3["run-all.sh runs in CI as job gate-suites, harness-fitness-gates.yml:215,<br/>but only when that workflow's path filter fires, harness-fitness-gates.yml:4-12;<br/>locally through package.json's test:gates script, package.json:17"]
 ```
 
 ## VF-05.12 mesh-smoke-preflight.sh — the read-only, unwired substrate probe
@@ -559,7 +562,7 @@ flowchart TB
     SUITE --> FIX["the suite materialises a FIXTURE estate of 5000-line stand-ins<br/>so the real table can be checked with no siblings present<br/>augmentation-citations.test.cjs:29"]:::ok
     SUITE --> SKIP["the run against the REAL sibling checkouts is SKIPPED<br/>when they are absent — augmentation-citations.test.cjs:77"]:::local
 
-    WIRE["wired through tests/gates/run-all.sh:24 and the<br/>npm script check:augmentation at package.json:10;<br/>no workflow of its own — CI reaches it only through<br/>job gate-suites, harness-fitness-gates.yml:206"]:::local
+    WIRE["wired through tests/gates/run-all.sh:24 and the<br/>npm script check:augmentation at package.json:10;<br/>no workflow of its own — CI reaches it only through<br/>job gate-suites, harness-fitness-gates.yml:215"]:::local
     CLI --- WIRE
 
     INV["INVARIANT: a status may be RAISED only by a citation to code or a<br/>runtime receipt, never by a document — the extension allowlist is<br/>what makes that rule mechanical rather than editorial<br/>ADR-2010-augmentation-conditions-are-the-canon-audit-lens.md:28"]
@@ -569,7 +572,7 @@ flowchart TB
     SKIP -.-> DIV
 ```
 
-**Debt:** the augmentation-citations gate has no workflow of its own. CI reaches it only through job `gate-suites` (`.github/workflows/harness-fitness-gates.yml:206`), which runs `tests/gates/run-all.sh:24` on a runner with no sibling checkouts, so there the suite proves the gate against fixtures, not the real matrix. The eighteen cited cells of the graded matrix are verified against real code only by a local run.
+**Debt:** the augmentation-citations gate has no workflow of its own. CI reaches it only through job `gate-suites` (`.github/workflows/harness-fitness-gates.yml:215`), which runs `tests/gates/run-all.sh:24` on a runner with no sibling checkouts, so there the suite proves the gate against fixtures, not the real matrix. The eighteen cited cells of the graded matrix are verified against real code only by a local run.
 
 **Drift (corrected 2026-11-02):** this panel and VF-05.11 said `run-all.sh` was wired to no workflow. Job `gate-suites` has run it since `5a3107d` (2026-10-14).
 

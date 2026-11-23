@@ -24,8 +24,19 @@ sources:
   - ../project/crates/vault/src/main.rs
   - ../visionGraph/.github/workflows/publish.yml
   - ../project/.github/workflows/ontology-publish.yml
+  - ../project/scripts/ontology/build-local-release.sh
+  - ../ontomark/Cargo.toml
+  - ../ontomark/crates/ontomark-compile/Cargo.toml
+  - ../ontomark/crates/ontomark-compile/src/whelk.rs
+  - ../ontomark/crates/ontomark-reason/Cargo.toml
+  - ../ontomark/crates/ontomark-reason/src/classify.rs
+  - ../ontomark/crates/ontomark-reason/src/profile.rs
+  - ../ontomark/crates/ontomark-wasm/Cargo.toml
+  - ../ontomark/crates/whelk-el/Cargo.toml
+  - ../ontomark/crates/whelk-el/src/lib.rs
+  - ../ontomark/crates/whelk-el/src/reasoner.rs
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: fbe30244c6842879297883b571965f5bc1ce0441, visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, visionflow: fdeab5dc36a859b3b881d7d587af067c88795217}
+verified_commit: {ontomark: f5cca7d16e56fca95c38fab5e46a3ef0fac065a2, visiongraph: 08390b1fc7f7c509eae477b933731ee33d152480, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 
 Restamped at ontomark 4b9d15d on 2026-11-02. The `ingest` verb is now in the command tree (`ontomark-cli/src/main.rs:140-143`) and is shown in OM-05.1; its pipeline is mapped in [OM-08](08-external-source-ingest.md).
@@ -76,8 +87,8 @@ flowchart TD
     A["all -> Knowledge AND Working<br/>ontomark-cli/src/migrate_cmd.rs:75"]
     K["anything else -> Knowledge<br/>unreachable after the parser, ontomark-cli/src/migrate_cmd.rs:76"]
     KIND["kind = Working only when kinds == Working and scope is not machine,<br/>else Knowledge<br/>ontomark-cli/src/main.rs:827-832"]
-    ROOT["vault_root = the profile layout places the vault under the repo root:<br/>root_of refuses a role the layout lacks or a missing folder<br/>ontomark-cli/src/main.rs:573-575, profile.rs:573-588"]
-    MISS["MissingVault, or a LayoutError from the layout check, a refused request: exit 2 from main<br/>ontomark-cli/src/main.rs:475-484, profile.rs:635, profile/layout.rs:11"]
+    ROOT["vault_root = the profile layout places the vault under the repo root:<br/>root_of refuses a role the layout lacks or a missing folder<br/>ontomark-cli/src/main.rs:573-575, ontomark-compile/src/profile.rs:573-588"]
+    MISS["MissingVault, or a LayoutError from the layout check, a refused request: exit 2 from main<br/>ontomark-cli/src/main.rs:475-484, ontomark-compile/src/profile.rs:635, profile/layout.rs:11"]
     WWP["with_working_publish =<br/>kinds contains Working AND kind is Knowledge<br/>true ONLY for all<br/>ontomark-cli/src/main.rs:834-835"]
     PUB["build: sibling_vault(Working) loaded and added to publish_vaults<br/>build/mod.rs:698-704"]
     MS["scope machine reads knowledge and working itself and refuses vault working or all, see OM-06.1<br/>ontomark-cli/src/main.rs:411-419, build/mod.rs:557-604"]
@@ -122,7 +133,7 @@ flowchart LR
     R2["ReasoningError — definition<br/>reasoner would not finish<br/>reason.rs:481,<br/>ontomark-cli/src/main.rs:881-884"]
     SC2["ScopeConflict or Unsatisfiable —<br/>machine scope misuse, or an<br/>unsatisfiable class<br/>build/mod.rs:282,235<br/>ontomark-cli/src/main.rs:887-896"]
     CP2["CertificateParity — the derivation<br/>certificate does not cover the<br/>classifier's closure (ADR-OM-009)<br/>build/mod.rs:101,<br/>ontomark-cli/src/main.rs:899-902"]
-    MV2["MissingVault or LayoutError — a vault role<br/>the layout does not place, or role roots that<br/>escape the repository or overlap<br/>profile.rs:635, profile/layout.rs:11,<br/>ontomark-cli/src/main.rs:475-484"]
+    MV2["MissingVault or LayoutError — a vault role<br/>the layout does not place, or role roots that<br/>escape the repository or overlap<br/>ontomark-compile/src/profile.rs:635, profile/layout.rs:11,<br/>ontomark-cli/src/main.rs:475-484"]
     GW2["create or apply refused by its<br/>guards, nothing written<br/>ontomark-cli/src/main.rs:1063-1074,1117-1128"]
     CL["clap parse failure: bad flag, or a<br/>vault, tier, severity or scope<br/>value outside its list clap<br/>default exit 2,<br/>ontomark-cli/src/main.rs:198,379,389,216"]
     M2["migrate plan not Ready -> 2<br/>migrate_cmd.rs:155-160"]
@@ -172,7 +183,7 @@ flowchart TD
     GEN["generic -> Profile::generic<br/>ontomark-cli/src/main.rs:550"]
     YAML["other string -> read and parse YAML file, layout kept as written<br/>ontomark-cli/src/main.rs:551-555"]
     AUTO["unset: estate if estate_shape, else generic<br/>ontomark-cli/src/main.rs:556-557"]
-    FLAT["built-in profile on a plain vault takes Layout::flat:<br/>knowledge = the root, no working vault, layout.excluded kept<br/>ontomark-cli/src/main.rs:559-565, profile.rs:520-526"]
+    FLAT["built-in profile on a plain vault takes Layout::flat:<br/>knowledge = the root, no working vault, layout.excluded kept<br/>ontomark-cli/src/main.rs:559-565, ontomark-compile/src/profile.rs:520-526"]
     LCHK["profile.layout.validate before any verb: invalid, escaping or overlapping role roots refuse, exit 2<br/>ontomark-cli/src/main.rs:672, profile/layout.rs:190-192"]
     LOAD["load: layout.root_of per kind, load_excluding each<br/>ontomark-cli/src/main.rs:577-587"]
     START --> EXPL
@@ -193,7 +204,7 @@ flowchart TD
     ESTATE --> LCHK
     FLAT --> LCHK
     LCHK --> LOAD
-    n1["INVARIANT: no discovered vocabulary means a plain vault;<br/>selected absent roles refuse, migrate plan included, which checks root_of for every selected kind before planning —<br/>migrate_cmd.rs:144-146<br/>profile.rs:573-588"]
+    n1["INVARIANT: no discovered vocabulary means a plain vault;<br/>selected absent roles refuse, migrate plan included, which checks root_of for every selected kind before planning —<br/>migrate_cmd.rs:144-146<br/>ontomark-compile/src/profile.rs:573-588"]
     n2["INVARIANT: the generic profile is reachable by auto-detection, because only a plain vault<br/>lacks the vocabulary file; an explicit --profile estate on a plain vault still gets the flat layout —<br/>ontomark-cli/src/main.rs:557-565"]
     PLAIN --- n1
     AUTO --- n2
@@ -217,17 +228,20 @@ flowchart LR
     end
     subgraph VC["VisionClaw ontology-publish.yml — Pod resources"]
         direction TB
-        VCCACHE["Cache Cargo registry and target<br/>ontology-publish.yml:164-173"]
-        VCBUILD["cargo build --release --locked -p vault<br/>in-tree crate, NOT ontomark<br/>ontology-publish.yml:175-176"]
-        VCRUN["vault --repo vault-source build --vault knowledge<br/>--out output/vault — no publish-out, no mirror<br/>ontology-publish.yml:180-183"]
-        VCCERT["vault certify then the same oo-cert re-check (ADR-2147)<br/>ontology-publish.yml:188-214"]
-        VCCACHE --> VCBUILD --> VCRUN --> VCCERT
+        VCTRIG["CHANGED 2026-11-16: workflow_dispatch only; push, pull_request<br/>and corpus-sync repository_dispatch removed (ADR-2106 amendment)<br/>ontology-publish.yml:4-9"]
+        VCCACHE["Cache Cargo registry and target<br/>ontology-publish.yml:157-166"]
+        VCBUILD["cargo build --release --locked -p vault<br/>in-tree crate, NOT ontomark<br/>ontology-publish.yml:168-169"]
+        VCRUN["vault --repo vault-source build --vault knowledge<br/>--out output/vault — no publish-out, no mirror<br/>ontology-publish.yml:171-175"]
+        VCCERT["vault certify then the same oo-cert re-check (ADR-2147)<br/>ontology-publish.yml:181-207"]
+        VCLOCAL["live path: the local twin build-local-release.sh runs the same<br/>vault build --vault knowledge on the agentbox, not ontomark<br/>build-local-release.sh:4-9,62"]
+        VCTRIG --> VCCACHE --> VCBUILD --> VCRUN --> VCCERT
+        VCTRIG -.->|"parked; replaced by"| VCLOCAL
     end
     BIN["ontomark build — ontomark-cli/src/main.rs:817-929"]
     VGBUILD -->|"vault_kinds all -> with_working_publish true"| BIN
     VCRUN -.->|"different binary"| BIN
-    n1["EXTERNAL: the two consumers differ — visionGraph uses ontomark with<br/>--vault all, VisionClaw still uses its own vault crate with<br/>--vault knowledge; ADR-OM-005 records this and routes VisionClaw to build --scope machine, see OM-06.1,<br/>publish.yml:175-176, ontology-publish.yml:176-181, ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:40"]
-    n2["EXTERNAL: this VisionClaw workflow never invokes ontomark; vault build output<br/>feeds pack-pod-resources.py, ontology-publish.yml:255. ADR-OM-005 decision 2<br/>retires this job, gated, so it keeps running — ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:38"]
+    n1["EXTERNAL: the two consumers differ — visionGraph uses ontomark with<br/>--vault all, VisionClaw still uses its own vault crate with<br/>--vault knowledge; ADR-OM-005 records this and routes VisionClaw to build --scope machine, see OM-06.1,<br/>publish.yml:175-176, ontology-publish.yml:169-174, ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:40"]
+    n2["EXTERNAL: this VisionClaw workflow never invokes ontomark; vault build output<br/>feeds pack-pod-resources.py, ontology-publish.yml:248. ADR-OM-005 decision 2<br/>retires this job, gated — ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:38<br/>CHANGED: it no longer runs on push or corpus-sync, only by manual dispatch,<br/>ontology-publish.yml:4-9; the local twin keeps the vault binary, build-local-release.sh:62"]
     n3["INVARIANT: visionGraph treats the staging tree as wrong unless both<br/>pages/ and working/ exist, because ontomark silently accepts a<br/>knowledge-only build — publish.yml:199-205"]
     VG --- n1
     VC --- n2
@@ -281,8 +295,48 @@ flowchart LR
 ```
 - The verbs ontomark leaves out are the forum transport only: `propose` and `panel publish` stay in VisionClaw (`ontomark-cli/src/main.rs:52-53`, `DEPRECATION.md:95`).
 - No `BuildArgs` option is parsed and left unused: all fourteen reach `build::Options`, the embedder or the report (`ontomark-cli/src/main.rs:400-469,827-850,901`).
-- DIVERGENCE: `--no-redact-private-links` overlays the profile setting `publication.redact_private_links` as a `Some(false)` override rather than a separate behaviour (`ontomark-cli/src/main.rs:847`, `build/mod.rs:84`, `profile.rs:427`).
+- DIVERGENCE: `--no-redact-private-links` overlays the profile setting `publication.redact_private_links` as a `Some(false)` override rather than a separate behaviour (`ontomark-cli/src/main.rs:847`, `build/mod.rs:84`, `ontomark-compile/src/profile.rs:427`).
 
-**Tension (ontomark 6c3f693 vs visionGraph):** RESOLVED at visionGraph d827715. Since 6c3f693, released in v0.7.3, `build` refuses a `--certificate-out` that is not a directory inside `--out`, because certificate files are now staged into the bundle and share its commit point (`../ontomark/crates/ontomark-compile/src/build/mod.rs:436-474`). The visionGraph workflow now pins release v0.8.0 and passes `--certificate-out site-data/certificate`, inside `--out site-data` (`publish.yml:49`, `publish.yml:177`, `publish.yml:180`), so its pairing satisfies the guard.
+**Tension (ontomark 6c3f693 vs visionGraph):** RESOLVED at visionGraph d827715. Since 6c3f693, released in v0.7.3, `build` refuses a `--certificate-out` that is not a directory inside `--out`, because certificate files are now staged into the bundle and share its commit point (`../ontomark/crates/ontomark-compile/src/build/mod.rs:436-474`). The visionGraph workflow pinned release v0.8.0 at that resolution and now pins v0.9.0 (`publish.yml:49`); it passes `--certificate-out site-data/certificate`, inside `--out site-data` (`publish.yml:177`, `publish.yml:180`), so its pairing satisfies the guard.
 
 **Open (ADR-OM-005 reconciliation, 2026-11-02):** the record now says its "sole producer" wording is about publication ownership, not a claim that every consumer is current, and that Agentbox's grouped-proposal adapter and VisionClaw's retained `vault propose` are distinct consumers: a signed multi-page proposal is not evidence that the single-page `apply` path can execute it (`../ontomark/docs/adr/ADR-OM-005-estate-alignment-one-producer-explicit-projections.md:25`). Its 2026-11-03 repair adds a resource-identity guard to single-page apply and leaves grouped signing, admission and digest checks to the consumers (`{ADR}:21`); see OM-00.
+
+## OM-05.7 whelk-el — the published OWL 2 EL reasoner crate under gate and build
+
+```mermaid
+flowchart TB
+    subgraph CLIP["ontomark-cli — the two verbs that reason"]
+        direction TB
+        GATEV["gate builds a WhelkEl classifier<br/>ontomark-cli/src/main.rs:716"]
+        BUILDV["build passes WhelkEl to build::run_with<br/>ontomark-cli/src/main.rs:857-862"]
+    end
+    subgraph COMP["ontomark-compile — feature whelk-el, on by default"]
+        direction TB
+        FEAT["feature whelk-el enables dep:ontomark-reason, not whelk-el itself<br/>ontomark-compile/Cargo.toml:15-17,24"]
+        ADAPT["WhelkEl.classify maps ElInput to axioms and calls ontomark_reason::classify<br/>whelk.rs:29-31; refusals come from ontomark_reason::check, whelk.rs:99-104"]
+        ORACLE["whelk-el is only a dev-dependency here: the independent parity oracle<br/>ontomark-compile/Cargo.toml:48-50, whelk.rs:157"]
+    end
+    subgraph REASON["ontomark-reason 0.1.2 — profile check and classification facade"]
+        direction TB
+        RDEP["depends on whelk-el 0.1.1<br/>ontomark-reason/Cargo.toml:3-4,18"]
+        PREP["accepted axioms translated and handed to a Saturation<br/>classify.rs:222-225"]
+    end
+    subgraph WEL["crates/whelk-el 0.1.1 — workspace member, own version"]
+        direction TB
+        META["OWL 2 EL reasoner derived from Whelk and whelk-rs; no I/O,<br/>optional parallel and horned-owl features<br/>whelk-el/Cargo.toml:2-4,14-20"]
+        CLASSIFY["classify returns every entailed named subsumption,<br/>pairs to owl:Nothing mark unsatisfiable classes<br/>whelk-el/src/lib.rs:15-18,91-92"]
+        SAT["Saturation.run processes at most budget items, so a host<br/>can interleave reasoning and abandon a stale run<br/>reasoner.rs:140-144,236"]
+    end
+    WASM["ontomark-wasm depends on ontomark-reason too, so the browser engine<br/>reaches the same reasoner — ontomark-wasm/Cargo.toml:18"]
+    GATEV --> ADAPT
+    BUILDV --> ADAPT
+    FEAT --> ADAPT --> RDEP --> PREP --> SAT
+    CLASSIFY --> SAT
+    ORACLE -.-> CLASSIFY
+    WASM --> RDEP
+    n1["INVARIANT: whelk-el has no nominal merging, so its nominal consequences are incomplete —<br/>whelk-el/src/lib.rs:67-71; ontomark-reason refuses ObjectHasValue and a one-individual<br/>ObjectOneOf rather than reason over them, ontomark-reason/src/profile.rs:161-172"]
+    n2["LIMIT: property ranges, reflexivity, self restrictions and data properties<br/>are not implemented and have no constructor — whelk-el/src/lib.rs:64-65"]
+    SAT --- n1
+    CLASSIFY --- n2
+```
+- `whelk-el` is the crates.io package of the same name: a workspace member (`../ontomark/Cargo.toml:14`) whose repository is the workspace's, DreamLab-AI/ontomark (`../ontomark/Cargo.toml:25`). It keeps its own version, 0.1.1, separate from the workspace 0.7.1 (`whelk-el/Cargo.toml:4`, `../ontomark/Cargo.toml:21`).

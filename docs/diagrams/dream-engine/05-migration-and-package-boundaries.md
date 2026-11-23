@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../project/agentbox/services/dream-engine/src/lib.rs
   - ../project/agentbox/services/dream-engine/tests/night_e2e.rs
-verified_commit: {dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {dream-engine: 881075377625a9e20e69e9137f679506e93f4b68, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## For developers

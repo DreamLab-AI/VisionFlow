@@ -10,7 +10,7 @@ sources:
   - ../dream-engine/crates/dream-core/src/persist.rs
   - ../dream-engine/crates/dream-gate/src/manifest.rs
   - ../dream-engine/docs/concepts.md
-verified_commit: b40d50724bb6344dc00d57270f7166b138714406
+verified_commit: 881075377625a9e20e69e9137f679506e93f4b68
 ---
 ## For developers
 

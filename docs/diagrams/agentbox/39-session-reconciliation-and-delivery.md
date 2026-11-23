@@ -16,7 +16,7 @@ sources:
   - ../project/agentbox/services/agentbox-sessions/src/api.rs
   - ../project/agentbox/config/tab0-bridge/server.mjs
   - ../project/agentbox/config/session-plane/client.cjs
-verified_commit: {agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a}
+verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## For developers
@@ -65,7 +65,7 @@ flowchart TD
     HOOK -->|write fails| FAIL["API returns ok false<br/>api.rs:106"]
     FAIL --> CLIENT["Client promise rejects:<br/>error reply or timeout<br/>client.cjs:9,18"]
     TIME["Client timeout: completion unknown<br/>client.cjs:4,9"] --> CLIENT
-    CLIENT --> FALLBACK["Bridge catches send error<br/>then uses tmux fallback<br/>server.mjs:157,162,168"]
+    CLIENT --> FALLBACK["Bridge catches send error<br/>then uses tmux fallback<br/>server.mjs:168,173,179"]
     FALLBACK -.->|may submit again| SUBMIT
 ```
 

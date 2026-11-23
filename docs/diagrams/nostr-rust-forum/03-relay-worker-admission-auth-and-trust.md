@@ -25,7 +25,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/Cargo.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/recipient_keys.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
-verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
+verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
 ---
 
 ## NF-03.1 Worker entry — three doors into the relay
@@ -38,7 +38,7 @@ flowchart TB
     WS["Upgrade: websocket to Durable Object RELAY<br/>nostr-bbs-relay-worker/src/lib.rs:230"]
     N11["Accept application/nostr+json to NIP-11 relay info<br/>nostr-bbs-relay-worker/src/lib.rs:239"]
     RT["route dispatches the HTTP admin/REST route table<br/>nostr-bbs-relay-worker/src/lib.rs:255 lib.rs:288"]
-    CRON["scheduled every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1622<br/>nostr-bbs-relay-worker/wrangler.toml:123"]
+    CRON["scheduled every 5 min<br/>nostr-bbs-relay-worker/src/lib.rs:1622<br/>nostr-bbs-relay-worker/wrangler.toml:125"]
 
     REQ --> F --> BOOT
     BOOT --> WS
@@ -57,26 +57,27 @@ sequenceDiagram
     autonumber
     participant C as Client socket
     participant DO as NostrRelayDO, handle_auth<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2124
-    participant EV as evaluate_auth_event<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:195
+    participant EV as evaluate_auth_event<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:197
 
     DO-->>C: AUTH challenge at connect (per-session, unpredictable) - see NF-11.2
     C->>DO: ["AUTH", kind-22242 event]
     DO->>DO: allowed set = RELAY_URL plus RELAY_URL_ALIASES, canonicalised, explicit config only nip_handlers.rs:2131
     DO->>EV: event, expected_challenge, allowed_relay_urls, now, max_skew nip_handlers.rs:2140
-    EV->>EV: kind must be 22242 nip42.rs:202
-    EV->>EV: verify_event_strict - id + Schnorr nip42.rs:206
-    EV->>EV: challenge tag must equal THIS session's issued value nip42.rs:212
-    EV->>EV: empty allowed set REJECTS - invalid: relay url unconfigured nip42.rs:224
-    EV->>EV: relay tag must match one allowed URL, canonicalised nip42.rs:227
-    EV->>EV: created_at within +/- 600 s nip42.rs:237 nip42.rs:35
-    EV-->>DO: AuthVerdict::Ok(pubkey) nip42.rs:241
+    EV->>EV: kind must be 22242 nip42.rs:204
+    EV->>EV: verify_event_strict - id + Schnorr nip42.rs:208
+    EV->>EV: challenge tag must equal THIS session's issued value nip42.rs:214
+    EV->>EV: empty allowed set REJECTS - invalid: relay url unconfigured nip42.rs:226
+    EV->>EV: relay tag must match one allowed URL, canonicalised nip42.rs:229
+    EV->>EV: created_at within +/- 600 s nip42.rs:239 nip42.rs:35
+    EV-->>DO: AuthVerdict::Ok(pubkey) nip42.rs:243
     DO->>DO: mark session authed and persist it, then OK true nip_handlers.rs:2152 nip_handlers.rs:2156
 
-    Note over EV: A MISSING session challenge can never match, so it rejects - there is no unchallenged path nip42.rs:210-215
-    Note over EV: RESOLVED since 6064622 - the relay-tag check no longer fails OPEN. A blank RELAY_URL leaves the allowed set empty and every AUTH is refused, because a request-derived identity would let an attacker's Host poison the binding nip42.rs:218-225. The set is built by allowed_relay_urls nip42.rs:250
-    Note over DO: DEBT the template still ships RELAY_URL and RELAY_URL_ALIASES blank nostr-bbs-relay-worker/wrangler.toml:47 wrangler.toml:51, so an unconfigured nip42 deployment refuses every AUTH and therefore every write. handle_auth logs a console error on each AUTH while it is blank nip_handlers.rs:2137 nip42.rs:281
-    Note over EV: DOC-DRIFT the evaluate_auth_event doc comment still says the caller derives the URL from the upgrade request's host via resolve_own_url nip42.rs:187-191 - no such function exists and the body says the opposite nip42.rs:220-222. The helper comment promises a startup and NIP-11 warning nip42.rs:272-274, but its only caller is the per-AUTH log nip_handlers.rs:2137
-    Note over EV: canonical_relay_url absorbs scheme, case and a trailing slash but keeps host identity nip42.rs:163, asserted nip42.rs:429-440
+    Note over EV: A MISSING session challenge can never match, so it rejects - there is no unchallenged path nip42.rs:212-217
+    Note over EV: RESOLVED since 6064622 - the relay-tag check no longer fails OPEN. A blank RELAY_URL leaves the allowed set empty and every AUTH is refused, because a request-derived identity would let an attacker's Host poison the binding nip42.rs:220-227. The set is built by allowed_relay_urls nip42.rs:252
+    Note over DO: DEBT the template still ships RELAY_URL and RELAY_URL_ALIASES blank nostr-bbs-relay-worker/wrangler.toml:49 wrangler.toml:53, so an unconfigured nip42 deployment refuses every AUTH and therefore every write. handle_auth logs a console error on each AUTH while it is blank nip_handlers.rs:2137 nip42.rs:284. The kit records it as open finding KF-29 at 4a73a7a - see NF-10.11
+    Note over DO: DOC-DRIFT the runtime message lags the template and SETUP - the console error handle_auth emits still says only that every authenticated write is REFUSED nip42.rs:288, and the call-site comment says the same nip_handlers.rs:2135-2137, though the empty set refuses every AUTH and so every protected-kind read as well nip42.rs:226
+    Note over EV: RESOLVED at 4a73a7a - the evaluate_auth_event doc comment now says the caller builds the set from RELAY_URL and RELAY_URL_ALIASES only, never from the request host nip42.rs:187-193, and the helper comment says its one caller is the per-AUTH log, nothing at startup or in NIP-11 nip42.rs:274-277 nip_handlers.rs:2137
+    Note over EV: canonical_relay_url absorbs scheme, case and a trailing slash but keeps host identity nip42.rs:163, asserted nip42.rs:432-443
 ```
 
 ## NF-03.3 AUTH_MODE — the write gate and the protected-read set
@@ -85,9 +86,9 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> Nip42: parse_auth_mode default<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:142
     [*] --> Allowlist: AUTH_MODE == "allowlist" exactly<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:144
-    Nip42 --> WriteDenied: unauthenticated EVENT<br/>"auth-required: NIP-42 AUTH required to publish"<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:299
-    Nip42 --> ReadDenied: REQ/COUNT naming a protected kind<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:312
-    Allowlist --> WriteAllowed: legacy - allowlist alone gates<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:300
+    Nip42 --> WriteDenied: unauthenticated EVENT<br/>"auth-required: NIP-42 AUTH required to publish"<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:302
+    Nip42 --> ReadDenied: REQ/COUNT naming a protected kind<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:315
+    Allowlist --> WriteAllowed: legacy - allowlist alone gates<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:303
 
     note right of Nip42
         Protected read set nip42.rs:44
@@ -95,7 +96,7 @@ stateDiagram-v2
         1059 gift wrap, 30910-30916 moderation
         The filter gate reads only the kinds a filter
         NAMES, so a kindless filter passes it,
-        asserted nip42.rs:489-490. The PER-EVENT gate
+        asserted nip42.rs:492-493. The PER-EVENT gate
         catches that case - see NF-03.14
     end note
     note right of Allowlist
@@ -105,11 +106,11 @@ stateDiagram-v2
         (nostr-bbs-relay-worker/wrangler.toml:39), and every EVENT passes write_auth_ok
         (nip_handlers.rs:1142) after the rate, shape, expiry and signature
         checks and before any admission lookup - see NF-03.4. A denial AFTER a completed AUTH is
-        "restricted:", while legacy allowlist mode keeps "blocked:" (nip42.rs:333)
+        "restricted:", while legacy allowlist mode keeps "blocked:" (nip42.rs:336)
     end note
     note right of WriteDenied
         INVARIANT fail-closed parse: a typo, an empty value or any unrecognised
-        string resolves to nip42, never to allowlist - asserted nip42.rs:419-424
+        string resolves to nip42, never to allowlist - asserted nip42.rs:422-427
     end note
 ```
 
@@ -228,14 +229,14 @@ flowchart TB
     K41["kind 41 channel metadata<br/>TL2+ for own, TL3+ for any<br/>nip_handlers.rs:1279 nip_handlers.rs:1289"]
     K1984["kind 1984 report<br/>TL1+ nip_handlers.rs:1305"]
     K5["kind 5 deletion below TL3: member_deletion_gate,<br/>TL3+ skips the lookup - see NF-03.15<br/>nip_handlers.rs:1320 nip_handlers.rs:1321"]
-    IC["TL2 branch only: is_channel_creator, matched against the signing key AND its device owner<br/>nip_handlers.rs:1291 defined nip_handlers.rs:3701"]
-    CC["1. channel_creators row for the channel id<br/>nip_handlers.rs:3713"]
-    FB["2. fallback when no row: the kind-40 event itself<br/>nip_handlers.rs:3714"]
-    ANS["first row found decides: creator_matches against the sanction subjects (key plus owner)<br/>nip_handlers.rs:3720"]
+    IC["TL2 branch only: is_channel_creator, matched against the signing key AND its device owner<br/>nip_handlers.rs:1291 defined nip_handlers.rs:3703"]
+    CC["1. channel_creators row for the channel id<br/>nip_handlers.rs:3715"]
+    FB["2. fallback when no row: the kind-40 event itself<br/>nip_handlers.rs:3716"]
+    ANS["first row found decides: creator_matches against the sanction subjects (key plus owner)<br/>nip_handlers.rs:3722"]
     SAVE["save_event, when a kind 40 was stored<br/>relay_do/storage.rs:232"]
     INS["INSERT INTO channel_creators, first write wins<br/>relay_do/storage.rs:235 relay_do/storage.rs:236"]
     DDL["table created by ensure_schema from CHANNEL_CREATORS_CREATE_SQL<br/>nostr-bbs-relay-worker/src/lib.rs:735 lib.rs:1075<br/>and by migrations/0009_events.sql:44"]
-    DEL["kind-5 process_deletion removes only the kind-40 events row<br/>nip_handlers.rs:3510"]
+    DEL["kind-5 process_deletion removes only the kind-40 events row<br/>nip_handlers.rs:3512"]
 
     ADMIN -->|"admin: skip the whole block"| SKIP["gates bypassed"]
     ADMIN -->|"non-admin"| TL --> K40 & K41 & K1984 & K5
@@ -246,10 +247,10 @@ flowchart TB
     DEL -.->|"leaves untouched"| CC
 
     N1["kind 41 without an e tag is rejected as invalid before the trust check<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1275-1276"]
-    N2["ANOMALY O5 CLOSED at 66ca8d8: the creator used to be re-read from the kind-40 event, so a kind-5<br/>deletion of it locked a TL2 author out of their own channel. The creator is now persisted at creation in<br/>channel_creators and read first, so the deletion no longer changes the answer<br/>nip_handlers.rs:3713 storage.rs:235"]
+    N2["ANOMALY O5 CLOSED at 66ca8d8: the creator used to be re-read from the kind-40 event, so a kind-5<br/>deletion of it locked a TL2 author out of their own channel. The creator is now persisted at creation in<br/>channel_creators and read first, so the deletion no longer changes the answer<br/>nip_handlers.rs:3715 storage.rs:235"]
     N3["The kind-5 privilege is re-derived after save because trust_level is scoped to this non-admin<br/>block that admins skip entirely nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1635-1639"]
-    N4["DEBT: the creator INSERT result is discarded (let _ =) and the code comment says failures never block<br/>storage, so a channel whose write failed has no row and is still on the deletion-exposed fallback<br/>relay_do/storage.rs:244 nip_handlers.rs:3714. Channels created before the table existed have no row either<br/>and are likewise exposed, nip_handlers.rs:3699-3700"]
-    N5["INVARIANT: the answer comes from the first of the two lookups that returns a row, so once a<br/>channel_creators row exists the kind-40 event is never consulted again<br/>nip_handlers.rs:3720"]
+    N4["DEBT: the creator INSERT result is discarded (let _ =) and the code comment says failures never block<br/>storage, so a channel whose write failed has no row and is still on the deletion-exposed fallback<br/>relay_do/storage.rs:244 nip_handlers.rs:3716. Channels created before the table existed have no row either<br/>and are likewise exposed, nip_handlers.rs:3701-3702"]
+    N5["INVARIANT: the answer comes from the first of the two lookups that returns a row, so once a<br/>channel_creators row exists the kind-40 event is never consulted again<br/>nip_handlers.rs:3722"]
     N6["CHANGED since 6064622: the old rule here was own always, others TL3+. A member's kind 5 is now refused<br/>whole unless every e target is vouched for - the gate of NF-03.15 replaced the targets_others check"]
 ```
 
@@ -343,12 +344,12 @@ sequenceDiagram
 
     H->>P: ADR-2023 content-free Web Push wake-up, last, only for kinds 40 / 42 / 1059 and not for a repeat submission nip_handlers.rs:1615 nip_handlers.rs:1721
 
-    Note over P: ADR-2023 is staged: PUSH_ENABLED ships "false"<br/>nostr-bbs-relay-worker/wrangler.toml:86<br/>Disabled fan-out returns at once push_fanout.rs:48<br/>Candidates use the shared read gate push_fanout.rs:94
+    Note over P: ADR-2023 is staged: PUSH_ENABLED ships "false"<br/>nostr-bbs-relay-worker/wrangler.toml:88<br/>Disabled fan-out returns at once push_fanout.rs:48<br/>Candidates use the shared read gate push_fanout.rs:94
     Note over H,A: ADR-2010: the relay OK certifies storage only.<br/>Without projection-committed, the response is accepted<br/>but not applied - reported separately nip_handlers.rs:1696-1706
     Note over A,T: Reads and writes share this ledger.<br/>A later activity call triggers an elapsed-window flush.<br/>Pending-read threshold can flush sooner - see NF-17.4<br/>nip_handlers.rs:2592 nip_handlers.rs:2610-2612
     Note over M: Mirror requires an admin on this relay.<br/>A lifted ban must stop enforcement nip_handlers.rs:1653
     Note over G: External human-approval workflow<br/>spans the estate - see ES-05 and AB-14
-    Note over G: RESOLVED: the 31403 body is no longer parsed separately by gate and projection -<br/>action and reasoning come from one pure helper nip_handlers.rs:254, and the projection is the<br/>receipt-bearing project_action_response nip_handlers.rs:4110, not re-audited line by line
+    Note over G: RESOLVED: the 31403 body is no longer parsed separately by gate and projection -<br/>action and reasoning come from one pure helper nip_handlers.rs:254, and the projection is the<br/>receipt-bearing project_action_response nip_handlers.rs:4112, not re-audited line by line
 ```
 
 **Tension (ADR-2010 vs code):** ADR-2010 records `decision_status: proposed`, `implementation_status: partial`, `activation_status: staged` (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7`), yet `handle_event` runs all three receipt-bearing projections (appeal, supersession, first-order response) unconditionally after every stored governance event (`nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1667`, `nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1687`, `nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1700`).
@@ -406,10 +407,10 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    MODE["MESH_MODE = standalone<br/>nostr-bbs-relay-worker/wrangler.toml:93"]
-    PEERS["MESH_PEER_RELAYS empty<br/>nostr-bbs-relay-worker/wrangler.toml:94"]
-    KINDS["MESH_FEDERATED_KINDS - 14 kinds incl. 31400-31405<br/>nostr-bbs-relay-worker/wrangler.toml:95"]
-    DIDS["MESH_ALLOWED_REMOTE_DIDS empty<br/>nostr-bbs-relay-worker/wrangler.toml:96"]
+    MODE["MESH_MODE = standalone<br/>nostr-bbs-relay-worker/wrangler.toml:95"]
+    PEERS["MESH_PEER_RELAYS empty<br/>nostr-bbs-relay-worker/wrangler.toml:96"]
+    KINDS["MESH_FEDERATED_KINDS - 14 kinds incl. 31400-31405<br/>nostr-bbs-relay-worker/wrangler.toml:97"]
+    DIDS["MESH_ALLOWED_REMOTE_DIDS empty<br/>nostr-bbs-relay-worker/wrangler.toml:98"]
     GATE["is_mesh_peer AND NOT is_federated_kind_allowed to blocked<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1208"]
 
     MODE & PEERS & KINDS & DIDS --> GATE
@@ -426,7 +427,7 @@ sequenceDiagram
     autonumber
     participant C as Client socket
     participant RQ as handle_req<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1836
-    participant PG as protected_read_blocked<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:312
+    participant PG as protected_read_blocked<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:315
     participant VC as resolve_viewer_context<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2271
     participant AE as authorize_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2626
     participant PP as protected_read_permitted_with_keys<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:99
@@ -461,20 +462,20 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     K5["kind 5 from a non-admin below TL3<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1320"]
-    G["member_deletion_gate<br/>nip_handlers.rs:3349"]
-    NOE{"any e targets?<br/>deletion_e_targets nip_handlers.rs:2978 nip_handlers.rs:3350-3354"}
+    G["member_deletion_gate<br/>nip_handlers.rs:3351"]
+    NOE{"any e targets?<br/>deletion_e_targets nip_handlers.rs:2980 nip_handlers.rs:3352-3356"}
     ACC0["accepted: an a-only kind 5 is scoped later by a_ref_target, see NF-11.18"]
-    CAN{"all 64 lowercase hex?<br/>is_canonical_event_id nip_handlers.rs:2993 nip_handlers.rs:3356"}
-    UNK["refused: deletion names an event this relay does not hold<br/>nip_handlers.rs:2970-2971"]
-    Q["ONE D1 statement over json_each classifies every target that is not the signer's own stored row<br/>DELETION_TARGETS_CLASSIFY_SQL lib.rs:811-823, bound at nip_handlers.rs:3365-3367"]
-    QF["refused: could not check deletion targets - FAIL CLOSED on a missing binding,<br/>serialisation, bind or query error nip_handlers.rs:3359-3375 nip_handlers.rs:2975"]
-    CLS["classify_member_target per row nip_handlers.rs:3045"]
-    FOR{"Foreign: another author's stored row<br/>nip_handlers.rs:3047"}
-    WRAP{"kind 1059 addressed to one of the signer's recipient keys?<br/>keys fetched only then nip_handlers.rs:3079-3084 nip_handlers.rs:3379-3382"}
-    OTH["refused: TL3+ required to delete others' events<br/>nip_handlers.rs:2958"]
-    SEAL{"SealedOriginal: no row, a stored kind-42 sealed tag names it<br/>nip_handlers.rs:3054"}
-    SR["refused: migrated (sealed) posts can only be removed by a moderator<br/>nip_handlers.rs:2963-2964"]
-    TOMB{"AlreadyDeleted: no row, deleted_events holds id and signer<br/>nip_handlers.rs:3055"}
+    CAN{"all 64 lowercase hex?<br/>is_canonical_event_id nip_handlers.rs:2995 nip_handlers.rs:3358"}
+    UNK["refused: deletion names an event this relay does not hold<br/>nip_handlers.rs:2972-2973"]
+    Q["ONE D1 statement over json_each classifies every target that is not the signer's own stored row<br/>DELETION_TARGETS_CLASSIFY_SQL lib.rs:811-823, bound at nip_handlers.rs:3367-3369"]
+    QF["refused: could not check deletion targets - FAIL CLOSED on a missing binding,<br/>serialisation, bind or query error nip_handlers.rs:3361-3377 nip_handlers.rs:2977"]
+    CLS["classify_member_target per row nip_handlers.rs:3047"]
+    FOR{"Foreign: another author's stored row<br/>nip_handlers.rs:3049"}
+    WRAP{"kind 1059 addressed to one of the signer's recipient keys?<br/>keys fetched only then nip_handlers.rs:3081-3086 nip_handlers.rs:3381-3384"}
+    OTH["refused: TL3+ required to delete others' events<br/>nip_handlers.rs:2960"]
+    SEAL{"SealedOriginal: no row, a stored kind-42 sealed tag names it<br/>nip_handlers.rs:3056"}
+    SR["refused: migrated (sealed) posts can only be removed by a moderator<br/>nip_handlers.rs:2965-2966"]
+    TOMB{"AlreadyDeleted: no row, deleted_events holds id and signer<br/>nip_handlers.rs:3057"}
     OK["accepted"]
 
     K5 --> G --> NOE
@@ -494,12 +495,12 @@ flowchart TB
     TOMB -->|"yes"| OK
     TOMB -->|"no"| UNK
 
-    N1["Why whole-event refusal: every client folds every e tag of a stored kind 5, the event is signed and the relay<br/>cannot strip a tag, so one target the member cannot be shown to own refuses it all nip_handlers.rs:2940-2947"]
-    N2["INVARIANT: the sealed flag is read BEFORE the tombstone flag, so a claim written before the gate existed<br/>cannot reopen a sealed original nip_handlers.rs:3040-3044 nip_handlers.rs:3054-3055. Refusals report in the order<br/>foreign, sealed, unknown nip_handlers.rs:3073-3094"]
-    N3["INVARIANT: fail-closed is safe because the gate only runs for members - admins skip the whole non-admin<br/>block and TL3+ skips the lookup, so it can never block a moderator nip_handlers.rs:3345-3348 nip_handlers.rs:1315-1320"]
-    N4["OPEN (NF-10 O12, KF-21): one statement may carry up to 2,000 ids MAX_TAG_COUNT nip_handlers.rs:42, travelling as one JSON<br/>value because D1 caps bound parameters near 100 lib.rs:793-797. Every test of it runs on in-memory rusqlite<br/>nip_handlers.rs:7698-7706 nip_handlers.rs:7756-7772, never on Cloudflare D1"]
-    N5["OPEN (NF-10 O13, KF-17): a no-row target is accepted on an (id, signer) row in deleted_events. Pre-gate claims and the<br/>backfill from stored kind 5s lib.rs:915-925 hold such rows, and a moderator's process_deletion still writes one for any<br/>well-formed id nip_handlers.rs:3533-3544, so a holder can re-name an id never stored here and have it accepted and broadcast"]
-    N6["OPEN (NF-10 O14, KF-20): a kind 5 with no e and no a target is accepted with nothing to act on nip_handlers.rs:3351-3354.<br/>An expiring kind 5 is later removed by the NIP-40 sweep, which writes no tombstone - see NF-11.19"]
+    N1["Why whole-event refusal: every client folds every e tag of a stored kind 5, the event is signed and the relay<br/>cannot strip a tag, so one target the member cannot be shown to own refuses it all nip_handlers.rs:2940-2949"]
+    N2["INVARIANT: the sealed flag is read BEFORE the tombstone flag, so a claim written before the gate existed<br/>cannot reopen a sealed original nip_handlers.rs:3042-3046 nip_handlers.rs:3056-3057. Refusals report in the order<br/>foreign, sealed, unknown nip_handlers.rs:3075-3096"]
+    N3["INVARIANT: fail-closed is safe because the gate only runs for members - admins skip the whole non-admin<br/>block and TL3+ skips the lookup, so it can never block a moderator nip_handlers.rs:3347-3350 nip_handlers.rs:1315-1320"]
+    N4["OPEN (NF-10 O12, KF-21): one statement may carry up to 2,000 ids MAX_TAG_COUNT nip_handlers.rs:42, travelling as one JSON<br/>value because D1 caps bound parameters near 100 lib.rs:793-797. Every test of it runs on in-memory rusqlite<br/>nip_handlers.rs:7700-7708 nip_handlers.rs:7758-7774, never on Cloudflare D1"]
+    N5["OPEN (NF-10 O13, KF-17): a no-row target is accepted on an (id, signer) row in deleted_events. Pre-gate claims and the<br/>backfill from stored kind 5s lib.rs:915-925 hold such rows, and a moderator's process_deletion still writes one for any<br/>well-formed id nip_handlers.rs:3535-3546, so a holder can re-name an id never stored here and have it accepted and broadcast"]
+    N6["OPEN (NF-10 O14, KF-20): a kind 5 with no e and no a target is accepted with nothing to act on nip_handlers.rs:3353-3356.<br/>An expiring kind 5 is later removed by the NIP-40 sweep, which writes no tombstone - see NF-11.19"]
 ```
 
 ## NF-03.16 NIP-09 ingest refusal — a deleted event stays deleted (PR #89)
@@ -508,9 +509,9 @@ flowchart TB
 flowchart TB
     GATES["every admission gate of NF-03.4 has passed"]
     EPH["Ephemeral 20000-29999: OK and broadcast, never stored, so never tombstone-checked<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1598-1601"]
-    ISD["is_deleted<br/>nip_handlers.rs:1607 defined nip_handlers.rs:3474"]
-    REG["regular kinds: deleted_events holds (id, author)<br/>IS_DELETED_ID_SQL lib.rs:777-778, bound nip_handlers.rs:3497"]
-    ADR["replaceable and addressable kinds: the id tombstone, OR a deleted_addresses row for<br/>(kind, author, d_tag) with deleted_until at or after created_at<br/>IS_DELETED_ADDRESSABLE_SQL lib.rs:784-787, bound nip_handlers.rs:3484-3495"]
+    ISD["is_deleted<br/>nip_handlers.rs:1607 defined nip_handlers.rs:3476"]
+    REG["regular kinds: deleted_events holds (id, author)<br/>IS_DELETED_ID_SQL lib.rs:777-778, bound nip_handlers.rs:3499"]
+    ADR["replaceable and addressable kinds: the id tombstone, OR a deleted_addresses row for<br/>(kind, author, d_tag) with deleted_until at or after created_at<br/>IS_DELETED_ADDRESSABLE_SQL lib.rs:784-787, bound nip_handlers.rs:3486-3497"]
     REF["refused: blocked: this event was deleted<br/>nip_handlers.rs:1608"]
     SAVE["push_event_known, then save_event<br/>nip_handlers.rs:1615 nip_handlers.rs:1618"]
     TBL["tables deleted_events (id, pubkey) and deleted_addresses (kind, pubkey, d_tag)<br/>lib.rs:746 lib.rs:755, created by ensure_schema lib.rs:1083-1084"]
@@ -526,6 +527,6 @@ flowchart TB
 
     N1["INVARIANT: the check runs after every authorisation gate and before save_event nip_handlers.rs:1607 nip_handlers.rs:1618,<br/>so anyone still holding the signed copy cannot publish it again, whichever route removed it nip_handlers.rs:1604-1606"]
     N2["INVARIANT: an event id is a hash over its author, so a tombstone naming the wrong author blocks nothing<br/>lib.rs:741-745 - which is why the writers record the row's REAL author, see NF-11.18 and NF-11.19"]
-    N3["Fail-open by design: a missing binding or a bind failure answers not deleted - the tombstone is a re-insert<br/>guard, not an availability gate nip_handlers.rs:3470-3476 nip_handlers.rs:3499-3500"]
+    N3["Fail-open by design: a missing binding or a bind failure answers not deleted - the tombstone is a re-insert<br/>guard, not an availability gate nip_handlers.rs:3472-3478 nip_handlers.rs:3501-3502"]
     N4["Pre-existing deletions are carried over once per database by backfill_tombstones_once from stored kind 5s,<br/>own-deletion semantics only lib.rs:1484 lib.rs:915-918"]
 ```

@@ -29,14 +29,14 @@ sources:
   - ../diagram-ir/Cargo.toml
   - ../loom/Cargo.toml
   - docs/estate-review/2026-09-07-estate-audit.md
-verified_commit: {visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5, WasmVOWL: 51a1484301901e817757c4cce17b1fece371652a, loom: c016dab5ae8afa0bf41519ff0b2685647dc717f3, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: 2e5d203eb11b8d9bb7bbc84b761128b334a63f45, diagram-ir: 15cba163da7086a3ebbb5a059c8a8d0ab4ba9706}
+verified_commit: {visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, dream-engine: 881075377625a9e20e69e9137f679506e93f4b68, wasmvowl: af25086a605482c8234580ccd1062cf506e0b181, loom: 355946dd2deacfdef21171d53eafd025887e447e, dream-machine: b77093e564ef689923fb523b0e0b18d2bb4a21a4, prose-sanitiser: 0e2641a7030de880371d4bfb904af323688f8fbb, diagram-ir: d0b6ba40c46d6a283ba2b4b33da0b3526db327dc}
 ---
 
 ## ES-90.1 Three scopes — health roster, source review and workspace neighbours
 ```mermaid
 flowchart TB
     R["Declared health roster: 21 repositories<br/>scripts/estate-health/roster.json:5-25"] --> P["Primary diagram directories include:<br/>VisionFlow, VisionClaw, Agentbox, pod, forum,<br/>website, knowledgeGraph, visionGraph, vowl-wasm,<br/>sidestr-rs (roster.json:13), ontomark (roster.json:14),<br/>visiontouch-rs (roster.json:22), Dream Engine (roster.json:21)"]
-    R --> S["Also on roster: Loom, ontomark-obsidian, WasmVOWL,<br/>prose-sanitiser, diagram-ir, codescape, sealmap, visioncraft. The Dream Engine row still<br/>describes a fork of ruvnet/dream-machine, roster.json:21<br/>(see DE-01)"]
+    R --> S["Also on roster: Loom (see LM-01), ontomark-obsidian (see OO-01), WasmVOWL,<br/>prose-sanitiser, diagram-ir, codescape, sealmap, visioncraft. The Dream Engine row still<br/>describes a fork of ruvnet/dream-machine, roster.json:21<br/>(see DE-01)"]
     C["Git census and ADR candidate discovery<br/>scripts/estate-doc-audit.py"] --> R
     C --> D["Consumed or historical extension:<br/>RuVector, RuView, archived Logseq"]
     C --> N["Other checkouts: inventory only,<br/>no estate adoption from directory proximity"]
@@ -95,7 +95,7 @@ sequenceDiagram
 ## ES-90.4 Tool packages and sensing remain distinct acceptance surfaces
 ```mermaid
 flowchart TB
-    PS["prose-sanitiser workspace<br/>prose-sanitiser/Cargo.toml:18 members<br/>core, unicode, UK, slop, media, CLI, server"] --> PT["Tool capability, not proof every publisher invokes it"]
+    PS["prose-sanitiser workspace<br/>prose-sanitiser/Cargo.toml:20 members<br/>core, unicode, UK, slop, media, CLI, server"] --> PT["Tool capability, not proof every publisher invokes it"]
     DI["diagram-ir Cargo.toml<br/>diagram extraction and self-check binaries"] --> PT
     L["Loom Cargo.toml<br/>sibling RuVector core path dependency, loom/Cargo.toml:67,<br/>and the published ontomark-compile 0.9.0 and ontomark-parse 0.1.4 crates, loom/Cargo.toml:56-57"] --> INPUT["Declared dependency input must match<br/>the reproducible build and served generation"]
     RV["RuView sensing server, a consumed extension repository<br/>OPEN: outside this audit's scope, no source claim made"] --> SIM["a simulated sensing source is a separate mode<br/>from real hardware input, unverified here"]
@@ -109,11 +109,11 @@ flowchart TB
 ## ES-90.5 Evidence types do not imply one another
 ```mermaid
 flowchart TB
-    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:753"]
-    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:531"]
-    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:665"]
-    F --> JEV["Opt-in advisory per-citation review (--jev, or env VISIONFLOW_JEV, with --cite-check), off by default,<br/>stderr only, never changes an exit code or an index; one Noul per resolved citation,<br/>flagged only for jev-* models at p_defect 0.9 or more<br/>jevCitationReview, diagram-index-gen.cjs:836"]
-    F --> R["Optional Mermaid rendering with pinned Pele, no browser: renderAll<br/>diagram-index-gen.cjs:729"]
+    F["Source paths and ADR metadata"] --> G["Structural/index gate: writeIndexes<br/>diagram-index-gen.cjs:757"]
+    F --> C["Citation diagnostics; strict mode refuses warnings<br/>citeCheck, diagram-index-gen.cjs:533"]
+    F --> SYM["Symbol-anchor check: warns when a cited line<br/>falls outside the labelled function's body<br/>symbolCheck, diagram-index-gen.cjs:669"]
+    F --> JEV["Opt-in advisory per-citation review (--jev, or env VISIONFLOW_JEV, with --cite-check), off by default,<br/>stderr only, never changes an exit code or an index; one Noul per resolved citation,<br/>flagged only for jev-* models at p_defect 0.9 or more<br/>jevCitationReview, diagram-index-gen.cjs:840"]
+    F --> R["Optional Mermaid rendering with pinned Pele, no browser: renderAll<br/>diagram-index-gen.cjs:733"]
     F --> S["Semantic source review with file hashes<br/>scripts/estate-doc-audit.py"]
     G --> DOC["Documentation evidence"]
     C --> DOC
@@ -121,11 +121,11 @@ flowchart TB
     R --> DOC
     JEV -.->|"a pointer for a human reviewer, not evidence"| DOC
     S --> DOC
-    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:418"] --> DOC
-    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:483"] --> DOC
+    ALLOW["citation-allowlist.json waives a citation<br/>that exists in no commit, with a reason;<br/>a stale entry fails the run<br/>loadAllowlist, diagram-index-gen.cjs:420"] --> DOC
+    VER["VERIFICATION.md: declared-revisions anchor,<br/>records what actually resolved at HEAD<br/>writeVerificationReport, diagram-index-gen.cjs:485"] --> DOC
     TEST["Named local test and raw result"] --> LOCAL["Only the exercised contract"]
     RUN["Loaded binary, effective config,<br/>identity and cross-service receipt"] --> ACCEPT["Only the observed system journey"]
     DOC -.->|"does not establish"| ACCEPT
     LOCAL -.->|"does not establish"| ACCEPT
-    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:381,384"] --> DOC
+    NOTE["INVARIANT: default citations may read declared revisions;<br/>worktree-citations explicitly checks current source.<br/>Neither mode proves behaviour or deployment.<br/>revisionLines, diagram-index-gen.cjs:383,386"] --> DOC
 ```

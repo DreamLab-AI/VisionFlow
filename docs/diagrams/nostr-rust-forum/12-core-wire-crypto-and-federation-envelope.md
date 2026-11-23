@@ -54,7 +54,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/requests.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs
-verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
+verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -128,8 +128,8 @@ sequenceDiagram
     V->>V: rebuild the id and compare, then Schnorr verify nostr-bbs-core/src/event.rs:210 nostr-bbs-core/src/event.rs:241
 
     Note over V: The single verification the WHOLE estate leans on - verify_event is a thin wrapper over it nostr-bbs-core/src/event.rs:197-198. The relay calls it before any side effect nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1117 (NF-03.4 step 4)
-    Note over V: NIP-42 AUTH calls it nostr-bbs-relay-worker/src/relay_do/nip42.rs:206 (NF-03.2), and the forum client re-runs it on every inbound event rather than trusting the relay nostr-bbs-forum-client/src/relay.rs:1262 (NF-05.5)
-    Note over V: Since 7df61ae an AUTH whose relay tag cannot be checked,<br/>because neither RELAY_URL nor RELAY_URL_ALIASES is set,<br/>is REFUSED, never skipped nostr-bbs-relay-worker/src/relay_do/nip42.rs:224-226.<br/>DRIFT: the evaluate_auth_event doc comment still says the<br/>caller derives the URL from the upgrade host when RELAY_URL<br/>is blank nostr-bbs-relay-worker/src/relay_do/nip42.rs:190-191
+    Note over V: NIP-42 AUTH calls it nostr-bbs-relay-worker/src/relay_do/nip42.rs:208 (NF-03.2), and the forum client re-runs it on every inbound event rather than trusting the relay nostr-bbs-forum-client/src/relay.rs:1342 (NF-05.5)
+    Note over V: Since 7df61ae an AUTH whose relay tag cannot be checked,<br/>because neither RELAY_URL nor RELAY_URL_ALIASES is set,<br/>is REFUSED, never skipped nostr-bbs-relay-worker/src/relay_do/nip42.rs:226-228.<br/>RESOLVED at 4a73a7a: the evaluate_auth_event doc comment now<br/>says the caller builds the set from those vars only, never<br/>from the request host nostr-bbs-relay-worker/src/relay_do/nip42.rs:190-193
     Note over S: sign_event_deterministic nostr-bbs-core/src/event.rs:160 exists for test vectors
     Note over S: sign_event_upstream nostr-bbs-core/src/event.rs:319 is the absorption seam onto the upstream nostr crate
     Note over U: The Signer trait nostr-bbs-core/src/signer.rs:78 lets a NIP-07 extension, a passkey key or a pasted nsec share one call site - see NF-05.4
@@ -196,9 +196,9 @@ sequenceDiagram
     Note over WR: The throwaway secret is held in Zeroizing so it scrubs<br/>on drop and on every early return gift_wrap.rs:434. The previous<br/>copy-then-zeroize left the original binding live, so that<br/>defence-in-depth scrub was a no-op
 ```
 
-**Open:** ADR-2027 (NIP-17 overlay for nostr.chat interop) is accepted, partial and inactive, and ADR-2028 (NIP-171 key plane for zones, superseding ADR-2026) is proposed, so none of that DM or zone-key routing is drawn as live here (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:6`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`). The core primitives the overlay needs (NIP-17 rumor kinds and caller-built rumors, NF-12.4) are present at the beta.20 release commit d423833 whether or not the overlay is switched on; the crates.io artefact was not inspected.
+**Open:** ADR-2027 (NIP-17 overlay for nostr.chat interop) is accepted, partial and inactive, and ADR-2028 (NIP-171 key plane for zones, superseding ADR-2026) is proposed, partial and inactive, so none of that DM or zone-key routing is drawn as live here (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:5-7`, `../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:5-7`). The core primitives the overlay needs (NIP-17 rumor kinds and caller-built rumors, NF-12.4) are present at the beta.20 release commit d423833 whether or not the overlay is switched on; the crates.io artefact was not inspected.
 
-**Drift:** both records are behind main. ADR-2027's 2026-11-20 note says decision 1, the NIP-17 overlay, "is not built" (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:31`), but the client's overlay modules are on main behind `RECIPIENT_KEYS_ENABLED` (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/requests.rs:1`); ADR-2028 still says implementation none (`../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`) while the relay's zone group binding is on main behind `ZONE_GROUPS_ENABLED` (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs:1-4`). Built and off is not the same as not built.
+**Resolved (ADR records, 4a73a7a):** both records now describe what is on main, built and off. ADR-2027's 2026-11-22 note withdraws the earlier "not built" note and names the Phase 3 overlay modules behind `RECIPIENT_KEYS_ENABLED` (`../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md:33-40`, `../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/requests.rs:1`); ADR-2028 moves to implementation partial (`../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:6`), with steps 1 to 3 behind `ZONE_GROUPS_ENABLED` and the owner-only epoch binding of step 4 not landed (`../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md:36-45`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs:1-4`).
 
 ## NF-12.5 NIP-98 — the ten checks every authenticated REST call passes
 

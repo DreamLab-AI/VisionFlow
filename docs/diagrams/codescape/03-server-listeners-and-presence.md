@@ -20,7 +20,7 @@ sources:
   - ../codescape/crates/codescape-server/src/routes/mod.rs
   - ../codescape/crates/codescape-server/src/routes/presence.rs
   - ../codescape/crates/codescape-server/src/xr_presence.rs
-verified_commit: d66bcab80fc0ce1f57deb6a0b6fa74e56ee8e298
+verified_commit: a9c407af4fc556b8b054be8858601ed3bdf37ff7
 ---
 
 ## CS-03.1 Boot order and the two listeners
@@ -56,8 +56,8 @@ flowchart TD
 ```mermaid
 flowchart LR
     REQ["request on the main listener"]
-    API["registered routes health, snapshot, node, search, query, physics, settlement, ontology-refs<br/>routes/mod.rs:442,443,444,445,446,447,448,449"]
-    WS["websocket routes positions, events, wss, voice, presence<br/>routes/mod.rs:450,451,452,453,454"]
+    API["registered routes health, snapshot, node, search, query, physics, settlement, ontology-refs<br/>routes/mod.rs:444,445,446,447,448,449,450,451"]
+    WS["websocket routes positions, events, wss, voice, presence<br/>routes/mod.rs:452,453,454,455,456"]
     NS["NOT_SERVED memory-cloud, analytics, graph fold, canary answer 404 with tail match<br/>http.rs:123,124,125,126,127,133,134"]
     SPA["static bundle with SPA fallback, backend paths never fall back<br/>http.rs:139,140,141,142,143"]
     ING["ingest app serves one POST route, everything else 404<br/>ingest_api.rs:198,199,201"]

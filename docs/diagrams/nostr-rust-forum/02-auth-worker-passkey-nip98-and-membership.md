@@ -37,7 +37,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0013_recipient_keys_proof.sql
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/moderation.rs
-verified_commit: af4f0d56f735ca29dddf9be2549d5c0e9f987891
+verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch
@@ -253,7 +253,7 @@ flowchart TB
     E["Owner-scoped revoke sets revoked to 1"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2152
     F["AUTH stores raw public key<br/>does not consult device registry"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3779
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3781
     G["Read/write scope resolves owner later<br/>through a 60-second cache"]
     A --> B --> C --> D --> E
     F --> G
@@ -326,13 +326,13 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     GATE["RECIPIENT_KEYS_ENABLED exactly true, else 404 before any D1 work<br/>recipient_keys.rs:16-18, template default false nostr-bbs-auth-worker/wrangler.toml:70"]
-    REG["POST register - NIP-98 owner recipient_keys.rs:599<br/>role inbox only recipient_keys.rs:295, key differs from identity recipient_keys.rs:303"]
-    AUTHZ["authorization, kind 27237, signed by the MEMBER, k tag names the inbox key,<br/>exp within 300 s recipient_keys.rs:200-219"]
-    POSS["possession, kind 27238, signed by the INBOX key, owner tag names the member<br/>recipient_keys.rs:234-253"]
-    ROW["upsert into recipient_keys in the RELAY D1 via RELAY_DB, storing the member-signed<br/>authorization as proof recipient_keys.rs:323-332, recipient_keys.rs:570"]
-    REV["POST revoke - owner, or admin for any key, a stranger gets 404 recipient_keys.rs:356-366"]
-    LOOK["GET lookup - admin only, returns the owner's unrevoked inbox keys with proof<br/>recipient_keys.rs:373, recipient_keys.rs:390"]
-    EPOCH["POST epoch - admin only, role epoch bound to a zone, no proof recipient_keys.rs:406-417"]
+    REG["POST register - NIP-98 owner recipient_keys.rs:600<br/>role inbox only recipient_keys.rs:296, key differs from identity recipient_keys.rs:304"]
+    AUTHZ["authorization, kind 27237, signed by the MEMBER, k tag names the inbox key,<br/>exp within 300 s recipient_keys.rs:201-220"]
+    POSS["possession, kind 27238, signed by the INBOX key, owner tag names the member<br/>recipient_keys.rs:235-254"]
+    ROW["upsert into recipient_keys in the RELAY D1 via RELAY_DB, storing the member-signed<br/>authorization as proof recipient_keys.rs:324-333, recipient_keys.rs:571"]
+    REV["POST revoke - owner, or admin for any key, a stranger gets 404 recipient_keys.rs:357-367"]
+    LOOK["GET lookup - admin only, returns the owner's unrevoked inbox keys with proof<br/>recipient_keys.rs:374, recipient_keys.rs:391"]
+    EPOCH["POST epoch - admin only, role epoch bound to a zone, no proof recipient_keys.rs:407-418"]
     RELAY["relay creates the table and reads it at gift-wrap admission - see NF-08.8 and NF-03"]
 
     GATE --> REG --> AUTHZ --> POSS --> ROW
@@ -342,7 +342,7 @@ flowchart TB
     ROW -.-> RELAY
 
     N1["INVARIANT: trust rests on the member's signature, not on the lookup channel - a grant issuer re-verifies the<br/>stored authorization, so a hostile lookup reply cannot redirect zone keys recipient_keys.rs:26-34"]
-    N2["DRIFT: the stored proof is the member-signed authorization recipient_keys.rs:108-109, but migration 0013<br/>calls it the 27237 proof signed by the inbox key 0013_recipient_keys_proof.sql:3-4, and the kind constant and<br/>verify_key_proof's own doc comment still call it a key-signed possession proof recipient_keys.rs:53 recipient_keys.rs:186"]
+    N2["RESOLVED at 4a73a7a: migration 0013, the kind constant and verify_key_proof now all name the stored proof as<br/>the member-signed authorization recipient_keys.rs:109-110 0013_recipient_keys_proof.sql:3-6 recipient_keys.rs:53<br/>recipient_keys.rs:187-188 - the 27238 possession proof is checked at registration and not stored"]
 ```
 
 Phase 2 of the interop upgrade, merged to main at a80c572 and inactive while the flag is off. The routes are the auth side only; the relay's use of the rows at gift-wrap admission belongs to NF-03.

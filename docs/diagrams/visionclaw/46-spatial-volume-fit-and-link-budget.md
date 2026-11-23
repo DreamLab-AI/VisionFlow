@@ -13,7 +13,7 @@ sources:
   - ../project/xr-client/scripts/native_container_shim.gd
   - ../project/xr-client/scripts/graph_scene.gd
   - ../project/docs/adr/ADR-2164-code-graph-entities-link-to-knowledge-and-ontology-nodes-resolved-at-runtime.md
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -59,7 +59,7 @@ flowchart TD
     FIT --> CHECK["Ease, then snap if cached AABB would escape<br/>spatial_volume.gd:205"]
     CACHE --> CHECK
     BOUNDS["Explicit bounds change re-reads source immediately<br/>spatial_volume.gd:290,296"] --> FIT
-    FITBTN["HUD Fit button: refit sets the request flag<br/>graph_scene.gd:2030,2040; spatial_volume.gd:156,157"] --> DUE
+    FITBTN["HUD Fit button: refit sets the request flag<br/>graph_scene.gd:2028,2038; spatial_volume.gd:156,157"] --> DUE
 ```
 
 **What it shows.** After a fitted source expands, the headless fixture observes its new corner outside the box for four ticks before the sixth-tick refresh. Explicit resizing refits immediately and the anisotropic/zero-extent controls pass. **Why it is this way.** The containment check uses the cached extent. This is a transform-level counterexample; no headset image or real node-motion frequency was measured.
@@ -68,7 +68,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    BOOT["Scene constructs shim and evaluates once<br/>graph_scene.gd:1668"] --> GATE["Require app setting, Android, engine setting and 4.8+<br/>native_container_shim.gd:140"]
+    BOOT["Scene constructs shim and evaluates once<br/>graph_scene.gd:1666"] --> GATE["Require app setting, Android, engine setting and 4.8+<br/>native_container_shim.gd:140"]
     GATE --> EXT["Require extension class, instance and enabled state<br/>native_container_shim.gd:154,157,160"]
     EXT --> START["Start around an existing arrangement<br/>native_container_shim.gd:197"]
     START --> WATCH["Poll activity and activation timeout<br/>native_container_shim.gd:220"]

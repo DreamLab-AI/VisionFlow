@@ -349,7 +349,7 @@ const REPO_PREFIXES = [
   { key: 'thg-world-record-attempt', prefix: '../THG-world-record-attempt/' },
   { key: 'visionflow', prefix: '' },
 ];
-const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' , 'visiontouch-rs': 'visiontouch-rs', sealmap: 'sealmap', codescape: 'codescape', visioncraft: 'visioncraft', 'prose-sanitiser': 'prose-sanitiser', 'diagram-ir': 'diagram-ir' };
+const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' , 'visiontouch-rs': 'visiontouch-rs', sealmap: 'sealmap', codescape: 'codescape', visioncraft: 'visioncraft', 'prose-sanitiser': 'prose-sanitiser', 'diagram-ir': 'diagram-ir', loom: 'loom', 'ontomark-obsidian': 'ontomark-obsidian', 'vitrine-object-sidecar': 'vitrine-object-sidecar', 'thg-world-record-attempt': 'thg-world-record-attempt' };
 function repoOf(p) {
   const clean = p.replace(/^\.\//, '');
   for (const r of REPO_PREFIXES) if (r.prefix && clean.startsWith(r.prefix)) return { key: r.key, rel: clean.slice(r.prefix.length), abs: path.join(repoRoot, r.prefix) };

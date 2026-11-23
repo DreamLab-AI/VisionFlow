@@ -19,12 +19,12 @@ sources:
   - ../project/codescape/crates/codescape-layout/src/lib.rs
   - ../project/docker-compose.unified.yml
   - ../project/docs/adr/ADR-2148-enable-local-typed-decisions.md
-verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
+verified_commit: {codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
 
-Consumer scope checked on 16 November 2026: VisionClaw main `d2780e26f870ce21fa92bccb29fa47f001015b16` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check. This topic distinguishes dependency isolation, endpoint admission, model command selection and runtime artefact reuse. The [audit and executable probe](../../estate-review/2026-10-31-codescape-boundaries.md) compare standalone source with the consumed submodule. Cited at the submodule commit `e3b76f6` that VisionClaw `ec785afa9` records, not at standalone `main`, which is ahead by a formatting-only `jev.rs` change and the presence fence of VC-43. No source pin here establishes current service activation.
+Consumer scope checked on 16 November 2026: VisionClaw main `d2780e26f870ce21fa92bccb29fa47f001015b16` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check. Re-checked on 23 November 2026: `git ls-tree` at VisionClaw `4900ec60bc1ba9075343fe848c62e64434126c7e` still names `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`, so the `codescape` key stays at the submodule pin although standalone Codescape is at `a9c407af4fc556b8b054be8858601ed3bdf37ff7`; only the VisionClaw key moved. This topic distinguishes dependency isolation, endpoint admission, model command selection and runtime artefact reuse. The [audit and executable probe](../../estate-review/2026-10-31-codescape-boundaries.md) compare standalone source with the consumed submodule. Cited at the submodule commit `e3b76f6` that VisionClaw `ec785afa9` records, not at standalone `main`, which is ahead by a formatting-only `jev.rs` change and the presence fence of VC-43. No source pin here establishes current service activation.
 
 ## For the business
 
@@ -59,7 +59,7 @@ flowchart TD
     LIST --> SEND["Check origin before request and on redirects<br/>voice/jev.rs:279; codescape-server/src/egress.rs:103"]
 ```
 
-**What it shows.** An explicit remote endpoint can resolve while every local/cloud permission flag is false. The implicit proxy branch is refused under those same permissions. The current host intentionally enables cloud routing (`docker-compose.unified.yml:505`).
+**What it shows.** An explicit remote endpoint can resolve while every local/cloud permission flag is false. The implicit proxy branch is refused under those same permissions. Host Compose no longer grants cloud routing: `CODESCAPE_JEV_ALLOW_CLOUD` now defaults to 0 (`docker-compose.unified.yml:528`) and the backend is not declared local (`docker-compose.unified.yml:11`), so under the defaults only an explicit endpoint resolves.
 **Why it is this way.** Endpoint configuration is trusted earlier than the documented locality gate. The probe establishes resolution and allowlist admission without contacting a remote service.
 
 **Drift:** The local-only promise in `voice/jev.rs:11` and the resolver contract at `voice/jev.rs:154` do not cover the explicit-endpoint return at `voice/jev.rs:175`.
@@ -78,9 +78,9 @@ flowchart TD
 ```
 
 **What it shows.** An exact-one response passes the default threshold. Lower confidence, an unknown choice or abstention preserves fallback. Grammar hits bypass the model.
-**Why it is this way.** The implementation uses an inclusive acceptance threshold rather than an explicit disabled state. Host Compose enables the option and leaves the threshold empty (`docker-compose.unified.yml:504,508`).
+**Why it is this way.** The implementation uses an inclusive acceptance threshold rather than an explicit disabled state. Host Compose enables the option and leaves the threshold empty (`docker-compose.unified.yml:527,531`).
 
-**Tension:** Compose calls the enabled model advisory (`docker-compose.unified.yml:507`), while the selection path can return an action at confidence one (`voice/jev.rs:349,354`). This is a bounded view-command path, not an ontology writer.
+**Tension:** Compose calls the enabled model advisory (`docker-compose.unified.yml:530`), while the selection path can return an action at confidence one (`voice/jev.rs:349,354`). This is a bounded view-command path, not an ontology writer.
 
 ## VC-42.4 A failed refresh can retain a loader-valid PTX pair
 

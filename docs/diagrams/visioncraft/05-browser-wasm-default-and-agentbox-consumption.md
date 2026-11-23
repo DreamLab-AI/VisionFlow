@@ -29,7 +29,7 @@ sources:
   - ../project/agentbox/docs/developer/visioncraft-consumption.md
   - ../project/agentbox/docs/adr/ADR-2165-visioncraft-owns-the-portable-quality-method.md
   - ../project/agentbox/skills/SKILL-DIRECTORY.md
-verified_commit: {visioncraft: 6add68eebf1e8fb81a05eb86e2e27e732c4da1c3, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5}
+verified_commit: {visioncraft: 952c9d2e443d114a39186e67d6afeaf3fd887d86, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## VK-05.1 How agentbox adopted VisionCraft
@@ -40,16 +40,16 @@ sequenceDiagram
     participant VC as visioncraft upstream
     participant AB as agentbox repository
     participant OP as operator
-    VC->>AB: 75bd6c7e7 integrates the canonical method, a Nix package and direct AQE tools (lib/visioncraft.nix:4-7)
+    VC->>AB: 75bd6c7e7 integrates the canonical method, a Nix package and direct AQE tools (visioncraft-consumption.md:10-17)
     Note over AB: hard cutover: build-with-quality is removed, one payload owns the name (visioncraft-consumption.md:3-6)
-    VC->>AB: c1b0c700c pins published 0.1.0, commit 9cf450c, 34 payload files (ADR-2165-visioncraft-owns-the-portable-quality-method.md:115-117)
-    VC->>AB: 83637b7c3 repins 0.2.0 from upstream b7e579f, 35 files (ADR-2165-visioncraft-owns-the-portable-quality-method.md:121-125)
+    VC->>AB: c1b0c700c pins published 0.1.0, commit 9cf450c, 34 payload files (ADR-2165-visioncraft-owns-the-portable-quality-method.md:128-130)
+    VC->>AB: 83637b7c3 repins 0.2.0 from upstream b7e579f, 35 files (ADR-2165-visioncraft-owns-the-portable-quality-method.md:134-138)
     VC->>AB: cfa535b8c repins 0.3.0 from upstream 2c6627c, 40 files (visioncraft-source.json:3-4)
     Note over AB: 0.2.0 and 0.3.0 are skill-only, library and CLI unchanged from 0.1.0 (visioncraft-consumption.md:23-33)
     AB-->>OP: source pin complete, image rebuild and runtime acceptance still outstanding (visioncraft-consumption.md:38-40)
     Note over AB: INVARIANT: activation_status stays staged until the rebuild is observed (ADR-2165-visioncraft-owns-the-portable-quality-method.md:7)
-    Note over VC,AB: DOC-DRIFT: ADR-2165 still says the final pin is 0.1.0 with 34 files, and later paragraphs move it to 0.2.0 with 35 and then 0.3.0 with 40 (ADR-2165-visioncraft-owns-the-portable-quality-method.md:115-116 vs ADR-2165-visioncraft-owns-the-portable-quality-method.md:121-125 and ADR-2165-visioncraft-owns-the-portable-quality-method.md:128-133)
-    Note over VC,AB: CONSUMER SCOPE: agentbox pins release 0.3.0 at 2c6627c.<br/>The standalone upstream is reviewed at 6add68e. This does not repin the consumer<br/>config/visioncraft-source.json:3-4
+    Note over VC,AB: DOC-DRIFT: ADR-2165 still says the final pin is 0.1.0 with 34 files, and later paragraphs move it to 0.2.0 with 35 and then 0.3.0 with 40 (ADR-2165-visioncraft-owns-the-portable-quality-method.md:128-129 vs ADR-2165-visioncraft-owns-the-portable-quality-method.md:134-138 and ADR-2165-visioncraft-owns-the-portable-quality-method.md:141-146)
+    Note over VC,AB: CONSUMER SCOPE: agentbox pins release 0.3.0 at 2c6627c.<br/>The standalone upstream is reviewed at 952c9d2. This does not repin the consumer<br/>config/visioncraft-source.json:3-4
 ```
 
 Agentbox is one consumer, not the owner: portable changes are made and released upstream, then re-vendored whole. Upstream carries tags v0.1.0, v0.2.0 and v0.3.0.
@@ -65,9 +65,9 @@ flowchart TB
     FETCH["fetchFromGitHub at pin.revision with pin.source_hash<br/>visioncraft.nix:10-14"]
     CL["cargoLock from lib/lockfiles/visioncraft-VERSION.Cargo.lock<br/>visioncraft.nix:16"]
     DC["doCheck = false: upstream's offline suite is the gate<br/>visioncraft.nix:20-21"]
-    FL["flake.nix includes visioncraftPkg in skillToolPackages<br/>flake.nix:1994,2002"]
-    DF["image bake: diff -r fetched skill against the vendored copy<br/>flake.nix:2245-2247"]
-    LK["lockfile copied into the image<br/>flake.nix:2254"]
+    FL["flake.nix includes visioncraftPkg in skillToolPackages<br/>flake.nix:2018,2026"]
+    DF["image bake: diff -r fetched skill against the vendored copy<br/>flake.nix:2269-2271"]
+    LK["lockfile copied into the image<br/>flake.nix:2278"]
     SC["agentbox-manifest visioncraft-source-check<br/>visioncraft_source.rs:74"]
     S1["inventory must equal pinned digests<br/>visioncraft_source.rs:113-117"]
     S2["retired build-with-quality must not exist<br/>visioncraft_source.rs:118-124"]
@@ -164,7 +164,7 @@ flowchart TB
     WEX["todo example puts item model and storage schema in a wasm crate<br/>worked-examples.md:15-18"]
     PRV["provenance records browser-wasm.md as newly written guidance<br/>provenance.json:249-251"]
     DIR["agentbox skill directory lists browser targets as Rust compiled to WebAssembly<br/>SKILL-DIRECTORY.md:51"]
-    TOML["agentbox.toml toolchain flags: agentic_qe, deepsec<br/>agentbox.toml:2316-2319"]
+    TOML["agentbox.toml toolchain flags: agentic_qe, deepsec<br/>agentbox.toml:2350-2353"]
     MAN["load manifest; only an absent default manifest may use defaults<br/>deepsec_gate.rs:129-140"]
     ENV["DEEPSEC_GATE_* overrides read, non-UTF-8 refused<br/>deepsec_gate.rs:144-154"]
     EXE["exec visioncraft deepsec --policy-json; no fallback review runs<br/>deepsec_gate.rs:155-163"]

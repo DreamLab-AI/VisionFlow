@@ -608,3 +608,40 @@ sequenceDiagram
 **Why it is this way:** JSS replaces the did:nostr agent with the WebID; keeping both is a deliberate superset (`solid-pod-rs-server/src/cross_identity.rs:11`), and a one-way link is never accepted (`solid-pod-rs-server/src/cross_identity.rs:7`).
 
 **Invariant:** `linked_web_id` returns a WebID only when the link is bidirectional, either through the pod's own profile card or through a remote origin with a back-link check (`solid-pod-rs-server/src/cross_identity.rs:92`).
+
+## SP-05.23 Dynamic client registration — opaque ids and Client Identifier Documents
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as Solid client app
+    participant B as registration_handler, POST /idp/reg<br/>solid-pod-rs-idp/src/axum_binder.rs:115
+    participant R as register_client<br/>solid-pod-rs-idp/src/registration.rs:374
+    participant CS as ClientStore::find<br/>solid-pod-rs-idp/src/registration.rs:213
+    participant F as fetch_client_document<br/>solid-pod-rs-idp/src/registration.rs:242
+
+    App->>B: JSON RegistrationRequest, RFC 7591 metadata<br/>solid-pod-rs-idp/src/registration.rs:41
+    B->>R: no caller identity is required to register
+    alt client_id given as an http or https URL
+        R->>CS: delegate to the Client Identifier Document path<br/>solid-pod-rs-idp/src/registration.rs:382
+        CS->>F: not registered and no cache entry younger than five minutes<br/>solid-pod-rs-idp/src/registration.rs:230
+        F->>F: resolve_and_check every address, pin the connection, no redirects<br/>solid-pod-rs-idp/src/registration.rs:286
+        F->>F: a declared client_id must equal the fetched URL<br/>solid-pod-rs-idp/src/registration.rs:313
+        F->>F: redirect_uris must be non-empty<br/>solid-pod-rs-idp/src/registration.rs:333
+        F-->>CS: ClientDocument with no secret, cached for CLIENT_CACHE_TTL
+        CS-->>R: document
+    else opaque registration
+        R->>R: redirect_uris required, else InvalidRequest<br/>solid-pod-rs-idp/src/registration.rs:393
+        R->>R: mint client_ base36 time _ eight random base36<br/>solid-pod-rs-idp/src/registration.rs:403
+        R->>R: auth method defaults to none, a secret only for any other method<br/>solid-pod-rs-idp/src/registration.rs:409
+        R->>R: default grants, response type code, scope openid webid<br/>solid-pod-rs-idp/src/registration.rs:416
+        R->>CS: insert into the in-memory registered map<br/>solid-pod-rs-idp/src/registration.rs:439
+    end
+    R-->>B: ClientDocument, or RegError
+    B-->>App: 201 Created with the document, any error as 400<br/>solid-pod-rs-idp/src/axum_binder.rs:121-122
+    Note over CS: DEBT: both maps are process memory with no bound or expiry sweep<br/>(solid-pod-rs-idp/src/registration.rs:160, :162), and the open POST adds to one,<br/>so registrations are lost on restart and grow with every caller.
+    Note over F: OPEN: a document that declares no client_id passes the equality check,<br/>which runs only when the field is present (solid-pod-rs-idp/src/registration.rs:313).
+```
+
+- **What it shows:** the IdP's registration step, the first leg of the flow SP-05.16 continues. A URL `client_id` is resolved as a Solid-OIDC Client Identifier Document through the SSRF-pinned fetch. Anything else gets a minted opaque id.
+- **Why it is this way:** the module mirrors JSS's `idFactory` and `fetchClientDocument` (`solid-pod-rs-idp/src/registration.rs:3-12`). The route exists only in the default-off axum binder (SP-05.17), so a consumer that wires `Provider` into another framework decides who may register.

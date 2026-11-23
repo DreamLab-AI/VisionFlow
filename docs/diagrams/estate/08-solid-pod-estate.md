@@ -14,6 +14,7 @@ sources:
   - ../project/src/services/data_reconciliation.rs
   - ../project/src/services/ontology_pull.rs
   - ../project/src/main.rs
+  - ../project/docker-compose.unified.yml
   - ../project/src/handlers/mod.rs
   - ../project/agentbox/flake.nix
   - ../project/agentbox/agentbox.toml
@@ -46,24 +47,24 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
   - ../project/agentbox/docs/adr/ADR-2099-the-chain-is-the-ledger-of-record.md
   - ../project/agentbox/docs/proposals/sovereign-settlement.md
-verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, solid-pod-rs: bc6d9d837bfb7638a4e7698fba9b8c22f4152cf2, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, solid-pod-rs: a28a74832dd0a6e47a531e34e4adc46a3946dfd3, nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 ## ES-08.1 Four coexisting Solid-pod deployments — topology contrast
 
 ```mermaid
 flowchart TB
     subgraph VC["VisionClaw process — single binary"]
-        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:273, declared at Cargo.toml:306 (default ON)"}}
+        FLAG{{"cargo feature #quot;solid-pod-embed#quot;<br/>in default at Cargo.toml:276, declared at Cargo.toml:309 (default ON)"}}
         EMB["solid_proxy_handler.rs<br/>handle_solid_proxy:311"]
-        STUB["no routes registered at all<br/>configure_routes twin, solid_proxy_handler.rs:1820-1824"]
+        STUB["no routes registered at all<br/>configure_routes twin, solid_proxy_handler.rs:1834-1838"]
         FLAG -->|"feature ON"| EMB
         FLAG -->|"feature OFF"| STUB
     end
 
     subgraph AB["agentbox container — supervised service"]
-        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2896"]
-        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:539-540"]
-        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2913"]
+        SUP["supervisord [program:solid-pod]<br/>agentbox/flake.nix:2920"]
+        SRV["solid-pod-rs-server  port 8484<br/>agentbox/agentbox.toml:538-539"]
+        HTTPS["[program:https-bridge]<br/>agentbox/flake.nix:2937"]
         SUP -->|"exec solidPodRsLauncher"| SRV
         HTTPS -->|"TLS terminate to  port 8484"| SRV
     end
@@ -97,7 +98,7 @@ sequenceDiagram
     participant BASE as SolidHttpPodsAdapter<br/>_solid-http-base.js:32
     participant SRV as solid-pod-rs-server<br/>port 8484
 
-    Note over ADP,PS: INVARIANT: nip98 is null unless integrations.solid_pod_rs.sign_requests=true<br/>(pod-signer.js:73) — off keeps prior unsigned behaviour byte-identical (pod-signer.js:33-35).<br/>The SHIPPED manifest turns it on: sign_requests = true, agentbox.toml:590
+    Note over ADP,PS: INVARIANT: nip98 is null unless integrations.solid_pod_rs.sign_requests=true<br/>(pod-signer.js:73) — off keeps prior unsigned behaviour byte-identical (pod-signer.js:33-35).<br/>The SHIPPED manifest turns it on: sign_requests = true, agentbox.toml:589
 
     ADP->>PS: buildPodNip98(manifest, opts) pod-signer.js:70, called at adapters/index.js:75
     alt sign_requests off or no stack resolved
@@ -144,7 +145,7 @@ sequenceDiagram
     participant LDP as ldpClient<br/>fetchWithAuth ldpClient.ts:92
     participant NA as computeAuthHeaders<br/>authInterceptor.ts:51
     participant PROXY as VisionClaw "/solid" proxy<br/>ES-08.1
-    participant SRV as embedded solid-pod-rs<br/>handle_solid_proxy solid_proxy_handler.rs:311
+    participant SRV as embedded solid-pod-rs<br/>handle_solid_proxy solid_proxy_handler.rs:319
 
     UI->>UI: setPreference(key,value) SolidPodService.ts:212
     UI->>UI: setPreference calls getPodStructure SolidPodService.ts:213, which calls initPod() :201-202,<br/>POST /solid/pods/init :171-173
@@ -155,7 +156,7 @@ sequenceDiagram
     alt nostrAuth.isAuthenticated() ldpClient.ts:98
         LDP->>NA: computeAuthHeaders(absoluteUrl, method, body) ldpClient.ts:105
         alt nostrAuth.isDevMode()
-            NA-->>LDP: Authorization Bearer dev-session-token plus X-Nostr-Pubkey authInterceptor.ts:62-67
+            NA-->>LDP: Authorization Bearer getDevSessionToken() plus X-Nostr-Pubkey authInterceptor.ts:62-67
         else NIP-98 mode
             NA-->>LDP: Authorization Nostr token, nostrAuth.signRequest authInterceptor.ts:76-77
         end
@@ -181,13 +182,13 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Caller
-    participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:311-317
-    participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:246-254
-    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:891
+    participant H as handle_solid_proxy<br/>solid_proxy_handler.rs:319-325
+    participant AUTH as authenticate_request<br/>solid_proxy_handler.rs:254-262
+    participant ACL as load_acl_for_path<br/>solid_proxy_handler.rs:899
     participant WAC as evaluate_access<br/>solid_pod_rs::wac, imported solid_proxy_handler.rs:63
     participant FS as FsBackend storage
 
-    C->>H: GET /solid/{tail:.*} solid_proxy_handler.rs:1795
+    C->>H: GET /solid/{tail:.*} solid_proxy_handler.rs:1809
     H->>AUTH: authenticate_request(req) line 325
     AUTH->>AUTH: extract_user_identity, parse NIP-98 Authorization header
     alt NIP-98 present and valid
@@ -218,8 +219,8 @@ sequenceDiagram
         H-->>C: 403 Access denied, detail WAC denies access_mode access to path lines 358-364
     end
 
-    Note over H: RESOLVED ADR-2067 — the cfg(not(solid-pod-embed)) 503 stub twins are GONE<br/>(solid_proxy_handler.rs:1810-1819). With the feature off,<br/>configure_routes registers NO /solid routes at all (:1820-1824), so an<br/>unfeatured build 404s at the router rather than 503ing in a handler. see ES-08.1
-    Note over ACL,FS: WAC resource-specific ACL, containers use dir slash dot acl,<br/>non-containers use resource dot acl WAC spec section 4.1, falls back to<br/>parent-container acl then root acl, solid_proxy_handler.rs:891-931.<br/>FsBackend is the PublishedStorage alias solid_proxy_handler.rs:48, see ES-08.11
+    Note over H: RESOLVED ADR-2067 — the cfg(not(solid-pod-embed)) 503 stub twins are GONE<br/>(solid_proxy_handler.rs:1824-1833). With the feature off,<br/>configure_routes registers NO /solid routes at all (:1834-1838), so an<br/>unfeatured build 404s at the router rather than 503ing in a handler. see ES-08.1
+    Note over ACL,FS: WAC resource-specific ACL, containers use dir slash dot acl,<br/>non-containers use resource dot acl WAC spec section 4.1, falls back to<br/>parent-container acl then root acl, solid_proxy_handler.rs:899-939.<br/>FsBackend is the PublishedStorage alias solid_proxy_handler.rs:48, see ES-08.11
 ```
 
 ## ES-08.5 Pod provisioning for a new user
@@ -228,50 +229,51 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant CL as Client<br/>SolidPodService.ts:171
-    participant R as init_pod or init_pod_nip98<br/>solid_proxy_handler.rs:1285, :1331
-    participant EP as ensure_pod_exists<br/>solid_proxy_handler.rs:1148
-    participant PE as pod_exists<br/>solid_proxy_handler.rs:962
-    participant CS as create_pod_with_structure<br/>solid_proxy_handler.rs:969
+    participant R as init_pod or init_pod_nip98<br/>solid_proxy_handler.rs:1293, :1339
+    participant EP as ensure_pod_exists<br/>solid_proxy_handler.rs:1156
+    participant PE as pod_exists<br/>solid_proxy_handler.rs:970
+    participant CS as create_pod_with_structure<br/>solid_proxy_handler.rs:977
     participant PP as provision_pod<br/>solid_pod_rs::provision, imported solid_proxy_handler.rs:61
     participant FS as FsBackend storage
     participant AU as admin-users.js<br/>POST /admin/users/provision admin-users.js:138
 
     CL->>R: POST /solid/pods/init with the session auth headers SolidPodService.ts:173
-    Note over CL,R: the VisionClaw client calls init (Nostr session, solid_proxy_handler.rs:1290),<br/>not init-nip98, and init-nip98 (route solid_proxy_handler.rs:1793) has no caller in client/src
-    R->>R: resolve the user: get_user_from_request :1290, or extract_user_identity :1332<br/>which validates the NIP-98 token at :225
-    R->>EP: ensure_pod_exists(state, npub, pubkey, pod_base_url) solid_proxy_handler.rs:1306, :1366
-    EP->>PE: pod_exists(storage, npub) solid_proxy_handler.rs:1154
-    PE->>FS: exists(/npub/) solid_proxy_handler.rs:963-964
+    Note over CL,R: the VisionClaw client calls init (Nostr session, solid_proxy_handler.rs:1298),<br/>not init-nip98, and init-nip98 (route solid_proxy_handler.rs:1807) has no caller in client/src
+    R->>R: resolve the user: get_user_from_request :1298, or extract_user_identity :1340<br/>which validates the NIP-98 token at :225
+    Note over R: ADR-2205 — both resolvers refuse a NIP-98 token signed by a browser session key,<br/>the proxy at solid_proxy_handler.rs:230-233 and pod management at solid_proxy_handler.rs:1443-1446:<br/>pod requests need the account's own signer
+    R->>EP: ensure_pod_exists(state, npub, pubkey, pod_base_url) solid_proxy_handler.rs:1314, :1374
+    EP->>PE: pod_exists(storage, npub) solid_proxy_handler.rs:1162
+    PE->>FS: exists(/npub/) solid_proxy_handler.rs:971-972
     alt pod already exists
         FS-->>PE: true
         PE-->>EP: true
-        EP->>FS: backfill a missing root .acl solid_proxy_handler.rs:1157-1172
-        EP-->>R: created=false, pod_structure(pod_base, npub) :1174
+        EP->>FS: backfill a missing root .acl solid_proxy_handler.rs:1165-1180
+        EP-->>R: created=false, pod_structure(pod_base, npub) :1182
     else pod absent
         FS-->>PE: false
         PE-->>EP: false
-        EP->>CS: create_pod_with_structure(storage,npub,pubkey,base_url) solid_proxy_handler.rs:1179
-        CS->>CS: build ProvisionPlan, containers profile,ontology,<br/>ontology/contributions,proposals,annotations,preferences,inbox solid_proxy_handler.rs:978-990
-        CS->>PP: provision_pod(storage, plan) solid_proxy_handler.rs:999
+        EP->>CS: create_pod_with_structure(storage,npub,pubkey,base_url) solid_proxy_handler.rs:1187
+        CS->>CS: build ProvisionPlan, containers profile,ontology,<br/>ontology/contributions,proposals,annotations,preferences,inbox solid_proxy_handler.rs:986-998
+        CS->>PP: provision_pod(storage, plan) solid_proxy_handler.rs:1007
         PP->>FS: write profile card, root acl, each container
         alt provision_pod partial failure
             PP-->>CS: Err(e)
-            CS->>CS: warn, continue with manual structure creation solid_proxy_handler.rs:1006-1011
+            CS->>CS: warn, continue with manual structure creation solid_proxy_handler.rs:1014-1019
         else success
             PP-->>CS: Ok(outcome), webid, containers_created
         end
-        CS-->>EP: PodStructure solid_proxy_handler.rs:1088
+        CS-->>EP: PodStructure solid_proxy_handler.rs:1096
         EP-->>R: created=true
     end
-    R-->>CL: 200 in both branches, JSON pod_url, webid, created, structure solid_proxy_handler.rs:1369-1375
+    R-->>CL: 200 in both branches, JSON pod_url, webid, created, structure solid_proxy_handler.rs:1377-1383
 
-    Note over EP,CS: OPEN (source tracing): both structure builders pass pod_base, which already ends<br/>in the npub (solid_proxy_handler.rs:975, :1155), to pod_structure, which appends<br/>the npub again (solid_proxy_handler.rs:287-288, called :1088 and :1174).<br/>The pods/check path passes the bare base (:1264). Init therefore reports<br/>base/npub/npub/... container paths. Not exercised at runtime in this audit
+    Note over EP,CS: OPEN (source tracing): both structure builders pass pod_base, which already ends<br/>in the npub (solid_proxy_handler.rs:983, :1163), to pod_structure, which appends<br/>the npub again (solid_proxy_handler.rs:295-296, called :1096 and :1182).<br/>The pods/check path passes the bare base (:1272). Init therefore reports<br/>base/npub/npub/... container paths. Not exercised at runtime in this audit
     Note over AU: Separate agentbox-side path (management-api), same solid-pod-rs<br/>server, different call: AU calls POST /_admin/provision/pubkey on<br/>solid-pod-rs-server admin-users.js:43, PSK-gated by SOLID_ADMIN_KEY admin-users.js:30, :37-38
     Note over AU: DRIFT RESOLVED: agentbox/docs/user/multi-user-pods.md now says provision<br/>is implemented and only suspend and archive are 501 (multi-user-pods.md:85-93).<br/>Code agrees: provision answers 201 admin-users.js:192, suspend admin-users.js:241-243<br/>and archive admin-users.js:257-259 return 501
-    Note over AU: sovereign_mesh.multi_user defaults off agentbox.toml:254-255,<br/>git auto_init true agentbox.toml:246 wires a git repo per pod via<br/>ensurePodGit admin-users.js:112 unless GIT_POD_ENABLED is false admin-users.js:33
+    Note over AU: sovereign_mesh.multi_user defaults off agentbox.toml:253-254,<br/>git auto_init true agentbox.toml:245 wires a git repo per pod via<br/>ensurePodGit admin-users.js:112 unless GIT_POD_ENABLED is false admin-users.js:33
 ```
 
-**Open (doubled npub in the init response):** both structure builders pass a `pod_base` that already ends in the npub (`../project/src/handlers/solid_proxy_handler.rs:975`, `:1155`) to `pod_structure`, which appends the npub again (`../project/src/handlers/solid_proxy_handler.rs:287-288`, called at `:1088` and `:1174`), while `pods/check` passes the bare base (`:1264`). The `PodStructure` the client writes preferences under would therefore name `base/npub/npub/...`. Traced in source only and not exercised.
+**Open (doubled npub in the init response):** both structure builders pass a `pod_base` that already ends in the npub (`../project/src/handlers/solid_proxy_handler.rs:983`, `:1163`) to `pod_structure`, which appends the npub again (`../project/src/handlers/solid_proxy_handler.rs:295-296`, called at `:1096` and `:1182`), while `pods/check` passes the bare base (`:1272`). The `PodStructure` the client writes preferences under would therefore name `base/npub/npub/...`. Traced in source only and not exercised.
 
 ## ES-08.6 PATCH — N3 Patch and SPARQL-Update on an N-Triples graph, JSON Patch only for absent resources
 
@@ -279,57 +281,57 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Caller
-    participant H as handle_patch<br/>solid_proxy_handler.rs:744
+    participant H as handle_patch<br/>solid_proxy_handler.rs:752
     participant D as patch_dialect_from_mime<br/>solid_pod_rs::ldp, imported solid_proxy_handler.rs:54-58
     participant G as Graph::parse_ntriples<br/>solid_pod_rs::ldp
     participant FS as FsBackend storage
 
     C->>H: PATCH /solid/tail, Content-Type header, body
-    H->>D: patch_dialect_from_mime(content_type) solid_proxy_handler.rs:756
+    H->>D: patch_dialect_from_mime(content_type) solid_proxy_handler.rs:764
     alt unsupported content type
         D-->>H: None
-        H-->>C: 415 Unsupported patch format solid_proxy_handler.rs:758-766
+        H-->>C: 415 Unsupported patch format solid_proxy_handler.rs:766-774
     else recognised dialect
-        D-->>H: N3 or SparqlUpdate or JsonPatch solid_proxy_handler.rs:757
+        D-->>H: N3 or SparqlUpdate or JsonPatch solid_proxy_handler.rs:765
     end
-    H->>H: non-UTF-8 body is 400 Invalid patch body solid_proxy_handler.rs:769-777
+    H->>H: non-UTF-8 body is 400 Invalid patch body solid_proxy_handler.rs:777-785
 
-    H->>FS: storage.get(path) fetch current resource solid_proxy_handler.rs:780
+    H->>FS: storage.get(path) fetch current resource solid_proxy_handler.rs:788
     alt resource exists
         FS-->>H: current_body, meta
-        H->>G: Graph::parse_ntriples(current_str) solid_proxy_handler.rs:786
-        Note over H,G: a body that is not N-Triples (Turtle, JSON-LD) fails to parse and is<br/>REPLACED by an empty graph solid_proxy_handler.rs:788
+        H->>G: Graph::parse_ntriples(current_str) solid_proxy_handler.rs:794
+        Note over H,G: a body that is not N-Triples (Turtle, JSON-LD) fails to parse and is<br/>REPLACED by an empty graph solid_proxy_handler.rs:796
         alt dialect is N3
-            H->>H: apply_n3_patch(graph, patch_str) solid_proxy_handler.rs:792
+            H->>H: apply_n3_patch(graph, patch_str) solid_proxy_handler.rs:800
         else dialect is SparqlUpdate
-            H->>H: apply_sparql_patch(graph, patch_str) solid_proxy_handler.rs:793
+            H->>H: apply_sparql_patch(graph, patch_str) solid_proxy_handler.rs:801
         else dialect is JsonPatch
-            H-->>C: 415 JSON Patch not supported for RDF resources solid_proxy_handler.rs:794-800
+            H-->>C: 415 JSON Patch not supported for RDF resources solid_proxy_handler.rs:802-808
         end
         alt patch applies
-            H->>FS: put(path, new_body ntriples, application/n-triples) solid_proxy_handler.rs:806-812
+            H->>FS: put(path, new_body ntriples, application/n-triples) solid_proxy_handler.rs:814-820
             FS-->>H: meta with etag
-            H-->>C: 200, ETag header solid_proxy_handler.rs:814-817
+            H-->>C: 200, ETag header solid_proxy_handler.rs:822-825
         else patch fails
-            H-->>C: 422 Patch failed solid_proxy_handler.rs:828-831
+            H-->>C: 422 Patch failed solid_proxy_handler.rs:836-839
         end
     else resource absent
         FS-->>H: PodError::NotFound
-        H->>H: apply_patch_to_absent(dialect, patch_str) solid_proxy_handler.rs:836
+        H->>H: apply_patch_to_absent(dialect, patch_str) solid_proxy_handler.rs:844
         alt create succeeds
-            H->>FS: put(path, new_graph ntriples) solid_proxy_handler.rs:844-846
-            H-->>C: 201 Created, ETag header solid_proxy_handler.rs:848-851
+            H->>FS: put(path, new_graph ntriples) solid_proxy_handler.rs:852-854
+            H-->>C: 201 Created, ETag header solid_proxy_handler.rs:856-859
         else create fails
-            H-->>C: 422 Patch-to-absent failed solid_proxy_handler.rs:862-865
+            H-->>C: 422 Patch-to-absent failed solid_proxy_handler.rs:870-873
         end
     end
 
-    Note over H: LANDED at the embedded VisionClaw path: N3 Patch and SPARQL-Update apply<br/>against a parsed RDF graph (imports solid_proxy_handler.rs:54-58, apply :792-793).<br/>Non-destructive only for a resource already stored as N-Triples
-    Note over C,FS: JSON Patch dialect is accepted by patch_dialect_from_mime<br/>but rejected for existing resources solid_proxy_handler.rs:794-800, only usable<br/>via apply_patch_to_absent on a not-yet-existing resource
+    Note over H: LANDED at the embedded VisionClaw path: N3 Patch and SPARQL-Update apply<br/>against a parsed RDF graph (imports solid_proxy_handler.rs:54-58, apply :800-801).<br/>Non-destructive only for a resource already stored as N-Triples
+    Note over C,FS: JSON Patch dialect is accepted by patch_dialect_from_mime<br/>but rejected for existing resources solid_proxy_handler.rs:802-808, only usable<br/>via apply_patch_to_absent on a not-yet-existing resource
     Note over H: agentbox/docs/user/solid-pod.md:56 PATCH dialects table<br/>N3 Patch, SPARQL-Update, JSON Patch matches this handler's dialect set
 ```
 
-**Tension (PATCH on a non-N-Triples resource):** `Graph::parse_ntriples` returns an error on the first line that is not an N-Triples statement (`../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs:826-837`, read at the `v0.5.0-alpha.22` tag, commit `bc6d9d8`; VisionClaw now requires the crates.io alpha.22 version, and the match between that published crate and this commit was not checked), and the handler turns that error into an empty graph (`../project/src/handlers/solid_proxy_handler.rs:786-789`). A PATCH against a Turtle or JSON-LD resource, which is what `putResource` writes by default (`../project/client/src/services/solidPod/ldpClient.ts:153-157`), therefore stores only the patch's own triples as `application/n-triples` (`../project/src/handlers/solid_proxy_handler.rs:805-812`) and drops the previous content. The VisionClaw client never sends PATCH (ES-08.3), so no in-repo caller hits this; any other Solid client could. This was traced in source only and not reproduced. Closing it means refusing the PATCH (409 or 415) when the stored body does not parse, or parsing by the stored content type.
+**Tension (PATCH on a non-N-Triples resource):** `Graph::parse_ntriples` returns an error on the first line that is not an N-Triples statement (`../solid-pod-rs/crates/solid-pod-rs/src/ldp.rs:906-917`, read at solid-pod-rs `a28a748`; the function body is unchanged from the `v0.5.0-alpha.22` tag, commit `bc6d9d8`, the version VisionClaw requires from crates.io, and the match between that published crate and the tag was not checked), and the handler turns that error into an empty graph (`../project/src/handlers/solid_proxy_handler.rs:794-797`). A PATCH against a Turtle or JSON-LD resource, which is what `putResource` writes by default (`../project/client/src/services/solidPod/ldpClient.ts:153-157`), therefore stores only the patch's own triples as `application/n-triples` (`../project/src/handlers/solid_proxy_handler.rs:813-820`) and drops the previous content. The VisionClaw client never sends PATCH (ES-08.3), so no in-repo caller hits this; any other Solid client could. This was traced in source only and not reproduced. Closing it means refusing the PATCH (409 or 415) when the stored body does not parse, or parsing by the stored content type.
 
 ## ES-08.7 Client pod resource model
 
@@ -403,20 +405,20 @@ classDiagram
     AclEntry ..> AclMode : modes are a subset, never Control
 
     note for PodStructure "SolidPodService.ts:75-82, one container per<br/>pod facet, agent memory containers are agents<br/>slash agentId slash memory not modelled here<br/>agentMemoryContainerPath agentMemory.ts:41"
-    note for TypeIndexDocument "typeIndex.ts:44, public Type Index at<br/>settingsBase publicTypeIndex.jsonld :74, ensurePublicTypeIndex:69.<br/>DEBT: settingsBase is cut at the first /settings/ typeIndex.ts:70-73,<br/>but the caller passes the preferences container SolidPodService.ts:447,<br/>which has no /settings/ segment solid_proxy_handler.rs:294"
+    note for TypeIndexDocument "typeIndex.ts:44, public Type Index at<br/>settingsBase publicTypeIndex.jsonld :74, ensurePublicTypeIndex:69.<br/>DEBT: settingsBase is cut at the first /settings/ typeIndex.ts:70-73,<br/>but the caller passes the preferences container SolidPodService.ts:447,<br/>which has no /settings/ segment solid_proxy_handler.rs:302"
     note for AclEntry "wacManager.ts:16, modes typed Read, Write or Append wacManager.ts:20,<br/>AclMode :14 adds Control, buildAclTurtle :30 grants owner Read Write Control :46<br/>and the agent its requested modes only :54,<br/>written by writeContainerAcl wacManager.ts:69-76"
 ```
 
-**Debt (public Type Index path):** `ensurePublicTypeIndex` cuts its path at the first `/settings/` (`../project/client/src/services/solidPod/typeIndex.ts:70-73`). Its caller passes the preferences container (`../project/client/src/services/SolidPodService.ts:447`), which never contains that segment (`../project/src/handlers/solid_proxy_handler.rs:294`), so `indexOf` returns -1 and the Type Index lands at a nine-character prefix of the path. Traced in source only.
+**Debt (public Type Index path):** `ensurePublicTypeIndex` cuts its path at the first `/settings/` (`../project/client/src/services/solidPod/typeIndex.ts:70-73`). Its caller passes the preferences container (`../project/client/src/services/SolidPodService.ts:447`), which never contains that segment (`../project/src/handlers/solid_proxy_handler.rs:302`), so `indexOf` returns -1 and the Type Index lands at a nine-character prefix of the path. Traced in source only.
 
 ## ES-08.8 Supervised solid-pod service lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> STOPPED : block emitted only when gated flake.nix:2894, solid-pod block flake.nix:2896-2905, https-bridge block flake.nix:2911-2922
-    STOPPED --> STARTING : autostart true, flake.nix:2901
+    [*] --> STOPPED : block emitted only when gated flake.nix:2918, solid-pod block flake.nix:2920-2929, https-bridge block flake.nix:2935-2946
+    STOPPED --> STARTING : autostart true, flake.nix:2925
     STARTING --> RUNNING : solidPodRsLauncher exec succeeds
-    STARTING --> BACKOFF : exec fails within startsecs, supervisord default, none set flake.nix:2896-2905
+    STARTING --> BACKOFF : exec fails within startsecs, supervisord default, none set flake.nix:2920-2929
     BACKOFF --> STARTING : autorestart true, retry
     BACKOFF --> FATAL : retries exceed startretries
     RUNNING --> EXITED : process exits zero or signal
@@ -480,26 +482,27 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     autonumber
-    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:927
-    participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:403
-    participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:81
-    participant P1 as pull_once<br/>src/services/ontology_pull.rs:303
-    participant REL as "GitHub release ontology-latest"<br/>src/services/ontology_pull.rs:43
+    participant M as "server boot (solid-pod-embed)"<br/>src/main.rs:911
+    participant SP as spawn_boot_pull<br/>src/services/ontology_pull.rs:446
+    participant CFG as OntologyPullConfig::from_env<br/>src/services/ontology_pull.rs:88
+    participant P1 as pull_once<br/>src/services/ontology_pull.rs:346
+    participant REL as "release directory, code default GitHub ontology-latest"<br/>src/services/ontology_pull.rs:50
     participant ST as "pod Storage (FsBackend)"
 
     M->>SP: spawn_boot_pull(Arc::clone(solid_state.storage))
-    SP->>CFG: read ONTOLOGY_PULL_ENABLED / _URL / _TIMEOUT_SECS / _INTERVAL_SECS<br/>ontology_pull.rs:81-104
+    SP->>CFG: read ONTOLOGY_PULL_ENABLED / _URL / _TIMEOUT_SECS / _INTERVAL_SECS<br/>ontology_pull.rs:88-111
     alt disabled
-        SP-->>M: log "ontology pull disabled" and return<br/>ontology_pull.rs:408-409
+        SP-->>M: log "ontology pull disabled" and return<br/>ontology_pull.rs:451-452
     end
-    SP->>P1: loop { pull_once — sleep(interval) } — break when interval None<br/>ontology_pull.rs:420-424
-    P1->>REL: GET index.jsonld<br/>ontology_pull.rs:317
-    P1->>ST: read the pod's stored manifest, compare buildSha and sourceSha, plus active-generation check<br/>ontology_pull.rs:320-327
+    SP->>SP: fetcher_for: file:// base URL reads the directory (FileFetch), anything else HttpFetch<br/>ontology_pull.rs:184-189, called at :456
+    SP->>P1: loop { pull_once — sleep(interval) } — break when interval None<br/>ontology_pull.rs:466-473
+    P1->>REL: read index.jsonld<br/>ontology_pull.rs:360
+    P1->>ST: read the pod's stored manifest, compare buildSha and sourceSha, plus active-generation check<br/>ontology_pull.rs:363-370
     alt buildSha and sourceSha unchanged AND active atomic generation exists
         P1-->>SP: UpToDate, no mutation
     end
-    P1->>REL: GET SHA256SUMS and four content resources<br/>ontology_pull.rs:334-340
-    P1->>P1: Verify content hashes and manifest hash<br/>ontology_pull.rs:336-351
+    P1->>REL: read SHA256SUMS and four content resources<br/>ontology_pull.rs:377-383
+    P1->>P1: Verify content hashes and manifest hash<br/>ontology_pull.rs:379-394
     Note over P1,ST: Preserve existing ACL, an existence-probe error aborts.<br/>Verified resources are staged as an immutable generation,<br/>then fsynced before atomic pointer activation.
     P1->>ST: publish_ontology five resources<br/>ontology_generation.rs:216
     ST->>ST: Sync content/sidecars, generation directory and pending pointer<br/>publish_with_failure ontology_generation.rs:127, syncs :178-199
@@ -507,7 +510,9 @@ sequenceDiagram
     P1-->>SP: Updated only after publication returns success
     Note over P1,ST: Pre-activation failures retain the old generation after restart.<br/>Post-rename root-sync failure means durability unknown,<br/>but visible resources still belong to a complete generation.
     Note over M,REL: Pull remains asynchronous and logs failures.<br/>Canonical manifest exposes visionflow:generation, browser pins<br/>JSON-LD/Turtle reads to immutable @generation paths.<br/>Pinned paths reuse canonical ACLs. Unpinned requests may straddle activation.
-    Note over REL: EXTERNAL — the release is produced by the VisionClaw<br/>ontology-publish workflow from the jjohare/visionGraph vault.<br/>Delivery was INVERTED from a CI push to this boot pull because<br/>deploy-jss could never reach an in-process pod from a hosted<br/>runner. see ES-09.13, and VG-04.1 / VG-04.3 for the vault side.
+    Note over REL: The dev service defaults ONTOLOGY_PULL_URL to file:///vault/.ontology-release/current,<br/>a release built locally from the vault checkout (ADR-2106 amendment 2026-11-16),<br/>docker-compose.unified.yml:134-141. visionclaw-production sets no URL, so it keeps the GitHub code default.
+    Note over REL: DIVERGENCE — since 2026-11-16 the GitHub release is rebuilt only by manual dispatch (see ES-09.13),<br/>so the production pod pulls a release that no corpus publish refreshes
+    Note over REL: EXTERNAL — the GitHub release is produced by the VisionClaw<br/>ontology-publish workflow from the jjohare/visionGraph vault.<br/>Delivery was INVERTED from a CI push to this boot pull because<br/>deploy-jss could never reach an in-process pod from a hosted<br/>runner. see ES-09.13, and VG-04.1 / VG-04.3 for the vault side.
 ```
 
 The 2026-09-07 audit distinguishes ES-08.9's missing cross-store erasure dispatch from HNSW index degradation. This source path demonstrates neither bulk vector deletion nor degraded recall. ES-08.11 now documents the implemented generation boundary and pinned browser reads. Old unpinned consumers can still straddle activation; post-rename fsync failure does not imply the old pointer survived. The durable reconciliation journal has no production destructive adapters: subject/authority mappings and live erasure acceptance remain outstanding. See the [federation audit](../../estate-review/2026-09-07-federation-audit.md).
@@ -537,7 +542,7 @@ flowchart TB
     TXO --> PRE
 
     NOTLIVE["STATUS — decision_status proposed, implementation_status PARTIAL<br/>on both records: owner decision Q17 (2026-10-02) ordered the crypto items<br/>done under D2's pinned golden fixtures; D1 and D6 landed, D4, D5, D7, D8 not built<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:5-7, ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:133-172,<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:5-7. The crate record says staged<br/>and unreleased, the forum record inactive. see ES-03.11"]
-    DRIFT["DRIFT — D1 and D6 are released and included in both consumer source pins:<br/>VisionClaw alpha.22 (crate) and Agentbox alpha.22 (Nix rev).<br/>Release ancestry corrects the record's unreleased wording.<br/>It does not establish running-image activation.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7,135<br/>agentbox/lib/solid-pod-rs.nix:66,69"]
+    DRIFT["DRIFT — D1 and D6 are released and included in both consumer source pins:<br/>VisionClaw alpha.22 (crate, Cargo.toml:243) and Agentbox alpha.24 (Nix rev).<br/>Release ancestry corrects the record's unreleased wording.<br/>It does not establish running-image activation.<br/>ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7,135<br/>agentbox/lib/solid-pod-rs.nix:66,72"]
     NOTLIVE --> DRIFT
     PORT --> NOTLIVE
 
@@ -545,32 +550,32 @@ flowchart TB
     CRYPTO --> THREE
 ```
 
-**Drift (ADR-2008 release status):** the record says D1 and D6 landed on `main` unreleased and keeps `activation_status: staged` (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7`, `../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:135`). Its repair commits `0befa5b` and `e62d028` are ancestors of the alpha.22 release that both consumers pin, VisionClaw as a crates.io version and Agentbox as a Nix rev (`../project/Cargo.toml:240`, `../project/agentbox/lib/solid-pod-rs.nix:66,69`). The unreleased wording is stale. Release ancestry alone does not settle the recorded activation status or prove which image is running.
+**Drift (ADR-2008 release status):** the record says D1 and D6 landed on `main` unreleased and keeps `activation_status: staged` (`../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:7`, `../solid-pod-rs/crates/solid-pod-rs/docs/adr/ADR-2008-port-bitcoin-tx-to-rust-bitcoin-and-make-the-web-ledger-a-chain-view.md:135`). Its repair commits `0befa5b` and `e62d028` are ancestors of the alpha.22 release VisionClaw pins as a crates.io version (`../project/Cargo.toml:243`), and so of the alpha.24 release Agentbox pins as a Nix rev (`../project/agentbox/lib/solid-pod-rs.nix:66,72`). The unreleased wording is stale. Release ancestry alone does not settle the recorded activation status or prove which image is running.
 
 ## ES-08.13 Forge and mirror in the native pod — compiled in, inert until named (ADR-2145)
 
 ```mermaid
 flowchart TB
-    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1702, agentbox/lib/solid-pod-rs.nix:66,69"]
-    SRV["solid-pod-rs-server under supervisord, port 8484<br/>--public-base-url from SOLID_POD_PUBLIC_URL, --trust-proxy by default<br/>agentbox/flake.nix:1782-1783"]
-    FORGE["git forge under /forge, NIP-34 publisher,<br/>forge-held anchoring, started at boot; the kind-30618 mirror is compiled in<br/>but needs a non-empty follow list, which the source manifest does not supply<br/>agentbox/agentbox.toml:603-608"]
-    OFF["defaults: allow_mainnet false, open_edit false, private_repos false,<br/>mirror_follow empty, announce_relays empty<br/>agentbox/agentbox.toml:609-622"]
-    JEV["System One consumer solid_pod_advisories = true agentbox/agentbox.toml:949: adds the jev Cargo feature agentbox/flake.nix:1692-1693<br/>and exports SOLID_POD_JEV=1 with SOLID_POD_JEV_ALLOW_CLOUD=1 unless [system_one].local_only names it<br/>agentbox/services/agentbox-manifest/src/system_one.rs:554-558, agentbox/services/agentbox-manifest/src/system_one.rs:594-618;<br/>the server reranks the forge's already-authorised repo and issue listings through the proxy, falling back to the forge's own bytes<br/>solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5494-5513, solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:153-181"]
-    ENV["extra relays and follow entries belong in the root .env,<br/>not the tracked manifest<br/>agentbox/agentbox.toml:623-625"]
+    PIN["native pod built from a pinned source revision,<br/>forge-full unless the forge block sets enable false<br/>agentbox/flake.nix:1726, agentbox/lib/solid-pod-rs.nix:66,72"]
+    SRV["solid-pod-rs-server under supervisord, port 8484<br/>--public-base-url from SOLID_POD_PUBLIC_URL, --trust-proxy by default<br/>agentbox/flake.nix:1806-1807"]
+    FORGE["git forge under /forge, NIP-34 publisher,<br/>forge-held anchoring, started at boot; the kind-30618 mirror is compiled in<br/>but needs a non-empty follow list, which the source manifest does not supply<br/>agentbox/agentbox.toml:602-607"]
+    OFF["defaults: allow_mainnet false, open_edit false, private_repos false,<br/>mirror_follow empty, announce_relays empty<br/>agentbox/agentbox.toml:608-621"]
+    JEV["System One consumer solid_pod_advisories = true agentbox/agentbox.toml:974: adds the jev Cargo feature agentbox/flake.nix:1716-1717.<br/>CHANGED: [system_one].local_only now names it, agentbox/agentbox.toml:940, so SOLID_POD_JEV is 1 only with a local backend<br/>and SOLID_POD_JEV_ALLOW_CLOUD is 0<br/>agentbox/services/agentbox-manifest/src/system_one.rs:554-558, agentbox/services/agentbox-manifest/src/system_one.rs:594-618;<br/>the server reranks the forge's already-authorised repo and issue listings through the proxy, falling back to the forge's own bytes<br/>solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:6395-6414, solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:153-181"]
+    ENV["extra relays and follow entries belong in the root .env,<br/>not the tracked manifest<br/>agentbox/agentbox.toml:622-624"]
     PIN --> SRV --> FORGE
     FORGE --> OFF
     SRV -.->|"jev feature, local-only unless ALLOW_CLOUD=1"| JEV
     ENV -.->|"names what the mirror follows"| FORGE
-    NOANCHOR["INVARIANT: the forge never broadcasts or spends<br/>agentbox/agentbox.toml:608"]
+    NOANCHOR["INVARIANT: the forge never broadcasts or spends<br/>agentbox/agentbox.toml:607"]
     FORGE --> NOANCHOR
 ```
 
-**What it shows:** the native pod build enables the forge and compiles the mirror. The source manifest leaves the follow list empty: `mirror_config` returns `None` unless at least one relay and one follow entry survive (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5321-5342`), and only `Some` builds the mirror (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5382-5389`). Agentbox now pins alpha.22 at `bc6d9d8` (`../project/agentbox/lib/solid-pod-rs.nix:66,69`); the cited server, Jev and LDP files are byte-identical to the alpha.21 source used by VisionClaw. This source comparison does not re-establish a running pod's configuration.
+**What it shows:** the native pod build enables the forge and compiles the mirror. The source manifest leaves the follow list empty: `mirror_config` returns `None` unless at least one relay and one follow entry survive (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:6160-6181`), and only `Some` builds the mirror (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:6248-6249`). Agentbox now pins alpha.24 at `eb22d21` (`../project/agentbox/lib/solid-pod-rs.nix:66,72`); the cited server, Jev and LDP files are read at solid-pod-rs `a28a748`, one dependency commit past that tag, and are byte-identical to alpha.24. VisionClaw still requires alpha.22 (`../project/Cargo.toml:243`), whose server and LDP files differ. This source comparison does not re-establish a running pod's configuration.
 
 **Why it is this way:** VisionFlow ADR-2019 decided that shipped pods run the forge and mirror with open edit, mainnet and any follow list opt-in, and agentbox ADR-2145 compiled it in behind the manifest block rather than a separate service.
 
-**Tension (agentbox ADR-2145 vs BASELINE-container):** ADR-2145 retains `implementation_status: complete` and `activation_status: live` for its existing capability boundary (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:6-7`), while the baseline still names alpha.17 and says staged until rebuild (`../project/agentbox/docs/BASELINE-container.md:283`, `../project/agentbox/docs/BASELINE-container.md:288-289`). The ADR's newer alpha.22 source check separately leaves that pin's runtime acceptance to a rebuild (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:26-32`). VisionFlow ADR-2019 remains accepted, partial and live (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:5-7`). These records do not establish a fresh alpha.22 deployment.
+**Tension (agentbox ADR-2145 vs BASELINE-container):** ADR-2145 retains `implementation_status: complete` and `activation_status: live` for its existing capability boundary (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:6-7`), while the baseline still names alpha.17 and says staged until rebuild (`../project/agentbox/docs/BASELINE-container.md:291`, `../project/agentbox/docs/BASELINE-container.md:296-297`). The ADR's alpha.22 source check leaves that pin's runtime acceptance to a rebuild (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:45-51`), and its alpha.23 and alpha.24 notes say no image was built (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:273,277`). The alpha.23 note also records that a compiled-in forge that cannot start now stops the whole pod at boot (`../project/agentbox/docs/adr/ADR-2145-the-solid-pod-forge-and-mirror-are-compiled-in-and-inert-until-named.md:273`). VisionFlow ADR-2019 remains accepted, partial and live (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:5-7`). These records do not establish a fresh alpha.24 deployment.
 
-**Open (ADR-2019 stays partial):** the 2026-10-30 close-out found `FORGE_MIRROR_FOLLOW` empty in the running pod, so no `mirror on kind-30618` line (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:5387`) is logged and the shipped follow list (the operator's own key) is not wired. Closing it is an agentbox change to the pod launcher, and the record's `review_trigger` names it as the event that completes ADR-2019 (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:13`). The running-pod observation is the close-out's; this audit did not inspect the pod.
+**Open (ADR-2019 stays partial):** the 2026-10-30 close-out found `FORGE_MIRROR_FOLLOW` empty in the running pod, so no `mirror on kind-30618` line (`../solid-pod-rs/crates/solid-pod-rs-server/src/lib.rs:6218`) is logged and the shipped follow list (the operator's own key) is not wired. Closing it is an agentbox change to the pod launcher, and the record's `review_trigger` names it as the event that completes ADR-2019 (`docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:13`). The running-pod observation is the close-out's; this audit did not inspect the pod.
 
-**Drift:** Agentbox's pod guide still names alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) and its baseline alpha.17 (`../project/agentbox/docs/BASELINE-container.md:283`), while its Nix source pin is alpha.22 at `bc6d9d8` (`../project/agentbox/lib/solid-pod-rs.nix:66,69`). VisionClaw's embedded dependency is now alpha.22 as well (`../project/Cargo.toml:240`). The consumers therefore select the same release by different routes, registry crate and Nix rev, and the files cited in this topic are unchanged between alpha.21 and alpha.22. The configured cloud opt-in and the server's local-only default remain distinct (`../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:24-33`).
+**Drift:** Agentbox's pod guide still names alpha.13 (`../project/agentbox/docs/user/solid-pod.md:37`) and its baseline alpha.17 (`../project/agentbox/docs/BASELINE-container.md:291`), while its Nix source pin is alpha.24 at `eb22d21` (`../project/agentbox/lib/solid-pod-rs.nix:66,72`). VisionClaw's embedded dependency stays at alpha.22 (`../project/Cargo.toml:243`). The two consumers therefore select different releases, by different routes, registry crate and Nix rev: the cited server and LDP files changed between alpha.22 and alpha.24. The server's local-only default (`../solid-pod-rs/crates/solid-pod-rs-server/src/jev.rs:24-33`) now matches the Agentbox configuration, which names `solid_pod_advisories` in `local_only` (`../project/agentbox/agentbox.toml:940`).

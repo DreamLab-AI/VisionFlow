@@ -45,7 +45,7 @@ sources:
   - ../project/agentbox/management-api/lib/junkiejarvis-clarify.js
   - ../project/agentbox/services/agentbox-manifest/tests/golden/live-agentbox.toml
   - ../project/agentbox/scripts/experiments/exp-b8-label-log.cjs
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-05.1 GET /v1/system — catalogue plus live introspection
@@ -83,7 +83,7 @@ sequenceDiagram
     Note over BV: counts block emits core, surfaces_on, surfaces, modules_on, modules (system-manifest.js:598-604)
     Note over BV,AD: RESOLVED ADR-2036: system-manifest.js:533 reads<br/>"every dispatch wrapped by observability → privacy redaction<br/>(ADR-2036). JSON-LD encoding is a per-surface gated stage<br/>invoked by the owning route, not a dispatch layer" — see AB-04.4
     Note over ST: stateOf first consults entry.requires (system-manifest.js:477) and a false<br/>parent gate (system-manifest.js:479) before the multi-gate and scalar branches
-    Note over R: since this revision server.js hands the route a lazy, fail-open action-plane snapshot,<br/>so the execution block reports live once POST /v1/tasks has built it, declared before (server.js:1029-1040)
+    Note over R: since this revision server.js hands the route a lazy, fail-open action-plane snapshot,<br/>so the execution block reports live once POST /v1/tasks has built it, declared before (server.js:1048-1059)
     Note over R: sibling route GET /v1/system/audit-chain verifies the hash-chained events JSONL (routes/system.js:65)
 ```
 
@@ -152,7 +152,7 @@ flowchart TD
     TOML --> E3["NEW ADR-2107/ADR-2108: catalogue entry 'vault-cli'<br/>gate vault.cli — apply_class REBUILD<br/>system-manifest.js:415-417"]
     E1 --> WHY1["root/pages/format are read ONCE by the entrypoint<br/>at container start — a restart picks them up"]
     E2 --> WHY2["tui decides the Nix package set (ADR-2029)<br/>none to rune needs ./agentbox.sh rebuild, not a restart"]
-    E3 --> WHY3["cli bakes vault and ontomark together (flake.nix:1053-1057);<br/>ontomark owns corpus reads and edits,<br/>vault retains propose and panel publish (flake.nix:1046-1049)"]
+    E3 --> WHY3["cli bakes vault and ontomark together (flake.nix:1076-1080);<br/>ontomark owns corpus reads and edits,<br/>vault retains propose and panel publish (flake.nix:1069-1072)"]
     E3 --> LIVE["boot Phase 5d(ii) liveness gate runs vault --version<br/>and prints a rebuild notice on failure — entrypoint-unified.sh:1172-1205"]
     E1 --> SPLIT["ADR-039 honesty rule — one entry claiming 'boot' for both<br/>would tell an operator that flipping tui and restarting<br/>gets them the Rune TUI. It does not.<br/>system-manifest.js:403-408"]
     E2 --> SPLIT
@@ -165,31 +165,31 @@ flowchart TD
     VB --> VB6["env_root, env_pages, env_working_pages, env_transcripts<br/>read from the process the container actually booted with — system-manifest.js:559-562"]
     VB6 --> DRIFT["drift = root set AND VAULT_ROOT set AND they differ<br/>system-manifest.js:563"]
     DRIFT --> DOC["so /v1/system and the doctor can show manifest-vs-running drift"]
-    TOML -.-> DIV["RESOLVED 2026-10-31 — BASELINE 'Vault compatibility and Notes qualification'<br/>used to record ADR-2028 as partial because a legacy ONTOLOGY_PAGES_DIR override survived<br/>a disabled vault. The override and its opt-in are removed, VAULT_* is the only path source<br/>(BASELINE-container.md:347, entrypoint-unified.sh:77-84). See AB-02.14"]
+    TOML -.-> DIV["RESOLVED 2026-10-31 — BASELINE 'Vault compatibility and Notes qualification'<br/>used to record ADR-2028 as partial because a legacy ONTOLOGY_PAGES_DIR override survived<br/>a disabled vault. The override and its opt-in are removed, VAULT_* is the only path source<br/>(BASELINE-container.md:356, entrypoint-unified.sh:77-84). See AB-02.14"]
 ```
 
 ## AB-05.5 agentbox.sh top-level subcommand dispatch
 ```mermaid
 flowchart LR
-    ARG["arg parse loop<br/>agentbox.sh:2034-2055"] --> AL{"subcommand in the<br/>allowlist at agentbox.sh:2044?"}
-    AL -->|no| ERR["Unknown command then usage then exit 1<br/>agentbox.sh:2050-2053"]
-    AL -->|yes| CASE["execute case CMD<br/>agentbox.sh:2857-2899"]
-    CASE --> G1["access: ssh agentbox.sh:2858, vnc agentbox.sh:2859, browser agentbox.sh:2860,<br/>code agentbox.sh:2861, api agentbox.sh:2862, all agentbox.sh:2863, status agentbox.sh:2864, ip agentbox.sh:2865"]
-    CASE --> G2["lifecycle: up agentbox.sh:2871, down agentbox.sh:2872, build agentbox.sh:2873,<br/>NEW prepare agentbox.sh:2874, NEW activate agentbox.sh:2875 (ADR-2132),<br/>rebuild agentbox.sh:2876, update agentbox.sh:2877, NEW security agentbox.sh:2878 (ADR-2137, see the Debt below)"]
-    CASE --> G3["provisioning: provision agentbox.sh:2866, setup agentbox.sh:2867,<br/>start-browser agentbox.sh:2868, migrate-workspace agentbox.sh:2895,<br/>migrate-claude-home ADR-2118 agentbox.sh:2896, preflight agentbox.sh:2897"]
-    CASE --> G4["data: backup agentbox.sh:2869, restore agentbox.sh:2870,<br/>ruvector agentbox.sh:2879, ruvnet-brain agentbox.sh:2880"]
-    CASE --> G5["observe: logs agentbox.sh:2881, shell agentbox.sh:2882, health agentbox.sh:2883"]
-    CASE --> G6["sidecars: browsercontainer agentbox.sh:2884, gui-tools agentbox.sh:2885,<br/>NEW isaac-sim agentbox.sh:2886 (ADR-2149), openmed agentbox.sh:2887, voice agentbox.sh:2888,<br/>NEW config agentbox.sh:2889 (plan, validate), systemone agentbox.sh:2890 ADR-2094,<br/>model-router agentbox.sh:2891 ADR-2080, xr-runtime agentbox.sh:2892, android agentbox.sh:2893,<br/>NEW concat agentbox.sh:2894 gated AGENTBOX_ENABLE_CONCAT=1 agentbox.sh:616-618"]
-    G2 --> RB["cmd_rebuild agentbox.sh:1085 now delegates to<br/>scripts/runtime-delivery.sh rebuild — prepare a candidate<br/>image, then scoped activation, without recreating sidecars<br/>or volumes (ADR-2132); agentbox.sh prepare agentbox.sh:2874 and<br/>activate agentbox.sh:2875 call the same flow's halves"]
+    ARG["arg parse loop<br/>agentbox.sh:2044-2065"] --> AL{"subcommand in the<br/>allowlist at agentbox.sh:2054?"}
+    AL -->|no| ERR["Unknown command then usage then exit 1<br/>agentbox.sh:2060-2063"]
+    AL -->|yes| CASE["execute case CMD<br/>agentbox.sh:2867-2909"]
+    CASE --> G1["access: ssh agentbox.sh:2868, vnc agentbox.sh:2869, browser agentbox.sh:2870,<br/>code agentbox.sh:2871, api agentbox.sh:2872, all agentbox.sh:2873, status agentbox.sh:2874, ip agentbox.sh:2875"]
+    CASE --> G2["lifecycle: up agentbox.sh:2881, down agentbox.sh:2882, build agentbox.sh:2883,<br/>NEW prepare agentbox.sh:2884, NEW activate agentbox.sh:2885 (ADR-2132),<br/>rebuild agentbox.sh:2886, update agentbox.sh:2887, NEW security agentbox.sh:2888 (ADR-2137, see the Debt below)"]
+    CASE --> G3["provisioning: provision agentbox.sh:2876, setup agentbox.sh:2877,<br/>start-browser agentbox.sh:2878, migrate-workspace agentbox.sh:2905,<br/>migrate-claude-home ADR-2118 agentbox.sh:2906, preflight agentbox.sh:2907"]
+    CASE --> G4["data: backup agentbox.sh:2879, restore agentbox.sh:2880,<br/>ruvector agentbox.sh:2889, ruvnet-brain agentbox.sh:2890"]
+    CASE --> G5["observe: logs agentbox.sh:2891, shell agentbox.sh:2892, health agentbox.sh:2893"]
+    CASE --> G6["sidecars: browsercontainer agentbox.sh:2894, gui-tools agentbox.sh:2895,<br/>NEW isaac-sim agentbox.sh:2896 (ADR-2149), openmed agentbox.sh:2897, voice agentbox.sh:2898,<br/>NEW config agentbox.sh:2899 (plan, validate), systemone agentbox.sh:2900 ADR-2094,<br/>model-router agentbox.sh:2901 ADR-2080, xr-runtime agentbox.sh:2902, android agentbox.sh:2903,<br/>NEW concat agentbox.sh:2904 gated AGENTBOX_ENABLE_CONCAT=1 agentbox.sh:616-618"]
+    G2 --> RB["cmd_rebuild agentbox.sh:1085 now delegates to<br/>scripts/runtime-delivery.sh rebuild — prepare a candidate<br/>image, then scoped activation, without recreating sidecars<br/>or volumes (ADR-2132); agentbox.sh prepare agentbox.sh:2884 and<br/>activate agentbox.sh:2885 call the same flow's halves"]
     G4 --> RV["cmd_ruvector agentbox.sh:1041<br/>exec bash scripts/ruvector-sidecar-update.sh agentbox.sh:1048 — see AB-05.6"]
     G5 --> HL["cmd_health agentbox.sh:1131 — see AB-05.7"]
     G5 --> SH["cmd_shell agentbox.sh:1111"]
     SH -.-> RES1["RESOLVED ADR-2038: cmd_shell agentbox.sh:1128 now uses<br/>cd /home/devuser/workspace/profiles/${profile} && exec fish — the old<br/>finding was that it execed the retired literal /workspace/profiles/PROFILE<br/>path (agentbox/CLAUDE.md 'Runtime model gotchas'); every other profile<br/>path in the script already used SCRIPT_DIR/workspace/profiles"]
 ```
 
-**Debt:** the `config` arm of the dispatch case (`../project/agentbox/agentbox.sh:2889`) is unreachable: the argument loop admits only the allowlisted subcommands and `config` is not among them (`../project/agentbox/agentbox.sh:2044`), so `./agentbox.sh config plan "<request>"` prints "Unknown command" although `cmd_config` exists (`../project/agentbox/agentbox.sh:2437-2443`); `scripts/config-plan.cjs` and `scripts/agentbox-config-validate.js` still run directly.
+**Debt:** the `config` arm of the dispatch case (`../project/agentbox/agentbox.sh:2899`) is unreachable: the argument loop admits only the allowlisted subcommands and `config` is not among them (`../project/agentbox/agentbox.sh:2054`), so `./agentbox.sh config plan "<request>"` prints "Unknown command" although `cmd_config` exists (`../project/agentbox/agentbox.sh:2447-2453`); `scripts/config-plan.cjs` and `scripts/agentbox-config-validate.js` still run directly.
 
-**Drift (resolved, `security` subcommand):** the `security` arm used to be unreachable because the allowlist omitted it; the allowlist at this stamp lists `security` (`../project/agentbox/agentbox.sh:2044`) and the arm runs `scripts/security-scan.sh` (`../project/agentbox/agentbox.sh:2878`), which `cmd_up --build` and `cmd_build` also call directly (`../project/agentbox/agentbox.sh:765`, `agentbox.sh:940`).
+**Drift (resolved, `security` subcommand):** the `security` arm used to be unreachable because the allowlist omitted it; the allowlist at this stamp lists `security` (`../project/agentbox/agentbox.sh:2054`) and the arm runs `scripts/security-scan.sh` (`../project/agentbox/agentbox.sh:2888`), which `cmd_up --build` and `cmd_build` also call directly (`../project/agentbox/agentbox.sh:765`, `agentbox.sh:940`).
 
 ## AB-05.6 agentbox.sh ruvector — a dispatch table split across two files
 ```mermaid
@@ -234,7 +234,7 @@ sequenceDiagram
     autonumber
     participant OP as operator
     participant SH as cmd_health<br/>agentbox.sh:1131
-    participant H as GET /health<br/>server.js:607-620
+    participant H as GET /health<br/>server.js:626-639
     participant M as GET /v1/meta<br/>localhost:9090
 
     OP->>SH: ./agentbox.sh health [--json]
@@ -258,9 +258,9 @@ sequenceDiagram
             SH-->>OP: exit 0
         end
     end
-    Note over SH,H: RESOLVED ADR-2037 — the old finding was that /health emits<br/>status, uptime, image_hash, manifest_checksum, adapters, adapter_failures,<br/>adapter_failure_files, degraded_count, note (server.js:609-619) with no services key, so a stale jq '.services // {}' read<br/>left the exit-1 branch unreachable. cmd_health now derives failure from<br/>.adapters (a slot fails when neither "healthy" nor "off", agentbox.sh:1159-1163)<br/>plus .degraded_count (agentbox.sh:1164) — exit 1 at agentbox.sh:1218-1219<br/>is reachable, and the condition now also fails on speech_failed (agentbox.sh:1205-1218).<br/>Same fix as AB-04.16
+    Note over SH,H: RESOLVED ADR-2037 — the old finding was that /health emits<br/>status, uptime, image_hash, manifest_checksum, adapters, adapter_failures,<br/>adapter_failure_files, degraded_count, note (server.js:628-638) with no services key, so a stale jq '.services // {}' read<br/>left the exit-1 branch unreachable. cmd_health now derives failure from<br/>.adapters (a slot fails when neither "healthy" nor "off", agentbox.sh:1159-1163)<br/>plus .degraded_count (agentbox.sh:1164) — exit 1 at agentbox.sh:1218-1219<br/>is reachable, and the condition now also fails on speech_failed (agentbox.sh:1205-1218).<br/>Same fix as AB-04.16
     Note over SH: BASELINE-container Adapter spine stage 4 claims agentbox.sh health exits non-zero if any slot gauge is 0 — it never reads the agentbox_adapter_health gauge at all. See AB-04.16
-    Note over H: /health self-describes as human-inspection-only and points orchestrators at /ready (server.js:618)
+    Note over H: /health self-describes as human-inspection-only and points orchestrators at /ready (server.js:637)
 ```
 
 ## AB-05.8 Artifact validation gate — the last check before exec supervisord
@@ -361,26 +361,26 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant OP as operator
-    participant AB as cmd_model_router<br/>agentbox.sh:2386
+    participant AB as cmd_model_router<br/>agentbox.sh:2396
     participant FETCH as scripts/model-router-fetch.sh
     participant CONSOLE as config/model-router/console.mjs
     participant WRAP as config/harness-wrappers/router.sh
 
     OP->>AB: ./agentbox.sh model-router <sub> [args]
-    alt sub == fetch (agentbox.sh:2391)
+    alt sub == fetch (agentbox.sh:2401)
         AB->>FETCH: exec scripts/model-router-fetch.sh "$@"
         Note right of FETCH: populates $WORKSPACE/.agentbox/model-router,<br/>hash-verified against config/model-router/artefacts.json — pre-rebuild fallback
-    else sub == check (agentbox.sh:2392)
+    else sub == check (agentbox.sh:2402)
         AB->>FETCH: exec scripts/model-router-fetch.sh --check "$@"
-    else sub == status (agentbox.sh:2393, default when sub omitted agentbox.sh:2388)
+    else sub == status (agentbox.sh:2403, default when sub omitted agentbox.sh:2398)
         AB->>CONSOLE: exec node console.mjs --status "$@"
-    else sub == route (agentbox.sh:2394-2395)
+    else sub == route (agentbox.sh:2404-2405)
         AB->>AB: require at least 1 positional arg or usage+exit 2
         AB->>CONSOLE: exec node console.mjs --once "<task>" "$@"
-    else sub == console (agentbox.sh:2396)
+    else sub == console (agentbox.sh:2406)
         AB->>WRAP: exec config/harness-wrappers/router.sh "$@"
         Note right of WRAP: same wrapper the agentbox-sessions `router` seed<br/>execs — see AB-29.3
-    else unknown (agentbox.sh:2397-2406)
+    else unknown (agentbox.sh:2407-2416)
         AB-->>OP: usage heredoc, exit 2
     end
 
@@ -392,19 +392,19 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     TOML["agentbox.toml"]
-    TOML --> F1["[features.jev_compaction] enabled = true, fallback = rules<br/>agentbox.toml:765, agentbox.toml:803, agentbox.toml:825"]
-    TOML --> F2["[features.sovereign_system_one] enabled = false<br/>agentbox.toml:995, agentbox.toml:1020"]
-    TOML --> F3["[skills.routing] router = jev, cascade, label_log<br/>label_log = false since 2026-10-04 — the bounded EXP-B8 run<br/>STOPPED (WITHDRAW, commit b1e42f148)<br/>agentbox.toml:1312, agentbox.toml:1332, agentbox.toml:1370, agentbox.toml:1384<br/>bypass_projects = [] agentbox.toml:1358 (ADR-2090, E083)"]
-    TOML --> F4["[resources] mcp_hub, hooks.shim, session_hygiene<br/>agentbox.toml:1639, agentbox.toml:1657, agentbox.toml:1669, agentbox.toml:1673"]
-    TOML --> F5["[voice] enabled = true<br/>agentbox.toml:2284-2285"]
-    TOML --> F6["NEW ADR-2116: [claude_code] permission_mode agentbox.toml:727,<br/>permission_deny agentbox.toml:736-740"]
+    TOML --> F1["[features.jev_compaction] enabled = true, fallback = rules<br/>agentbox.toml:764, agentbox.toml:802, agentbox.toml:824"]
+    TOML --> F2["[features.sovereign_system_one] enabled = false<br/>agentbox.toml:1020, agentbox.toml:1045"]
+    TOML --> F3["[skills.routing] router = jev, cascade, label_log<br/>label_log = false since 2026-10-04 — the bounded EXP-B8 run<br/>STOPPED (WITHDRAW, commit b1e42f148)<br/>agentbox.toml:1343, agentbox.toml:1363, agentbox.toml:1401, agentbox.toml:1415<br/>bypass_projects = [] agentbox.toml:1389 (ADR-2090, E083)"]
+    TOML --> F4["[resources] mcp_hub, hooks.shim, session_hygiene<br/>agentbox.toml:1673, agentbox.toml:1691, agentbox.toml:1703, agentbox.toml:1707"]
+    TOML --> F5["[voice] enabled = true<br/>agentbox.toml:2318-2319"]
+    TOML --> F6["NEW ADR-2116: [claude_code] permission_mode agentbox.toml:726,<br/>permission_deny agentbox.toml:735-739"]
     TOML --> F7["NEW ADR-2118: config/instructions/ (not a toml key —<br/>gate is null, the directory's own presence)"]
-    TOML --> F8["NEW ADR-2118: [toolchains] claude_code = true agentbox.toml:2312<br/>service claude-cred-sync"]
-    TOML --> F9["NEW PRD-024 P1: [sidechain] enabled, mirror, faucet<br/>agentbox.toml:1994-2000; enabled = true again after the ENOSPC recovery (agentbox.toml:1996)"]
-    TOML --> F11["NEW ADR-2134: [claude_code] model, effort, advisor_model<br/>agentbox.toml:750-752"]
-    TOML --> F12["NEW ADR-2135: [features.jev_checkpoints] enabled = true<br/>agentbox.toml:830"]
-    TOML --> F13["NEW ADR-2139: [system_one] enabled = true, backend typesafe again (amendment 2026-10-29),<br/>bind 0.0.0.0:8094 with network = true (docker networks only, never published, 2026-10-30),<br/>local_only = [] (every consumer takes the proxy), local_backend laya kept as the opt-in private route,<br/>skill_list_at_least = 0.6 (router lists runner-up skills, needs skill_verify)<br/>agentbox.toml:886, agentbox.toml:913-919<br/>subq state_budget_tokens 73000 agentbox.toml:972 (E082)"]
-    TOML --> F14["NEW ADR-2155: [system_one.consumers], 19 keys: eighteen true, skill_intent false<br/>14 exported as AGENTBOX_JEV_*, 5 exported only for other repos<br/>agentbox.toml:930-951"]
+    TOML --> F8["NEW ADR-2118: [toolchains] claude_code = true agentbox.toml:2346<br/>service claude-cred-sync"]
+    TOML --> F9["NEW PRD-024 P1: [sidechain] enabled, mirror, faucet<br/>agentbox.toml:2028-2034; enabled = true again after the ENOSPC recovery (agentbox.toml:2030)"]
+    TOML --> F11["NEW ADR-2134: [claude_code] model, effort, advisor_model<br/>agentbox.toml:749-751"]
+    TOML --> F12["NEW ADR-2135: [features.jev_checkpoints] enabled = true<br/>agentbox.toml:829"]
+    TOML --> F13["NEW ADR-2139: [system_one] enabled = true, backend laya, local by default since the 2026-11-17 amendment<br/>(owner decision of the 2026-11-15 estate review, agentbox.toml:914), local_backend laya agentbox.toml:913,<br/>bind 0.0.0.0:8094 with network = true (docker networks only, never published, 2026-10-30) agentbox.toml:915-916,<br/>local_only names eighteen consumers, which stay on the laya route even if backend moves to a cloud vendor agentbox.toml:924-943,<br/>skill_list_at_least = 0.6 (router lists runner-up skills, needs skill_verify) agentbox.toml:944<br/>[system_one] agentbox.toml:885, enabled agentbox.toml:912<br/>subq state_budget_tokens 73000 agentbox.toml:997 (E082)"]
+    TOML --> F14["NEW ADR-2155: [system_one.consumers], 19 keys: eighteen true, skill_intent false<br/>14 exported as AGENTBOX_JEV_*, 5 exported only for other repos<br/>agentbox.toml:955-976"]
     F9 ~~~ F10["NEW 2026-10-02: [sovereign_mesh] junkiejarvis = true<br/>the only switch, the env override is gone<br/>agentbox.toml:50, junkiejarvisEnabled junkiejarvis-clarify.js:447-453"]
     TOML --> F10
 
@@ -418,59 +418,59 @@ flowchart TB
     F8 --> C8["NEW catalogue claude-cred-sync, apply_class rebuild<br/>system-manifest.js:274-276"]
     F9 --> C9["NEW catalogue sidechain, three gates, apply_class rebuild<br/>a false parent gate reports off - system-manifest.js:394-396, system-manifest.js:479"]
 
-    C1 --> B1["flake.nix bakes factrail pinned to rev af23eca6, 0.1.2 (lib/factrail.nix:36), which records the judge that answered from the proxy headers,<br/>then the entrypoint sets CLAUDE_CODE_ENABLE_FUNCTION_HOOKS,<br/>drops any retired jev-compaction install, migrates its store, installs factrail@agentbox<br/>entrypoint-unified.sh:3071, entrypoint-unified.sh:3081-3085, entrypoint-unified.sh:3095, entrypoint-unified.sh:3168 - gate off uninstalls entrypoint-unified.sh:3179-3190"]
-    C2 --> B2["the entrypoint runs agentbox-manifest sso-project and<br/>projects baseUrl, model and backendLocal into the plugin<br/>entrypoint-unified.sh:2704-2707"]
-    C3 --> B3["the entrypoint registers or de-registers the<br/>UserPromptSubmit hook, see AB-08<br/>entrypoint-unified.sh:2818, entrypoint-unified.sh:2836"]
+    C1 --> B1["flake.nix bakes factrail pinned to rev af23eca6, 0.1.2 (lib/factrail.nix:36), which records the judge that answered from the proxy headers,<br/>then the entrypoint sets CLAUDE_CODE_ENABLE_FUNCTION_HOOKS,<br/>drops any retired jev-compaction install, migrates its store, installs factrail@agentbox<br/>entrypoint-unified.sh:3103, entrypoint-unified.sh:3113-3117, entrypoint-unified.sh:3127, entrypoint-unified.sh:3200 - gate off uninstalls entrypoint-unified.sh:3211-3222"]
+    C2 --> B2["the entrypoint runs agentbox-manifest sso-project and<br/>projects baseUrl, model and backendLocal into the plugin<br/>entrypoint-unified.sh:2714-2717"]
+    C3 --> B3["the entrypoint registers or de-registers the<br/>UserPromptSubmit hook, see AB-08<br/>entrypoint-unified.sh:2828, entrypoint-unified.sh:2846"]
     C6 --> B6["agentbox-manifest permissions-project reconciles root<br/>settings.json and every profile's settings every boot — not seed-if-unset<br/>entrypoint-unified.sh:1837-1846"]
-    C7 --> B7["agentbox-manifest instructions-project composes<br/>~/.claude/CLAUDE.md, ~/workspace/AGENTS.md, ~/workspace/CLAUDE.md<br/>from config/instructions/ every boot — entrypoint-unified.sh:3011-3033"]
+    C7 --> B7["agentbox-manifest instructions-project composes<br/>~/.claude/CLAUDE.md, ~/workspace/AGENTS.md, ~/workspace/CLAUDE.md<br/>from config/instructions/ every boot — entrypoint-unified.sh:3021-3043"]
     F11 --> C11["NEW catalogue claude-code-model-roles, gate claude_code.advisor_model,<br/>off_values off, apply_class boot - system-manifest.js:265-267"]
     F12 --> C12["NEW catalogue jev-checkpoints, apply_class rebuild<br/>system-manifest.js:280-282"]
     F13 --> C13["NEW catalogue system-one-proxy, service system-one-proxy, apply_class boot (system-manifest.js:283-285),<br/>and system-one-network, gate system_one.network, apply_class boot (system-manifest.js:286-288)"]
     C11 --> B11["permissions-project writes model, effortLevel and advisorModel into settings<br/>every boot, skipping gateway profiles<br/>services/agentbox-manifest/src/main.rs:247"]
-    C12 --> B12["the entrypoint installs jev-checkpoints@agentbox with the manifest as userConfig<br/>entrypoint-unified.sh:3194, entrypoint-unified.sh:3062"]
-    C13 --> B13["system-one-project writes /run/agentbox/system-one.json and projects the proxy URL<br/>entrypoint-unified.sh:2674-2687, see AB-02.3"]
+    C12 --> B12["the entrypoint installs jev-checkpoints@agentbox with the manifest as userConfig<br/>entrypoint-unified.sh:3226, entrypoint-unified.sh:3094"]
+    C13 --> B13["system-one-project writes /run/agentbox/system-one.json and projects the proxy URL<br/>entrypoint-unified.sh:2684-2697, see AB-02.3"]
     F14 --> C14["NEW catalogue system-one-consumer-* x19, requires system_one.enabled, boot class<br/>except solid-pod-advisories, ontomark-suggestions and vault-rank, rebuild<br/>system-manifest.js:297-353"]
-    C14 --> B14["system_one.rs exports one AGENTBOX_JEV_* flag per in-repo consumer (system_one.rs:425-532),<br/>the skill_list_at_least rate only with skill_verify on (system_one.rs:485-497), then AGENTBOX_JEV_X_LOCAL_ONLY=0 for all twelve keys of the thirteen consumers<br/>unless the consumer is named in [system_one].local_only (empty by default, system_one.rs:534-593),<br/>the five external consumers get VISIONFLOW_JEV, DREAMLAB_JEV, SOLID_POD_JEV,<br/>VISIONCLAW_JEV_PATCH_RANK and ONTOMARK_JEV exports, each with _ALLOW_CLOUD=1<br/>and no laya endpoint unless listed, which pins it to the laya route or switches it off (system_one.rs:553-639)<br/>services/agentbox-manifest/src/system_one.rs:425-639"]
+    C14 --> B14["system_one.rs exports one AGENTBOX_JEV_* flag per in-repo consumer (system_one.rs:425-532),<br/>the skill_list_at_least rate only with skill_verify on (system_one.rs:485-497), then AGENTBOX_JEV_X_LOCAL_ONLY for the twelve keys of the thirteen consumers,<br/>1 when the consumer is named in [system_one].local_only and 0 otherwise (system_one.rs:578-593),<br/>the five external consumers get VISIONFLOW_JEV, DREAMLAB_JEV, SOLID_POD_JEV,<br/>VISIONCLAW_JEV_PATCH_RANK and ONTOMARK_JEV exports, each with _ALLOW_CLOUD=1<br/>and no laya endpoint unless listed, which pins it to the laya route or switches it off (system_one.rs:553-639).<br/>The live list names all eighteen (agentbox.toml:924-943), so every key is 1 and every external export is pinned to laya.<br/>DOC-DRIFT: the comment above still says local_only is empty by default (system_one.rs:535-536)<br/>services/agentbox-manifest/src/system_one.rs:425-639"]
     C9 --> B9["flake.nix bakes program:sidestr-producer, -mirror, -faucet<br/>see AB-01.1 and AB-02.6"]
-    C8 --> B8["[program:claude-cred-sync] polls container ~/.claude/.credentials.json<br/>against host-claude bind every 2s, later expiresAt wins<br/>flake.nix:3511-3523, services/agentbox-manifest/src/cred_sync.rs"]
+    C8 --> B8["[program:claude-cred-sync] polls container ~/.claude/.credentials.json<br/>against host-claude bind every 2s, later expiresAt wins<br/>flake.nix:3535-3547, services/agentbox-manifest/src/cred_sync.rs"]
 
-    C5 --> DIV["RESOLVED - the manifest now declares voice on, apply-class sidecar,<br/>so a running console no longer reports state off, agentbox.toml:2285"]
-    F10 --> C10["catalogue junkiejarvis, layer surface, gate sovereign_mesh.junkiejarvis,<br/>apply_class boot - system-manifest.js:80-82;<br/>server.js:1468-1469 and the forum-suggestions tenant<br/>both call junkiejarvisEnabled(manifest)"]
+    C5 --> DIV["RESOLVED - the manifest now declares voice on, apply-class sidecar,<br/>so a running console no longer reports state off, agentbox.toml:2319"]
+    F10 --> C10["catalogue junkiejarvis, layer surface, gate sovereign_mesh.junkiejarvis,<br/>apply_class boot - system-manifest.js:80-82;<br/>server.js:1490-1491 and the forum-suggestions tenant<br/>both call junkiejarvisEnabled(manifest)"]
     C4 --> REB["INVARIANT - mcp-hub is rebuild-class because its supervisor<br/>program is composed into the image, so flipping the gate and<br/>restarting does not add it, system-manifest.js:445-447"]
 ```
 
-**What it shows.** The thirteen manifest gate families added since 2026-09-06 — System One, Jev compaction (now factrail, ADR-2121) and its cascade/teacher-label addenda, the ADR-2116 permission posture, ADR-2118 instruction tiers and credential sync, the PRD-024 `[sidechain]` gate of 2026-09-30, and, since 2026-10, the ADR-2134 model roles, the ADR-2135 Jev checkpoints and the ADR-2139 System One vendor slot (`[system_one]`, one proxy in front of every typed-decision consumer, loopback in the container and, since the 2026-10-30 amendment, `bind = "0.0.0.0:8094"` with `network = true` for the private docker networks, `../project/agentbox/agentbox.toml:916-918`; the manifest ships it on with backend `typesafe` again since 2026-10-29, `../project/agentbox/agentbox.toml:915`, and nineteen `[system_one.consumers]` switches, `../project/agentbox/agentbox.toml:930-951`) — each traced from its `agentbox.toml` section to its catalogue entry and to the boot step that applies it.
-**Why it is this way.** ADR-039's honesty rule: a gate is catalogued with the apply class of the place it is consumed, so `sovereign_system_one` is boot-class here even though its sidecar has a lifecycle of its own (`../project/agentbox/management-api/lib/system-manifest.js:290`); `claude-cred-sync` is rebuild-class because the polling daemon is a supervised program baked into the image (`flake.nix:3512`), not because the credential merge logic itself needs a rebuild. The same rule moved `jev-compaction` from boot to rebuild when ADR-2121 replaced the vendored plugin with a factrail binary and plugin that `flake.nix` bakes only when the gate is on (`../project/agentbox/management-api/lib/system-manifest.js:278`).
+**What it shows.** The thirteen manifest gate families added since 2026-09-06 — System One, Jev compaction (now factrail, ADR-2121) and its cascade/teacher-label addenda, the ADR-2116 permission posture, ADR-2118 instruction tiers and credential sync, the PRD-024 `[sidechain]` gate of 2026-09-30, and, since 2026-10, the ADR-2134 model roles, the ADR-2135 Jev checkpoints and the ADR-2139 System One vendor slot (`[system_one]`, one proxy in front of every typed-decision consumer, loopback in the container and, since the 2026-10-30 amendment, `bind = "0.0.0.0:8094"` with `network = true` for the private docker networks, `../project/agentbox/agentbox.toml:915-916`; the manifest ships it on with backend `laya`, local by default since the 2026-11-17 amendment, `../project/agentbox/agentbox.toml:914`, eighteen consumers in `local_only`, `../project/agentbox/agentbox.toml:924-943`, and nineteen `[system_one.consumers]` switches, `../project/agentbox/agentbox.toml:955-976`) — each traced from its `agentbox.toml` section to its catalogue entry and to the boot step that applies it.
+**Why it is this way.** ADR-039's honesty rule: a gate is catalogued with the apply class of the place it is consumed, so `sovereign_system_one` is boot-class here even though its sidecar has a lifecycle of its own (`../project/agentbox/management-api/lib/system-manifest.js:290`); `claude-cred-sync` is rebuild-class because the polling daemon is a supervised program baked into the image (`flake.nix:3536`), not because the credential merge logic itself needs a rebuild. The same rule moved `jev-compaction` from boot to rebuild when ADR-2121 replaced the vendored plugin with a factrail binary and plugin that `flake.nix` bakes only when the gate is on (`../project/agentbox/management-api/lib/system-manifest.js:278`).
 
-**Tension (resolved by this revision, manifest vs running estate):** the manifest used to declare `[voice].enabled = false` while the voice console ran under its own compose lifecycle, so the live view reported `voice-console` off for a surface that was up. It now reads `enabled = true`, apply-class sidecar (`../project/agentbox/agentbox.toml:2285`), which the catalogue entry gates on (`../project/agentbox/management-api/lib/system-manifest.js:190-191`).
+**Tension (resolved by this revision, manifest vs running estate):** the manifest used to declare `[voice].enabled = false` while the voice console ran under its own compose lifecycle, so the live view reported `voice-console` off for a surface that was up. It now reads `enabled = true`, apply-class sidecar (`../project/agentbox/agentbox.toml:2319`), which the catalogue entry gates on (`../project/agentbox/management-api/lib/system-manifest.js:190-191`).
 
-**Invariant (ADR-2139 Decision 5):** a backend's `state_budget_tokens` is advisory and projected only when the active backend declares one: the shell projection adds `AGENTBOX_SYSTEM_ONE_STATE_BUDGET_TOKENS` and factrail's plugin config adds `stateBudgetTokens` (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:680`, `system_one.rs:695`), so a manifest that declares none projects byte-identical output; a non-integer budget makes the projector refuse the whole slot, mirrored by validator `E082` (`../project/agentbox/scripts/agentbox-config-validate.js:1646`).
+**Invariant (ADR-2139 Decision 5):** a backend's `state_budget_tokens` is advisory and projected only when the active backend declares one: the shell projection adds `AGENTBOX_SYSTEM_ONE_STATE_BUDGET_TOKENS` and factrail's plugin config adds `stateBudgetTokens` (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:680`, `system_one.rs:695`), so a manifest that declares none projects byte-identical output; a non-integer budget makes the projector refuse the whole slot, mirrored by validator `E082` (`../project/agentbox/scripts/agentbox-config-validate.js:1647`).
 
 **Open:** the nineteen consumer switches and the unified route are configured, not live: ADR-2155 is `accepted`, `implementation_status: complete`, `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2155-system-one-consumer-activation.md:5-7`), so the running container keeps the old routing until the new image is activated, and five consumers (visionflow, website, solid pod, ontomark, vault rank) are projected as exports only (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:553-639`), their deployment sitting outside Agentbox (`../project/agentbox/docs/reference/system-one-activation.md:23-26`).
 
-**Drift:** the activation note still says the running public vendor remains SubQ and that private consumers use the `laya` backend (`../project/agentbox/docs/reference/system-one-activation.md:3-6`), but ADR-2139's amendments record the switch back to `typesafe` with a 200 from model `jev-1.14.0` and, on 2026-10-30, every consumer through the proxy with `local_only` empty (`../project/agentbox/docs/adr/ADR-2139-system-one-judge-as-a-vendor-slot.md:304-318`, `ADR-2139-system-one-judge-as-a-vendor-slot.md:322-343`), factrail `d270a0a1` recording the answering backend from the proxy headers (the pin in `../project/agentbox/lib/factrail.nix:36` has since moved to `af23eca6`, 0.1.2, which adds a stubs scan and no engine change).
+**Drift:** the activation note still says the running public vendor remains SubQ and that private consumers use the `laya` backend (`../project/agentbox/docs/reference/system-one-activation.md:3-6`), but ADR-2139's amendments record the switch back to `typesafe` with a 200 from model `jev-1.14.0` and, on 2026-10-30, every consumer through the proxy with `local_only` empty (`../project/agentbox/docs/adr/ADR-2139-system-one-judge-as-a-vendor-slot.md:331-345`, `ADR-2139-system-one-judge-as-a-vendor-slot.md:349-370`), and then on 2026-11-17 a local default, backend `laya` with eighteen consumers in `local_only` (`../project/agentbox/docs/adr/ADR-2139-system-one-judge-as-a-vendor-slot.md:468-471`), so the note's laya route for private consumers is current again while its SubQ line is two decisions out of date. Since the 2026-10-29 amendment factrail (then `d270a0a1`) records the answering backend from the proxy headers (the pin in `../project/agentbox/lib/factrail.nix:36` has since moved to `af23eca6`, 0.1.2, which adds a stubs scan and no engine change).
 
-**Debt:** `payment_settlement` is declared `zero-tolerance` with its own task properties (`../project/agentbox/agentbox.toml:1466`, `agentbox.toml:1514`) but no route passes that action class to the authority gate; `mandate_revoke` is the only class any route names (`../project/agentbox/management-api/routes/llm-marketplace.js:473`).
+**Debt:** `payment_settlement` is declared `zero-tolerance` with its own task properties (`../project/agentbox/agentbox.toml:1497`, `agentbox.toml:1545`) but no route passes that action class to the authority gate; `mandate_revoke` is the only class any route names (`../project/agentbox/management-api/routes/llm-marketplace.js:473`).
 
-**Drift (resolved 2026-10-02, JunkieJarvis gate):** the manifest comment used to promise that `JUNKIEJARVIS_ENABLED` overrode `[sovereign_mesh].junkiejarvis`; `f63760e19` made the key the only switch and turned it on (`../project/agentbox/agentbox.toml:45-50`, still true at this revision), and management-api now reads it through `junkiejarvisEnabled(manifest)` alone (`../project/agentbox/management-api/server.js:1468-1469`, `../project/agentbox/management-api/lib/junkiejarvis-clarify.js:447-453`).
+**Drift (resolved 2026-10-02, JunkieJarvis gate):** the manifest comment used to promise that `JUNKIEJARVIS_ENABLED` overrode `[sovereign_mesh].junkiejarvis`; `f63760e19` made the key the only switch and turned it on (`../project/agentbox/agentbox.toml:45-50`, still true at this revision), and management-api now reads it through `junkiejarvisEnabled(manifest)` alone (`../project/agentbox/management-api/server.js:1490-1491`, `../project/agentbox/management-api/lib/junkiejarvis-clarify.js:447-453`).
 
 **Drift (resolved, JunkieJarvis catalogue entry):** `junkiejarvis` gates a forum-facing agent and the forum-suggestions tenant's clarifying DMs and used to have no `CATALOGUE` entry; it now has one, a `surface` entry gated on `sovereign_mesh.junkiejarvis` with apply-class `boot` (`../project/agentbox/management-api/lib/system-manifest.js:80-82`), so `GET /v1/system` can say whether it is on.
 
 **Historical fixture:** the manifest parser's dated golden copy retains the retired wording, with BOTH the gate and the env var required and the gate false (`../project/agentbox/services/agentbox-manifest/tests/golden/live-agentbox.toml:45-51`).
 
-**Tension (ADR-030 gate vs EXP-B8):** EXP-B8 stopped on 2026-10-04 (WITHDRAW, `b1e42f148`; `label_log = false` since, `../project/agentbox/agentbox.toml:1384`), but the experiment tick itself signs its one forum summary with the JunkieJarvis key (`../project/agentbox/scripts/experiments/exp-b8-label-log.cjs:524-526`; since custody W2 the key is read as a role secret and, under `[security].role_isolation`, never from the repo `.env`) and publishes it (`../project/agentbox/scripts/experiments/exp-b8-label-log.cjs:546-559`) without consulting `junkiejarvisEnabled`, so a manifest with `junkiejarvis = false` would still see a JunkieJarvis post if the withdrawn tick fires again.
+**Tension (ADR-030 gate vs EXP-B8):** EXP-B8 stopped on 2026-10-04 (WITHDRAW, `b1e42f148`; `label_log = false` since, `../project/agentbox/agentbox.toml:1415`), but the experiment tick itself signs its one forum summary with the JunkieJarvis key (`../project/agentbox/scripts/experiments/exp-b8-label-log.cjs:524-526`; since custody W2 the key is read as a role secret and, under `[security].role_isolation`, never from the repo `.env`) and publishes it (`../project/agentbox/scripts/experiments/exp-b8-label-log.cjs:546-559`) without consulting `junkiejarvisEnabled`, so a manifest with `junkiejarvis = false` would still see a JunkieJarvis post if the withdrawn tick fires again.
 
-**Debt:** the agent, command and skill registries governed by ADR-2092 are manifest files of their own (`registered-agents.txt`, `registered-commands.txt`, `registered-skills.txt`) with no `agentbox.toml` gate and no catalogue entry, so `GET /v1/system` cannot report what the reconcilers did (`../project/agentbox/config/entrypoint-unified.sh:3851`, `../project/agentbox/management-api/lib/system-manifest.js:39`).
+**Debt:** the agent, command and skill registries governed by ADR-2092 are manifest files of their own (`registered-agents.txt`, `registered-commands.txt`, `registered-skills.txt`) with no `agentbox.toml` gate and no catalogue entry, so `GET /v1/system` cannot report what the reconcilers did (`../project/agentbox/config/entrypoint-unified.sh:3886`, `../project/agentbox/management-api/lib/system-manifest.js:39`).
 
-**Drift (resolved 2026-09-30, gate catalogue vs the sealed chain):** `[sidechain]` used to be a fully specified gate the schema refused; it now exists in the schema (`../project/agentbox/schema/agentbox.toml.schema.json:4040-4044`, itself `additionalProperties: false`), in `agentbox.toml` (`../project/agentbox/agentbox.toml:1994-2000`) and in the catalogue (`../project/agentbox/management-api/lib/system-manifest.js:394-396`), gating the interim producer, mirror and faucet (see AB-32.5, AB-34.5).
+**Drift (resolved 2026-09-30, gate catalogue vs the sealed chain):** `[sidechain]` used to be a fully specified gate the schema refused; it now exists in the schema (`../project/agentbox/schema/agentbox.toml.schema.json:4067-4071`, itself `additionalProperties: false`), in `agentbox.toml` (`../project/agentbox/agentbox.toml:2028-2034`) and in the catalogue (`../project/agentbox/management-api/lib/system-manifest.js:394-396`), gating the interim producer, mirror and faucet (see AB-32.5, AB-34.5).
 
-**Tension (proposed design vs the landed gate):** the BASELINE's PROPOSED supervised-set table still gates `sidestr-producer` on `[sidechain.signer].enabled` (`../project/agentbox/docs/BASELINE-container.md:446`), while the code gates it on the top-level `[sidechain].enabled`, which the live manifest now sets true after the ENOSPC recovery (`../project/agentbox/agentbox.toml:1996`); the `signer` and `bridge` sub-blocks (`../project/agentbox/docs/BASELINE-container.md:405-406`) have no schema entry, so adding either is a schema change too.
+**Tension (proposed design vs the landed gate):** the BASELINE's PROPOSED supervised-set table still gates `sidestr-producer` on `[sidechain.signer].enabled` (`../project/agentbox/docs/BASELINE-container.md:455`), while the code gates it on the top-level `[sidechain].enabled`, which the live manifest now sets true after the ENOSPC recovery (`../project/agentbox/agentbox.toml:2030`); the `signer` and `bridge` sub-blocks (`../project/agentbox/docs/BASELINE-container.md:414-415`) have no schema entry, so adding either is a schema change too.
 
 ## AB-05.14 Instruction tier projection (ADR-2118, floor ADR-2144) — the mount contract four tiers rewrite every boot
 ```mermaid
 sequenceDiagram
     autonumber
-    participant EP as entrypoint-unified.sh:3011-3033
+    participant EP as entrypoint-unified.sh:3021-3043
     participant AM as agentbox-manifest instructions-project<br/>main.rs:495-511
     participant IR as instructions::run<br/>instructions.rs:141-222
     participant COMP as compose/composed<br/>instructions.rs:71-74
@@ -478,7 +478,7 @@ sequenceDiagram
 
     EP->>EP: mount /etc/agentbox/instructions read-only<br/>(config/instructions/ tracked + gitignored local/)
     EP->>EP: _FLOOR_ON from [claude_code].floor, an absent key means on (entrypoint-unified.sh:2115-2116)
-    EP->>AM: instructions-project --layers ... --managed-out /etc/claude-code/CLAUDE.md, or --no-managed when the floor is off (entrypoint-unified.sh:3020-3022)
+    EP->>AM: instructions-project --layers ... --managed-out /etc/claude-code/CLAUDE.md, or --no-managed when the floor is off (entrypoint-unified.sh:3030-3032)
     AM->>IR: run(layers, global_out, managed_out, workspace_out, workspace_claude_out, check)
     opt managed_out is Some (instructions.rs:151)
         IR->>COMP: composed(layers, floor) — floor.md + local/floor.md
@@ -499,10 +499,10 @@ sequenceDiagram
         FS-->>IR: Written | Unchanged | Drift (--check, :119-121) | NoLayers (:108)
     end
     IR-->>EP: fail-open — a write error never blocks boot, check mode exits non-zero on drift only
-    EP->>FS: floor off and the managed file carries the GENERATED marker, rm it (entrypoint-unified.sh:3030-3033)
-    EP->>FS: Codex: append managed floor, global and workspace files to ~/.codex/AGENTS.md when each is under 12000 bytes (entrypoint-unified.sh:3635-3638)
+    EP->>FS: floor off and the managed file carries the GENERATED marker, rm it (entrypoint-unified.sh:3040-3043)
+    EP->>FS: Codex: append managed floor, global and workspace files to ~/.codex/AGENTS.md when each is under 12000 bytes (entrypoint-unified.sh:3670-3673)
     Note over EP,FS: INVARIANT — the repo is authoritative: outputs are rewritten every boot, so a live edit to<br/>~/.claude/CLAUDE.md or ~/workspace/{AGENTS,CLAUDE}.md never survives the next restart (instructions.rs:29-30)
-    Note over EP: global_out is None when ~/.claude is still a legacy whole-directory host bind<br/>(no /var/lib/agentbox/host-claude sign) — the host keeps its own CLAUDE.md, entrypoint-unified.sh:3015-3019
+    Note over EP: global_out is None when ~/.claude is still a legacy whole-directory host bind<br/>(no /var/lib/agentbox/host-claude sign) — the host keeps its own CLAUDE.md, entrypoint-unified.sh:3025-3029
 ```
 
 **What it shows.** How the instruction tiers that sit above every repository get from `config/instructions/` layers (tracked public, gitignored `local/` estate) to the files every agent reads, on every single boot. Since ADR-2144 there are four tiers: the floor goes to Claude Code's managed policy path `/etc/claude-code/CLAUDE.md` (loaded by every session and subagent, `claudeMdExcludes` cannot drop it), and only if that write fails is it prepended to the global tier. Codex has no managed path, so the entrypoint appends the managed file, then the global and workspace files, to its `AGENTS.md`.
@@ -514,7 +514,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as supervisord<br/>[program:claude-cred-sync]<br/>flake.nix:3511-3524
+    participant SV as supervisord<br/>[program:claude-cred-sync]<br/>flake.nix:3535-3548
     participant CLI as agentbox-manifest cred-sync<br/>main.rs:513-522
     participant RUN as cred_sync::run<br/>cred_sync.rs:136-152
     participant SYNC as sync_once<br/>cred_sync.rs:109-129
@@ -551,7 +551,7 @@ sequenceDiagram
 ## AB-05.16 [security].role_isolation — one rebuild-class gate, one table, four derived artefacts (ADR-2122)
 ```mermaid
 flowchart TB
-    KEY["[security] role_isolation = false<br/>agentbox.toml:2581, setup default agentbox.default.toml:1765"]
+    KEY["[security] role_isolation = false<br/>agentbox.toml:2615, setup default agentbox.default.toml:1773"]
     SCH["schema security.role_isolation boolean, default false<br/>agentbox.toml.schema.json:2269-2272"]
     CATE["catalogue role-isolation, gate security.role_isolation, apply_class rebuild (was boot, ADR-2122 ER-9)<br/>system-manifest.js:97-99"]
     TBL["config/role-accounts.json schema agentbox.role-accounts/1<br/>role-accounts.json:3-4 uid_range 960-979, :5-7 gid 965 reserved"]
@@ -561,8 +561,8 @@ flowchart TB
         ISO["isolate: today's supervisord.conf to the roles config<br/>and the delivery plan, role_accounts.rs:865, role_accounts.rs:1093"]
     end
     subgraph BUILD["flake.nix image build, every image, both modes"]
-        B1["/etc/supervisord.roles.conf and /etc/agentbox/role-secrets.tsv<br/>flake.nix:4226"]
-        B2["/etc/passwd role lines flake.nix:4246<br/>/etc/group role lines flake.nix:4259"]
+        B1["/etc/supervisord.roles.conf and /etc/agentbox/role-secrets.tsv<br/>flake.nix:4255"]
+        B2["/etc/passwd role lines flake.nix:4275<br/>/etc/group role lines flake.nix:4288"]
     end
     BOOT["entrypoint reads it once in Stage A and exports it<br/>entrypoint-unified.sh:317, see AB-02.24"]
     KEY --> SCH
@@ -572,29 +572,29 @@ flowchart TB
     PW --> B2
     ISO --> B1
     B1 --> BOOT
-    KEY -.-> DRIFT["SOURCE/ACTIVATION: the key's own comment says the identity port (W3), the W2b<br/>at-rest custody migrate/revert and the W4 sidechain state move are<br/>built but not yet proven in an image, agentbox.toml:2574-2580,<br/>serve-identity is declared in the flake, flake.nix:3039, and the W2 env capture<br/>and scrub run before exec, entrypoint-unified.sh:460 and entrypoint-unified.sh:1298"]
+    KEY -.-> DRIFT["SOURCE/ACTIVATION: the key's own comment says the identity port (W3), the W2b<br/>at-rest custody migrate/revert and the W4 sidechain state move are<br/>built but not yet proven in an image, agentbox.toml:2608-2614,<br/>serve-identity is declared in the flake, flake.nix:3063, and the W2 env capture<br/>and scrub run before exec, entrypoint-unified.sh:460 and entrypoint-unified.sh:1298"]
 ```
 
-**What it shows.** The custody gate as the manifest sees it. `[security].role_isolation` is a plain boolean, false in the live manifest and in the setup default, declared in the schema and catalogued as apply-class `rebuild` since ADR-2122 ER-9 (it was `boot`). Everything it switches between is derived at image build from one table, `config/role-accounts.json`, by the `agentbox-manifest role-accounts` subcommands: the passwd and group lines, the isolated supervisor config and the delivery plan. The supervisor pick, the secrets delivery and the environment scrub are read at boot, but the devuser sudo route is removed at image build from the build-time flag (`roleIsolationBaked`), so a boot-time flip alone leaves the box reporting `degraded:devuser-sudo` and needs `./agentbox.sh rebuild` (`../project/agentbox/management-api/lib/system-manifest.js:97-99`, `../project/agentbox/flake.nix:3888`, `flake.nix:4268`).
+**What it shows.** The custody gate as the manifest sees it. `[security].role_isolation` is a plain boolean, false in the live manifest and in the setup default, declared in the schema and catalogued as apply-class `rebuild` since ADR-2122 ER-9 (it was `boot`). Everything it switches between is derived at image build from one table, `config/role-accounts.json`, by the `agentbox-manifest role-accounts` subcommands: the passwd and group lines, the isolated supervisor config and the delivery plan. The supervisor pick, the secrets delivery and the environment scrub are read at boot, but the devuser sudo route is removed at image build from the build-time flag (`roleIsolationBaked`), so a boot-time flip alone leaves the box reporting `degraded:devuser-sudo` and needs `./agentbox.sh rebuild` (`../project/agentbox/management-api/lib/system-manifest.js:97-99`, `../project/agentbox/flake.nix:3912`, `flake.nix:4297`).
 **Why it is this way.** The custody design originally made the flag boot-class so the owner's rehearsal could flip it and roll it back without a rebuild; ADR-2122's ER-9 closed that as rebuild-class because `config/bake-devuser-privilege.sh` takes the build-time flag and leaves devuser in `wheel` with passwordless sudo otherwise. Deriving the roles config from today's rendered config, rather than writing it by hand, keeps the two configs from drifting: only `user=` and `environment=` of role programs change (`../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:11-15`).
 
-**Tension (catalogue vs manifest comment):** the catalogue classes `role-isolation` as `rebuild` (`../project/agentbox/management-api/lib/system-manifest.js:97-99`) while the comment above the key still says "Boot-class: the image ships both supervisor configs; restart to apply" (`../project/agentbox/agentbox.toml:2574`).
+**Tension (catalogue vs manifest comment):** the catalogue classes `role-isolation` as `rebuild` (`../project/agentbox/management-api/lib/system-manifest.js:97-99`) while the comment above the key still says "Boot-class: the image ships both supervisor configs; restart to apply" (`../project/agentbox/agentbox.toml:2608`).
 
-**Invariant:** the isolated supervisor config is a pure function of today's rendered config and the role table, so no role program can exist in one config and not the other (`../project/agentbox/flake.nix:4226`, `../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:865`).
+**Invariant:** the isolated supervisor config is a pure function of today's rendered config and the role table, so no role program can exist in one config and not the other (`../project/agentbox/flake.nix:4255`, `../project/agentbox/services/agentbox-manifest/src/role_accounts.rs:865`).
 
-**Source and activation boundary:** the comment above `role_isolation` says the identity port and the custody migration (W2-W4) are not in the image yet, so role programs fail closed under the flag (`../project/agentbox/agentbox.toml:2574-2580`). At this revision the flake declares `[program:serve-identity]` (`../project/agentbox/flake.nix:3039`) and the W2 capture and scrub run before `exec supervisord` (`../project/agentbox/config/entrypoint-unified.sh:460`, `../project/agentbox/config/entrypoint-unified.sh:1298`). The comment also adds a new condition the old text did not have: until the W3b consumer cutover lands, JunkieJarvis, the mirror hook and dream-engine cannot sign under the flag. The advice to leave the flag off until the rehearsal passes still holds. The source paths exist; their presence does not establish a fresh image or custody rehearsal.
+**Source and activation boundary:** the comment above `role_isolation` says the identity port and the custody migration (W2-W4) are not in the image yet, so role programs fail closed under the flag (`../project/agentbox/agentbox.toml:2608-2614`). At this revision the flake declares `[program:serve-identity]` (`../project/agentbox/flake.nix:3063`) and the W2 capture and scrub run before `exec supervisord` (`../project/agentbox/config/entrypoint-unified.sh:460`, `../project/agentbox/config/entrypoint-unified.sh:1298`). The comment also adds a new condition the old text did not have: until the W3b consumer cutover lands, JunkieJarvis, the mirror hook and dream-engine cannot sign under the flag. The advice to leave the flag off until the rehearsal passes still holds. The source paths exist; their presence does not establish a fresh image or custody rehearsal.
 
 ## AB-05.17 Gate families added in October 2026: floor, voicelink, activity sink, forge, Blender sidecar-first, Loom sync, Isaac Sim
 ```mermaid
 flowchart TB
     TOML["agentbox.toml"]
-    TOML --> G1["[claude_code] floor = true<br/>agentbox.toml:763, ADR-2144 accepted and live"]
-    TOML --> G2["[voicelink] enabled = true, record_events = true<br/>agentbox.toml:2301, agentbox.toml:2308, ADR-2151 proposed, partial since 2026-11-02, inactive"]
-    TOML --> G3["[integrations.activity_sink] enabled = false<br/>agentbox.toml:528, ADR-2146 accepted, complete, inactive"]
-    TOML --> G4["[integrations.solid_pod_rs] trust_proxy = true and .forge enable = true<br/>agentbox.toml:552, agentbox.toml:607, ADR-2145 accepted and live"]
-    TOML --> G5["[skills.spatial_and_3d] blender_local = false<br/>agentbox.toml:637, sidecar-first Blender"]
-    TOML --> G6["[vault] loom_sync = full<br/>agentbox.toml:1213, ADR-2140 accepted and live"]
-    NOKEY["no manifest key: the Isaac Sim sidecar is opt-in through<br/>./agentbox.sh isaac-sim, ADR-2149 proposed, partial, staged<br/>agentbox.sh:2886"]
+    TOML --> G1["[claude_code] floor = true<br/>agentbox.toml:762, ADR-2144 accepted and live"]
+    TOML --> G2["[voicelink] enabled = true, record_events = true<br/>agentbox.toml:2335, agentbox.toml:2342, ADR-2151 proposed, partial since 2026-11-02, inactive"]
+    TOML --> G3["[integrations.activity_sink] enabled = false<br/>agentbox.toml:527, ADR-2146 accepted, complete, inactive"]
+    TOML --> G4["[integrations.solid_pod_rs] trust_proxy = true and .forge enable = true<br/>agentbox.toml:551, agentbox.toml:606, ADR-2145 accepted and live"]
+    TOML --> G5["[skills.spatial_and_3d] blender_local = false<br/>agentbox.toml:636, sidecar-first Blender"]
+    TOML --> G6["[vault] loom_sync = full<br/>agentbox.toml:1238, ADR-2140 accepted and live"]
+    NOKEY["no manifest key: the Isaac Sim sidecar is opt-in through<br/>./agentbox.sh isaac-sim, ADR-2149 proposed, partial, staged<br/>agentbox.sh:2896"]
 
     G1 --> C1["catalogue collaboration-floor, apply_class boot<br/>system-manifest.js:271-273"]
     G2 --> C2["catalogue voicelink, apply_class rebuild system-manifest.js:193-195<br/>and voicelink-hooks, apply_class boot system-manifest.js:196-198"]
@@ -604,23 +604,23 @@ flowchart TB
     G6 --> C6["catalogue vault-loom-sync, apply_class boot<br/>system-manifest.js:418-420"]
     NOKEY --> C7["catalogue isaac-sim-sidecar, gate null, apply_class live<br/>system-manifest.js:187-189"]
 
-    C1 --> B1["entrypoint projects the floor tier to /etc/claude-code/CLAUDE.md and<br/>registers decline-recorder on Stop and SubagentStop, see AB-05.14<br/>entrypoint-unified.sh:2115-2142, entrypoint-unified.sh:3011-3024"]
-    C2 --> B2["flake.nix bakes voice-paned only when voicelinkOn, linked at<br/>/opt/agentbox/bin/voice-paned - flake.nix:2011-2013, flake.nix:2305;<br/>entrypoint registers Stop and Notification hooks entrypoint-unified.sh:2162-2204<br/>and the Codex notify line entrypoint-unified.sh:907-940"]
-    C3 --> B3["entrypoint registers config/hooks/activity-sink.cjs only when enabled<br/>and the url is http or https - entrypoint-unified.sh:2879-2897"]
-    C4 --> B4["flake.nix adds forge-full and the --trust-proxy launcher flag<br/>flake.nix:1702, flake.nix:1783"]
-    C5 --> B5["flake.nix bakes the in-container Blender only when blender and blender_local<br/>flake.nix:1625, flake.nix:4566"]
+    C1 --> B1["entrypoint projects the floor tier to /etc/claude-code/CLAUDE.md and<br/>registers decline-recorder on Stop and SubagentStop, see AB-05.14<br/>entrypoint-unified.sh:2115-2142, entrypoint-unified.sh:3021-3034"]
+    C2 --> B2["flake.nix bakes voice-paned only when voicelinkOn, linked at<br/>/opt/agentbox/bin/voice-paned - flake.nix:2035-2037, flake.nix:2329;<br/>entrypoint registers Stop and Notification hooks entrypoint-unified.sh:2162-2204<br/>and the Codex notify line entrypoint-unified.sh:907-940"]
+    C3 --> B3["entrypoint registers config/hooks/activity-sink.cjs only when enabled<br/>and the url is http or https - entrypoint-unified.sh:2889-2907"]
+    C4 --> B4["flake.nix adds forge-full and the --trust-proxy launcher flag<br/>flake.nix:1726, flake.nix:1807"]
+    C5 --> B5["flake.nix bakes the in-container Blender only when blender and blender_local<br/>flake.nix:1649, flake.nix:4595"]
     C6 --> B6["every boot runs hp-loom-reconcile.sh in the background, fail-open<br/>entrypoint-unified.sh:1222-1232"]
 ```
 
 **What it shows.** The gate families that arrived in October 2026, from manifest key through catalogue entry and apply class to the code that consumes it. Ten entries joined the catalogue in that window (one surface, nine modules); with later additions such as `user-cron` it now holds 129 entries, 14 surfaces and 115 modules (`../project/agentbox/management-api/lib/system-manifest.js:39-457`). The apply class follows where the gate is consumed: the voicelink binary is baked at image composition, so `voicelink` is rebuild-class, while the hook registration that feeds its event spool is reconciled every boot.
 **Why it is this way.** ADR-039's honesty rule again: each entry carries the class of its consumer. ADR-2144 (accepted, live) and ADR-2145 (accepted, live) are drawn as live. ADR-2146 is accepted but inactive and ADR-2149 is proposed, so the activity sink is drawn off (its manifest key is false) and the Isaac sidecar is shown only as an opt-in CLI path with no manifest gate.
 
-**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 read `proposed`, implementation `none`, activation `inactive` while the live manifest already enabled it. Its 2026-11-02 external review reconciliation moves implementation to `partial` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`) because the source and the bake exist, which closes the implementation half of the tension (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`). The other half stands: the decision is still `proposed` and activation `inactive`, and the ADR itself says acceptance is not inferred from the enabled flag (same line), yet the manifest sets `[voicelink].enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2301`, `agentbox.toml:2308`), so the image bakes voice-paned and boot registers its hooks (`../project/agentbox/flake.nix:2011`, `../project/agentbox/config/entrypoint-unified.sh:2171`).
+**Tension (ADR-2151 vs manifest, status moved 2026-11-02):** at the previous stamp (`c57d9c0`) ADR-2151 read `proposed`, implementation `none`, activation `inactive` while the live manifest already enabled it. Its 2026-11-02 external review reconciliation moves implementation to `partial` (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7`) because the source and the bake exist, which closes the implementation half of the tension (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`). The other half stands: the decision is still `proposed` and activation `inactive`, and the ADR itself says acceptance is not inferred from the enabled flag (same line), yet the manifest sets `[voicelink].enabled = true` and `record_events = true` (`../project/agentbox/agentbox.toml:2335`, `agentbox.toml:2342`), so the image bakes voice-paned and boot registers its hooks (`../project/agentbox/flake.nix:2035`, `../project/agentbox/config/entrypoint-unified.sh:2171`).
 
 **Tension (ADR-2151 reconciliation vs its own Verification section):** the Verification section still says `implementation_status` becomes `partial` only when the bake and the hook spool are verified by the voicelink end-to-end link test against a live grouped session (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:43`); the reconciliation sets `partial` from a read-only inspection of the bake and records that end-to-end test as not run (`../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:21`).
 
-**Open (status moved 2026-10-30):** ADR-2146 is now `decision_status: accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`); the decision question is closed, but is the activity sink meant to stay off until a consumer sets the endpoint? The manifest ships `enabled = false` with an empty `url` (`../project/agentbox/agentbox.toml:528`).
+**Open (status moved 2026-10-30):** ADR-2146 is now `decision_status: accepted` with `implementation_status: complete` and `activation_status: inactive` (`../project/agentbox/docs/adr/ADR-2146-activity-sink-hook.md:5-7`); the decision question is closed, but is the activity sink meant to stay off until a consumer sets the endpoint? The manifest ships `enabled = false` with an empty `url` (`../project/agentbox/agentbox.toml:527`).
 
-**Open:** ADR-2149 (Isaac Sim) is proposed and staged, yet the catalogue already carries an ungated `live` entry for it (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5`, `../project/agentbox/management-api/lib/system-manifest.js:187`). ADR-2149's 2026-11-02 reconciliation keeps that shape on purpose: Decision 1 holds the sidecar live-class and outside agentbox.toml, the record stays proposed/partial/staged pending the named build and simulator fixtures, and no isaac-sim container was running at its read-only inventory (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:22`).
+**Open:** ADR-2149 (Isaac Sim) is proposed and staged, yet the catalogue already carries an ungated `live` entry for it (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:5`, `../project/agentbox/management-api/lib/system-manifest.js:187`). ADR-2149's 2026-11-02 reconciliation keeps that shape on purpose: Decision 1 holds the sidecar live-class and outside agentbox.toml, the record stays proposed/partial/staged pending the named build and simulator fixtures, and no isaac-sim container was running at its read-only inventory (`../project/agentbox/docs/adr/ADR-2149-isaac-sim-sidecar.md:24`).
 
 **Open:** ADR-2152 (Mermaid rendering in browsercontainer) is `superseded` by ADR-2154, which is `accepted`, `implementation_status: partial` and `activation_status: staged` (`../project/agentbox/docs/adr/ADR-2152-render-mermaid-in-browsercontainer.md:5`, `../project/agentbox/docs/adr/ADR-2154-pele-renders-mermaid-in-the-image.md:5-7`); the artifact probe already runs the Pele check rather than `mmdc` (`../project/agentbox/config/artifact-probes.json:75-78`).

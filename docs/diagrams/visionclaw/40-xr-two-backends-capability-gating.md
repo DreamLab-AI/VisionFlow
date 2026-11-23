@@ -24,7 +24,7 @@ sources:
   - ../project/xr-client/tests/unit/test_hud_tabs.gd
   - ../project/xr-client/tests/unit/test_graph_parity.gd
   - ../project/xr-client/tests/unit/test_backend_switch.gd
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -53,11 +53,11 @@ flowchart TB
         DRAG["drag start, update and end ask the DRAG gate before the client is called<br/>xr-client/scripts/backend_connection.gd:331,340,349"]
     end
     subgraph SCENE["graph_scene.gd: the gate sits at the request, routed by the focused volume"]
-        GATE["_gate_for_volume resolves the volume's connection and asks its gate<br/>xr-client/scripts/graph_scene.gd:2258 xr-client/scripts/graph_scene.gd:2264"]
-        CTRL["_on_hud_control refuses a gated action before graph_parity.handle_control sees it<br/>xr-client/scripts/graph_scene.gd:2387 xr-client/scripts/graph_scene.gd:2388 xr-client/scripts/graph_scene.gd:2390"]
-        REQ["request helpers ask the gate: fold, cycles, layout mode, radial, unpin all (PIN), reset, physics PUT,<br/>canary (quiet), relations (quiet), expand, pattern count (quiet) and execute, demo<br/>xr-client/scripts/graph_scene.gd:2549 xr-client/scripts/graph_scene.gd:2656 xr-client/scripts/graph_scene.gd:2767 xr-client/scripts/graph_scene.gd:2790 xr-client/scripts/graph_scene.gd:2810 xr-client/scripts/graph_scene.gd:2888 xr-client/scripts/graph_scene.gd:2932 xr-client/scripts/graph_scene.gd:4537 xr-client/scripts/graph_scene.gd:5030 xr-client/scripts/graph_scene.gd:5096 xr-client/scripts/graph_scene.gd:5445 xr-client/scripts/graph_scene.gd:5515 xr-client/scripts/graph_scene.gd:5570"]
-        PAR["graph_parity.gd asks backend_supports, the focused volume's connection, before its forces write and its demo poll<br/>xr-client/scripts/graph_parity.gd:355 xr-client/scripts/graph_parity.gd:407 xr-client/scripts/graph_scene.gd:2248"]
-        SYNC["_sync_hud_backend pushes the focused connection's caps to the HUD<br/>xr-client/scripts/graph_scene.gd:2210 xr-client/scripts/graph_scene.gd:2219"]
+        GATE["_gate_for_volume resolves the volume's connection and asks its gate<br/>xr-client/scripts/graph_scene.gd:2256 xr-client/scripts/graph_scene.gd:2262"]
+        CTRL["_on_hud_control refuses a gated action before graph_parity.handle_control sees it<br/>xr-client/scripts/graph_scene.gd:2385 xr-client/scripts/graph_scene.gd:2386 xr-client/scripts/graph_scene.gd:2388"]
+        REQ["request helpers ask the gate: fold, cycles, layout mode, radial, unpin all (PIN), reset, physics PUT,<br/>canary (quiet), relations (quiet), expand, pattern count (quiet) and execute, demo<br/>xr-client/scripts/graph_scene.gd:2547 xr-client/scripts/graph_scene.gd:2654 xr-client/scripts/graph_scene.gd:2765 xr-client/scripts/graph_scene.gd:2788 xr-client/scripts/graph_scene.gd:2808 xr-client/scripts/graph_scene.gd:2886 xr-client/scripts/graph_scene.gd:2930 xr-client/scripts/graph_scene.gd:4535 xr-client/scripts/graph_scene.gd:5028 xr-client/scripts/graph_scene.gd:5094 xr-client/scripts/graph_scene.gd:5443 xr-client/scripts/graph_scene.gd:5513 xr-client/scripts/graph_scene.gd:5568"]
+        PAR["graph_parity.gd asks backend_supports, the focused volume's connection, before its forces write and its demo poll<br/>xr-client/scripts/graph_parity.gd:355 xr-client/scripts/graph_parity.gd:407 xr-client/scripts/graph_scene.gd:2246"]
+        SYNC["_sync_hud_backend pushes the focused connection's caps to the HUD<br/>xr-client/scripts/graph_scene.gd:2208 xr-client/scripts/graph_scene.gd:2217"]
         GATE --> CTRL
         GATE --> REQ
     end
@@ -81,28 +81,28 @@ flowchart TB
 
 **What it shows.** Codescape serves the graph stream, presence, voice, a read-only physics view and settlement, and answers 404 (405 for the physics PUT) to every knowledge route by design. One table names each surface; each connection holds its own copy and refuses at its gate; the scene routes a request through the focused volume's connection; the HUD greys from the focused connection's table. Since the A6 text, the table has gained `drag` (ADR-2158 E9), and the drag-end pin record it listed is gone (ADR-2172 F3). **Why it is this way.** The advisor's objection to gating at the action name was that `graph_parity.handle_control` and its per-frame demo poll issue HTTP of their own, so only a gate at the point of sending covers every route out (ADR-2143-codescape-section-separate-workspace-and-port.md:333-340). ADR-2159 moved the table from a scene-wide `_caps` onto each connection.
 
-**Drift:** ADR-2143 A6 item 2 still names `GraphScene._gate(cap, label)` and the drag-end pin record (`ADR-2143-codescape-section-separate-workspace-and-port.md:333,336`); the gate is now `_gate_for_volume` over `BackendConnection.gate` (`graph_scene.gd:2258`; `backend_connection.gd:203`).
+**Drift:** ADR-2143 A6 item 2 still names `GraphScene._gate(cap, label)` and the drag-end pin record (`ADR-2143-codescape-section-separate-workspace-and-port.md:333,336`); the gate is now `_gate_for_volume` over `BackendConnection.gate` (`graph_scene.gd:2256`; `backend_connection.gd:203`).
 
 ## VC-40.2 The exclusive switch is retired; its hygiene now lives in focus sync and connection close
 
 ```mermaid
 flowchart TD
     GONE["GUT asserts the scene has no _switch_backend<br/>xr-client/tests/unit/test_backend_switch.gd:32"]
-    FOCUS["Focus change, portal entry and connection change all re-sync the HUD<br/>xr-client/scripts/graph_scene.gd:2328 xr-client/scripts/graph_scene.gd:1566 xr-client/scripts/graph_scene.gd:4661"] --> SYNC["_sync_hud_backend: focused connection's caps to the HUD<br/>xr-client/scripts/graph_scene.gd:2210 xr-client/scripts/graph_scene.gd:2219"]
-    SYNC --> MEM["memory cloud and search follow the live base, folded away where the route is absent<br/>xr-client/scripts/graph_scene.gd:2224 xr-client/scripts/graph_scene.gd:2225 xr-client/scripts/graph_scene.gd:2229"]
-    MEM --> BASE["the base is always the VisionClaw connection's origin<br/>xr-client/scripts/graph_scene.gd:2985 xr-client/scripts/graph_scene.gd:2987"]
+    FOCUS["Focus change, portal entry and connection change all re-sync the HUD<br/>xr-client/scripts/graph_scene.gd:2326 xr-client/scripts/graph_scene.gd:1564 xr-client/scripts/graph_scene.gd:4659"] --> SYNC["_sync_hud_backend: focused connection's caps to the HUD<br/>xr-client/scripts/graph_scene.gd:2208 xr-client/scripts/graph_scene.gd:2217"]
+    SYNC --> MEM["memory cloud and search follow the live base, folded away where the route is absent<br/>xr-client/scripts/graph_scene.gd:2222 xr-client/scripts/graph_scene.gd:2223 xr-client/scripts/graph_scene.gd:2227"]
+    MEM --> BASE["the base is always the VisionClaw connection's origin<br/>xr-client/scripts/graph_scene.gd:2983 xr-client/scripts/graph_scene.gd:2985"]
     CLOSE["BackendConnection.close: cancel its own HTTPRequests, release its pins while the socket is up,<br/>close the client, bump the generation<br/>xr-client/scripts/backend_connection.gd:142 xr-client/scripts/backend_connection.gd:149 xr-client/scripts/backend_connection.gd:150 xr-client/scripts/backend_connection.gd:154"]
     PINS["release_pins iterates a set nothing fills since ADR-2172 F3<br/>xr-client/scripts/backend_connection.gd:378 xr-client/scripts/backend_connection.gd:61"]
     CLOSE --> PINS
     PAR["graph_parity.on_backend_switched still cancels polls and re-reads physics<br/>xr-client/scripts/graph_parity.gd:493"] -.-> DEBT["DEBT: no production caller; only test_graph_parity reaches it<br/>xr-client/tests/unit/test_graph_parity.gd:256"]
-    DOC["A6 item 4 and the XR client doc still describe _switch_backend<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:346 docs/XR-client.md:1346"] -.-> GONE
+    DOC["A6 item 4 and the XR client doc still describe _switch_backend<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:346 docs/XR-client.md:1355"] -.-> GONE
 ```
 
 **What it shows.** There is no switch to abandon a server any more: both connections stay open, and each owns its requests, pins and generation. What A6 did at a switch now happens in two places: focus changes re-sync the HUD's capability table, and a connection's `close()` cancels its own requests and releases its own pins. Memory always talks to VisionClaw, so it no longer needs re-pointing for correctness. **Why it is this way.** ADR-2159 D1 gives each connection its own client, acknowledgement sequence and request state, so ids from one source can no longer be applied to another by a late reply; the epoch problem that A6 item 4 solved is now solved by per-connection generations (VC-44, VC-53.2).
 
 **Debt:** `graph_parity.on_backend_switched` (`graph_parity.gd:493`) survives with no production caller; delete it or wire it to a connection event.
 
-**Drift:** `docs/XR-client.md:1346` ("Switch hygiene. `_switch_backend` cancels ...") and ADR-2143 A6 item 4 (`:347`) describe a function the scene no longer has, while `docs/XR-client.md:1230` correctly says `BackendConnection` replaced it.
+**Drift:** `docs/XR-client.md:1355` ("Switch hygiene. `_switch_backend` cancels ...") and ADR-2143 A6 item 4 (`:347`) describe a function the scene no longer has, while `docs/XR-client.md:1239` correctly says `BackendConnection` replaced it.
 
 ## VC-40.3 Colour mode 2, the Codescape web client's palette, reaches only the VisionClaw client
 
@@ -113,21 +113,21 @@ flowchart LR
     PAL["codescape_community_color: hue (community * 83) mod 360, CSS hsl() at 0.68 / 0.56, no per-node fallback,<br/>activity heat keeps the warm blend<br/>xr-client/rust/src/render_store.rs:279 xr-client/rust/src/render_store.rs:282"]
     BASE["base_color picks the palette per node slot when the node buffer is packed<br/>xr-client/rust/src/render_store.rs:2511 xr-client/rust/src/render_store.rs:2515 xr-client/rust/src/render_store.rs:2045"]
     CYC["Encode page Colour button cycles 0, 1, 2 on the parity client; face reads Domain, Community, Codescape<br/>xr-client/scripts/hud.gd:701 xr-client/scripts/hud.gd:706 xr-client/scripts/graph_parity.gd:121 xr-client/scripts/graph_parity.gd:125 xr-client/scripts/hud.gd:2173"]
-    PREF["the VisionClaw mode persists in xr_prefs.cfg and is restored onto the VisionClaw client only<br/>xr-client/scripts/graph_scene.gd:2072 xr-client/scripts/graph_scene.gd:2073 xr-client/scripts/graph_scene.gd:2079"]
+    PREF["the VisionClaw mode persists in xr_prefs.cfg and is restored onto the VisionClaw client only<br/>xr-client/scripts/graph_scene.gd:2070 xr-client/scripts/graph_scene.gd:2071 xr-client/scripts/graph_scene.gd:2077"]
     CYC --> PREF
-    PREF -.-> D2["DRIFT: the comment says a Codescape switch re-applies its palette,<br/>but apply_backend_palette runs only at boot with visionclaw<br/>xr-client/scripts/graph_scene.gd:2069 xr-client/scripts/graph_scene.gd:2070 xr-client/scripts/graph_scene.gd:1362"]
-    DEF["apply_backend_palette runs once, at boot, with visionclaw, on the client parity holds: the VisionClaw client<br/>xr-client/scripts/graph_scene.gd:1361 xr-client/scripts/graph_scene.gd:1362 xr-client/scripts/graph_parity.gd:507"]
+    PREF -.-> D2["DRIFT: the comment says a Codescape switch re-applies its palette,<br/>but apply_backend_palette runs only at boot with visionclaw<br/>xr-client/scripts/graph_scene.gd:2067 xr-client/scripts/graph_scene.gd:2068 xr-client/scripts/graph_scene.gd:1360"]
+    DEF["apply_backend_palette runs once, at boot, with visionclaw, on the client parity holds: the VisionClaw client<br/>xr-client/scripts/graph_scene.gd:1359 xr-client/scripts/graph_scene.gd:1360 xr-client/scripts/graph_parity.gd:507"]
     CSV["Codescape volume packs from its own connection's client, whose mode no code sets<br/>xr-client/scripts/connection_volume_source.gd:150 xr-client/scripts/connection_volume_source.gd:158"]
     ENUM --> GD --> PAL --> BASE
     GD --> CYC
     GD --> DEF
     CSV --> BASE
     CSV -.-> GAP["DEBT: the Codescape client stays at Domain, whose fallback is one default swatch for code nodes;<br/>ADR-2159 D1 gives each connection its own palette<br/>ADR-2159-the-xr-client-holds-one-backend-connection-per-content-source.md:37"]
-    N1["DIVERGENCE closed in the formula: the browser's swatches are ported exactly<br/>docs/XR-client.md:1353 docs/XR-client.md:1354"]
+    N1["DIVERGENCE closed in the formula: the browser's swatches are ported exactly<br/>docs/XR-client.md:1362 docs/XR-client.md:1363"]
     PAL --> N1
 ```
 
-**What it shows.** The palette formula matches the Codescape desktop client, and the Colour button cycles all three modes, but only on the VisionClaw client that `GraphParity` holds. Under ADR-2159 the Codescape volume packs from a second `BinaryProtocolClient` (`connection_volume_source.gd:150`), and nothing calls `set_color_mode` on it, so it keeps the `Domain` default (`domain_palette.rs:50`). **Why it is this way.** A6 selected the palette at each exclusive switch, on the one client there was. When the switch was deleted, `apply_backend_palette` kept its boot call (`graph_scene.gd:1362`) and lost its per-switch call. Nobody moved the call onto connection construction. Source tracing only: no headset image was taken to confirm the colours drawn.
+**What it shows.** The palette formula matches the Codescape desktop client, and the Colour button cycles all three modes, but only on the VisionClaw client that `GraphParity` holds. Under ADR-2159 the Codescape volume packs from a second `BinaryProtocolClient` (`connection_volume_source.gd:150`), and nothing calls `set_color_mode` on it, so it keeps the `Domain` default (`domain_palette.rs:50`). **Why it is this way.** A6 selected the palette at each exclusive switch, on the one client there was. When the switch was deleted, `apply_backend_palette` kept its boot call (`graph_scene.gd:1360`) and lost its per-switch call. Nobody moved the call onto connection construction. Source tracing only: no headset image was taken to confirm the colours drawn.
 
 
-**Drift:** `docs/XR-client.md:1357` still says `apply_backend_palette` selects the backend's default "at boot and on every switch".
+**Drift:** `docs/XR-client.md:1366` still says `apply_backend_palette` selects the backend's default "at boot and on every switch".

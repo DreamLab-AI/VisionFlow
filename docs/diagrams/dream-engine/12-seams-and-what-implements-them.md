@@ -12,7 +12,7 @@ sources:
   - ../dream-engine/crates/dream-core/src/lib.rs
   - ../dream-engine/crates/dream-core/src/source.rs
   - ../dream-engine/docs/adr/ADR-DE-005-seams.md
-verified_commit: b40d50724bb6344dc00d57270f7166b138714406
+verified_commit: 881075377625a9e20e69e9137f679506e93f4b68
 ---
 ## For developers
 
@@ -65,13 +65,13 @@ classDiagram
     EvaluatorRunner <|.. LocalRunner
     EvaluatorRunner <|.. ScriptedRunner
     note for Llm "host supplies Llm<br/>seams.rs line 96"
-    note for GhForge "git push and gh CLI<br/>seams.rs line 424"
+    note for GhForge "git push and gh CLI<br/>seams.rs line 432"
 ```
 
 **What it shows.** Each trait with the implementations in this crate. `Llm` has
 none: the host supplies the model (`crates/dream-core/src/seams.rs:96`).
 `NullSink` and `JsonlSink` are at `seams.rs:157` and `seams.rs:202`,
-`StderrNotifier` at `seams.rs:329`, `GhForge` at `seams.rs:424`, `LocalRunner` at
+`StderrNotifier` at `seams.rs:329`, `GhForge` at `seams.rs:432`, `LocalRunner` at
 `runner.rs:48` and `ScriptedRunner` at `runner.rs:85`, all under
 `crates/dream-core/src/`.
 **Why it is this way.** The traits are dyn-compatible so a consumer holds a
@@ -79,7 +79,8 @@ none: the host supplies the model (`crates/dream-core/src/seams.rs:96`).
 **Invariant:** `Notifier::notify` returns no `Result` (`crates/dream-core/src/seams.rs:320`).
 **Debt:** the signature does not contain panics or impose a deadline. A host implementation can interrupt or stall the caller; verdict persistence must not depend on an uncontained notification.
 **Debt:** `GhForge` has one test in this tree and it only proves the trait is
-dyn-safe (`crates/dream-core/src/seams.rs:647`). The push, PR creation and
+dyn-safe (`crates/dream-core/src/seams.rs:708`). The free function that builds its
+merge arguments is unit-tested offline (`crates/dream-core/src/seams.rs:576`). The push, PR creation and
 branch-protection paths have not been exercised against a live GitHub.
 
 ## DE-12.2 Where each seam is crossed in a night
@@ -106,7 +107,7 @@ code crosses `EvaluatorRunner` in `candidate::run` and `Forge` in
 `persist::publish`; source gathering and repair also call the supplied `Llm` (`crates/dream-core/src/source.rs:1048`, `crates/dream-core/src/source.rs:1308`). The host orchestrates these operations and its memory and notification calls.
 **Why it is this way.** Memory writes are best effort and callers log and
 continue (`crates/dream-core/src/seams.rs:147`). The `publish_draft` signature returns `PrOutcome`; persistence of the night is a separate host responsibility and a trait implementation can still panic
-(`crates/dream-core/src/seams.rs:365`).
+(`crates/dream-core/src/seams.rs:369`).
 **Open:** the sequence above is the intended host order from the crate docs
 (`crates/dream-core/src/lib.rs:3`). No driver in this repository enforces it,
 so the order is not machine-checked here.

@@ -36,7 +36,7 @@ sources:
   - ../project/client/src/features/graph/hooks/dragHeartbeat.ts
   - ../project/client/src/features/graph/hooks/__tests__/dragHeartbeat.test.ts
   - ../project/src/handlers/socket_flow_handler/types.rs
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -356,11 +356,11 @@ flowchart LR
         CAM["PerspectiveCamera"]
     end
     subgraph graph["Graph render path (VC-31)"]
-        SAB["worker SharedArrayBuffer positions<br/>getPositionsSync graphWorkerProxy.ts:316"]
-        GMx["GraphManager.tsx useFrame copies the buffer once per frame<br/>into the drawn array GraphManager.tsx:433, :446-448"]
-        ILx["InstancedLabels reads the drawn array through nodePositionsRef<br/>GraphManager.tsx:769-772"]
+        SAB["worker SharedArrayBuffer positions<br/>getPositionsSync graphWorkerProxy.ts:321"]
+        GMx["GraphManager.tsx useFrame copies the buffer once per frame<br/>into the drawn array GraphManager.tsx:436, :449-451"]
+        ILx["InstancedLabels reads the drawn array through nodePositionsRef<br/>GraphManager.tsx:776-779"]
         NPC["NodePositionContext module singleton<br/>sharedNodePositions and sharedNodeIdToIndexMap<br/>client/src/features/graph/contexts/NodePositionContext.tsx:8, :11"]
-        ECL["EmbeddingCloudLayer reads both to frame the memory cloud<br/>EmbeddingCloudLayer.tsx:48, :84-89"]
+        ECL["EmbeddingCloudLayer reads both to frame the memory cloud<br/>EmbeddingCloudLayer.tsx:48, :85-90"]
     end
     SP --> SIx["SpacePilotSimpleIntegration useThree camera<br/>SpacePilotSimpleIntegration.tsx:12, mounted GraphCanvas.tsx:398"] --> CAM
     HT --> HPCx["HeadTrackedParallaxController useThree camera, size<br/>HeadTrackedParallaxController.tsx:14, mounted GraphCanvas.tsx:401"] --> CAM
@@ -374,10 +374,10 @@ flowchart LR
     inputs --> NOTE2
     NOTE2["INVARIANT both spatial inputs mutate the SAME R3F camera and<br/>write nothing into the position buffers. Position data flows<br/>one way - websocket to worker buffer to drawn copy to renderer<br/>(VC-32, VC-31) - so an input device cannot desynchronise graph state."]
     NPC --> NOTE3
-    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the drawn<br/>copy on every frame (GraphManager.tsx:448) and the id map on every<br/>node-set change (GraphManager.tsx:89), and the memory cloud layer reads<br/>them directly. Nothing clears them on unmount, so a reader after a<br/>remount sees the last frame. NodePositionContext.tsx:13-19"]
+    NOTE3["DEBT: NodePositionContext is named a context but is a module-level<br/>mutable singleton, not a React context. GraphManager publishes the drawn<br/>copy on every frame (GraphManager.tsx:451) and the id map on every<br/>node-set change (GraphManager.tsx:90), and the memory cloud layer reads<br/>them directly. Nothing clears them on unmount, so a reader after a<br/>remount sees the last frame. NodePositionContext.tsx:13-19"]
 ```
 
-**What it shows.** Who writes the camera and who shares the node positions at this pin. The agent overlay that used to read the singleton (`BotsVisualization.tsx`) was retired in VisionClaw `923f9ae83`; its one reader now is the memory cloud layer, which takes the graph's bounds from it. **Why it is this way.** The drawn array is a per-frame copy so drag and layout transitions write the copy, never the buffer the worker rewrites (client/src/features/graph/components/GraphManager.tsx:444-445).
+**What it shows.** Who writes the camera and who shares the node positions at this pin. The agent overlay that used to read the singleton (`BotsVisualization.tsx`) was retired in VisionClaw `923f9ae83`; its one reader now is the memory cloud layer, which takes the graph's bounds from it. **Why it is this way.** The drawn array is a per-frame copy so drag and layout transitions write the copy, never the buffer the worker rewrites (client/src/features/graph/components/GraphManager.tsx:447-448).
 
 ## VC-37.8 Browser path versus the shipped Godot path
 
@@ -462,7 +462,7 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph store["settingsStore"]
-        SS["settings.visualisation.spacePilot, typed SpacePilotConfig<br/>client/src/features/settings/config/settings.ts:630"]
+        SS["settings.visualisation.spacePilot, typed SpacePilotConfig<br/>client/src/features/settings/config/settings.ts:635"]
         HS["settings.visualisation.interaction.headTrackedParallax<br/>{enabled, sensitivity, cameraMode}<br/>HeadTrackedParallaxController.tsx:17-19"]
     end
     subgraph dead["Unimported: visualisation/hooks/useSpacePilot.ts and SpacePilotController"]
@@ -490,7 +490,7 @@ flowchart TB
 
 **What it shows.** Which settings reach the camera. Head-parallax settings do. SpacePilot settings are typed in the settings schema and would be read and written by the hook, but the hook is not imported, and the integration that is mounted uses literals. **Why it is this way.** The simpler integration replaced the hook-and-controller path in the canvas without the settings being re-pointed at it.
 
-**Drift:** `settings.visualisation.spacePilot` (client/src/features/settings/config/settings.ts:630) is read and written only by `client/src/features/visualisation/hooks/useSpacePilot.ts` (client/src/features/visualisation/hooks/useSpacePilot.ts:58-59, client/src/features/visualisation/hooks/useSpacePilot.ts:211-215), which has no importer, while the mounted `SpacePilotSimpleIntegration` uses a fixed literal (client/src/features/visualisation/components/SpacePilotSimpleIntegration.tsx:29-38). The earlier drawing of this panel showed the hook's round trip as the live path.
+**Drift:** `settings.visualisation.spacePilot` (client/src/features/settings/config/settings.ts:635) is read and written only by `client/src/features/visualisation/hooks/useSpacePilot.ts` (client/src/features/visualisation/hooks/useSpacePilot.ts:58-59, client/src/features/visualisation/hooks/useSpacePilot.ts:211-215), which has no importer, while the mounted `SpacePilotSimpleIntegration` uses a fixed literal (client/src/features/visualisation/components/SpacePilotSimpleIntegration.tsx:29-38). The earlier drawing of this panel showed the hook's round trip as the live path.
 
 ## VC-37.11 A still desktop drag keeps its server hold alive with a heartbeat
 

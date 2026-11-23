@@ -29,9 +29,8 @@ sources:
   - ../sidestr-rs/.github/workflows/ci.yml
   - docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md
   - ../project/docs/adr/ADR-2111-re-sequence-rgb-for-bridged-assets-and-delete-the-host-payment-store.md
-  - ../project/docs/TODO-unified.md
   - ../project/agentbox/lib/sidestr-agent.nix
-verified_commit: {sidestr-rs: 04804c890c08dc8bbfbd797e17828abb725e55da, agentbox: 0693c761c782457066f081b46daf8f7f4ea29e3c, visionflow: fdeab5dc36a859b3b881d7d587af067c88795217, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
+verified_commit: {sidestr-rs: 17da8b8e5b2c2decf94551ecb4ea47c732669214, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers

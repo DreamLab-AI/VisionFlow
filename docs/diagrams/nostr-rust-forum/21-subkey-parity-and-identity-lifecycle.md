@@ -14,7 +14,7 @@ sources:
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/config/nostr-gateway/nostr-send.cjs
   - ../project/agentbox/config/nostr-gateway/gateway.cjs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93}
+verified_commit: {nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
 ## For developers
@@ -74,18 +74,21 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:36
+    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:39
     A["AGENTBOX_GATEWAY_IDENTITY"]
-    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:38
+    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:41
     B["Sender: child selects derived key<br/>default tag agentbox-mirror-v1"]
-    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:42
+    %% Source: ../project/agentbox/config/nostr-gateway/nostr-send.cjs:45
     C["Sender: gateway and default select root"]
-    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:167
-    D["Gateway: gateway selects derived key<br/>default tag agentbox-gateway-v1"]
-    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:169
-    E["Gateway: child and default select root"]
+    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:158
+    P["Gateway with identity port selected: gateway asks the port for key gateway,<br/>child and default ask for core gateway.cjs:156; custom tag refused gateway.cjs:159-160"]
+    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:172
+    D["Gateway without port: gateway derives key locally<br/>default tag agentbox-gateway-v1"]
+    %% Source: ../project/agentbox/config/nostr-gateway/gateway.cjs:174
+    E["Gateway without port: child and default select root"]
     A --> B
     A --> C
+    A --> P
     A --> D
     A --> E
 ```

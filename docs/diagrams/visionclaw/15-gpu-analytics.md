@@ -44,7 +44,7 @@ sources:
   - ../project/src/handlers/api_handler/analytics/visible_analytics.rs
   - ../project/src/handlers/api_handler/analytics/visible_results.rs
   - ../project/src/handlers/graph_access.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -61,13 +61,13 @@ These are the graph insights a user can ask for: clusters, important nodes, path
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:203
+    participant RT as Route<br/>analytics/mod.rs:204
     participant RC as run_clustering<br/>clustering_handlers.rs:20
     participant PC as perform_clustering<br/>clustering_handlers.rs:407
     participant RG as real_gpu_functions<br/>real_gpu_functions.rs:100-269
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:444
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:680
-    participant CA as ClusteringActor<br/>clustering_actor.rs:1288
+    participant CA as ClusteringActor<br/>clustering_actor.rs:1305
 
     C->>RT: POST /analytics/clustering/run
     RT->>RC: run_clustering(ClusteringRequest)
@@ -90,11 +90,11 @@ sequenceDiagram
     GM->>AS: PerformGPUClustering forward (gpu_manager_actor.rs:444-465)
     AS->>CA: PerformGPUClustering forward (analytics_supervisor.rs:686-704)
     alt method == dbscan
-        CA->>CA: perform_dbscan_clustering :515<br/>unreachable from this route, real_gpu_functions sends<br/>spectral, kmeans or louvain only
+        CA->>CA: perform_dbscan_clustering :532<br/>unreachable from this route, real_gpu_functions sends<br/>spectral, kmeans or louvain only
     else method in [louvain,leiden,communities]
-        CA->>CA: perform_community_detection :332<br/>louvain un-refined, leiden and communities refined<br/>(clustering_actor.rs:1317-1326)
+        CA->>CA: perform_community_detection :332<br/>louvain un-refined, leiden and communities refined<br/>(clustering_actor.rs:1334-1343)
     else
-        CA->>CA: perform_kmeans_clustering :175<br/>kmeans and spectral share the k-means path<br/>(clustering_actor.rs:1359-1368)
+        CA->>CA: perform_kmeans_clustering :175<br/>kmeans and spectral share the k-means path<br/>(clustering_actor.rs:1376-1385)
     end
     alt gpu_manager_addr present and GPU call Ok
         CA-->>AS: Ok(cluster list)
@@ -111,7 +111,7 @@ sequenceDiagram
     end
     PC->>GM: WriteClusterAnalytics{clusters} do_send (clustering_handlers.rs:69)
     GM->>AS: WriteClusterAnalytics forward (gpu_manager_actor.rs:988)
-    AS->>CA: WriteClusterAnalytics (clustering_actor.rs:1222)
+    AS->>CA: WriteClusterAnalytics (clustering_actor.rs:1239)
     CA->>CA: write_cluster_id_from_assignments (ADR-031 D3 single writer)
     PC->>PC: CLUSTERING_TASKS[task_id].status = completed :79-81
     Note over PC,RG: DEAD CODE - clustering.rs:6 perform_clustering, a second PerformGPUClustering-only<br/>dispatcher with validate_clustering_params, has no caller anywhere in the tree<br/>clustering_handlers.rs:407 is the live perform_clustering
@@ -123,11 +123,11 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:206
+    participant RT as Route<br/>analytics/mod.rs:207
     participant RD as run_dbscan_clustering<br/>clustering_handlers.rs:226
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:398
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:544
-    participant CA as ClusteringActor<br/>clustering_actor.rs:1193
+    participant CA as ClusteringActor<br/>clustering_actor.rs:1210
 
     C->>RT: POST /analytics/clustering/dbscan {epsilon,minPoints}
     RT->>RD: run_dbscan_clustering(body)
@@ -141,17 +141,17 @@ sequenceDiagram
         RD->>GM: RunDBSCAN{epsilon,min_points} (clustering_handlers.rs:266)
         GM->>AS: RunDBSCAN forward (gpu_manager_actor.rs:398-418)
         AS->>CA: RunDBSCAN forward (analytics_supervisor.rs:544-572)
-        CA->>CA: perform_dbscan_clustering :515
+        CA->>CA: perform_dbscan_clustering :532
         alt epsilon not finite or <= 0.0
-            CA-->>AS: Err epsilon must be finite and > 0 :536-541
+            CA-->>AS: Err epsilon must be finite and > 0 :553-558
         else min_points == 0
-            CA-->>AS: Err min_points must be >= 1 :542-544
+            CA-->>AS: Err min_points must be >= 1 :559-561
         else position_clustering_refusal (MIN_NODES_FOR_CLUSTERING=3, MIN_POSITION_SPREAD=1e-3)
-            CA-->>AS: Err DBSCAN clustering refused :560-564
+            CA-->>AS: Err DBSCAN clustering refused :577-581
         else
-            CA->>CA: unified_compute.run_dbscan_clustering(epsilon,min_points) :568
-            CA->>CA: record_execution(Dbscan, Gpu) :576
-            CA->>CA: write_cluster_id_from_assignments (node_analytics single writer) :638-655
+            CA->>CA: unified_compute.run_dbscan_clustering(epsilon,min_points) :585
+            CA->>CA: record_execution(Dbscan, Gpu) :593
+            CA->>CA: write_cluster_id_from_assignments (node_analytics single writer) :655-672
             CA-->>AS: Ok(DBSCANResult)
         end
         AS-->>GM: propagate result
@@ -172,23 +172,23 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:207
-    participant RCD as run_community_detection<br/>analytics/mod.rs:71
+    participant RT as Route<br/>analytics/mod.rs:208
+    participant RCD as run_community_detection<br/>analytics/mod.rs:72
     participant VC as visible_community_response<br/>community.rs:154
     participant GC as run_community_detection_via<br/>community.rs:66
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:375
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:520
-    participant CA as ClusteringActor<br/>clustering_actor.rs:1176
+    participant CA as ClusteringActor<br/>clustering_actor.rs:1193
 
     C->>RT: POST /analytics/community/detect {algorithm}
-    RT->>RCD: run_community_detection(request), AuthenticatedUser extractor analytics/mod.rs:72
-    RCD->>RCD: caller_gate for the caller's pubkey (analytics/mod.rs:78-82)
+    RT->>RCD: run_community_detection(request), AuthenticatedUser extractor analytics/mod.rs:73
+    RCD->>RCD: caller_node_gate for the caller's pubkey, Some only when a NODE is hidden (analytics/mod.rs:79-83, src/handlers/graph_access.rs:188-197)
     alt Err, the graph cannot be read
-        RCD-->>C: 500 success=false communities=[] modularity=0.0 (analytics/mod.rs:93-104)
+        RCD-->>C: 500 success=false communities=[] modularity=0.0 (analytics/mod.rs:94-105)
     else Ok(Some(gate)), the view hides nodes
-        RCD->>VC: visible_community_response(gate, request) analytics/mod.rs:86
+        RCD->>VC: visible_community_response(gate, request) analytics/mod.rs:87
         VC->>VC: visible_communities, Louvain local moving over the view, iterations clamped 1 to 10000 (community.rs:159-163)
-        Note over VC: INVARIANT a gated caller never reaches the whole-graph GPU run, so no grouping, label or modularity is shaped by a hidden node<br/>analytics/mod.rs:83-86, visible_analytics.rs:331
+        Note over VC: INVARIANT a gated caller never reaches the whole-graph GPU run, so no grouping, label or modularity is shaped by a hidden node<br/>analytics/mod.rs:84-87, visible_analytics.rs:331
         VC-->>RCD: algorithm louvain_local_moving, executionPath CpuVisibleSubgraph (community.rs:171-176)
     else Ok(None), nothing hidden from this caller
         RCD->>GC: run_gpu_community_detection, GpuAnalyticsRoutes.of(app_state) (community.rs:54-60)
@@ -214,9 +214,10 @@ sequenceDiagram
             end
         end
     end
-    RCD-->>C: 200 response, or 500 on Err (analytics/mod.rs:93-104)
+    RCD-->>C: 200 response, or 500 on Err (analytics/mod.rs:94-105)
     Note over CA: perform_community_detection clustering_actor.rs:332<br/>refuses below MIN_NODES_FOR_CLUSTERING :368-377, runs label propagation :384<br/>Louvain :395 or Leiden :409, records the kernel per branch :390
-    Note over CA: modularity gate - apply_modularity_gate writes node_analytics.community_id<br/>only when modularity reaches 0.3 (clustering_actor.rs:472)<br/>else community_id is reset (clustering_actor.rs:477-483), single writer per ADR-031 D3
+    Note over CA: modularity gate - apply_modularity_gate writes node_analytics.community_id<br/>only when modularity reaches 0.3 (clustering_actor.rs:473)<br/>else community_id is reset (clustering_actor.rs:486-492), single writer per ADR-031 D3
+    Note over CA: NEW ADR-2206 - every run, accepted or rejected, is recorded as the wire carries it (post-gate ids, clustering_actor.rs:473-480)<br/>and observed in the community label registry after the write guard is released (clustering_actor.rs:496-502)
 ```
 
 **What it shows:** the route splits on the caller gate before any GPU work. A caller whose view hides nodes is answered by CPU local moving over that view; a full-access caller goes through `GPUManagerActor` to `ClusteringActor`, which the old `ForceComputeActor` refusal stub never reached.
@@ -231,17 +232,17 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:209
-    participant RAD as run_anomaly_detection<br/>analytics/mod.rs:108
+    participant RT as Route<br/>analytics/mod.rs:210
+    participant RAD as run_anomaly_detection<br/>analytics/mod.rs:109
     participant GA as run_gpu_anomaly_detection<br/>anomaly.rs:25
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:421
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:574
-    participant ADA as AnomalyDetectionActor<br/>anomaly_detection_actor.rs:118
+    participant ADA as AnomalyDetectionActor<br/>anomaly_detection_actor.rs:143
 
     C->>RT: POST /analytics/anomaly/detect {method,kNeighbors,threshold}
     RT->>RAD: run_anomaly_detection(request)
-    RAD->>RAD: caller_gate for the caller's pubkey (analytics/mod.rs:115-120)
-    RAD->>GA: run_gpu_anomaly_detection(method,k_neighbors,radius,threshold) analytics/mod.rs:121
+    RAD->>RAD: caller_node_gate for the caller's pubkey (analytics/mod.rs:116-121)
+    RAD->>GA: run_gpu_anomaly_detection(method,k_neighbors,radius,threshold) analytics/mod.rs:122
     alt app_state.gpu_manager_addr is None
         GA-->>RAD: Err GPU manager actor not available anomaly.rs:40
     else method not lof, local_outlier_factor, zscore or z_score
@@ -252,19 +253,19 @@ sequenceDiagram
         GM->>AS: RunAnomalyDetection forward (gpu_manager_actor.rs:421)
         AS->>ADA: RunAnomalyDetection forward (analytics_supervisor.rs:574-597)
         alt ADA.shared_context is None
-            ADA-->>AS: Err GPU not initialized (anomaly_detection_actor.rs:127-132)
-        else ADA.gpu_state.num_nodes == 0
-            ADA-->>AS: Err No nodes available for anomaly detection (anomaly_detection_actor.rs:137-140)
+            ADA-->>AS: Err GPU not initialized (anomaly_detection_actor.rs:152-157)
+        else num_nodes still 0 after sync_node_count backfills it from the GPU context (anomaly_detection_actor.rs:159, :113-120)
+            ADA-->>AS: Err No nodes available for anomaly detection (anomaly_detection_actor.rs:163-166)
         else k_neighbors >= num_nodes
-            ADA-->>AS: Err k_neighbors must be less than total nodes (anomaly_detection_actor.rs:147-152)
+            ADA-->>AS: Err k_neighbors must be less than total nodes (anomaly_detection_actor.rs:173-178)
         else
             alt method == LocalOutlierFactor
-                ADA->>ADA: run_lof_anomaly_detection(k,threshold) (anomaly_detection_actor.rs:207)
-                ADA->>ADA: record_execution(Lof, Gpu) (anomaly_detection_actor.rs:212)
+                ADA->>ADA: run_lof_anomaly_detection(k,threshold) (anomaly_detection_actor.rs:234)
+                ADA->>ADA: record_execution(Lof, Gpu) (anomaly_detection_actor.rs:239)
             else method == ZScore
-                ADA->>ADA: get_node_positions then run_zscore_anomaly_detection (anomaly_detection_actor.rs:237-252)
+                ADA->>ADA: get_node_positions then run_zscore_anomaly_detection (anomaly_detection_actor.rs:264-279)
             end
-            ADA->>ADA: node_analytics.anomaly = anomaly_score (single writer) (anomaly_detection_actor.rs:387-418)
+            ADA->>ADA: node_analytics.anomaly = wire_anomaly_score(score, threshold), single writer (anomaly_detection_actor.rs:414-448),<br/>CHANGED 0 for an unflagged node, else a ramp reaching 1.0 at three times the threshold (anomaly_detection_actor.rs:485)
             ADA-->>AS: Ok(AnomalyResult)
         end
         AS-->>GM: propagate
@@ -277,12 +278,12 @@ sequenceDiagram
         end
     end
     alt Ok
-        RAD->>RAD: gate_anomalies keeps only visible positions when the caller's view hides nodes (analytics/mod.rs:129-132)
+        RAD->>RAD: gate_anomalies keeps only visible positions when the caller's view hides nodes (analytics/mod.rs:130-133)
         RAD-->>C: 200 success=true anomalies, total, method
     else Err(e)
-        RAD-->>C: 500 success=false anomalies=[] total=0 (analytics/mod.rs:148-155)
+        RAD-->>C: 500 success=false anomalies=[] total=0 (analytics/mod.rs:149-156)
     end
-    Note over ADA: the actor also has an internal DBSCAN noise arm (anomaly_detection_actor.rs:277-295), unreachable here because the public AnomalyMethod maps only to LOF and ZScore (anomaly_detection_actor.rs:155-160)
+    Note over ADA: the actor also has an internal DBSCAN noise arm (anomaly_detection_actor.rs:304-322), unreachable here because the public AnomalyMethod maps only to LOF and ZScore (anomaly_detection_actor.rs:181-186)
 ```
 
 ## VC-15.5 PageRank compute / cached result / cache clear — gated callers on the CPU, full access through the GPU manager
@@ -298,8 +299,8 @@ sequenceDiagram
     participant AS as AnalyticsSupervisor<br/>analytics_supervisor.rs:631
     participant PRA as PageRankActor<br/>pagerank_actor.rs:374
 
-    C->>CP: POST /analytics/pagerank/compute (analytics/mod.rs:238), OptionalAuth caller
-    CP->>CP: caller_gate over the current graph (pagerank_handlers.rs:138-142)
+    C->>CP: POST /analytics/pagerank/compute (analytics/mod.rs:239), OptionalAuth caller
+    CP->>CP: caller_node_gate over the current graph (pagerank_handlers.rs:138-142)
     alt Err, graph unreadable
         CP-->>C: 500 success=false (pagerank_handlers.rs:160-166)
     else Ok(Some(gate)), the view hides nodes
@@ -317,8 +318,8 @@ sequenceDiagram
             PRA-->>CP: Ok(PageRankResult), 200 PageRankPayload Whole (pagerank_handlers.rs:285-294)
         end
     end
-    C->>GP: GET /analytics/pagerank/result (analytics/mod.rs:299)
-    GP->>GP: caller_gate (pagerank_handlers.rs:200-204)
+    C->>GP: GET /analytics/pagerank/result (analytics/mod.rs:304)
+    GP->>GP: caller_node_gate (pagerank_handlers.rs:200-204)
     alt Ok(Some), the view hides nodes
         GP-->>C: 200 cached=false, the same reply as an empty cache (pagerank_handlers.rs:207-214)
     else Ok(None)
@@ -327,7 +328,7 @@ sequenceDiagram
         AS->>PRA: GetPageRankResult, get_cached_result pagerank_actor.rs:345
         PRA-->>C: 200 cached and the whole-graph result
     end
-    C->>CL: POST /analytics/pagerank/clear (analytics/mod.rs:242)
+    C->>CL: POST /analytics/pagerank/clear (analytics/mod.rs:243)
     CL->>GM: ClearPageRankCache, only for a power user, anyone else gets the reply of a missing route (pagerank_handlers.rs:240-256)
     GM->>AS: forward (gpu_manager_actor.rs:858, analytics_supervisor.rs:614)
     AS->>PRA: clear_cache sets last_result None (pagerank_actor.rs:350-351)
@@ -353,7 +354,7 @@ sequenceDiagram
     participant GAS as GraphAnalyticsSupervisor<br/>graph_analytics_supervisor.rs:392
     participant SPA as ShortestPathActor (supervised)<br/>shortest_path_actor.rs:198
 
-    C->>CS: POST /analytics/pathfinding/sssp {sourceIdx,maxDistance,delta} (analytics/mod.rs:246)
+    C->>CS: POST /analytics/pathfinding/sssp {sourceIdx,maxDistance,delta} (analytics/mod.rs:247)
     CS->>CS: gated_view, current graph then gate_for_graph,<br/>an unreadable graph answers 503 (analytics/pathfinding.rs:193, :456-477)
     alt Ok(Some(gate)), the view hides nodes
         CS->>VA: visible_sssp(gate, source_idx, max_distance) analytics/pathfinding.rs:195-199
@@ -382,7 +383,7 @@ sequenceDiagram
         end
         CS-->>C: 200 or 500 SSSPResponse (analytics/pathfinding.rs:226-263)
     end
-    C->>CAp: POST /analytics/pathfinding/apsp {numLandmarks,seed} (analytics/mod.rs:250)
+    C->>CAp: POST /analytics/pathfinding/apsp {numLandmarks,seed} (analytics/mod.rs:251)
     CAp->>CAp: gated_view (analytics/pathfinding.rs:296)
     alt Ok(Some(gate))
         CAp->>VA: visible_apsp, landmark rows k x n keyed by visible id,<br/>k defaults to ceil sqrt n, capped at 256 (visible_analytics.rs:511-515)
@@ -408,27 +409,27 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:212
+    participant RT as Route<br/>analytics/mod.rs:213
     participant CS as compute_sssp<br/>sssp_handlers.rs:214
-    participant GSS as GraphServiceSupervisor (graph_service_addr)<br/>graph_service_supervisor.rs:1689
-    participant GSA as GraphStateActor<br/>graph_state_actor.rs:1100
+    participant GSS as GraphServiceSupervisor (graph_service_addr)<br/>graph_service_supervisor.rs:1703
+    participant GSA as GraphStateActor<br/>graph_state_actor.rs:1086
 
     C->>RT: POST /analytics/sssp/compute {sourceNode}
     RT->>CS: compute_sssp(request), sourceNode defaults to 0 (sssp_handlers.rs:221-225)
     alt caller_gate says the caller's view hides nodes and the source is not in it (sssp_handlers.rs:229-239)
-        CS-->>C: 500 Failed to compute SSSP Source node N not found, the same text and status as a missing source (sssp_handlers.rs:207-212, graph_state_actor.rs:1096-1098)
+        CS-->>C: 500 Failed to compute SSSP Source node N not found, the same text and status as a missing source (sssp_handlers.rs:207-212, graph_state_actor.rs:1082-1084)
     else unreadable graph
         CS-->>C: 500 Failed to communicate with graph service, fail closed (sssp_handlers.rs:241-244)
     end
     CS->>GSS: ComputeShortestPaths{source_node_id} (sssp_handlers.rs:248-252)
-    GSS->>GSA: forward to graph_state (graph_service_supervisor.rs:1698-1708)
-    GSA->>GSA: compute_shortest_paths delegates to shortest_paths_over (graph_state_actor.rs:749-754, :1071)
+    GSS->>GSA: forward to graph_state (graph_service_supervisor.rs:1712-1722)
+    GSA->>GSA: compute_shortest_paths delegates to shortest_paths_over (graph_state_actor.rs:730-735, :1057)
     alt source_node_id not in node_map
-        GSA-->>GSS: Err source_not_found (graph_state_actor.rs:1076-1077, :1096-1098)
+        GSA-->>GSS: Err source_not_found (graph_state_actor.rs:1062-1063, :1082-1084)
     else
         GSA->>GSA: services::pathfinding::single_source, binary-heap Dijkstra, undirected weighted edges,<br/>an edge to an id outside the graph is skipped (src/services/pathfinding.rs:180-194)
-        GSA->>GSA: path_to rebuilds each hop path from the predecessors (graph_state_actor.rs:1079-1085, src/services/pathfinding.rs:168-173)
-        GSA-->>GSS: Ok(PathfindingResult{distances,paths,computation_time_ms}) (graph_state_actor.rs:1125-1130)
+        GSA->>GSA: path_to rebuilds each hop path from the predecessors (graph_state_actor.rs:1065-1071, src/services/pathfinding.rs:168-173)
+        GSA-->>GSS: Ok(PathfindingResult{distances,paths,computation_time_ms}) (graph_state_actor.rs:1111-1116)
     end
     GSS-->>CS: propagate
     alt Ok
@@ -447,7 +448,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:258
+    participant RT as Route<br/>analytics/mod.rs:259
     participant CC as compute_connected_components<br/>analytics/pathfinding.rs:374
     participant GM as GPUManagerActor<br/>gpu_manager_actor.rs:796
     participant GAS as GraphAnalyticsSupervisor<br/>graph_analytics_supervisor.rs:574
@@ -490,7 +491,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Client
-    participant RT as Route<br/>analytics/mod.rs:254
+    participant RT as Route<br/>analytics/mod.rs:255
     participant PTP as compute_point_to_point<br/>analytics/pathfinding.rs:568-569
     participant GR as graph_repository<br/>analytics/pathfinding.rs:580
     participant AS as AStarPathfinder<br/>services/pathfinding.rs
@@ -541,10 +542,10 @@ sequenceDiagram
     participant FSP as find_semantic_path<br/>semantic_pathfinding_handler.rs:29
     participant QT as query_traversal<br/>semantic_pathfinding_handler.rs:62
     participant CT as chunk_traversal<br/>semantic_pathfinding_handler.rs:94
-    participant GSA as GraphServiceSupervisor (web::Data Addr)<br/>graph_service_supervisor.rs:1490
+    participant GSA as GraphServiceSupervisor (web::Data Addr)<br/>graph_service_supervisor.rs:1504
     participant SVC as SemanticPathfindingService<br/>semantic_pathfinding_service.rs:86
 
-    Note over CFG: mounted at web-scope pathfinding by main.rs:1210, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
+    Note over CFG: mounted at web-scope pathfinding by main.rs:1194, distinct from the analytics-scope path family in VC-15.6 to VC-15.9
     Note over CFG: the scope is wrapped in one process-wide rate limiter, 30 requests per minute keyed on the verified pubkey<br/>with an IP fallback for unauthenticated reads (semantic_pathfinding_handler.rs:127-145, :154, PATHFINDING_REQUESTS_PER_MINUTE :125)
     Note over QT,CT: traversal_budget defaults max_nodes to 50 and caps it at MAX_TRAVERSAL_NODES = 1000 (semantic_pathfinding_handler.rs:123, :147-148)
 
@@ -702,11 +703,11 @@ flowchart TD
 
 **Drift:** before this restamp the topic placed the Louvain D1 marker at `gpu_clustering_kernels.cu:581` (a loop line; the marker is at `:606`) and described the APSP kernel as `#if 0`-guarded, but ADR-2054 had already removed it (`crates/visionclaw-gpu/src/cuda_sources/gpu_landmark_apsp.cu:13-25`).
 
-**Invariant:** `CallerGate` is the one ADR-060 "is anything hidden from this caller" decision; `gate_for_graph` and `caller_gate` are its only constructors (`src/handlers/graph_access.rs:77-82`, `:120`, `:159`), and ids and GPU positions are distinct types so they cannot be mixed (`src/handlers/graph_access.rs:44-53`).
+**Invariant:** `CallerGate` is the one ADR-060 "is anything hidden from this caller" decision; `gate_for_graph` and `caller_gate` build it, and the routes choosing between the GPU run and the CPU view use `caller_node_gate`, which keeps a gate only when a node is hidden (`src/handlers/graph_access.rs:77-82`, `:120`, `:159`, `:177-197`), and ids and GPU positions are distinct types so they cannot be mixed (`src/handlers/graph_access.rs:44-53`).
 
 **Debt (parallel):** the gate still reads the graph two ways. Point-to-point reads `graph_repository` (`src/handlers/api_handler/analytics/pathfinding.rs:580`) while every other gate reads `GraphServiceSupervisor` (`src/handlers/graph_access.rs:159-168`), and `gated_view` fetches the graph even when the filter is off (`src/handlers/api_handler/analytics/pathfinding.rs:456-476`) where `caller_gate` skips the fetch (`src/handlers/graph_access.rs:163-165`).
 
-**Invariant:** there is one CPU single-source shortest path, `single_source` (`src/services/pathfinding.rs:180`), used by `/sssp/compute` (`src/actors/graph_state_actor.rs:1079`) and the gated routes; the GPU `run_sssp` (`src/utils/unified_gpu_compute/sssp.rs:72`) is its accelerator for full-access callers.
+**Invariant:** there is one CPU single-source shortest path, `single_source` (`src/services/pathfinding.rs:180`), used by `/sssp/compute` (`src/actors/graph_state_actor.rs:1065`) and the gated routes; the GPU `run_sssp` (`src/utils/unified_gpu_compute/sssp.rs:72`) is its accelerator for full-access callers.
 
 **Tension (risk):** anomalies are still scored over the whole graph and only filtered on the way out (`src/handlers/api_handler/analytics/visible_results.rs:1-7`), because LOF scores layout positions every node shaped; and DBSCAN clusters keep their whole-graph cluster ids after hidden members are dropped (`src/handlers/api_handler/analytics/visible_analytics.rs:173-177`). A visible node's anomaly score or cluster number can still reflect hidden nodes.
 

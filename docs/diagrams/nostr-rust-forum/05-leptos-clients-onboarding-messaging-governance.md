@@ -76,7 +76,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md
   - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
   - ../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md
-verified_commit: fd31193090a29471972bd408e07a7e5b8654f087
+verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
 ---
 
 ## NF-05.1 Forum client boot and the FORUM_BASE discipline
@@ -254,14 +254,14 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     EVS["channel_messages: HashMap of channel to Vec of events<br/>channels.rs:77"]
-    TOMB["tombstones are (id, deleter), seeded from the persisted sealed and held sets<br/>channels.rs:119 channels.rs:135, tombstones.rs:67"]
+    TOMB["tombstones are (id, deleter), seeded from the persisted sealed and held sets<br/>channels.rs:119 channels.rs:135, tombstones.rs:69"]
     GATE1["admits_message gate BEFORE decrypt<br/>channels.rs:580"]
     DEC["zone_crypto::store::prepare_incoming - ciphertext to plaintext or placeholder<br/>channels.rs:615"]
     GATE2["admits_message gate AGAIN AFTER decrypt - a restored sealed original<br/>carries the ORIGINAL id, which a kind-5 may already have tombstoned<br/>channels.rs:622 ADR-2017"]
     INS["insert_message helper: dedup by id, then sort by created_at<br/>channels.rs:807 channels.rs:629"]
     CNT["count_for = Vec::len on every read<br/>channels.rs:305 channels.rs:307"]
     UNREAD["unread_count is a Memo filtering !read<br/>notifications.rs:271"]
-    HON["honoured per target: ordinary post, every deleter counts. Restored sealed original,<br/>only its inner author, a relay-vouched admin, or the reader's own delete<br/>tombstones.rs:114 tombstones.rs:131, signer_admin.rs:108 signer_admin.rs:127"]
+    HON["honoured per target: ordinary post, every deleter counts. Restored sealed original,<br/>only its inner author, a relay-vouched admin, or the reader's own delete<br/>tombstones.rs:116 tombstones.rs:133, signer_admin.rs:108 signer_admin.rs:127"]
 
     EVS --> GATE1 --> DEC --> GATE2 --> INS --> CNT
     TOMB --> HON
@@ -270,9 +270,9 @@ flowchart TB
     EVS --> UNREAD
 
     N1["INVARIANT ADR-091: post counts are NEVER stored as an independent field - a mutable counter drifts<br/>against deletions and replaceable events channels.rs:68"]
-    N2["admits_message is the single admission predicate for the broad sync, ensure_subscribed and the deep-link replay<br/>channels.rs:267 channels.rs:720 channels.rs:737. insert_message is the only path that ADDS to channel_messages.<br/>The other mutations only remove or rewrite: apply_deletion folds a kind-5 per deleter channels.rs:194 tombstones.rs:164,<br/>remove_message for the reader's own delete channels.rs:243, the empty-EOSE reset channels.rs:478, and redecrypt,<br/>which re-admits a restored original zone_crypto/store.rs:502"]
+    N2["admits_message is the single admission predicate for the broad sync, ensure_subscribed and the deep-link replay<br/>channels.rs:267 channels.rs:720 channels.rs:737. insert_message is the only path that ADDS to channel_messages.<br/>The other mutations only remove or rewrite: apply_deletion folds a kind-5 per deleter channels.rs:194 tombstones.rs:166,<br/>remove_message for the reader's own delete channels.rs:243, the empty-EOSE reset channels.rs:478, and redecrypt,<br/>which re-admits a restored original zone_crypto/store.rs:502"]
     N3["The same discipline is applied to notifications - unread is derived, not incremented<br/>notifications.rs:271. init_sync opens NO subscription of its own,<br/>and is idempotent behind a synced flag notifications.rs:483"]
-    N4["OPEN O25 / KF-27: the client cannot identify TL3 moderators tombstones.rs:17-19, and the isAdmin it asks for<br/>signer_admin.rs:108 is the whitelist row's is_admin alone whitelist.rs:135 whitelist.rs:180, while the relay's own<br/>admin test also honours static ADMIN_PUBKEYS auth.rs:181. O13 / KF-17, relay half in NF-10.14, not re-read<br/>here: an ordinary post honours every deleter tombstones.rs:7-10, so a claim the relay accepts on an id it never stored hides it"]
+    N4["OPEN O25 / KF-27: the client cannot identify TL3 moderators tombstones.rs:19-21, and the isAdmin it asks for<br/>signer_admin.rs:108 is the whitelist row's is_admin alone whitelist.rs:135 whitelist.rs:180, while the relay's own<br/>admin test also honours static ADMIN_PUBKEYS auth.rs:181. O13 / KF-17, relay half in NF-10.14, not re-read<br/>here: an ordinary post honours every deleter tombstones.rs:7-10, so a claim the relay accepts on an id it never stored hides it"]
     N5["Kit #81: the sync filters are split so kind-5s cannot crowd out channels or other zones - channels 40 and 41,<br/>deletions, reactions and one kind-42 filter per zone plus a catch-all, each with an explicit limit 1000<br/>channels.rs:1006 channels.rs:1021 channels.rs:1042 channels.rs:963. The broad message sync starts only once the<br/>channel list has an authenticated answer or its deadline passed nostr-bbs-forum-client/src/app.rs:903 lookup.rs:260,<br/>because start_msg_sync builds its per-zone filters from the channels known at that instant and the pre-AUTH answer<br/>omits Hidden-zone channels nostr-bbs-forum-client/src/app.rs:887-892; the deadline is armed at relay connect nostr-bbs-forum-client/src/app.rs:896-897"]
     N6["DEBT, two kind-42 subscriptions write one store: the broad start_msg_sync channels.rs:560 and the per-channel<br/>ensure_subscribed channels.rs:693 both pass admits_message and insert_message, which dedups by id channels.rs:807-809.<br/>The broad one is per-zone #e filters plus a catch-all with no #e message_sync_filters channels.rs:1042 channels.rs:1076,<br/>so a deep-linked channel's history can arrive twice - overlapping authority and redundant relay traffic, not a count error"]
 ```
@@ -553,7 +553,7 @@ sequenceDiagram
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:798
     G["Gate on, relay authenticated and this identity's keys loaded<br/>start member grant sync once per sign-in"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:753
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:756
     V["Verify wrap and seal, unwrap private rumor<br/>admin authority and key-pair validation"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:852
     K["Persist as this identity's row<br/>a different key for the slot is refused, see NF-27.6"]
@@ -609,7 +609,7 @@ flowchart TB
 
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js:241
     N1["The empty push body carries no message text, author key or channel ID<br/>the service worker fetches generic counters; see NF-18 for metadata and receipt limits<br/> ADR-2023 decision 1 and 2"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:88
     N2["OPEN: ADR-2023 is accepted and complete but activation is staged - the relay ships PUSH_ENABLED false<br/> - see NF-08.8"]
 ```
 
@@ -617,7 +617,7 @@ flowchart TB
 
 **Why it is this way.** Push payloads transit Google, Apple and Mozilla, and the service worker has no access to the page’s localStorage or sessionStorage, so ADR-2023 chose payload-less push with a bearer-token drain instead of RFC 8291 encryption (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:34-35`, `../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:38-39`).
 
-**Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:7`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:86`).
+**Open:** ADR-2023 records `activation_status: staged` (no live Cloudflare deploy, push-service round trip or iOS device run was verified), and the shipped relay template leaves `PUSH_ENABLED = "false"` (`../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md:7`, `../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml:88`).
 
 ## NF-05.18 NIP-42 AUTH acceptance, held writes and the per-subscription REQ ledger (kit #91)
 

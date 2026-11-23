@@ -2,7 +2,7 @@
 id: VC-56
 title: Client explore layer, node table, crossfilter widgets, highlight mask and column encoding
 area: visionclaw
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2183, ADR-2184, ADR-2185, ADR-2189]
@@ -123,7 +123,7 @@ flowchart TB
 
 **What it shows.** Where each column comes from and why row `i` of the table is slot `i` of the mask and the encoding buffers. **Why it is this way.** ADR-2184 D2 types metadata strings by a declared schema (`ADR-2184-a-client-side-columnar-node-table-drives-visual-encoding.md:41`); the layout is declared once in an import-free module because `nodeAnalyticsStore`'s module graph creates the settings store and cannot load in a worker (`analyticsLayout.ts:5-7`).
 
-**Debt (parallel):** the worker still keeps its own analytics buffer at its own stride constant, `WORKER_ANALYTICS_STRIDE = 5` (`binary-processor.ts:22`), filled per frame (`binary-processor.ts:80-86`, `graph.worker.ts:171`), and answers `getAnalyticsBuffer` (`graph.worker.ts:499-500`), while the proxy's `getAnalyticsBuffer` is a deprecation stub that throws (`graphWorkerProxy.ts:493-497`): a second layout nobody on the main thread can read.
+**Debt (parallel):** the worker still keeps its own analytics buffer at its own stride constant, `WORKER_ANALYTICS_STRIDE = 5` (`binary-processor.ts:22`), filled per frame (`binary-processor.ts:80-86`, `graph.worker.ts:171`), and answers `getAnalyticsBuffer` (`graph.worker.ts:499-500`), while the proxy's `getAnalyticsBuffer` is a deprecation stub that throws (`graphWorkerProxy.ts:498-502`): a second layout nobody on the main thread can read.
 
 **Debt (parallel):** the maturity tiers are declared twice, as `MATURITY_RANK` (`nodeFilter.ts:26-28`) and `MATURITY_ORDER` (`tableSchema.ts:55`), and the latter's comment still points at `useGraphFiltering`'s copy (`tableSchema.ts:54`), which moved to `nodeFilter.ts`.
 
@@ -242,7 +242,7 @@ flowchart TB
 
 **What it shows.** The ADR-2183 D4 split: scope and collapse remove, the interactive predicates grey, and only the opt-in hides. **Why it is this way.** ADR-2183 D4 keeps hierarchy collapse a removal because it "changes what a node is" (`ADR-2183-interactive-filters-grey-out-through-a-highlight-mask.md:42`); the predicate semantics and the 0.4 default come from the 2026-11-06 implementation notes (`nodeFilter.ts:13-20`, `nodeFilter.ts:51-57`).
 
-**Tension (crossfilter vs render set):** the crossfilter says only rows in the render set count "so counts match the screen" (`crossfilter.ts:15-16`), but hierarchy collapse lives in per-instance hook state inside GraphManager (`GraphManager.tsx:87`, `useGraphFiltering.ts:94`) that the table builder cannot see (`buildTable.ts:32-36`), so the panel has to disclaim it (`ExplorePanel.tsx:336`).
+**Tension (crossfilter vs render set):** the crossfilter says only rows in the render set count "so counts match the screen" (`crossfilter.ts:15-16`), but hierarchy collapse lives in per-instance hook state inside GraphManager (`GraphManager.tsx:88`, `useGraphFiltering.ts:94`) that the table builder cannot see (`buildTable.ts:32-36`), so the panel has to disclaim it (`ExplorePanel.tsx:336`).
 
 ## VC-56.9 Column encoder and legend
 
@@ -301,7 +301,7 @@ flowchart TB
     XF --> DEDUP["writeFilter skips an unchanged id set<br/>filterRegistry.ts:109"]
     RB --> NEWT["new table identity re-runs createColumnEncoding<br/>useExplore.ts:161"]
     NEWT --> SE["setEncoder bumps encoderVersion, a whole-graph encodeAll<br/>nodeEncoding.ts:188-195, useNodeEncodingSync.ts:82"]
-    RA["readAnalytics uses the shared index map when sizes agree, to keep the store's<br/>one-slot cache warm (useExplore.ts:72-83, nodeAnalyticsStore.ts:97)"] --> CMP
+    RA["readAnalytics uses the shared index map when sizes agree, to keep the store's<br/>one-slot cache warm (useExplore.ts:72-83, nodeAnalyticsStore.ts:104)"] --> CMP
     SE -.-> OPEN1["OPEN: with live GPU analytics every tick differs, so the whole chain runs<br/>every 5 s even when no encoding reads a wire column (useExplore.ts:161, :166-169)"]
 ```
 

@@ -27,7 +27,7 @@ sources:
   - ../project/agentbox/config/hooks/lib/jev-option.cjs
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
   - ../project/agentbox/mcp/servers/ruvector-mcp.cjs
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-21.1 Capture — transcript-driven grading
@@ -190,7 +190,7 @@ classDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2608
+    participant SUP as supervisord<br/>agentbox/flake.nix:2632
     participant SW as ruvector-aggregate-sweep.mjs<br/>agentbox/scripts/ruvector-aggregate-sweep.mjs:1
     participant G as gates
     participant MT as governed memStore/memRetrieve<br/>agentbox/mcp/servers/lib/memory-tools.js
@@ -199,8 +199,8 @@ sequenceDiagram
     participant AGG as ns memory-learning-aggregates
 
     Note over SUP,SW: [program:ruvector-aggregate-sweep] — launched UNCONDITIONALLY and self-gating, so a<br/>default-off manifest is byte-identical to the pre-learning product
-    loop every aggregate_sweep_interval_mins 30 (agentbox/agentbox.toml:491)
-        SW->>G: aggregate_sweep gate (agentbox/agentbox.toml:490)
+    loop every aggregate_sweep_interval_mins 30 (agentbox/agentbox.toml:490)
+        SW->>G: aggregate_sweep gate (agentbox/agentbox.toml:489)
         alt off
             G-->>SW: fast exit
         else on
@@ -216,14 +216,14 @@ sequenceDiagram
             PG-->>AE: grouped rows
             loop each action pattern
                 AE->>AE: weight_i = 0.5 ^ (age_days_i / RUVECTOR_RECENCY_HALF_LIFE_DAYS) (mcp/servers/lib/aggregate-effectiveness.js:16)
-                Note over AE: recency_half_life_days default 14 (agentbox/agentbox.toml:478). A success is a CLEAN step,<br/>quality >= RUVECTOR_AGGREGATE_SUCCESS_QUALITY default 0.9. Stderr-noisy 0.85 successes count only<br/>in the denominator as n_ambiguous (mcp/servers/lib/aggregate-effectiveness.js:197-200, mcp/servers/lib/aggregate-effectiveness.js:224-227)
+                Note over AE: recency_half_life_days default 14 (agentbox/agentbox.toml:477). A success is a CLEAN step,<br/>quality >= RUVECTOR_AGGREGATE_SUCCESS_QUALITY default 0.9. Stderr-noisy 0.85 successes count only<br/>in the denominator as n_ambiguous (mcp/servers/lib/aggregate-effectiveness.js:197-200, mcp/servers/lib/aggregate-effectiveness.js:224-227)
                 AE->>AE: wilsonLower(effSucc, effTotal, Z) with Z = 1.96 (mcp/servers/lib/aggregate-effectiveness.js:49, mcp/servers/lib/aggregate-effectiveness.js:73, mcp/servers/lib/aggregate-effectiveness.js:334)
                 Note over AE: the stored bound uses trajectory independence deflation of the recency-weighted sample.<br/>aggregate-effectiveness.js:311-319 scales effective successes and count equally.<br/>The uncorrected bound remains a separate diagnostic at aggregate-effectiveness.js:333
-                alt not attributable, raw n < aggregate_min_samples 20 (agentbox/agentbox.toml:477),<br/>or fewer than RUVECTOR_AGGREGATE_MIN_TRAJECTORIES 3 distinct trajectories
+                alt not attributable, raw n < aggregate_min_samples 20 (agentbox/agentbox.toml:476),<br/>or fewer than RUVECTOR_AGGREGATE_MIN_TRAJECTORIES 3 distinct trajectories
                     AE->>AE: SKIP (mcp/servers/lib/aggregate-effectiveness.js:244-256)
                     Note over AE: INVARIANT I06 / ADR-2016 — the sample floor gates on the RAW OBSERVATION COUNT, not the<br/>recency-weighted effective size, and a pattern must also come from enough independent sessions
                 else survives the floor
-                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 0 unless it is listed in [system_one].local_only (empty), so by default it takes the proxy and TypeSafe (jev-option.cjs:72-77, system_one.rs:466-472, :546, :580-593)<br/>(agentbox.toml:939, entrypoint-unified.sh:1272-1276, mcp/servers/lib/aggregate-effectiveness.js:417-419, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
+                    AE->>AE: eligible rows pass trajectoryJev.annotateRows, off unless AGENTBOX_JEV_TRAJECTORY_CLASSIFY=1,<br/>which the manifest projects from consumers.trajectory_classify = true (configured, takes effect at the next image activation, ADR-2155 staged),<br/>with TRAJECTORY_LOCAL_ONLY projected 1 because the manifest now lists trajectory_classify in [system_one].local_only (agentbox.toml:932),<br/>so it stays on the LAN laya route, which is also the selected backend (agentbox.toml:914) (jev-option.cjs:72-77, system_one.rs:466-472, :546, :580-593)<br/>(agentbox.toml:964, entrypoint-unified.sh:1272-1276, mcp/servers/lib/aggregate-effectiveness.js:417-419, mcp/servers/lib/trajectory-pattern-jev.js:134-137)
                     Note over AE: the Jev option only ATTACHES a semantic object, an action class and a coherence score, to a row<br/>that was already eligible, capped at AGENTBOX_JEV_TRAJECTORY_MAX_PATTERNS 40 per sweep<br/>(mcp/servers/lib/trajectory-pattern-jev.js:140,145), and the stored value spreads it in<br/>(mcp/servers/lib/aggregate-effectiveness.js:462, mcp/servers/lib/trajectory-pattern-jev.js:156-158)
                     AE->>MT: memStore through the GOVERNED path (mcp/servers/lib/aggregate-effectiveness.js:24, mcp/servers/lib/aggregate-effectiveness.js:467)
                     Note over AE,AGG: key effectiveness-sha256-12-<hash(pattern)> (mcp/servers/lib/aggregate-effectiveness.js:88), namespace memory-learning-aggregates<br/>(mcp/servers/lib/aggregate-effectiveness.js:47), typed metadata {importance: wilson, tags: ['action:<pattern>'], memory_type:<br/>'semantic'} (mcp/servers/lib/aggregate-effectiveness.js:28-29, runtime mcp/servers/lib/aggregate-effectiveness.js:468-470)
@@ -239,7 +239,7 @@ sequenceDiagram
 
 **Invariant:** the Jev option never regroups, re-keys, re-grades or drops a pattern: it returns the same array when the flag is off or no endpoint resolves, and a row it could not classify comes back as the very same object (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:137-139`, `../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:148-149`).
 
-**Resolved:** the Jev pattern annotation stated that the recorder's own taint handling was not verified for it and left the safe default to an operator flag, `AGENTBOX_JEV_TRAJECTORY_LOCAL_ONLY` (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:30-33`, `:138`); since 2026-10-30 (ADR-2139 amendment) the manifest projects it 0 unless `trajectory_classify` is in `[system_one].local_only`, empty by default (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:580-593`).
+**Resolved:** the Jev pattern annotation stated that the recorder's own taint handling was not verified for it and left the safe default to an operator flag, `AGENTBOX_JEV_TRAJECTORY_LOCAL_ONLY` (`../project/agentbox/mcp/servers/lib/trajectory-pattern-jev.js:30-33`, `:138`); since 2026-10-30 (ADR-2139 amendment) the manifest projects it 1 only when `trajectory_classify` is in `[system_one].local_only` (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:580-593`), and the shipped manifest now lists it there (`../project/agentbox/agentbox.toml:932`).
 
 **Drift:** the module header still says "successes = steps with quality >= 0.5" (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:15`), but the query counts a success only at `quality >= $2`, the clean-exit threshold defaulting to 0.9 (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:197-200`, `../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:224-227`). Separately, the sweep logs "aggregates will store without embeddings" when Xinference is unreachable (`../project/agentbox/mcp/servers/lib/aggregate-effectiveness.js:425-427`). The governed `memStore` it calls instead REJECTS an unembedded write unless `RUVECTOR_EMBED_REPAIR` is set (`../project/agentbox/mcp/servers/lib/memory-tools.js:296-313`), and nothing in this process sets it, so those stores fail and are counted as failures.
 
@@ -248,7 +248,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord<br/>agentbox/flake.nix:2639
+    participant SUP as supervisord<br/>agentbox/flake.nix:2663
     participant DS as ruvector-pattern-distill.mjs<br/>agentbox/scripts/ruvector-pattern-distill.mjs:1
     participant G as gates
     participant PG as trajectory_steps
@@ -256,7 +256,7 @@ sequenceDiagram
     participant PAT as patterns TABLE
 
     Note over SUP,DS: [program:ruvector-pattern-distill]
-    DS->>G: pattern_distillation gate (agentbox/agentbox.toml:492)
+    DS->>G: pattern_distillation gate (agentbox/agentbox.toml:491)
     alt off
         G-->>DS: fast exit
     else on
@@ -336,7 +336,7 @@ sequenceDiagram
         HY->>RES: FAIL-OPEN — base ranking untouched
     end
     HY-->>AG: ranked results
-    Note over HY: feed_retrieval = true since 2026-08-31 (agentbox/agentbox.toml:479). feed_routing =<br/>false (:480) — aggregates surface only as advisory [INTELLIGENCE] hints
+    Note over HY: feed_retrieval = true since 2026-08-31 (agentbox/agentbox.toml:478). feed_routing =<br/>false (:479) — aggregates surface only as advisory [INTELLIGENCE] hints
 ```
 
 ## AB-21.7 ADR-2017 producer-before-consumer
@@ -433,17 +433,17 @@ stateDiagram-v2
 
 ```mermaid
 flowchart LR
-    subgraph toml["agentbox.toml [memory_learning] — block at agentbox.toml:474"]
+    subgraph toml["agentbox.toml [memory_learning] — block at agentbox.toml:473"]
         direction TB
-        M["enabled = true agentbox.toml:475<br/>master gate"]
-        P["record_trajectories = true agentbox.toml:476<br/>PRODUCER"]
-        F1["aggregate_min_samples = 20 agentbox.toml:477"]
-        F2["recency_half_life_days = 14 agentbox.toml:478"]
-        C1["feed_retrieval = true agentbox.toml:479<br/>CONSUMER, enabled 2026-08-31"]
-        C2["feed_routing = false agentbox.toml:480<br/>CONSUMER, advisory only"]
-        S1["aggregate_sweep = true agentbox.toml:490"]
-        S2["aggregate_sweep_interval_mins = 30 agentbox.toml:491"]
-        S3["pattern_distillation = true agentbox.toml:492"]
+        M["enabled = true agentbox.toml:474<br/>master gate"]
+        P["record_trajectories = true agentbox.toml:475<br/>PRODUCER"]
+        F1["aggregate_min_samples = 20 agentbox.toml:476"]
+        F2["recency_half_life_days = 14 agentbox.toml:477"]
+        C1["feed_retrieval = true agentbox.toml:478<br/>CONSUMER, enabled 2026-08-31"]
+        C2["feed_routing = false agentbox.toml:479<br/>CONSUMER, advisory only"]
+        S1["aggregate_sweep = true agentbox.toml:489"]
+        S2["aggregate_sweep_interval_mins = 30 agentbox.toml:490"]
+        S3["pattern_distillation = true agentbox.toml:491"]
     end
     subgraph env["ruvector-gates.js env resolution"]
         direction TB
@@ -457,8 +457,8 @@ flowchart LR
     subgraph proc["Self-gating processes"]
         direction TB
         H["trajectory-recorder.cjs<br/>Stop hook"]
-        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2608"]
-        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2639"]
+        A["ruvector-aggregate-sweep.mjs<br/>agentbox/flake.nix:2632"]
+        D["ruvector-pattern-distill.mjs<br/>agentbox/flake.nix:2663"]
         HY["memory-hybrid re-rank"]
     end
     M --> E1
@@ -475,7 +475,7 @@ flowchart LR
     E3 --> HY
     E5 --> HY
     E6 --> HY
-    N1["INVARIANT byte-identical-when-off: master gate off = no hook registered, no aggregation,<br/>no consumers (agentbox.toml:471). The hook reads no env gate — registration is the gate.<br/>Each script is launched unconditionally and exits fast when its gate is off"]
+    N1["INVARIANT byte-identical-when-off: master gate off = no hook registered, no aggregation,<br/>no consumers (agentbox.toml:470). The hook reads no env gate — registration is the gate.<br/>Each script is launched unconditionally and exits fast when its gate is off"]
     proc --- N1
 ```
 
@@ -500,10 +500,10 @@ sequenceDiagram
     else FAIL
         H-->>OP: the gate stays shut
     end
-    Note over TOML: attention_rerank stays OFF BY MEASUREMENT, not caution — attention_score = cos/sqrt(384)<br/>on an L2-normalised corpus gives a max diff of 4e-7, so the blend is a mathematical<br/>IDENTITY with zero benefit (agentbox.toml:493)
-    Note over TOML: RESERVED default-off keys, each harness-gated before it may flip — sona_learn_enabled<br/>agentbox.toml:494, sona_apply_enabled agentbox.toml:495, param_tuning_enabled agentbox.toml:496 (HNSW ef_search/probes<br/>auto-tuner), embedding_dual_write agentbox.toml:462, embedding_active_column agentbox.toml:463, graph_backbone<br/>agentbox.toml:464. DIVERGENCE D6
+    Note over TOML: attention_rerank stays OFF BY MEASUREMENT, not caution — attention_score = cos/sqrt(384)<br/>on an L2-normalised corpus gives a max diff of 4e-7, so the blend is a mathematical<br/>IDENTITY with zero benefit (agentbox.toml:492)
+    Note over TOML: RESERVED default-off keys, each harness-gated before it may flip — sona_learn_enabled<br/>agentbox.toml:493, sona_apply_enabled agentbox.toml:494, param_tuning_enabled agentbox.toml:495 (HNSW ef_search/probes<br/>auto-tuner), embedding_dual_write agentbox.toml:461, embedding_active_column agentbox.toml:462, graph_backbone<br/>agentbox.toml:463. DIVERGENCE D6
     Note over TOML: RESOLVED ADR-2052: governing docs now cite agentbox.toml by [section].key, not by<br/>line number, because every line citation had drifted. The live keys are<br/>[memory_learning] feed_retrieval, feed_routing, aggregate_min_samples,<br/>recency_half_life_days, aggregate_sweep, aggregate_sweep_interval_mins,<br/>pattern_distillation.
-    Note over TOML: DIVERGENCE D2: agentbox.toml:479 justifies the feed_retrieval flip with 78 aggregates<br/>>=20 samples (2026-08-31) while<br/>agentbox/docs/reference/claude-context/ruvector-memory-state.md records 12 from the<br/>2026-07-21 sweep. The toml is the running config and the more recent number
+    Note over TOML: DIVERGENCE D2: agentbox.toml:478 justifies the feed_retrieval flip with 78 aggregates<br/>>=20 samples (2026-08-31) while<br/>agentbox/docs/reference/claude-context/ruvector-memory-state.md records 12 from the<br/>2026-07-21 sweep. The toml is the running config and the more recent number
     Note over TOML: D4 RESOLVED at this stamp — agentbox/README.md no longer lists feed_retrieval / feed_routing<br/>as open gates
     Note over CONS: the sweep and the recall harness are NOT MCP tools — they run OUT-OF-PROCESS, and the<br/>MCP server registers no tool for them so tool registration stays byte-identical<br/>(ruvector-mcp.cjs:14-19). See AB-20
     Note over OP: privacy note — redaction happens BEFORE persistence in the producer (see AB-21.1). The<br/>adapters observability then privacy-filter then JSON-LD middleware chain is AB-04

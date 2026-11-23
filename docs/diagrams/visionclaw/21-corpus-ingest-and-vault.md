@@ -35,7 +35,7 @@ sources:
   - ../project/src/services/corpus_history.rs
   - ../project/docker-compose.unified.yml
   - ../project/docs/PROTOCOL-registry.md
-verified_commit: {visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -53,61 +53,61 @@ This is how the team's notes become the knowledge graph. Only pages marked publi
 sequenceDiagram
     autonumber
     participant Admin as admin_sync_handler::trigger_sync<br/>src/handlers/admin_sync_handler.rs:66
-    participant Boot as boot sync task<br/>src/app_state.rs:569
+    participant Boot as boot sync task<br/>src/app_state.rs:564
     participant Bin as sync_corpus.rs::main<br/>src/bin/sync_corpus.rs:25
-    participant Svc as GitHubSyncService::sync_graphs_with<br/>src/services/github_sync_service.rs:350
+    participant Svc as GitHubSyncService::sync_graphs_with<br/>src/services/github_sync_service.rs:309
     participant Src as CorpusSource::list_pages<br/>src/services/corpus_source/mod.rs:108
-    participant SHA as filter_changed_files<br/>src/services/github_sync_service.rs:2305
-    participant Batch as process_batch_incremental<br/>src/services/github_sync_service.rs:1804
-    participant File as process_fetched_file<br/>src/services/github_sync_service.rs:1984
-    participant KG as kg_repo (Oxigraph)<br/>src/services/github_sync_service.rs:1916
+    participant SHA as filter_changed_files<br/>src/services/github_sync_service.rs:2296
+    participant Batch as process_batch_incremental<br/>src/services/github_sync_service.rs:1778
+    participant File as process_fetched_file<br/>src/services/github_sync_service.rs:1958
+    participant KG as kg_repo (Oxigraph)<br/>src/services/github_sync_service.rs:1890
 
     Admin->>Svc: sync_graphs_with(force_full) - POST /api/admin/sync
     Boot->>Svc: sync_graphs() - spawned at server boot
     Bin->>Svc: sync_graphs() - sync_corpus binary
     Note over Bin: CORPUS_SOURCE=local or github selects LocalDirectorySource /<br/>GitHubSource - sync_corpus.rs:56-64
     Svc->>Src: list_pages()
-    Note over Src: shared-corpus-layout, a DEFAULT feature (Cargo.toml:273, :275): the local source validates its roots<br/>through ontomark_compile::profile::resolve_roots (local.rs:120-124, :231-232), skips child symlinks<br/>(local.rs:175-182) and refuses to fetch a page whose canonical path leaves the roots (local.rs:264-279)
+    Note over Src: shared-corpus-layout, a DEFAULT feature (Cargo.toml:276, :278): the local source validates its roots<br/>through ontomark_compile::profile::resolve_roots (local.rs:120-124, :231-232), skips child symlinks<br/>(local.rs:175-182) and refuses to fetch a page whose canonical path leaves the roots (local.rs:264-279)
     Note over Src: GitHubSource delegates to the Trees API with a Contents API fallback<br/>(corpus_source/github.rs:60)<br/>LocalDirectorySource walks base_paths on disk, default<br/>knowledge,working with no pages/ folder (corpus_source/local.rs:230,<br/>local.rs:21)
     Note over Src: every listing prunes with the one rule is_repo_path_excluded_from_ingest:<br/>GitHub tree files content_enhanced.rs:128, Contents-API dirs :244,<br/>local walk local.rs:195 - furniture at the first component, any dot-folder,<br/>bak/ at any depth (vault/mod.rs:446-451), _misc/ ingested (:443)<br/>Path authority: VAULT_ROOT is the single root (agentbox vault<br/>manifest, see AB-05)
-    Svc->>Svc: keep only listed files that resolve to a V1 identity:<br/>page_name_from_repo_path is Some - github_sync_service.rs:396-408<br/>under a configured base and not excluded from ingest,<br/>the same rule again - vault/mod.rs:484, :494
+    Svc->>Svc: keep only listed files that resolve to a V1 identity:<br/>page_name_from_repo_path is Some - github_sync_service.rs:357-369<br/>under a configured base and not excluded from ingest,<br/>the same rule again - vault/mod.rs:484, :494
     Note over Svc: identity = path under the base without .md, nested folders kept,<br/>legacy Namespace___Title and %2F/%2f folded to / -<br/>vault::page_name_from_path vault/mod.rs:509
-    Svc->>Svc: VaultIndex::from_identities(files) - full filtered listing,<br/>github_sync_service.rs:421
+    Svc->>Svc: VaultIndex::from_identities(files) - full filtered listing,<br/>github_sync_service.rs:382
     Note over Svc: INVARIANT: index built before the change-marker filter, or an<br/>incremental sync mints phantom stubs for unchanged pages
     alt FORCE_FULL_SYNC=1/true env, or ?force_full=true query
         Note over Svc: bypasses the SHA1 filter entirely
         Svc->>Svc: files_to_process = files.clone()
     else incremental
-        Svc->>SHA: filter_changed_files(files) - call :478
+        Svc->>SHA: filter_changed_files(files) - call :439
         SHA-->>Svc: files whose change_marker differs from stored metadata
     end
     opt force_full_sync
         Svc->>KG: clear_graph()
     end
-    loop chunks(BATCH_SIZE=50) - const at github_sync_service.rs:60, chunks at :527
+    loop chunks(BATCH_SIZE=50) - const at github_sync_service.rs:60, chunks at :488
         Svc->>Batch: process_batch_incremental(batch, deferred_edges, scope)
-        loop PARALLEL_FETCHES=8 concurrent - :1820
+        loop PARALLEL_FETCHES=8 concurrent - :1794
             Batch->>Src: fetch_page(file)
         end
         Batch->>File: process_fetched_file(file, content, scope)
         File->>File: page_parser::parse_page(content, path, base_paths) -<br/>src/services/page_parser.rs:73, Err when the path is not a page under<br/>the bases
         alt Ok(Some(parsed)) - under knowledge/ AND frontmatter type is Class or Property or Individual
-            File->>File: page_is_kg_included(content) - the same gate as the plain path, :2449
+            File->>File: page_is_kg_included(content) - the same gate as the plain path, :2455
             Note over File: DRIFT: ADR-2014's "formal data ingests unconditionally, bypasses the<br/>publish gate" no longer holds post-ADR-2114 - both paths share one<br/>gate
-            File->>File: build_node_from_entity + enrich_node_from_frontmatter - :144,2503
+            File->>File: build_node_from_entity + enrich_node_from_frontmatter - :103,2509
         else Ok(None) - plain vault page
-            File->>File: process_plain_vault_file(file, content, scope) - :2202, identity_of<br/>None skips with a warn - :2225
-            Note over File: see VC-21.2 for the inclusion gate applied here<br/>opt-in Jev draft suggestion for an admitted page with no type, never<br/>read back, off unless VISIONCLAW_JEV_INGEST_SUGGEST=1 -<br/>github_sync_service.rs:2000-2014, jev_ingest.rs:26
+            File->>File: process_plain_vault_file(file, content, scope) - :2193, identity_of<br/>None skips with a warn - :2216
+            Note over File: see VC-21.2 for the inclusion gate applied here<br/>opt-in Jev draft suggestion for an admitted page with no type, never<br/>read back, off unless VISIONCLAW_JEV_INGEST_SUGGEST=1 -<br/>github_sync_service.rs:1974-1988, jev_ingest.rs:26
         else Err(invalid frontmatter YAML)
             File->>File: skip (warn log, fail-closed)
         end
-        Batch->>KG: batch_add_nodes(real_nodes) / batch_add_nodes_if_absent(stub_nodes) -<br/>:1916,1927
-        Batch->>KG: batch_add_edges(immediate_edges) - :1950 same-batch endpoints only
+        Batch->>KG: batch_add_nodes(real_nodes) / batch_add_nodes_if_absent(stub_nodes) -<br/>:1890,1901
+        Batch->>KG: batch_add_edges(immediate_edges) - :1924 same-batch endpoints only
     end
-    Svc->>Svc: deferred_edges partition: resolvable vs dangling - :585
+    Svc->>Svc: deferred_edges partition: resolvable vs dangling - :543
     Svc->>KG: batch_add_edges(resolvable)
     Note over Svc,KG: DIVERGENCE: dangling wikilinks mint no stub - they fold into<br/>wikilink_count weight plus co-citation springs (FANOUT_NODE_THRESHOLD,<br/>default 3)
-    Svc->>Svc: update_file_metadata(all_files_to_process) - call :766, defn :2341
+    Svc->>Svc: update_file_metadata(all_files_to_process) - call :728, defn :2332
     Svc-->>Admin: SyncStatistics{total_files,kg_files_processed,total_nodes,total_edges,errors}
 ```
 
@@ -117,8 +117,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Caller as process_fetched_file / process_plain_vault_file<br/>src/services/github_sync_service.rs:1984,2202
-    participant Gate as page_is_kg_included<br/>src/services/github_sync_service.rs:2449
+    participant Caller as process_fetched_file / process_plain_vault_file<br/>src/services/github_sync_service.rs:1958,2193
+    participant Gate as page_is_kg_included<br/>src/services/github_sync_service.rs:2455
     participant Vault as vault::parse<br/>crates/visionclaw-domain/src/vault/mod.rs:338
     participant PM as PageMeta::is_kg_included<br/>crates/visionclaw-domain/src/vault/mod.rs:168
 
@@ -142,13 +142,13 @@ sequenceDiagram
     else Gate returns true
         Caller-->>Caller: node ingested - page, linked_page or ontology-typed per VC-21.3
     end
-    Note over Gate: the governing VAULT doc carries no line citation for this fn at this stamp, ADR-2070 records its location (github_sync_service.rs:2449)
+    Note over Gate: the governing VAULT doc carries no line citation for this fn at this stamp, ADR-2070 records its location (github_sync_service.rs:2455)
     Note over Caller: DRIFT: ADR-2014's ontology bypass is superseded post-ADR-2114 - an ontology-declaring page (VC-21.1) is gated here too, not exempted
 ```
 
-**Drift:** `docs/VAULT-corpus-format.md:255-259` (V4) says every `knowledge/` page with valid frontmatter is a KG node with "no `owl-class` bypass and no OR", while the gate the sync runs is still the disjunction `self.public || self.owl_class.is_some()` (`crates/visionclaw-domain/src/vault/mod.rs:168-169`, reached through `src/services/github_sync_service.rs:2449`).
+**Drift:** `docs/VAULT-corpus-format.md:255-259` (V4) says every `knowledge/` page with valid frontmatter is a KG node with "no `owl-class` bypass and no OR", while the gate the sync runs is still the disjunction `self.public || self.owl_class.is_some()` (`crates/visionclaw-domain/src/vault/mod.rs:168-169`, reached through `src/services/github_sync_service.rs:2455`).
 
-**Drift:** `docs/VAULT-corpus-format.md:263` says `working/` is never ingested into the governed graph, while the local source's default base paths are `knowledge,working` (`src/services/corpus_source/local.rs:21`) and the sync keeps a working page as its own node unless a knowledge page owns the same id (`src/services/github_sync_service.rs:2494`).
+**Drift:** `docs/VAULT-corpus-format.md:263` says `working/` is never ingested into the governed graph, while the local source's default base paths are `knowledge,working` (`src/services/corpus_source/local.rs:21`) and the sync keeps a working page as its own node unless a knowledge page owns the same id (`src/services/github_sync_service.rs:2500`).
 
 ## VC-21.3 Node-type derivation: file to page / linked_page / ontology-typed
 
@@ -156,12 +156,12 @@ sequenceDiagram
 ```mermaid
 flowchart TD
     F["markdown file (post source fetch)"] --> PP{"page_parser::parse_page<br/>src/services/page_parser.rs:73"}
-    PP -->|Ok Some - knowledge/ path AND type is Class/Property/Individual| GATE1{"page_is_kg_included?<br/>github_sync_service.rs:2449"}
-    GATE1 -->|true| PN["build_node_from_entity<br/>github_sync_service.rs:144<br/>metadata ontology_type=Class/Property/Individual"]
+    PP -->|Ok Some - knowledge/ path AND type is Class/Property/Individual| GATE1{"page_is_kg_included?<br/>github_sync_service.rs:2455"}
+    GATE1 -->|true| PN["build_node_from_entity<br/>github_sync_service.rs:103<br/>metadata ontology_type=Class/Property/Individual"]
     GATE1 -->|false| SKIP1["page skipped - see VC-21.2"]
-    PP -->|Ok None - plain vault page| KP["KnowledgeGraphParser::create_page_node<br/>knowledge_graph_parser.rs:145"]
+    PP -->|Ok None - plain vault page| KP["KnowledgeGraphParser::create_page_node<br/>knowledge_graph_parser.rs:146"]
     KP --> OC{"meta.owl_class.is_some()?<br/>vault::parse(content).owl_class"}
-    OC -->|yes| ON["node_type = ontology_node<br/>owl_class_iri set<br/>knowledge_graph_parser.rs:198<br/>but metadata type stays page, knowledge_graph_parser.rs:149"]
+    OC -->|yes| ON["node_type = ontology_node<br/>owl_class_iri set<br/>knowledge_graph_parser.rs:199<br/>but metadata type stays page, knowledge_graph_parser.rs:150"]
     OC -->|no| PG["node_type = page<br/>metadata public=true"]
     KP --> WL["outbound [[wikilink]] targets"]
     WL --> VR{"VaultContext::resolve target<br/>crates/visionclaw-domain/src/vault/link.rs:222"}
@@ -170,7 +170,7 @@ flowchart TD
     VR -->|bare target, several matches| RES3["same-folder wins, else first in sorted path order"]
     VR -->|no match anywhere| STUB["linked_page stub id"]
     STUB -.->|DIVERGENCE| DROP["dropped at ingest - stub nodes never materialise, fold into wikilink_count plus co-citation weight instead"]
-    PN --> CLS["GraphStateActor::classify_node<br/>src/actors/graph_state_actor.rs:244"]
+    PN --> CLS["GraphStateActor::classify_node<br/>src/actors/graph_state_actor.rs:225"]
     ON --> CLS
     PG --> CLS
     CLS --> POP["Node::population_type()<br/>crates/visionclaw-domain/src/models/node.rs:271"]
@@ -184,7 +184,7 @@ flowchart TD
     ON -.->|"TENSION: population_type reads metadata type first (node.rs:271-276)"| KGSET
 ```
 
-**Tension:** a plain vault page carrying a valid `owl-class` is built with `node_type = ontology_node` (`src/services/parsers/knowledge_graph_parser.rs:198-202`) but `metadata["type"] = "page"` (`src/services/parsers/knowledge_graph_parser.rs:149`), and `Node::population_type()` returns `metadata["type"]` before `node_type` (`crates/visionclaw-domain/src/models/node.rs:271-276`), so `classify_node` puts it in `knowledge_node_ids` (`src/actors/graph_state_actor.rs:252-256`), not `ontology_class_ids`. The comment that such pages are reclassified as ontology nodes downstream (`src/services/parsers/knowledge_graph_parser.rs:164-165`) describes the `owl_class_iri` fallback arm, which a page whose metadata type is `page` never reaches. Source tracing only: whether the persisted metadata keeps `type = page` after the Oxigraph round trip was not checked at runtime.
+**Tension:** a plain vault page carrying a valid `owl-class` is built with `node_type = ontology_node` (`src/services/parsers/knowledge_graph_parser.rs:199-203`) but `metadata["type"] = "page"` (`src/services/parsers/knowledge_graph_parser.rs:150`), and `Node::population_type()` returns `metadata["type"]` before `node_type` (`crates/visionclaw-domain/src/models/node.rs:271-276`), so `classify_node` puts it in `knowledge_node_ids` (`src/actors/graph_state_actor.rs:233-237`), not `ontology_class_ids`. The comment that such pages are reclassified as ontology nodes downstream (`src/services/parsers/knowledge_graph_parser.rs:165-166`) describes the `owl_class_iri` fallback arm, which a page whose metadata type is `page` never reaches. Source tracing only: whether the persisted metadata keeps `type = page` after the Oxigraph round trip was not checked at runtime.
 
 ## VC-21.6 validate_md binary (JSON-LD validator CLI)
 ```mermaid
@@ -268,15 +268,15 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph SYNC["sync_graphs_with, one history read per sync"]
-        FF{"force_full_sync?<br/>src/services/github_sync_service.rs:465-469"}
-        FF -->|no| INC["filter_changed_files keeps changed pages only<br/>src/services/github_sync_service.rs:478"]
-        FF -->|yes| ALL["every listed page<br/>src/services/github_sync_service.rs:476"]
-        INC --> HR["page_history(files_to_process), skipped when empty<br/>src/services/github_sync_service.rs:497-501"]
+        FF{"force_full_sync?<br/>src/services/github_sync_service.rs:426-430"}
+        FF -->|no| INC["filter_changed_files keeps changed pages only<br/>src/services/github_sync_service.rs:439"]
+        FF -->|yes| ALL["every listed page<br/>src/services/github_sync_service.rs:437"]
+        INC --> HR["page_history(files_to_process), skipped when empty<br/>src/services/github_sync_service.rs:458-462"]
         ALL --> HR
-        HR --> SC["SyncScope.history<br/>src/services/github_sync_service.rs:2487"]
+        HR --> SC["SyncScope.history<br/>src/services/github_sync_service.rs:2493"]
     end
-    SC --> W1["typed page node: write when the path has history<br/>src/services/github_sync_service.rs:2046-2048"]
-    SC --> W2["plain vault node: same<br/>src/services/github_sync_service.rs:2255-2257"]
+    SC --> W1["typed page node: write when the path has history<br/>src/services/github_sync_service.rs:2020-2022"]
+    SC --> W2["plain vault node: same<br/>src/services/github_sync_service.rs:2246-2248"]
     W1 --> PK["PageHistory.temporal_keys: last_modified = last_commit = newest commit,<br/>change_count = commits touching the path<br/>src/services/corpus_source/history.rs:29-35"]
     W2 --> PK
     PK --> TW["TemporalKeys.write, the one writer: present writes, absent removes<br/>crates/visionclaw-domain/src/models/metadata.rs:99"]
@@ -292,15 +292,15 @@ flowchart TB
     GL -.->|"no git or not a repository"| FO2["warn, empty map, keys omitted<br/>src/services/corpus_source/local.rs:307-310"]
     INC -.-> LOOSE["DEBT: unchanged pages are never re-read,<br/>so existing nodes get keys only at the next full sync"]
     SEL["Source selection: local when VAULT_ROOT is set, else GitHub<br/>src/services/corpus_source/mod.rs:200-206"] --> PORT
-    DEV["dev service sets CORPUS_SOURCE local and VAULT_ROOT<br/>docker-compose.unified.yml:121-122"] --> SEL
-    PROD["production service environment sets neither, so it falls back to GitHub<br/>docker-compose.unified.yml:266-270"] --> SEL
+    DEV["dev service sets CORPUS_SOURCE local and VAULT_ROOT<br/>docker-compose.unified.yml:131-132"] --> SEL
+    PROD["production service environment sets neither, so it falls back to GitHub<br/>docker-compose.unified.yml:288-292"] --> SEL
 ```
 
-**Debt (loose end):** history is read only for the pages a sync rebuilds (`src/services/github_sync_service.rs:497-501`), and an incremental sync rebuilds changed pages only (`src/services/github_sync_service.rs:478`), so nodes that existed before this change carry no temporal keys until a forced full sync (`src/services/github_sync_service.rs:465-469`). A failed GraphQL batch is not retried either; its pages wait for their next rebuild (`src/services/github/content_enhanced.rs:343-344`).
+**Debt (loose end):** history is read only for the pages a sync rebuilds (`src/services/github_sync_service.rs:458-462`), and an incremental sync rebuilds changed pages only (`src/services/github_sync_service.rs:439`), so nodes that existed before this change carry no temporal keys until a forced full sync (`src/services/github_sync_service.rs:426-430`). A failed GraphQL batch is not retried either; its pages wait for their next rebuild (`src/services/github/content_enhanced.rs:343-344`).
 
-**Open (risk):** production compose sets neither `CORPUS_SOURCE` nor `VAULT_ROOT` (`docker-compose.unified.yml:266-270`; only the dev service sets them at `:121-122`), so production takes the GitHub GraphQL history path (`src/services/github/content_enhanced.rs:310`). That path has not been run inside a deployed container, and its only live test is `#[ignore]` (`src/services/corpus_source/history.rs:317`).
+**Open (risk):** production compose sets neither `CORPUS_SOURCE` nor `VAULT_ROOT` (`docker-compose.unified.yml:288-292`; only the dev service sets them at `:131-132`), so production takes the GitHub GraphQL history path (`src/services/github/content_enhanced.rs:310`). That path has not been run inside a deployed container, and its only live test is `#[ignore]` (`src/services/corpus_source/history.rs:317`).
 
-**Debt (loose end):** nodes persisted before this change keep `last_modified` in the old chrono `Display` form until they are rebuilt, so one key carries two timestamp formats on the wire (`docs/PROTOCOL-registry.md:408`).
+**Debt (loose end):** nodes persisted before this change keep `last_modified` in the old chrono `Display` form until they are rebuilt, so one key carries two timestamp formats on the wire (`docs/PROTOCOL-registry.md:421`).
 
 ## VC-21.14 Three ingest paths write node metadata through one temporal-key writer
 
@@ -315,23 +315,23 @@ flowchart TB
         GHS --> PH
     end
     subgraph MJ["metadata.json loader"]
-        SEED["FileService.load_graph_from_files, seed only when the store is empty<br/>src/services/file_service.rs:1089, :1095-1102"]
+        SEED["FileService.load_graph_from_files, seed only when the store is empty<br/>src/services/file_service.rs:1090, :1096-1103"]
         API["files API sends AddNodesFromMetadata<br/>src/handlers/api_handler/files/mod.rs:84"]
-        API --> ACT["GraphStateActor builders<br/>src/actors/graph_state_actor.rs:593, :693, :717"]
+        API --> ACT["GraphStateActor builders<br/>src/actors/graph_state_actor.rs:574, :674, :698"]
         SEED --> MK["Metadata.temporal_keys copies the three Option fields<br/>crates/visionclaw-domain/src/models/metadata.rs:122-128"]
         ACT --> MK
         OPT["last_modified is Option, serde default, skipped when None:<br/>no load-time fallback<br/>crates/visionclaw-domain/src/models/metadata.rs:20-23"] --> MK
     end
     PH --> TW["TemporalKeys.write: a present value writes its key, an absent one removes it<br/>crates/visionclaw-domain/src/models/metadata.rs:96-117"]
     MK --> TW
-    SEED -.->|"src/services/file_service.rs:1147"| TW
+    SEED -.->|"src/services/file_service.rs:1148"| TW
     TW --> NODE["node.metadata keys last_modified, last_commit, change_count<br/>crates/visionclaw-domain/src/models/metadata.rs:68-71"]
     NODE --> PROV["Corpus history provenance stamps valid time = sync instant,<br/>and its doc now says it does not use page history<br/>src/services/corpus_history.rs:32-36"]
-    ACT -.-> OPEN["OPEN: an update for an existing node with an absent field<br/>removes a key the sync wrote, graph_state_actor.rs:693"]
+    ACT -.-> OPEN["OPEN: an update for an existing node with an absent field<br/>removes a key the sync wrote, graph_state_actor.rs:674"]
 ```
 
-**Open (risk):** the "absent removes" rule now applies to the `UpdateMetadata` paths too (`src/actors/graph_state_actor.rs:693`, `:717`), which rewrite an existing node in place. A `metadata.json` row without a commit history landing on a node the corpus sync stamped would remove that node's `last_commit` and `change_count` (`crates/visionclaw-domain/src/models/metadata.rs:104-106`). Whether a sync-built node and a `Metadata` row ever share a `metadata_id` was not checked at runtime.
+**Open (risk):** the "absent removes" rule now applies to the `UpdateMetadata` paths too (`src/actors/graph_state_actor.rs:674`, `:698`), which rewrite an existing node in place. A `metadata.json` row without a commit history landing on a node the corpus sync stamped would remove that node's `last_commit` and `change_count` (`crates/visionclaw-domain/src/models/metadata.rs:104-106`). Whether a sync-built node and a `Metadata` row ever share a `metadata_id` was not checked at runtime.
 
 **Debt (parallel):** the exclusion rule is one function now (`crates/visionclaw-domain/src/vault/mod.rs:446`), but its furniture list restates `vault_core::page::FURNITURE_DIRS` by hand, "kept equal" with no test linking the two (`crates/visionclaw-domain/src/vault/mod.rs:392-394`, `crates/vault-core/src/page.rs:50`). The copies agree at this commit.
 
-**Debt (loose end):** the comment above the sync's page filter still lists the furniture folders and says the local source "already declines to walk those folders" without naming `bak/` or the shared rule (`src/services/github_sync_service.rs:391-395`). The code it describes calls the shared rule through `page_name_from_repo_path` (`src/services/github_sync_service.rs:401`).
+**Debt (loose end):** the comment above the sync's page filter still lists the furniture folders and says the local source "already declines to walk those folders" without naming `bak/` or the shared rule (`src/services/github_sync_service.rs:352-356`). The code it describes calls the shared rule through `page_name_from_repo_path` (`src/services/github_sync_service.rs:362`).
