@@ -20,7 +20,7 @@ sources:
   - ../diagram-ir/src/mermaid/model.rs
   - ../diagram-ir/src/mermaid/shapes.rs
   - ../diagram-ir/tests/golden_parity.rs
-verified_commit: e16337b05952cc90d1d57abdd496ea45a5678f8a
+verified_commit: d0b6ba40c46d6a283ba2b4b33da0b3526db327dc
 ---
 
 ## For developers

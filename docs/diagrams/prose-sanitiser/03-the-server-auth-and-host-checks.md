@@ -11,7 +11,7 @@ sources:
   - ../prose-sanitiser/crates/server/README.md
   - ../prose-sanitiser/CHANGELOG.md
   - ../prose-sanitiser/docs/prose-sanitiser-external-review-2026-09-03.md
-verified_commit: 266063408b57f52672b5b061491120373d72ffef
+verified_commit: 0e2641a7030de880371d4bfb904af323688f8fbb
 ---
 ## For developers
 
