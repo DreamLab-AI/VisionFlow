@@ -23,7 +23,7 @@ sources:
   - ../project/client/src/features/graph/managers/graphWorkerProxy.ts
   - ../project/crates/visionclaw-gpu/src/cuda_sources/visionclaw_unified.cu
   - ../project/src/utils/unified_gpu_compute/execution.rs
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -56,35 +56,35 @@ flowchart TD
 ```mermaid
 flowchart TD
     END["Release request<br/>position_updates.rs:152-157"] --> NOTIFY["Released notification now carries the holder<br/>position_updates.rs:164-172"]
-    NOTIFY --> ORCH["Orchestrator removes the id only when the holder matches<br/>physics_orchestrator_actor.rs:1183 physics_orchestrator_actor.rs:1188-1189"]
+    NOTIFY --> ORCH["Orchestrator removes the id only when the holder matches<br/>physics_orchestrator_actor.rs:1190 physics_orchestrator_actor.rs:1195-1196"]
     END --> GPU["Send holder and node ids to GPU actor<br/>position_updates.rs:174-179"]
     GPU --> OWNER["Registry ignores a stale owner's release<br/>hold_registry.rs:68-70"]
-    LATE["A later hold writes ownership again in both copies<br/>hold_registry.rs:59-64 physics_orchestrator_actor.rs:1198"] --> EXPIRE["Registry backstop expires a silent hold after 5 s, inside compute handling<br/>force_compute_actor.rs:2024-2037 force_compute_actor.rs:4662"]
-    EXPIRE -.-> GAP["OPEN: expiry calls after_release only, the orchestrator is not told,<br/>so its held entry stays until a matching Released arrives<br/>force_compute_actor.rs:2037 physics_orchestrator_actor.rs:117"]
+    LATE["A later hold writes ownership again in both copies<br/>hold_registry.rs:59-64 physics_orchestrator_actor.rs:1205"] --> EXPIRE["Registry backstop expires a silent hold after 5 s, inside compute handling<br/>force_compute_actor.rs:2112-2125 force_compute_actor.rs:4831"]
+    EXPIRE -.-> GAP["OPEN: expiry calls after_release only, the orchestrator is not told,<br/>so its held entry stays until a matching Released arrives<br/>force_compute_actor.rs:2125 physics_orchestrator_actor.rs:120"]
 ```
 
-**What it shows.** The stale-holder tension of the 2026-11-01 review is closed in source: `NodeInteractionMessage` now carries `holder` and the orchestrator keeps a node-to-holder map. **Why it is this way.** A second owner's grab must not be ended by the first owner's late release (`physics_orchestrator_actor.rs:1183`).
-**Open (risk):** A Released lost in transit is exactly the case the registry's 5 s backstop exists for (`force_compute_actor.rs:2022-2024`), yet the orchestrator has no matching expiry, so its cadence stays at zero and equilibrium auto-pause stays blocked (`physics_orchestrator_actor.rs:115-117`).
+**What it shows.** The stale-holder tension of the 2026-11-01 review is closed in source: `NodeInteractionMessage` now carries `holder` and the orchestrator keeps a node-to-holder map. **Why it is this way.** A second owner's grab must not be ended by the first owner's late release (`physics_orchestrator_actor.rs:1190`).
+**Open (risk):** A Released lost in transit is exactly the case the registry's 5 s backstop exists for (`force_compute_actor.rs:2110-2112`), yet the orchestrator has no matching expiry, so its cadence stays at zero and equilibrium auto-pause stays blocked (`physics_orchestrator_actor.rs:118-120`).
 
 ## VC-52.3 While held and settling, spring mode switches the integrator and strands the speed floor
 
 ```mermaid
 flowchart TD
-    RELEASE["After last effective release, open settle window<br/>force_compute_actor.rs:390-405"] --> SPAN["Held or before settle deadline<br/>force_compute_actor.rs:4719,4721"]
-    SPAN --> SPEED["Effective speed is max of stored and 2.0<br/>force_compute_actor.rs:4674,4723"]
-    SPAN --> HEAT["Withhold reheat; keep stored damping<br/>force_compute_actor.rs:4727,4728"]
-    SPAN --> BYPASS["Bypass stability, also during warmup<br/>force_compute_actor.rs:4721"]
-    SPAN --> OVER["Elastic overlay for hold and settle window; snapshot springs for the hold only<br/>force_compute_actor.rs:4729,4730,2120,2121"]
-    OVER --> VERLET["Overlay forces adaptive_speed to 0 for the step<br/>execution.rs:1155,1156"]
-    OVER --> GAIN["Springs: rest lengths snapshotted at grab; spring_k and max_force times the hold gain<br/>execution.rs:714,1160,1161,1162"]
+    RELEASE["After last effective release, open settle window<br/>force_compute_actor.rs:397-412"] --> SPAN["Held or before settle deadline<br/>force_compute_actor.rs:4888,4890"]
+    SPAN --> SPEED["Effective speed is max of stored and 2.0<br/>force_compute_actor.rs:4843,4892"]
+    SPAN --> HEAT["Withhold reheat; keep stored damping<br/>force_compute_actor.rs:4896,4897"]
+    SPAN --> BYPASS["Bypass stability, also during warmup<br/>force_compute_actor.rs:4890"]
+    SPAN --> OVER["Elastic overlay for hold and settle window; snapshot springs for the hold only<br/>force_compute_actor.rs:4898,4899,2208,2209"]
+    OVER --> VERLET["Overlay forces adaptive_speed to 0 for the step<br/>execution.rs:1157,1158"]
+    OVER --> GAIN["Springs: rest lengths snapshotted at grab; spring_k and max_force times the hold gain<br/>execution.rs:716,1162,1163,1164"]
     VERLET --> INT["Verlet reads dt and damping, not global_speed<br/>visionclaw_unified.cu:1089,1091,1092"]
     SPEED -.-> DEAD["DEBT: only the adaptive branch reads global_speed,<br/>so the floor has no reader in the span it applies to<br/>visionclaw_unified.cu:1062,1076"]
-    DONE["Outside hold and settle span<br/>force_compute_actor.rs:4724-4726"] --> STORED["Stored speed, no overlay, stored integrator again<br/>force_compute_actor.rs:4725"]
+    DONE["Outside hold and settle span<br/>force_compute_actor.rs:4893-4895"] --> STORED["Stored speed, no overlay, stored integrator again<br/>force_compute_actor.rs:4894"]
 ```
 
-**What it shows.** ADR-2169 explicitly amends ADR-2140. Since the 2026-11-01 review, the amendment's spring mode has merged. A hold and its settle window now turn on an elastic overlay, which sends integration down the Verlet path. Stored `dt` and damping therefore govern residual motion in the window. The `HOLD_GLOBAL_SPEED` floor is still computed, but no kernel reads it while it applies. **Why it is this way.** The floor was the first answer to a weak pull under LinLog plus adaptive speed (its doc comment still describes the FA2 integrator, `force_compute_actor.rs:4664-4673`). The spring overlay replaced that mechanism without removing the floor. Interaction response and a two-second settling time both still need live measurement under the actual force set.
+**What it shows.** ADR-2169 explicitly amends ADR-2140. Since the 2026-11-01 review, the amendment's spring mode has merged. A hold and its settle window now turn on an elastic overlay, which sends integration down the Verlet path. Stored `dt` and damping therefore govern residual motion in the window. The `HOLD_GLOBAL_SPEED` floor is still computed, but no kernel reads it while it applies. **Why it is this way.** The floor was the first answer to a weak pull under LinLog plus adaptive speed (its doc comment still describes the FA2 integrator, `force_compute_actor.rs:4833-4842`). The spring overlay replaced that mechanism without removing the floor. Interaction response and a two-second settling time both still need live measurement under the actual force set.
 
-**Debt:** `HOLD_GLOBAL_SPEED` and `StepOverrides::global_speed` (`force_compute_actor.rs:4674,4690`) are dead while the overlay is on; delete them or fold them into the overlay's gain, and refresh the doc comment.
+**Debt:** `HOLD_GLOBAL_SPEED` and `StepOverrides::global_speed` (`force_compute_actor.rs:4843,4859`) are dead while the overlay is on; delete them or fold them into the overlay's gain, and refresh the doc comment.
 
 ## VC-52.4 Release evidence now comes from one observer's ordered post-release samples
 
@@ -107,10 +107,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    HAND["Choose first held hand<br/>graph_scene.gd:172-173"] --> FRAME["Select held or targeted volume transform<br/>graph_scene.gd:204-210"]
+    HAND["Choose first held hand<br/>graph_scene.gd:170-171"] --> FRAME["Select held or targeted volume transform<br/>graph_scene.gd:202-208"]
     PRIMARY["Read position from primary binary client<br/>spatial_environment.gd:102,113"] --> WORLD["Apply selected transform to that position<br/>spatial_environment.gd:114-117"]
     FRAME --> WORLD
-    GRAB["Grab uses the chosen connection's position<br/>graph_scene.gd:3855"] -.-> GAP["TENSION: differing connection positions<br/>need an end-to-end marker test<br/>spatial_environment.gd:113"]
+    GRAB["Grab uses the chosen connection's position<br/>graph_scene.gd:3853"] -.-> GAP["TENSION: differing connection positions<br/>need an end-to-end marker test<br/>spatial_environment.gd:113"]
     WORLD -.-> GAP
 ```
 
@@ -125,32 +125,32 @@ sequenceDiagram
     autonumber
     participant UI as useGraphEventHandlers<br/>useGraphEventHandlers.ts:159
     participant WS as handle_node_drag_start<br/>position_updates.rs:193
-    participant GS as GraphServiceSupervisor<br/>graph_service_supervisor.rs:2067
-    participant OR as PhysicsOrchestratorActor<br/>physics_orchestrator_actor.rs:1198
-    participant FC as ForceComputeActor<br/>force_compute_actor.rs:3132
+    participant GS as GraphServiceSupervisor<br/>graph_service_supervisor.rs:2081
+    participant OR as PhysicsOrchestratorActor<br/>physics_orchestrator_actor.rs:1205
+    participant FC as ForceComputeActor<br/>force_compute_actor.rs:3301
     participant HR as HoldRegistry<br/>hold_registry.rs:59
     UI->>WS: nodeDragStart with position, useGraphEventHandlers.ts:159
     WS->>WS: may_hold, then dragged_nodes and drag_last_update, position_updates.rs:215,228,229
     WS->>GS: NodeInteractionMessage Dragged, position_updates.rs:135,138
-    GS->>OR: forward unchanged, graph_service_supervisor.rs:2080
-    OR->>OR: track_hold_owner records node and holder, physics_orchestrator_actor.rs:1183,1186
+    GS->>OR: forward unchanged, graph_service_supervisor.rs:2094
+    OR->>OR: track_hold_owner records node and holder, physics_orchestrator_actor.rs:1190,1193
     WS->>FC: HoldNodes holder and position, position_updates.rs:144
     FC->>HR: hold writes owner, position, touched, hold_registry.rs:59,61,62,63
-    FC->>FC: clear reheat, impulse and settle window, force_compute_actor.rs:3146,3147,3148
+    FC->>FC: clear reheat, impulse and settle window, force_compute_actor.rs:3315,3316,3317
     loop every 500 ms while the button is down
         UI->>WS: nodeDragUpdate heartbeat at the current position, useGraphEventHandlers.ts:172,176
     end
     Note over UI: heartbeat interval dragHeartbeat.ts:9,15 is below the 2 s socket timeout
-    FC->>FC: next step, mask uploaded then pins applied, force_compute_actor.rs:2252,2253
+    FC->>FC: next step, mask uploaded then pins applied, force_compute_actor.rs:2340,2341
     UI->>WS: nodeDragEnd, useGraphEventHandlers.ts:278
     WS->>WS: remove from dragged_nodes and drag_last_update, position_updates.rs:391,392
     WS->>GS: NodeInteractionMessage Released, position_updates.rs:169
-    GS->>OR: forward, graph_service_supervisor.rs:2080
-    OR->>OR: removes only when the holder matches, physics_orchestrator_actor.rs:1188,1189
+    GS->>OR: forward, graph_service_supervisor.rs:2094
+    OR->>OR: removes only when the holder matches, physics_orchestrator_actor.rs:1195,1196
     WS->>FC: ReleaseNodes holder and nodes, position_updates.rs:177
     FC->>HR: release by current owner only, hold_registry.rs:68,69
-    FC->>FC: after_release, rejoin impulse and 2 s settle window, force_compute_actor.rs:398,401,390
-    Note over WS,FC: backstops, socket 2 s timeout position_updates.rs:521,545 and registry 5 s expiry force_compute_actor.rs:2027,4662
+    FC->>FC: after_release, rejoin impulse and 2 s settle window, force_compute_actor.rs:405,408,397
+    Note over WS,FC: backstops, socket 2 s timeout position_updates.rs:521,545 and registry 5 s expiry force_compute_actor.rs:2115,4831
 ```
 
 **What it shows.** One gesture fans out into two independent messages, one to the GPU actor and one through the graph service to the orchestrator, and each keeps its own held set. **Why it is this way.** ADR-2169 (2026-11-01) put ownership in the GPU actor's registry. The orchestrator's intent channel predates it and was kept for the auto-pause and wake behaviour.
@@ -159,16 +159,16 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    REG["AUTHORITATIVE: HoldRegistry held, explicit, positions, touched<br/>hold_registry.rs:39,41,43,48"] --> MASK["Derived GPU pinned_mask from registry positions<br/>force_compute_actor.rs:411,556"]
+    REG["AUTHORITATIVE: HoldRegistry held, explicit, positions, touched<br/>hold_registry.rs:39,41,43,48"] --> MASK["Derived GPU pinned_mask from registry positions<br/>force_compute_actor.rs:418,563"]
     SOCK["Socket dragged_nodes for the two-hand admission<br/>types.rs:73<br/>position_updates.rs:87,88"] -.-> D1["DEBT: same per-holder set the registry keeps<br/>hold_registry.rs:83"]
-    TIME["Socket drag_last_update, 2 s timeout<br/>types.rs:75<br/>position_updates.rs:521,534"] --> LAYER["Layered with registry touched and 5 s expiry<br/>hold_registry.rs:99<br/>force_compute_actor.rs:4660,4662"]
-    ORCH["Orchestrator held_nodes, node id to holder<br/>physics_orchestrator_actor.rs:117,1186,1189"] -.-> T1["owner-checked, but not expired with the registry, see VC-52.2"]
-    DESK["Desktop worker pinnedNodeIds still read<br/>graph.worker.ts:31<br/>binary-processor.ts:74"] -.-> D2["DEBT: no writer, proxy pin calls are deprecated no-ops<br/>graphWorkerProxy.ts:454,460"]
-    STALE["Doc comment for removed per-frame pin re-upload<br/>force_compute_actor.rs:380,381"] -.-> D3["DEBT: orphaned above begin_release_settle<br/>force_compute_actor.rs:390"]
+    TIME["Socket drag_last_update, 2 s timeout<br/>types.rs:75<br/>position_updates.rs:521,534"] --> LAYER["Layered with registry touched and 5 s expiry<br/>hold_registry.rs:99<br/>force_compute_actor.rs:4829,4831"]
+    ORCH["Orchestrator held_nodes, node id to holder<br/>physics_orchestrator_actor.rs:120,1193,1196"] -.-> T1["owner-checked, but not expired with the registry, see VC-52.2"]
+    DESK["Desktop worker pinnedNodeIds still read<br/>graph.worker.ts:31<br/>binary-processor.ts:74"] -.-> D2["DEBT: no writer, proxy pin calls are deprecated no-ops<br/>graphWorkerProxy.ts:459,465"]
+    STALE["Doc comment for removed per-frame pin re-upload<br/>force_compute_actor.rs:387,388"] -.-> D3["DEBT: orphaned above begin_release_settle<br/>force_compute_actor.rs:397"]
 ```
 
 **What it shows.** Of the server-side copies, the registry is the only one that carries ownership and the hold-versus-pin distinction. The GPU mask is derived from it, and the timeouts are deliberately layered. **Why it is this way.** ADR-2169 added the registry beside the existing socket and orchestrator state rather than replacing either.
 
 **Drift:** the desktop drag handlers cite "ADR-03 D7: pin state is server-authoritative", but no ADR-03 or ADR-003 exists in `docs/adr` or `docs/archive` (`useGraphEventHandlers.ts:151,269`).
 
-**Debt:** the socket's `dragged_nodes` duplicates the registry's per-holder set (`types.rs:73`; `hold_registry.rs:83`), and the desktop `pinnedNodeIds` is read but never written (`graph.worker.ts:31`; `graphWorkerProxy.ts:454`).
+**Debt:** the socket's `dragged_nodes` duplicates the registry's per-holder set (`types.rs:73`; `hold_registry.rs:83`), and the desktop `pinnedNodeIds` is read but never written (`graph.worker.ts:31`; `graphWorkerProxy.ts:459`).
