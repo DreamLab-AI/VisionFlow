@@ -15,7 +15,7 @@ sources:
   - ../prose-sanitiser/crates/server/src/lib.rs
   - ../prose-sanitiser/CHANGELOG.md
   - ../prose-sanitiser/crates/server/README.md
-verified_commit: 266063408b57f52672b5b061491120373d72ffef
+verified_commit: 0e2641a7030de880371d4bfb904af323688f8fbb
 ---
 ## For developers
 
@@ -81,7 +81,7 @@ directory. It never looks at whether the directory exists and it never expands
 the tool is run from. The `CHANGELOG` records the decision as one rule for all
 five variables, `PROSE_SANITISER_SCRIPTS_DIR`, `REVERSE_SYNTHID_DIR`,
 `NOAI_WATERMARK_DIR`, `MARKDIFFUSION_DIR` and `MARKLLM_DIR`
-(`../prose-sanitiser/CHANGELOG.md:32`-`35`). A unit test lists the cases that
+(`../prose-sanitiser/CHANGELOG.md:34`-`37`). A unit test lists the cases that
 must be refused, including `.`, `~` and `~x`
 (`../prose-sanitiser/crates/core/src/lib.rs:211`-`232`).
 
@@ -117,7 +117,7 @@ is configuration, not the location of a source file. A development checkout sets
 `PROSE_SANITISER_SCRIPTS_DIR`
 (`../prose-sanitiser/crates/media/src/image/harness.rs:25`-`35`). The earlier
 fallback to `skills/prose-sanitiser` in the working directory was removed
-(`../prose-sanitiser/CHANGELOG.md:19`-`21`).
+(`../prose-sanitiser/CHANGELOG.md:21`-`23`).
 
 **Invariant:** with no override the answer is always the absolute baked path, and
 a relative override is ignored. Two tests assert exactly that
@@ -281,7 +281,7 @@ and three of the five then expand it against `$HOME`. The scripts directory and
 the SynthID directory do not.
 
 **Why it is this way.** The `CHANGELOG` says absolute and `~/` values are
-honoured (`../prose-sanitiser/CHANGELOG.md:34`-`35`), and the helper's doc says
+honoured (`../prose-sanitiser/CHANGELOG.md:36`-`37`), and the helper's doc says
 `~/` expands against `$HOME`, not the working directory
 (`../prose-sanitiser/crates/core/src/lib.rs:141`-`142`). The expansion lives in the
 callers: `expand_user` is defined twice, once for the media crate
