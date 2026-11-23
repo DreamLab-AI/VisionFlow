@@ -30,7 +30,11 @@ sources:
   - ../vitrine-object-sidecar/tools_blender_turntable.py
   - ../vitrine-object-sidecar/tools_score_bakeoff.py
   - ../vitrine-object-sidecar/tools_contact_sheets.py
+  - ../vitrine-object-sidecar/tools_recarve_radio.py
+  - ../vitrine-object-sidecar/tools_score_refined.py
+  - ../vitrine-object-sidecar/tools_composed_proof.py
   - ../vitrine-object-sidecar/report/main.tex
+  - ../vitrine-object-sidecar/report/sections/04-live-results.tex
 verified_commit: {vitrine-object-sidecar: 8011b32a57d183dd40af38fcf7bfcf952167603d}
 ---
 
@@ -107,3 +111,28 @@ flowchart TB
 ```
 
 **What it shows.** Every reported number passes through root tools pinned to `project5` paths outside this repository; the report sources then build with `latexmk` from the report Makefile.
+
+## VO-08.4 Root tools behind the recarve, refined scores and composed-scene figure
+
+```mermaid
+flowchart TB
+    RC["tools_recarve_radio: re-carve the nc04 radio from pass-2 masks, sweep min_views and fg_threshold<br/>tools_recarve_radio.py:1,2,42,43,46"]
+    RCO["keeps the tightest p5-p95 extent, saves radio_00_recarved.npy under the project5 run<br/>tools_recarve_radio.py:52,56,57"]
+    SR["tools_score_refined: scene_scale prior 9.2034 plus or minus 15 percent, 24 yaws, refine on<br/>tools_score_refined.py:1,2,3,15,57,58,59"]
+    SRO["writes radio_bakeoff_refined.json beside the pass-1 generate run<br/>tools_score_refined.py:65,67"]
+    CP["tools_composed_proof: Lane-A green plus Lane-B blue silhouettes over real rectified frames<br/>tools_composed_proof.py:1,2,3,57,58"]
+    PL["placement is carve-init: mean-extent scale onto the carve centroid, no emplace solve<br/>tools_composed_proof.py:43,44,45"]
+    FIG["report figure renders/composed_proof.png, captioned carve-init and yaw unrefined<br/>04-live-results.tex:129,133,134"]
+    RC --> RCO
+    SR --> SRO
+    CP --> PL --> FIG
+    EXT["EXTERNAL: all three read and write project5 runs and datasets outside this repository<br/>tools_recarve_radio.py:9,10<br/>tools_score_refined.py:11,12,13,14<br/>tools_composed_proof.py:9,10,11,12"]
+    RC --- EXT
+    OPEN["OPEN: no tracked file reads radio_bakeoff_refined.json or radio_00_recarved.npy, and the report says refined scoring is still running with no numeric winner claimed<br/>04-live-results.tex:172,173,174"]
+    SRO --- OPEN
+    DRIFT["DOC-DRIFT: the figure's SRC comment credits the sidecar compose stage, the PNGs come from this root tool calling compose_view directly<br/>04-live-results.tex:128<br/>tools_composed_proof.py:7,57"]
+    FIG --- DRIFT
+```
+
+**What it shows.** The recarve, refined-scoring and composed-proof evidence are produced by root scripts outside the CLI; only the composed-proof PNG reaches the report, and the report's section text is otherwise covered only through `main.tex` (VO-08.3) and the interface-contract section (VO-01).
+
