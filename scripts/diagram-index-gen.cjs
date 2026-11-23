@@ -74,7 +74,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'sealmap', 'codescape', 'visioncraft', 'prose-sanitiser', 'diagram-ir', 'estate']);
+const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'sealmap', 'codescape', 'visioncraft', 'prose-sanitiser', 'diagram-ir', 'loom', 'ontomark-obsidian', 'vitrine-object-sidecar', 'thg-world-record-attempt', 'estate']);
 // Areas imported from a repository's own narrative corpus (the diagrams-as-code
 // skill dialect: "For developers" / "For the business" sections and register
 // paragraphs around each diagram). The diagrams-only prose limit does not apply
@@ -345,6 +345,8 @@ const REPO_PREFIXES = [
   { key: 'dream-machine', prefix: '../dream-machine/' },
   { key: 'prose-sanitiser', prefix: '../prose-sanitiser/' },
   { key: 'diagram-ir', prefix: '../diagram-ir/' },
+  { key: 'vitrine-object-sidecar', prefix: '../vitrine-object-sidecar/' },
+  { key: 'thg-world-record-attempt', prefix: '../THG-world-record-attempt/' },
   { key: 'visionflow', prefix: '' },
 ];
 const AREA_REPO = { visionflow: 'visionflow', visionclaw: 'visionclaw', agentbox: 'agentbox', 'solid-pod-rs': 'solid-pod-rs', 'nostr-rust-forum': 'nostr-rust-forum', 'dreamlab-ai-website': 'dreamlab-ai-website', 'vowl-wasm': 'vowl-wasm', knowledgegraph: 'knowledgegraph', visiongraph: 'visiongraph', 'sidestr-rs': 'sidestr-rs', ontomark: 'ontomark', 'dream-engine': 'dream-engine' , 'visiontouch-rs': 'visiontouch-rs', sealmap: 'sealmap', codescape: 'codescape', visioncraft: 'visioncraft', 'prose-sanitiser': 'prose-sanitiser', 'diagram-ir': 'diagram-ir' };
