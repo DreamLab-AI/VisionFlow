@@ -40,7 +40,7 @@ sequenceDiagram
     participant VC as visioncraft upstream
     participant AB as agentbox repository
     participant OP as operator
-    VC->>AB: 75bd6c7e7 integrates the canonical method, a Nix package and direct AQE tools (lib/visioncraft.nix:4-7)
+    VC->>AB: 75bd6c7e7 integrates the canonical method, a Nix package and direct AQE tools (visioncraft-consumption.md:10-17)
     Note over AB: hard cutover: build-with-quality is removed, one payload owns the name (visioncraft-consumption.md:3-6)
     VC->>AB: c1b0c700c pins published 0.1.0, commit 9cf450c, 34 payload files (ADR-2165-visioncraft-owns-the-portable-quality-method.md:128-130)
     VC->>AB: 83637b7c3 repins 0.2.0 from upstream b7e579f, 35 files (ADR-2165-visioncraft-owns-the-portable-quality-method.md:134-138)

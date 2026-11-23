@@ -56,8 +56,8 @@ flowchart TB
     %% Source: project/.github/workflows/ontology-publish.yml:292
     %% Source: visionGraph/.github/workflows/publish.yml:554
     %% Source: project/.github/workflows/ontology-publish.yml:89
-    %% Source: project/.github/workflows/ontology-publish.yml:165
-    %% Source: project/.github/workflows/ontology-publish.yml:178
+    %% Source: project/.github/workflows/ontology-publish.yml:171-173
+    %% Source: project/.github/workflows/ontology-publish.yml:181
     %% Source: scripts/ontology/pack-pod-resources.py:116
     %% Source: project/.github/workflows/ontology-publish.yml:307
     %% Source: project/.github/workflows/ontology-publish.yml:363
@@ -74,7 +74,7 @@ flowchart TB
     %% Source: src/services/ontology_pull.rs:446
 ```
 
-**What it shows:** both routes still build VisionClaw's `vault`, while the site uses the released `ontomark`; the compose default points the boot pull at the local release directory, and this source map does not prove a running deployment's configuration (`build-local-release.sh:62`, `ontology-publish.yml:165`, `publish.yml:48`, `docker-compose.unified.yml:141`, `src/main.rs:911`).
+**What it shows:** both routes still build VisionClaw's `vault`, while the site uses the released `ontomark`; the compose default points the boot pull at the local release directory, and this source map does not prove a running deployment's configuration (`build-local-release.sh:62`, `ontology-publish.yml:171-173`, `publish.yml:48`, `docker-compose.unified.yml:141`, `src/main.rs:911`).
 **Why it is this way:** the GitHub release route was parked as network-expensive and replaced by a local twin with the same gates; the rolling URL, the local directory and the optional push job are distinct delivery paths, and a successful dispatch is not an activation acknowledgement (`build-local-release.sh:4-9`, `ontology_pull.rs:48`, `ontology-publish.yml:363`).
 
 ## VG-04.3 Source, bundle, deployment and loaded identity differ
@@ -102,7 +102,7 @@ flowchart TB
     %% Source: src/services/ontology_pull.rs:368-370
     %% Source: src/services/ontology_pull.rs:869
     %% Source: src/services/ontology_pull.rs:377
-    %% Source: src/services/ontology_pull.rs:394
+    %% Source: src/services/ontology_pull.rs:395-396
     %% Source: src/services/ontology_pull.rs:435
     %% Source: src/services/ontology_generation.rs:127
 ```
