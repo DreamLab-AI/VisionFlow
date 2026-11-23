@@ -136,9 +136,9 @@ sequenceDiagram
     autonumber
     participant A as agent in agentbox
     participant S as createBridgeServer<br/>browsercontainer/server.js:308
-    participant CH as Chrome on display 2<br/>launch-chromium.sh:123
+    participant CH as Chrome on display 2<br/>supervisord.conf:65
 
-    alt POST /display/fullscreen, /record/start or /record/stop (server.js:437-447)
+    alt POST /display/fullscreen, /record/start or /record/stop (server.js:439-447)
         A->>S: request carrying an Origin header
         S-->>A: 403 before the body is read, never any CORS header (server.js:442-445)
     else any other path
