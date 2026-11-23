@@ -194,7 +194,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_305 topic files, 2242 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_310 topic files, 2262 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -596,6 +596,16 @@ _305 topic files, 2242 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | TH-05 | [Veo branded films, the generator and the separate poller](thg-world-record-attempt/05-veo-branded-films.md) | 3 | sequenceDiagram, flowchart | [README.md](../../../THG-world-record-attempt/README.md) |  |
 | TH-06 | [VFX tracking pipeline v2, steps, clients and the Hunyuan3D graph](thg-world-record-attempt/06-vfx-pipeline-orchestration.md) | 4 | flowchart, sequenceDiagram | [PRD-vfx-object-tracking.md](../../../THG-world-record-attempt/docs/PRD-vfx-object-tracking.md) |  |
 | TH-07 | [The VFX render scripts that made the committed composite, and the test suite](thg-world-record-attempt/07-vfx-render-scripts-and-tests.md) | 3 | flowchart | [PRD-vfx-object-tracking.md](../../../THG-world-record-attempt/docs/PRD-vfx-object-tracking.md) |  |
+
+### wasmvowl
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| WV-01 | [Repository anatomy, entry points and the status record](wasmvowl/01-repository-anatomy-and-status.md) | 3 | flowchart | [README.md](../../../WasmVOWL/README.md), [ADR-001-explorer-consumer-contract-closeout.md](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) | WasmVOWL:ADR-001 |
+| WV-02 | [Modern explorer runtime - load, store, scene and controls](wasmvowl/02-modern-explorer-runtime.md) | 4 | sequenceDiagram, flowchart | [CLAUDE.md](../../../WasmVOWL/CLAUDE.md), [ADR-001-explorer-consumer-contract-closeout.md](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) | WasmVOWL:ADR-001 |
+| WV-03 | [Ontology input formats and the vowl-wasm engine boundary](wasmvowl/03-ontology-input-and-engine-boundary.md) | 4 | flowchart, sequenceDiagram | [ADR-001-explorer-consumer-contract-closeout.md](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) | WasmVOWL:ADR-001 |
+| WV-04 | [Build, test, CI and deploy surface](wasmvowl/04-build-test-ci-and-deploy.md) | 3 | flowchart | [README.md](../../../WasmVOWL/README.md), [README.md](../../../WasmVOWL/tests/README.md), [ADR-001-explorer-consumer-contract-closeout.md](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) | WasmVOWL:ADR-001 |
+| WV-05 | [Legacy WebVOWL - bundle, loading paths, parse, notation, menus and editor](wasmvowl/05-legacy-webvowl.md) | 6 | flowchart, sequenceDiagram | [CLAUDE.md](../../../WasmVOWL/CLAUDE.md), [README.md](../../../WasmVOWL/README.md) |  |
 
 ### estate
 
