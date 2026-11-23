@@ -43,7 +43,7 @@ sources:
   - ../project/agentbox/management-api/lib/pg-config.js
   - ../project/agentbox/management-api/adapters/memory/external-pg.js
   - ../project/agentbox/mcp/servers/lib/memory-evidence.js
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
@@ -130,17 +130,18 @@ classDiagram
         +patch(uri, patch, opts) local-solid-rs.js:126
     }
     class LocalJsonlEventsAdapter {
-        +dispatch(event) local-jsonl.js:61
-        +subscribe(filter, handler) local-jsonl.js:94
-        +unsubscribe(subscriptionId) local-jsonl.js:106
-        -_initChain() local-jsonl.js:122
+        +dispatch(event) local-jsonl.js:64
+        +subscribe(filter, handler) local-jsonl.js:84
+        +unsubscribe(subscriptionId) local-jsonl.js:96
+        -_initChain() local-jsonl.js:112
+        -_commit(event) read-tail, hash and append under journalLock.withLock local-jsonl.js:129, :139-151
     }
     class LocalProcessManagerOrchestratorAdapter {
-        +spawnAgent(spec) local-process-manager.js:45
-        +streamEvent(agentId, handler) local-process-manager.js:106
-        +listAgents() local-process-manager.js:119
-        +handleGovernanceDecision(event, opts) local-process-manager.js:142
-        +terminateAgent(agentId) local-process-manager.js:554
+        +spawnAgent(spec) local-process-manager.js:46
+        +streamEvent(agentId, handler) local-process-manager.js:107
+        +listAgents() local-process-manager.js:120
+        +handleGovernanceDecision(event, opts) local-process-manager.js:143
+        +terminateAgent(agentId) local-process-manager.js:555
     }
     BaseAdapter <|-- EmbeddedRuvectorMemoryAdapter
     BaseAdapter <|-- OffMemoryAdapter
@@ -268,13 +269,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SV as server.js boot<br/>server.js:1361-1379
+    participant SV as server.js boot<br/>server.js:1383-1401
     participant LC as connectAdapters<br/>adapters/lifecycle.js:234
     participant CO as connectOneSlot<br/>adapters/lifecycle.js:194
     participant AD as adapter.connect()
     participant T as deadline timer<br/>lifecycle.js:210-212
 
-    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1363
+    SV->>LC: connectAdapters(slots, adapters, manifest, logger, resolveOff) — server.js:1385
     par all five slots concurrently (lifecycle.js:249)
         LC->>LC: timeoutMs = connectTimeoutFor(slot, manifest) (lifecycle.js:252 and :119)
         alt adapter missing or no connect() hook (lifecycle.js:255)
@@ -295,17 +296,17 @@ sequenceDiagram
         end
     end
     LC-->>SV: readiness map and healthy flag (lifecycle.js:338-339)
-    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1376)
-    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1377)
-    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1378)
+    SV->>SV: app.adapters[slot] = resolvedAdapters[slot] (server.js:1398)
+    SV->>SV: Object.assign(adapterHealth, toLegacyHealth(readiness)) (server.js:1399)
+    SV->>SV: app.decorate('adapterReadiness', readiness) (server.js:1400)
     Note over LC,T: DEFAULT_CONNECT_TIMEOUT_MS = 10000 — lifecycle.js:72
     Note over LC: Manifest override [adapters] connect_timeout_ms scalar or per-slot map — lifecycle.js:107-109, :123,<br/>non-positive values ignored (lifecycle.js:126). The Stage 1 schema rejects the key, see AB-04.15
-    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:234, wired from server.js:1362-1363. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35).
-    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:159 documents the<br/>per-slot deadline. Its line references there (server.js:1241-1242) are stale at this<br/>commit, see the Drift entry below this panel.
+    Note over SV,LC: INVARIANT: ONE deadline PER SLOT, never one aggregate budget —<br/>adapters/lifecycle.js:234, wired from server.js:1384-1385. Aggregate wall-clock is<br/>bounded by the slowest single slot, not by a race that abandons work in flight<br/>(lifecycle.js:31-35).
+    Note over SV,LC: RESOLVED ADR-2035: BASELINE-container.md:162 documents the<br/>per-slot deadline. Its line references there (server.js lines 1241-1242) are stale at this<br/>commit, see the Drift entry below this panel.
     Note over CO,T: Timeout is a CONNECT FAILURE identical in consequence to an explicit rejection — lifecycle.js:31-33
 ```
 
-**Drift:** `docs/BASELINE-container.md` still cites `connectAdapters` as wired from `server.js:1241-1242` and `app.adapterReadiness` at `server.js:1257` (`../project/agentbox/docs/BASELINE-container.md:159`). At the pin those calls sit at `../project/agentbox/management-api/server.js:1362-1378`. It also places `instrumentAdapter` at `index.js:131` (`../project/agentbox/docs/BASELINE-container.md:154`), where the function is now at `../project/agentbox/management-api/adapters/index.js:158`. The governing document carries line numbers that no longer resolve.
+**Drift:** `docs/BASELINE-container.md` still cites `connectAdapters` as wired from `server.js` lines 1241-1242 and `app.adapterReadiness` at `server.js` line 1257 (`../project/agentbox/docs/BASELINE-container.md:162`). At the pin those calls sit at `../project/agentbox/management-api/server.js:1384-1400`. It also places `instrumentAdapter` at `index.js:131` (`../project/agentbox/docs/BASELINE-container.md:157`), where the function is now at `../project/agentbox/management-api/adapters/index.js:158`. The governing document carries line numbers that no longer resolve.
 
 ## AB-04.7 Failure path — quarantine before replacement, fail-closed slots abort
 ```mermaid
@@ -313,7 +314,7 @@ sequenceDiagram
     autonumber
     participant LC as connectAdapters<br/>lifecycle.js:234
     participant Q as quarantineAdapter<br/>lifecycle.js:142
-    participant RO as resolveOff callback<br/>server.js:1368-1371
+    participant RO as resolveOff callback<br/>server.js:1390-1393
     participant IDX as resolveAdapters<br/>index.js:196
     participant PX as process.exit(1)<br/>lifecycle.js:333
 
@@ -402,7 +403,7 @@ stateDiagram-v2
     end note
 ```
 
-**Drift:** this panel used to map the legacy states onto the `agentbox_adapter_health` gauge as off 0, degraded 1, healthy 2. `setAdapterHealth` encodes healthy as 1, degraded as 2 and anything else as 0 (`../project/agentbox/management-api/observability/metrics.js:202-204`). Nothing in the management API calls it, so the gauge is never set at this revision. The collapse feeds only the `/health` JSON (`../project/agentbox/management-api/server.js:1377`, `../project/agentbox/management-api/server.js:608-619`).
+**Drift:** this panel used to map the legacy states onto the `agentbox_adapter_health` gauge as off 0, degraded 1, healthy 2. `setAdapterHealth` encodes healthy as 1, degraded as 2 and anything else as 0 (`../project/agentbox/management-api/observability/metrics.js:202-204`). Nothing in the management API calls it, so the gauge is never set at this revision. The collapse feeds only the `/health` JSON (`../project/agentbox/management-api/server.js:1399`, `../project/agentbox/management-api/server.js:627-638`).
 
 ## AB-04.9 memory.store — the configured external-pg dispatch through both layers
 ```mermaid
@@ -531,14 +532,14 @@ sequenceDiagram
     participant R as routes/tasks.js or sessions-boundary.js
     participant L1 as Layer 1 wrapDispatch<br/>metrics.js:125
     participant L2 as Layer 2 privacy<br/>privacy-filter.js:654
-    participant OA as LocalProcessManagerOrchestratorAdapter<br/>orchestrator/local-process-manager.js:25
+    participant OA as LocalProcessManagerOrchestratorAdapter<br/>orchestrator/local-process-manager.js:26
     participant OD as applyOntologyDecision<br/>lib/ontology-apply.js:372
     participant VC as vault CLI<br/>runVaultCommand ontology-apply.js:256
     participant P as spawned agent process
 
     R->>L1: orchestrator.spawnAgent(spec)
     L1->>L2: privacyWrapped(spec) — not a mutation name, pass-through (privacy-filter.js:661-663)
-    L2->>OA: spawnAgent(spec) — local-process-manager.js:45
+    L2->>OA: spawnAgent(spec) — local-process-manager.js:46
     OA->>P: launch process
     P-->>OA: agentId
     OA-->>L1: agentId
@@ -546,17 +547,17 @@ sequenceDiagram
 
     R->>L1: orchestrator.handleGovernanceDecision(event, opts)
     L1->>L2: privacyWrapped(event)
-    L2->>OA: handleGovernanceDecision(event, opts) — local-process-manager.js:142
-    OA->>OA: outcome = parsed.action or parsed.outcome — local-process-manager.js:157
-    alt outcome is approve on an ontology amend (local-process-manager.js:217-225)
-        OA->>OA: _ontologyApprove applies it as a promote of the digest the 31403 signed (local-process-manager.js:379-409)
-    else outcome is promote or demote — ADR-2109 (local-process-manager.js:226)
-        OA->>OA: _ontologySignerRefusal — refuse a signer the operator did not name (local-process-manager.js:231-233)
+    L2->>OA: handleGovernanceDecision(event, opts) — local-process-manager.js:143
+    OA->>OA: outcome = parsed.action or parsed.outcome — local-process-manager.js:158
+    alt outcome is approve on an ontology amend (local-process-manager.js:218-226)
+        OA->>OA: _ontologyApprove applies it as a promote of the digest the 31403 signed (local-process-manager.js:380-410)
+    else outcome is promote or demote — ADR-2109 (local-process-manager.js:227)
+        OA->>OA: _ontologySignerRefusal — refuse a signer the operator did not name (local-process-manager.js:232-234)
         opt eTag present
-            OA->>OA: stored request's d tag and iri must match the decision, else refused (local-process-manager.js:442-452)
+            OA->>OA: stored request's d tag and iri must match the decision, else refused (local-process-manager.js:443-453)
             OA->>OD: proposal = proposalFromRequest(request) — ontology-apply.js:536
         end
-        OA->>OD: applyOntologyDecision(proposal, outcome, iri, page, signerNpub, at, caseId, digest, eventId, kind) — local-process-manager.js:466-485
+        OA->>OD: applyOntologyDecision(proposal, outcome, iri, page, signerNpub, at, caseId, digest, eventId, kind) — local-process-manager.js:467-486
         alt proposal.kind is create
             OD->>OD: applyCreateProposal(decision, proposal, deps) — ontology-apply.js:385, :560
         else promote of an amend proposal
@@ -569,22 +570,22 @@ sequenceDiagram
         OD->>OD: attest(ledger body) — ontology-apply.js:438, :627, :742
         OD-->>OA: applied, page, outcome, attested, attestError
         opt applyOntologyDecision throws
-            OA->>OA: ontology = applied false, error message — local-process-manager.js:486-492
+            OA->>OA: ontology = applied false, error message — local-process-manager.js:487-493
         end
     end
-    OA->>OA: decision record with activity_urn, receipt_urn, ontology — local-process-manager.js:256-267
-    OA->>P: matchedEntry.proc.stdin.write(decision) when an agent matches refId — local-process-manager.js:269-275
-    OA-->>L1: dispatched, target, event_id, ontology — local-process-manager.js:327,350
+    OA->>OA: decision record with activity_urn, receipt_urn, ontology — local-process-manager.js:257-268
+    OA->>P: matchedEntry.proc.stdin.write(decision) when an agent matches refId — local-process-manager.js:270-276
+    OA-->>L1: dispatched, target, event_id, ontology — local-process-manager.js:328,351
     L1-->>R: result
 
     opt stream and control
-        R->>OA: streamEvent(agentId, handler) — local-process-manager.js:106
-        R->>OA: listAgents() — local-process-manager.js:119
-        R->>OA: terminateAgent(agentId) — local-process-manager.js:554
+        R->>OA: streamEvent(agentId, handler) — local-process-manager.js:107
+        R->>OA: listAgents() — local-process-manager.js:120
+        R->>OA: terminateAgent(agentId) — local-process-manager.js:555
     end
     Note over OA: INVARIANT ADR-2004 — orchestrator is the sole member of FAIL_CLOSED_SLOTS<br/>(lifecycle.js:75). Connect rejection, deadline expiry and quarantine are all equally<br/>fatal (lifecycle.js:50-53).
-    Note over OA,OD: INVARIANT ADR-2109 — the ontology write runs BEFORE agent dispatch: the write<br/>IS the decision's effect and dispatch is only a notification about it. A write<br/>failure is recorded as ontology.applied=false and swallowed, never thrown — the<br/>signed 31403 stays durable whatever the corpus write managed to do (local-process-manager.js:204-215).
-    Note over R,OA: DOC-DRIFT — the slot method is spawnAgent(spec) at local-process-manager.js:45, not spawn()
+    Note over OA,OD: INVARIANT ADR-2109 — the ontology write runs BEFORE agent dispatch: the write<br/>IS the decision's effect and dispatch is only a notification about it. A write<br/>failure is recorded as ontology.applied=false and swallowed, never thrown — the<br/>signed 31403 stays durable whatever the corpus write managed to do (local-process-manager.js:205-216).
+    Note over R,OA: DOC-DRIFT — the slot method is spawnAgent(spec) at local-process-manager.js:46, not spawn()
     Note over OA,P: orchestrator contract 1.0.0 — contract-versions.js:12
 ```
 
@@ -618,14 +619,14 @@ flowchart TD
     subgraph S1["Stage 1 static schema — edit and build time"]
         A1["schema/agentbox.toml.schema.json"] --> A2["agentbox-config-validate.js:125-128<br/>Ajv"]
         A2 --> A3{"any E-code?<br/>schema or cross-field"}
-        A3 -->|yes| A4["reject, exit 1<br/>agentbox-config-validate.js:1931"]
-        A3 -->|"no"| A5["W0xx warning only, exit 0<br/>agentbox-config-validate.js:1926"]
+        A3 -->|yes| A4["reject, exit 1<br/>agentbox-config-validate.js:1932"]
+        A3 -->|"no"| A5["W0xx warning only, exit 0<br/>agentbox-config-validate.js:1927"]
     end
     subgraph S2["Stage 2 boot probe — once per boot"]
-        B1["server.js:1362-1363 require adapters/lifecycle"] --> B2["connectAdapters lifecycle.js:234"]
+        B1["server.js:1384-1385 require adapters/lifecycle"] --> B2["connectAdapters lifecycle.js:234"]
         B2 --> B3["per-slot deadline lifecycle.js:119 and :252"]
         B3 --> B4["ready | disabled | unavailable | off<br/>lifecycle.js:55-66"]
-        B4 --> B5["toLegacyHealth lifecycle.js:350<br/>adapterHealth server.js:1377"]
+        B4 --> B5["toLegacyHealth lifecycle.js:350<br/>adapterHealth server.js:1399"]
     end
     subgraph S3["Stage 3 conformance — CI only, never at boot"]
         C1["tests/contract/memory.contract.spec.js"] --> C4["all three impl classes must behave identically"]
@@ -651,7 +652,7 @@ flowchart TD
 
 **Tension:** the schema's `[adapters]` table sets `additionalProperties: false` and does not declare `connect_timeout_ms` (`../project/agentbox/schema/agentbox.toml.schema.json:50-52`). Stage 1 compiles that schema with Ajv (`../project/agentbox/scripts/agentbox-config-validate.js:125-128`). The per-slot override that Stage 2 reads (`../project/agentbox/management-api/adapters/lifecycle.js:107-109`) is therefore rejected by Stage 1 as an unknown key, so the documented knob cannot pass validation.
 
-**Drift:** BASELINE stage 4 says the slot SLO is "surfaced as the `agentbox_adapter_health` gauge ∈ {0,1,2}" (`../project/agentbox/docs/BASELINE-container.md:161`). The gauge is declared (`../project/agentbox/management-api/observability/metrics.js:35-40`), but its only setter has no caller in the repository. The help text and the setter agree on the encoding: 0 unhealthy (so `off` would read as 0), 1 healthy, 2 degraded (`../project/agentbox/management-api/observability/metrics.js:37`, `../project/agentbox/management-api/observability/metrics.js:202-204`). Earlier versions of this topic gave healthy as 2, which contradicts both. Stage 1's rejection is also wider than "structural only": cross-field E-rules such as E-PAY1 reject as well (`../project/agentbox/scripts/agentbox-config-validate.js:1766`).
+**Drift:** BASELINE stage 4 says the slot SLO is "surfaced as the `agentbox_adapter_health` gauge ∈ {0,1,2}" (`../project/agentbox/docs/BASELINE-container.md:164`). The gauge is declared (`../project/agentbox/management-api/observability/metrics.js:35-40`), but its only setter has no caller in the repository. The help text and the setter agree on the encoding: 0 unhealthy (so `off` would read as 0), 1 healthy, 2 degraded (`../project/agentbox/management-api/observability/metrics.js:37`, `../project/agentbox/management-api/observability/metrics.js:202-204`). Earlier versions of this topic gave healthy as 2, which contradicts both. Stage 1's rejection is also wider than "structural only": cross-field E-rules such as E-PAY1 reject as well (`../project/agentbox/scripts/agentbox-config-validate.js:1767`).
 
 ## AB-04.16 SLO surfacing and the agentbox.sh health exit contract
 ```mermaid
@@ -659,7 +660,7 @@ sequenceDiagram
     autonumber
     participant OP as operator shell
     participant SH as cmd_health<br/>agentbox.sh:1131
-    participant H as GET /health<br/>server.js:582-620
+    participant H as GET /health<br/>server.js:601-639
     participant MT as GET /v1/meta<br/>agentbox.sh:1185
     participant PM as prom-client registry<br/>metrics.js:18 :26 :35
     participant SP as speech sidecars<br/>localhost port 8897 and port 8898
@@ -691,10 +692,10 @@ sequenceDiagram
     else jq absent
         SH-->>OP: print the raw payload, falls off the end with status 0 (agentbox.sh:1220-1223)
     end
-    Note over H: /health computes degradedCount from adapterHealth (server.js:608) and emits keys status, uptime, image_hash,<br/>manifest_checksum, adapters, adapter_failures, adapter_failure_files, degraded_count, note — NO services key (server.js:609-619)
+    Note over H: /health computes degradedCount from adapterHealth (server.js:627) and emits keys status, uptime, image_hash,<br/>manifest_checksum, adapters, adapter_failures, adapter_failure_files, degraded_count, note — NO services key (server.js:628-638)
     Note over SH,H: RESOLVED ADR-2037 — cmd_health derives failure from .adapters (a slot fails when its value<br/>is neither "healthy" nor "off", agentbox.sh:1157-1162) plus .degraded_count (agentbox.sh:1163),<br/>so exit 1 at agentbox.sh:1217-1218 is reachable. Same fix as AB-05.7.
     Note over SH,SP: the exit condition carries a third term, speech_failed (agentbox.sh:1203, :1217):<br/>nemotron-asr and pocket-tts are checked unconditionally by port, independent of the<br/>[adapters] manifest and never surfaced in /health's own adapters map.
-    Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:618)
+    Note over SH: /health itself warns it is for human inspection only and points orchestrators at /ready (server.js:637)
     Note over PM: the agentbox_adapter_health gauge is declared but never set, so the sample lines carry no slot health, see AB-04.15
 ```
 
