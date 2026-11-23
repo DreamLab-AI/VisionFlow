@@ -44,7 +44,8 @@ fragment) and resolve by suffix against the file's own `sources:`.
 | `loom/NN-*.md` | `LM-NN` | Ontology Loom — the model-swap façade: workspace and ports, boot and routes, retrieval gate and MCP plane, chat serving and Jev, generation promote/reload/fallback, deploy and CI, evaluators, the paper harness and research data. Consumer views are `AB-24` and `ES-06` (`../loom`) |
 | `ontomark-obsidian/NN-*.md` | `OO-NN` | ontomark-obsidian — the Obsidian plugin hosting the ontomark engine: module map and lifecycle, commands and views, settings, engine bridge, network boundary and Jev, build/CI/release. The engine-side view is `OM-09` (`../ontomark-obsidian`) |
 | `vitrine-object-sidecar/NN-*.md` | `VO-NN` | vitrine-object-sidecar — object-level 3D reconstruction sidecar for UOS Vitrine: file contract, CLI driver, identify/rectify, carve, seed and generation, emplace/texture/compose, lineage, tests and closeout evidence (`../vitrine-object-sidecar`) |
-| `thg-world-record-attempt/NN-*.md` | `TH-NN` | THG-world-record-attempt — the record-attempt image campaign: repository anatomy, generation pipelines incl. local FLUX.2 via ComfyUI, scripts, configs and reports (`../THG-world-record-attempt`) |
+| `thg-world-record-attempt/NN-*.md` | `TH-NN` | THG-world-record-attempt — the February 2026 Topshop campaign scripts (Gemini image, local FLUX.2 through ComfyUI, Veo branded films) and the March 2026 VFX tracking package (Hunyuan3D, GeoTracker, Blender MCP); repository anatomy and the claims checked against code (`../THG-world-record-attempt`) |
+| `wasmvowl/NN-*.md` | `WV-NN` | WasmVOWL — the standalone ontology explorer demo: modern React/R3F runtime, ontology input and the vowl-wasm engine boundary, build/test/CI, legacy WebVOWL. The engine itself is `vowl-wasm` (`VW-NN`) (`../WasmVOWL`) |
 | `estate/NN-*.md` | `ES-NN` | cross-repo and infrastructure interfaces; `verified_commit` is a `{repo: sha}` map |
 | `COVERAGE.md` | | generated inverted indexes: diagram → file, ADR → files, governing doc → files, source path → files |
 | `REGISTER-prose-sanitiser.md`, `REGISTER-diagram-ir.md` | | register markers (`**Tension:**`, `**Debt:**`, `**Drift:**`, `**Open:**`, `**Invariant:**`) collected from each new narrative area by the diagrams-as-code skill's collector, as `REGISTER-visionclaw.md` is for VisionClaw; this tree's own generator collects none. Regenerate by running that collector over the area directory alone |
@@ -193,7 +194,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_305 topic files, 2242 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_310 topic files, 2262 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -595,6 +596,16 @@ _305 topic files, 2242 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | TH-05 | [Veo branded films, the generator and the separate poller](thg-world-record-attempt/05-veo-branded-films.md) | 3 | sequenceDiagram, flowchart | [README.md](../../../THG-world-record-attempt/README.md) |  |
 | TH-06 | [VFX tracking pipeline v2, steps, clients and the Hunyuan3D graph](thg-world-record-attempt/06-vfx-pipeline-orchestration.md) | 4 | flowchart, sequenceDiagram | [PRD-vfx-object-tracking.md](../../../THG-world-record-attempt/docs/PRD-vfx-object-tracking.md) |  |
 | TH-07 | [The VFX render scripts that made the committed composite, and the test suite](thg-world-record-attempt/07-vfx-render-scripts-and-tests.md) | 3 | flowchart | [PRD-vfx-object-tracking.md](../../../THG-world-record-attempt/docs/PRD-vfx-object-tracking.md) |  |
+
+### wasmvowl
+
+| ID | Topic | Diagrams | Kinds | Governing | ADRs |
+|----|-------|----------|-------|-----------|------|
+| WV-01 | [Repository anatomy, entry points and the status record](wasmvowl/01-repository-anatomy-and-status.md) | 3 | flowchart | [README.md](../../../WasmVOWL/README.md), [ADR-001-explorer-consumer-contract-closeout.md](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) | WasmVOWL:ADR-001 |
+| WV-02 | [Modern explorer runtime - load, store, scene and controls](wasmvowl/02-modern-explorer-runtime.md) | 4 | sequenceDiagram, flowchart | [CLAUDE.md](../../../WasmVOWL/CLAUDE.md), [ADR-001-explorer-consumer-contract-closeout.md](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) | WasmVOWL:ADR-001 |
+| WV-03 | [Ontology input formats and the vowl-wasm engine boundary](wasmvowl/03-ontology-input-and-engine-boundary.md) | 4 | flowchart, sequenceDiagram | [ADR-001-explorer-consumer-contract-closeout.md](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) | WasmVOWL:ADR-001 |
+| WV-04 | [Build, test, CI and deploy surface](wasmvowl/04-build-test-ci-and-deploy.md) | 3 | flowchart | [README.md](../../../WasmVOWL/README.md), [README.md](../../../WasmVOWL/tests/README.md), [ADR-001-explorer-consumer-contract-closeout.md](../../../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md) | WasmVOWL:ADR-001 |
+| WV-05 | [Legacy WebVOWL - bundle, loading paths, parse, notation, menus and editor](wasmvowl/05-legacy-webvowl.md) | 6 | flowchart, sequenceDiagram | [CLAUDE.md](../../../WasmVOWL/CLAUDE.md), [README.md](../../../WasmVOWL/README.md) |  |
 
 ### estate
 

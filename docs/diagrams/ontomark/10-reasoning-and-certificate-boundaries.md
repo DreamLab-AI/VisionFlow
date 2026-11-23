@@ -18,6 +18,7 @@ sources:
   - ../ontomark/crates/ontomark-wasm/src/reason.rs
   - ../ontomark/crates/rdfs-certificate/src/lib.rs
   - ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs
+  - ../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md
 verified_commit: {ontomark: fbe30244c6842879297883b571965f5bc1ce0441}
 ---
 

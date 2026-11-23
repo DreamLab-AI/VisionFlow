@@ -21,6 +21,9 @@ sources:
   - ../loom/docs/design/ADR-142-consume-versioned-shared-ontology-contracts.md
   - ../loom/deploy/loom-generation-reload.service
   - ../loom/crates/loom-facade/src/config.rs
+  - ../loom/crates/loom-facade/src/lib.rs
+  - ../loom/deploy/entrypoint.sh
+  - ../loom/deploy/compose.profile-b.yml
   - ../project/docker-compose.unified.yml
   - ../project/docs/BASELINE-architecture.md
   - ../project/agentbox/flake.nix
@@ -219,13 +222,15 @@ flowchart TB
         E7["GET /v1/models<br/>model identity passthrough"]
     end
     GEN["A full generation = scaffold-index.json + prose-index.json<br/>+ the TTLs + ontology-corpus.rvdb with its .generation.json"]
-    T1["TRAP the empty floor — with an empty or mis-pointed<br/>LOOM_DATA_SOURCE the façade STILL starts and /health STILL<br/>returns 200, but the log reads lexical index NOT loaded ...<br/>empty floor. That is a staging bug, not a dead container.<br/>Check the mount before you check the process."]
-    T2["The .rvdb is mounted read-only, but OPENING it mutates the<br/>redb file even for reads (the HNSW index is repacked on open),<br/>so the entrypoint copies it to a writable tmpfs at /run/loom.<br/>The tmpfs uid/gid must stay 65532 to match the image's<br/>non-root user or that copy fails EACCES."]
+    T1["TRAP the empty floor — with an empty or mis-pointed<br/>LOOM_DATA_SOURCE the façade STILL starts and /health STILL<br/>returns 200, but the log reads lexical index NOT loaded ...<br/>empty floor. That is a staging bug, not a dead container.<br/>Check the mount before you check the process.<br/>../loom/crates/loom-facade/src/lib.rs:190, see LM-02.1"]
+    T2["The .rvdb is mounted read-only, but OPENING it mutates the<br/>redb file even for reads (the HNSW index is repacked on open),<br/>so the entrypoint copies it to a writable tmpfs at /run/loom.<br/>The tmpfs uid/gid must stay 65532 to match the image's<br/>non-root user or that copy fails EACCES.<br/>../loom/deploy/entrypoint.sh:46, ../loom/deploy/compose.profile-b.yml:79, see LM-06.2"]
     D1["Reload is the Rust binary reload_published_generation (reload_published_generation.rs:185), which replaced the<br/>deleted scripts/reload-published-generation.py. reconcile (reload.rs:409) calls verified_bundle (reload.rs:219):<br/>the six REQUIRED artefacts (reload.rs:36), strict marker, per-file sha256, sidecar. It writes reload-pending<br/>before the restart (reload.rs:428) and served only after the live identity matches (reload.rs:441).<br/>A start-up fallback generation is never taken as served: the wait ends in a Fallback error (reload.rs:297,447).<br/>One tick at a time: try_lock (reload_published_generation.rs:161). The unit runs the binary<br/>(loom-generation-reload.service:6). ADR-142 records the first served Ontomark bundle (ADR-142-consume-versioned-shared-ontology-contracts.md:54-56) and that the<br/>stale 23 Sep generation was the host unit still calling the deleted script (ADR-142-consume-versioned-shared-ontology-contracts.md:58)."]
-    D2["DIVERGENCE — app/ontology-mcp/ (stdio MCP server, JavaScript)<br/>survived the Python deletion but now has NO build or run path<br/>from this repo. PRD-025/ADR-135 treat it as a thin client of<br/>the Loom index; placement is an open decision."]
+    D2["DIVERGENCE — app/ontology-mcp/ (stdio MCP server, JavaScript)<br/>survived the Python deletion but now has NO build or run path<br/>from this repo. PRD-025/ADR-135 treat it as a thin client of<br/>the Loom index; placement is an open decision.<br/>../project/loom/README.md:108-115"]
 
     RECON["GENERATION SOURCE — agentbox starts hp-loom-reconcile.sh in the background at every boot<br/>([vault].loom_sync, full here): it builds the committed vault HEAD, promotes and verifies it, pushes<br/>the BUILT bundle and starts the Loom's verifying reload. The connected node never reads the vault<br/>agentbox/config/entrypoint-unified.sh:1224-1232, agentbox/agentbox.toml:1230-1238"]
 
+    SOT["SOURCE OF TRUTH — the code and the loom:rust image come from the Loom repository<br/>(../loom, area LM). ../project/loom/README.md is VisionClaw's operator note for the optional<br/>loom compose profile, not the Loom README. DRIFT: its endpoint table ../project/loom/README.md:26-34<br/>omits /mcp, /loom/search/semantic and /loom/attest, which the facade routes<br/>../loom/crates/loom-facade/src/routes/mod.rs:63-74. Full route table: see LM-02.3"]
+    nomodel --> SOT
     nomodel --> GEN
     RECON --> GEN
     GEN --> T1

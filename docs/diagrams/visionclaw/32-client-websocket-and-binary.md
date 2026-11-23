@@ -419,7 +419,7 @@ sequenceDiagram
     loop on every settings-store change while isConnected
         FS->>FS: syncFilterToServer(get) unforced, only a real filter-field change reaches the wire filterSync.ts:175, filterSync.ts:121-133
     end
-    Note over SRV: since 2e7ecc2 the server holds the connect-time initialGraphLoad until the stored graph is loaded, sending graph_loading<br/>meanwhile and graph_load_failed on failure (src/handlers/socket_flow_handler/types.rs:204-236). OPEN: nothing under client/src handles either type at this revision
+    Note over SRV: since 64d86be2b the server holds the connect-time initialGraphLoad until the stored graph is loaded, sending graph_loading<br/>meanwhile and graph_load_failed on failure (src/handlers/socket_flow_handler/types.rs:204-236). OPEN: nothing under client/src handles either type at this revision
     SRV-->>TH: initialGraphLoad nodes,edges textMessageHandler.ts:127-129
     TH->>GDM: isRestLoadInFlight() textMessageHandler.ts:248, graphDataManager.ts:247-249
     alt a REST graph/data load is in flight

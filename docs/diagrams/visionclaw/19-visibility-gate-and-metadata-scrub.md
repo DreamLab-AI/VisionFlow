@@ -129,6 +129,7 @@ sequenceDiagram
     participant T as visibility_parity_tests<br/>src/handlers/api_handler/graph/mod.rs:2434
 
     WS->>WS: caller_pubkey = session pubkey, visibility_filter_on (types.rs:183, :185)
+    WS->>WS: since 64d86be2b first waits on GraphReadiness, graph_loading once while loading,<br/>graph_load_failed and stop on a failed load, see VC-13.6 (types.rs:199-236)
     WS->>WS: state_sync counts are the session's view, visible_counts (types.rs:249-260)
     WS->>IGL: projection(graph, caller, filter_on, initial_node_limit) (types.rs:310-315)
     IGL->>VS: visible_subgraph(graph, caller, filter_on), scrub included, review N1 (types.rs:544-552)
