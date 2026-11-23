@@ -76,7 +76,7 @@ flowchart TD
     COV -.-> N2B
     N3["RUSTFLAGS and RUSTDOCFLAGS are both set to -D warnings at the workflow-level<br/>env block, so a broken intra-doc link fails CI the same way a compiler warning<br/>does — applies to every job below, not just clippy.<br/>../solid-pod-rs/.github/workflows/ci.yml:31-32"]
     BT -.-> N3
-    N4["There was an eighth required job, diagrams, the RES-c staleness guard over the repo's OWN<br/>crates/solid-pod-rs/docs/diagrams set (nine .mmd sources and their SVG and PNG renders). It was removed by<br/>solid-pod-rs PR #18, 52aa126 (2026-11-23), with the set, puppeteer.config.json and scripts/check-diagram-staleness.sh,<br/>in favour of this corpus, and ci-required no longer waits for it (../solid-pod-rs/CHANGELOG.md:11-17).<br/>The old sources map to sections of SP-01 to SP-08 and SP-12, among them SP-03.15, SP-05.23 and SP-08.23."]
+    N4["There was an eighth required job, diagrams, the RES-c staleness guard over the repo's OWN<br/>crates/solid-pod-rs/docs/diagrams set (nine .mmd sources and their SVG and PNG renders). It was removed by<br/>solid-pod-rs PR #18, 52aa126 (2026-11-23), with the set, puppeteer.config.json and scripts/check-diagram-staleness.sh,<br/>in favour of this corpus, and ci-required no longer waits for it (../solid-pod-rs/CHANGELOG.md:11-17).<br/>The old sources map to sections of SP-01 to SP-08 and SP-12, among them SP-03.15, SP-05.23 and SP-16.7."]
     REQ -.-> N4
     N5["PATH FILTER: push and pull_request fire only for crates/**, Cargo.toml, Cargo.lock and<br/>ci.yml (../solid-pod-rs/.github/workflows/ci.yml:6-17). A change to deny.toml, .cargo/audit.toml<br/>or scripts/ alone starts no run until the weekly schedule or a dispatch."]
     REQ -.-> N5
