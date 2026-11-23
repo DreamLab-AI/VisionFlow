@@ -26,6 +26,7 @@ sources:
   - ../sidestr-rs/webledgers-teller/src/payout.rs
   - ../sidestr-rs/webledgers-teller/tests/oracle.rs
   - ../sidestr-rs/.github/workflows/ci.yml
+  - ../project/agentbox/lib/lockfiles/sidestr-rs-60259e84.Cargo.lock
 verified_commit: {sidestr-rs: 17da8b8e5b2c2decf94551ecb4ea47c732669214, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
 ---
 
@@ -110,4 +111,4 @@ flowchart TB
     ORA -. "parity evidence" .-> GEN
 ```
 
-**What it shows.** The crate is pure: the caller passes time, request ids, coins and sighash rules and publishes what comes back (`../sidestr-rs/webledgers-teller/src/lib.rs:36-42`); it is a publishable port of solidpayorg/teller (`../sidestr-rs/webledgers-teller/Cargo.toml:10`, `../sidestr-rs/webledgers-teller/Cargo.toml:15`). **Why it is this way.** Every balance change traces to a deposit seen on-chain or a signed request (`../sidestr-rs/webledgers-teller/src/lib.rs:31-32`), and CI pins the upstream teller as its oracle (`../sidestr-rs/.github/workflows/ci.yml:26-30`). No agentbox, forum or VisionClaw manifest depends on the crate at the pinned heads, so it is source capability, not an activated estate surface.
+**What it shows.** The crate is pure: the caller passes time, request ids, coins and sighash rules and publishes what comes back (`../sidestr-rs/webledgers-teller/src/lib.rs:36-42`); it is a publishable port of solidpayorg/teller (`../sidestr-rs/webledgers-teller/Cargo.toml:10`, `../sidestr-rs/webledgers-teller/Cargo.toml:15`). **Why it is this way.** Every balance change traces to a deposit seen on-chain or a signed request (`../sidestr-rs/webledgers-teller/src/lib.rs:31-32`), and CI pins the upstream teller as its oracle (`../sidestr-rs/.github/workflows/ci.yml:26-30`). No agentbox, forum or VisionClaw manifest depends on the crate at the pinned heads, so it is source capability, not an activated estate surface. The crate does appear in agentbox's vendored copy of the SideStr workspace lockfile (`../project/agentbox/lib/lockfiles/sidestr-rs-60259e84.Cargo.lock:5864`), which records what that workspace builds; it is not a dependency edge into agentbox.
