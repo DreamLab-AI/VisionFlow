@@ -18,7 +18,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/envelope.rs
   - ../nostr-rust-forum/crates/nostr-bbs-mesh/src/transport.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/gift_wrap.rs
-verified_commit: {agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
 ---
 
 ## For developers
@@ -33,12 +33,12 @@ Sharing spaces across nodes still needs compatible configuration, limited signin
 
 ```mermaid
 flowchart TD
-    MAN["Agentbox moderation is boolean<br/>agentbox.toml:282"] --> FAIL["Library honor_remote_moderation is a list of DIDs<br/>config.rs:67-69"]
+    MAN["Agentbox moderation is boolean<br/>agentbox.toml:281"] --> FAIL["Library honor_remote_moderation is a list of DIDs<br/>config.rs:67-69"]
     SCHEMA["Schema modes: standalone or client<br/>agentbox.toml.schema.json:2599-2601"]
     PEERS["PROPOSED pinned peer records and projection<br/>PROTOCOL-registry.md:253,254"] -.-> SCHEMA
-    PEERS -.-> LIB["Current roster uses peer_relays<br/>transport.rs:642,643"]
-    LIB --> CACHE["SeenIds is a bounded memory cache<br/>transport.rs:584,595,605"]
-    TYPES["Current envelope has six variants<br/>envelope.rs:81,83,85,87,89,91,93"]
+    PEERS -.-> LIB["Current roster uses peer_relays<br/>transport.rs:644,645"]
+    LIB --> CACHE["SeenIds is a bounded memory cache<br/>transport.rs:586,597,607"]
+    TYPES["Current envelope has six variants<br/>envelope.rs:85,87,89,91,93,95,97"]
 ```
 
 **What it shows.** Direct configuration reuse fails; current envelope parsing rejects all three proposed control types. **Why it is this way.** The proposal requires schema, codec and service integration beyond the existing library's relay roster and loop-prevention cache.
@@ -76,12 +76,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    PIN["PROPOSED operator-pinned node key<br/>PROTOCOL-registry.md:253,254"] -.-> SEAL["Current decoder authenticates seal author<br/>transport.rs:474,476,503,504"]
+    PIN["PROPOSED operator-pinned node key<br/>PROTOCOL-registry.md:253,254"] -.-> SEAL["Current decoder admits only a kind-14 rumor<br/>and authenticates the seal author<br/>transport.rs:476,478,505,506"]
     SEAL --> TYPE["PROPOSED three typed controls<br/>and referenced catalogue validation<br/>PROTOCOL-registry.md:255"]
     TYPE -.-> JOURNAL["REQUIRED durable inbox and watermark<br/>gap recovery, acknowledgement, idempotent apply"]
     JOURNAL -.-> VC["PROPOSED VisionClaw application"]
-    WRAP["Outer gift wrap uses a throwaway key<br/>gift_wrap.rs:327"] --> SEAL
-    CACHE["Current deduplication is in-memory SeenIds<br/>transport.rs:637,647,664"] -.-> JOURNAL
+    WRAP["Outer gift wrap uses a throwaway key<br/>gift_wrap.rs:426"] --> SEAL
+    CACHE["Current deduplication is in-memory SeenIds<br/>transport.rs:639,649,666"] -.-> JOURNAL
 ```
 
 **What it shows.** Seal identity and a pinned peer are only the beginning of control admission; the durable queue remains a requirement. **Why it is this way.** Advancing a watermark before a missing lower-sequence retraction arrives can lose that command. Restart, ordering and restore tests must establish the complete delivery contract.

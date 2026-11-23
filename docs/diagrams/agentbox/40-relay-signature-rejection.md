@@ -8,12 +8,12 @@ sources:
   - ../project/agentbox/mcp/nostr-bridge/relay-consumer.js
   - ../project/agentbox/management-api/lib/authority-consumer.js
   - ../project/agentbox/tests/sovereign/relay-signature-failure.test.cjs
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## For developers
 
-This topic records the ABI-05 verification repair. Both the forum-governance and local inbound paths call _verifySig before dispatch. A verifier exception now rejects the event. The existing independent authority consumer already rejects verification exceptions at agentbox/management-api/lib/authority-consumer.js:159; consolidating rosters and ingress remains open.
+This topic records the ABI-05 verification repair. Both the forum-governance and local inbound paths call _verifySig before dispatch. A verifier exception now rejects the event. The existing independent authority consumer already rejects verification exceptions at agentbox/management-api/lib/authority-consumer.js:165; consolidating rosters and ingress remains open.
 
 ## For the business
 
@@ -23,15 +23,15 @@ An unavailable signature checker must not turn an unverified decision into permi
 
 ```mermaid
 flowchart TD
-    FORUM["forum decision kind 31403<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:446"]
-    INBOUND["local inbound event<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:546"]
-    VERIFY["_verifySig uses injected verifier or nostr-tools<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:743"]
-    EXACT{"result is exactly true?<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:748"}
-    ERROR["load or verification exception: log once, return false<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:749"]
-    REJECT["reject before side effects, increment rejection metric<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:450<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:549"]
-    AUTH["forum: signer roster and deduplication<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:454"]
-    EFFECT["record event, notify waiter and dispatch orchestrator<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:479<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:487"]
-    LOCAL["local: ingress policy, recipient and deduplication<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:555"]
+    FORUM["forum decision kind 31403<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:453"]
+    INBOUND["local inbound event<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:553"]
+    VERIFY["_verifySig uses injected verifier or nostr-tools<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:750"]
+    EXACT{"result is exactly true?<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:755"}
+    ERROR["load or verification exception: log once, return false<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:756"]
+    REJECT["reject before side effects, increment rejection metric<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:457<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:556"]
+    AUTH["forum: signer roster and deduplication<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:461"]
+    EFFECT["record event, notify waiter and dispatch orchestrator<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:486<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:494"]
+    LOCAL["local: ingress policy, recipient and deduplication<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:562<br/>allowlist policy now fails closed: an empty allowlist admits nobody<br/>agentbox/mcp/nostr-bridge/relay-consumer.js:775"]
     FORUM --> VERIFY
     INBOUND --> VERIFY
     VERIFY --> EXACT
