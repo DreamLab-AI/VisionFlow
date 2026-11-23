@@ -21,6 +21,7 @@ sources:
   - ../project/src/services/perplexity_service.rs
   - ../project/src/services/semantic_analyzer.rs
   - ../project/src/services/semantic_type_registry.rs
+  - ../project/crates/visionclaw-domain/src/relations.rs
   - ../project/src/services/edge_classifier.rs
   - ../project/src/actors/semantic_processor_actor.rs
   - ../project/src/actors/messages/physics_messages.rs
@@ -50,7 +51,7 @@ sources:
   - ../project/src/handlers/graph_export_handler.rs
   - ../project/docs/SECURITY-profiles.md
   - ../project/src/utils/response_macros.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -68,14 +69,14 @@ sequenceDiagram
     autonumber
     participant C as Client
     participant H as insight_loop_handler<br/>src/handlers/insight_loop_handler.rs:53
-    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:853
+    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:899
     participant L as insight_loop::summarise<br/>src/services/insight_loop.rs:209
     participant B as insight_loop::build_trace<br/>src/services/insight_loop.rs:103
     participant LH as LivenessHarness<br/>src/services/liveness_harness.rs
 
     Note over H,B: DIVERGENCE: no tokio::time::interval scheduler exists for this loop -<br/>every stage is computed fresh on each GET (compute-on-read), not a periodic job
     C->>H: GET /api/insight-loop/trace?limit=
-    H->>R: loop_traces(limit) - SELECT p JOIN d ON MAX(decided_at_ms)<br/>src/adapters/sqlite_enrichment_repository.rs:853-870
+    H->>R: loop_traces(limit) - SELECT p JOIN d ON MAX(decided_at_ms)<br/>src/adapters/sqlite_enrichment_repository.rs:899-916
     R-->>H: Vec~LoopTraceRow~<br/>src/adapters/sqlite_enrichment_repository.rs:288
     H->>L: summarise(rows)
     loop for each LoopTraceRow in rows
@@ -112,14 +113,14 @@ sequenceDiagram
     participant Cfg as configure_routes<br/>src/handlers/insight_loop_handler.rs:89
     participant T as traces<br/>src/handlers/insight_loop_handler.rs:53
     participant TC as trace_by_case<br/>src/handlers/insight_loop_handler.rs:68
-    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:888
+    participant R as SqliteEnrichmentRepository<br/>src/adapters/sqlite_enrichment_repository.rs:934
 
     Note over Cfg: scope /insight-loop mounted under /api - src/handlers/insight_loop_handler.rs:89-94
     C->>T: GET /insight-loop/trace?limit=N
     Note right of T: limit.clamp(1, MAX_LIMIT=1000), default DEFAULT_LIMIT=100<br/>src/handlers/insight_loop_handler.rs:25-26,54
     T-->>C: 200 InsightLoopSummary
     C->>TC: GET /insight-loop/trace/{case_id}
-    TC->>R: loop_trace_for(case_id)<br/>src/adapters/sqlite_enrichment_repository.rs:888
+    TC->>R: loop_trace_for(case_id)<br/>src/adapters/sqlite_enrichment_repository.rs:934
     alt Ok(Some(row))
         R-->>TC: LoopTraceRow
         TC-->>C: 200 InsightLoopTrace
@@ -279,7 +280,7 @@ sequenceDiagram
             H-->>C: 500 {error: "Translation failed", message}
         else block found
             S->>S: validate_sparql(sparql) - delegates to the shared read-only validator<br/>src/services/natural_language_query_service.rs:128
-            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:885
+            S->>S: validate_read_only_sparql - SELECT/ASK/CONSTRUCT/DESCRIBE only<br/>src/handlers/ontology_handler.rs:887
             alt mutating form (INSERT/DELETE/DROP/CLEAR/LOAD)
                 S-->>H: Err - rejected, not a read-only query
                 H-->>C: 500 {error: "Translation failed", message}
@@ -316,7 +317,7 @@ sequenceDiagram
     participant Caller as GraphServiceSupervisor / handler
     participant A as SemanticProcessorActor<br/>src/actors/semantic_processor_actor.rs:171
 
-    Note over A: since af3dff3f2 the actor has a production owner: main registers a SemanticService over ActixSemanticAdapter for /api/semantic/*, and the adapter starts this actor on its first initialize (estate register ER-25)<br/>src/main.rs:861-871 src/adapters/actix_semantic_adapter.rs:95-103
+    Note over A: since af3dff3f2 the actor has a production owner: main registers a SemanticService over ActixSemanticAdapter for /api/semantic/*, and the adapter starts this actor on its first initialize (estate register ER-25)<br/>src/main.rs:845-855 src/adapters/actix_semantic_adapter.rs:95-103
     Note over A: Actor started/stopped log config.enable_ai_features and final stats<br/>src/actors/semantic_processor_actor.rs:1361-1376
 
     Caller->>A: UpdateConstraints{constraint_data}<br/>src/actors/messages/physics_messages.rs:307
@@ -367,18 +368,19 @@ sequenceDiagram
     end
 ```
 
-## VC-25.9 semantic_analyzer feature extraction + semantic_type_registry lookup/register
+## VC-25.9 semantic_analyzer feature extraction + relation-schema classification
 
 ADR-2114 unified corpus reads (local vault + GitHub via one `CorpusSource`) so `relation_edges` now
-takes a `ParsedPage` and vault-core `Vocabulary` rather than JSON-LD; the registry lookup pattern is
-otherwise unchanged. `SemanticAnalyzer` is a separate, unrelated caller shown for the same actor.
+takes a `ParsedPage` and vault-core `Vocabulary`; since ADR-2204 D1 it types edges from the relation
+schema, not the registry. `SemanticAnalyzer` is a separate, unrelated caller shown for the same actor.
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant SPA as SemanticProcessorActor::process_metadata_blocking<br/>src/actors/semantic_processor_actor.rs:246
     participant SA as SemanticAnalyzer::analyze_metadata<br/>src/services/semantic_analyzer.rs:261
-    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:2135
+    participant GS as GitHubSyncService::relation_edges<br/>src/services/github_sync_service.rs:2112
+    participant RS as RelationSchema (relations.yaml)<br/>crates/visionclaw-domain/src/relations.rs:252
     participant REG as SemanticTypeRegistry<br/>src/services/semantic_type_registry.rs:90
 
     SPA->>SA: analyze_metadata(metadata)
@@ -392,18 +394,17 @@ sequenceDiagram
     end
     Note over SA: compute_similarity weights: topic 0.4 + domain 0.2 + file_type 0.1 + depth 0.1 + temporal 0.1 + importance 0.1<br/>src/services/semantic_analyzer.rs:545-580
 
-    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target — an unmapped edge-type predicate is skipped, not defaulted<br/>src/services/github_sync_service.rs:2145-2155
-    GS->>REG: get_or_register_id(edge_type)<br/>src/services/semantic_type_registry.rs:652,src/services/github_sync_service.rs:2156
-    REG->>REG: get_id(uri) - read_uri_map lookup<br/>src/services/semantic_type_registry.rs:646-648
-    alt uri already registered
-        REG-->>GS: existing id
-    else uri unknown
-        REG->>REG: register(uri, RelationshipForceConfig::default())<br/>src/services/semantic_type_registry.rs:628
-        REG->>REG: register_internal(uri, config) - assign next_id, push uri/config<br/>src/services/semantic_type_registry.rs:612
-        REG-->>GS: new id
+    Note over GS: one typed edge per vocab.relations key whose ParsedPage frontmatter has<br/>a wikilink target - src/services/github_sync_service.rs:2123-2128
+    GS->>RS: RelationSchema::builtin().classify(predicate)<br/>crates/visionclaw-domain/src/relations.rs:413,src/services/github_sync_service.rs:2129
+    alt PredicateClass::Relation
+        RS-->>GS: relation - edge_type = relation.label, weight = relation.legacy_weight<br/>src/services/github_sync_service.rs:2148-2151
+    else PredicateClass::Ignored
+        RS-->>GS: counted, no edge (src/services/github_sync_service.rs:2131-2133)
+    else PredicateClass::Unknown
+        GS->>RS: Quarantine::global().record(predicate, n) - warn once, no edge, no default<br/>crates/visionclaw-domain/src/relations.rs:547,src/services/github_sync_service.rs:2138
     end
-    GS->>REG: get_config(reg_id) - strength*2.0 normalised to spring weight<br/>src/services/semantic_type_registry.rs:662,src/services/github_sync_service.rs:2158-2159
-    Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:703
+    Note over GS,REG: REMOVED since 010e110 (ADR-2204 D1): relation_edges no longer calls get_or_register_id or<br/>get_config - an unknown predicate is quarantined, never auto-registered with a default config<br/>src/services/semantic_type_registry.rs:379. The registry still feeds the GPU kernel (:867)
+    Note over REG: version() = next_id atomic counter, used for hot-reload detection<br/>src/services/semantic_type_registry.rs:706
 ```
 
 ## VC-25.10 edge_classifier classification rules
@@ -440,7 +441,7 @@ sequenceDiagram
     participant Caller as AppState / handler
     participant MA as MetadataActor<br/>src/actors/metadata_actor.rs:23
 
-    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:797 (BASELINE-architecture.md "Actor system topology")
+    Note over MA: replaces Arc<RwLock<MetadataStore>> - started at src/app_state.rs:792 (BASELINE-architecture.md "Actor system topology")
     Caller->>MA: GetMetadata<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:221
     MA-->>Caller: Ok(MetadataStore clone)<br/>src/actors/metadata_actor.rs:58-64
     Caller->>MA: UpdateMetadata{metadata}<br/>crates/visionclaw-actors/src/messages/graph_messages.rs:225
@@ -449,7 +450,7 @@ sequenceDiagram
     Note right of MA: RESOLVED ADR-2097 (2026-09-05): RefreshMetadata and refresh_metadata are deleted - the message had no senders<br/>and the actor holds no source. metadata.json is owned by FileService, which pushes rebuilt stores in via UpdateMetadata
 ```
 
-**Drift:** the governing baseline places MetadataActor's start at `app_state.rs:813` (`../project/docs/BASELINE-architecture.md:177`); at this revision the actor starts at `../project/src/app_state.rs:797`, with its log line at `:796`.
+**Drift:** the governing baseline places MetadataActor's start at `:802` in `src/app_state.rs` (`../project/docs/BASELINE-architecture.md:177`); at this revision the actor starts at `../project/src/app_state.rs:792`, with its log line at `:791`.
 
 ## VC-25.13 file_service + graph_serialization + empty-graph guard
 
@@ -457,29 +458,29 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant Boot as AppState::new (startup)
-    participant FS as FileService::load_graph_from_files<br/>src/services/file_service.rs:1089
+    participant FS as FileService::load_graph_from_files<br/>src/services/file_service.rs:1090
     participant Repo as KnowledgeGraphRepository (Oxigraph)<br/>src/ports/knowledge_graph_repository.rs
     participant GSS as GraphSerializationService::export_graph<br/>src/services/graph_serialization.rs:29
 
     Boot->>FS: load_graph_from_files(graph_repo)
-    FS->>Repo: load_graph() - idempotency guard (ADR-2004, not in docs/adr/ ledger)<br/>src/services/file_service.rs:1095
+    FS->>Repo: load_graph() - idempotency guard (ADR-2004, not in docs/adr/ ledger)<br/>src/services/file_service.rs:1096
     alt existing.nodes not empty
         Repo-->>FS: existing graph populated
-        FS-->>Boot: Ok(()) - skip local-file seed, GitHub sync is authoritative<br/>src/services/file_service.rs:1096-1102
+        FS-->>Boot: Ok(()) - skip local-file seed, GitHub sync is authoritative<br/>src/services/file_service.rs:1097-1103
     else store empty or query failed
-        FS->>FS: load_or_create_metadata()<br/>src/services/file_service.rs:1115
+        FS->>FS: load_or_create_metadata()<br/>src/services/file_service.rs:1116
         alt metadata.is_empty()
-            FS-->>Boot: Ok(()) - warn "no data to load", nothing seeded<br/>src/services/file_service.rs:1116-1118
+            FS-->>Boot: Ok(()) - warn "no data to load", nothing seeded<br/>src/services/file_service.rs:1117-1119
         else metadata present
-            FS->>FS: Phase 1 - build AppNode per file, classify ontology_node vs page via owl_class_iri<br/>src/services/file_service.rs:1123-1178
-            FS->>FS: Phase 2 - wikilink regex extracts AppEdge set, dedup via seen_edges<br/>src/services/file_service.rs:1183-1194
-            FS->>Repo: save_graph(&graph_data)<br/>src/services/file_service.rs:1216
+            FS->>FS: Phase 1 - build AppNode per file, classify ontology_node vs page via owl_class_iri<br/>src/services/file_service.rs:1124-1179
+            FS->>FS: Phase 2 - wikilink regex extracts AppEdge set, dedup via seen_edges<br/>src/services/file_service.rs:1184-1195 - weight and edge_type from the schema's Wikilink producer :1196-1202
+            FS->>Repo: save_graph(&graph_data)<br/>src/services/file_service.rs:1222
             FS-->>Boot: Ok(())
         end
     end
 
-    Note over FS: the legacy GitHub-to-markdown mirror initialize_local_storage now returns LocalStorageSync and is skipped outright for a local corpus (ADR-2114)<br/>src/services/file_service.rs:301-316
-    Note over FS: RESOLVED ADR-2065: src/services/empty_graph_check.rs (check_empty_graph) had zero call sites<br/>and has been deleted - the only live empty-graph guard is the idempotency check at file_service.rs:1095
+    Note over FS: the legacy GitHub-to-markdown mirror initialize_local_storage now returns LocalStorageSync and is skipped outright for a local corpus (ADR-2114)<br/>src/services/file_service.rs:302-317
+    Note over FS: RESOLVED ADR-2065: src/services/empty_graph_check.rs (check_empty_graph) had zero call sites<br/>and has been deleted - the only live empty-graph guard is the idempotency check at file_service.rs:1096
 
     Note over GSS: distinct empty-graph handling path - export_graph has no explicit empty check,<br/>writes whatever GraphData it is given, through write_export (src/services/graph_serialization.rs:29-36, :41)
     Boot->>GSS: export_graph(graph, request)
@@ -507,7 +508,7 @@ flowchart TB
     CG -->|"gated, communities"| VC["visible_communities over the view: numbering, sizes, modularity<br/>src/handlers/semantic_handler.rs:89-90, :269-274, visible_analytics.rs:331"]
     CG -->|"gated, shortest-path"| VS["Dijkstra over the view from the source slot<br/>src/handlers/semantic_handler.rs:191-192, :314-321, pathfinding.rs:180"]
     CG -->|"gated, centrality"| CF["full-graph analysis, no top-k cut, then gate_centrality filters<br/>src/handlers/semantic_handler.rs:132, :158, :163, :294"]
-    CG -->|"ungated"| SS["SemanticService.initialize(full graph) then the adapter<br/>src/handlers/semantic_handler.rs:92, :200, src/main.rs:865-870"]
+    CG -->|"ungated"| SS["SemanticService.initialize(full graph) then the adapter<br/>src/handlers/semantic_handler.rs:92, :200, src/main.rs:849-854"]
     CF --> SS
     SS --> AD["ActixSemanticAdapter port handlers return empty data, modularity 0.0<br/>src/adapters/actix_semantic_adapter.rs:264, :267-273"]
     AD --> EMPTY["shortest paths, SSSP and importance also empty<br/>src/adapters/actix_semantic_adapter.rs:290-297, :309, :371"]

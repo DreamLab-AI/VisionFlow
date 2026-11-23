@@ -2,7 +2,7 @@
 id: VC-31
 title: R3F/Three.js graph render pipeline, overview layer and WASM scene effects
 area: visionclaw
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 governing:
   - ../project/docs/BASELINE-architecture.md
 adrs: [ADR-2135, ADR-2142, ADR-2179, ADR-2181, ADR-2182, ADR-2183, ADR-2184, ADR-2186, ADR-2189]
@@ -123,17 +123,17 @@ flowchart LR
     CANVAS --> WSE["WasmSceneEffects<br/>GraphCanvas.tsx:344, WasmSceneEffects.tsx:538"]
     CANVAS --> EPL["EchoPulseLayer<br/>GraphCanvas.tsx:360"]
     CANVAS --> SPL["SplatScene, world-locked, outside the graph root<br/>GraphCanvas.tsx:363"]
-    CANVAS --> ECL["EmbeddingCloudLayer<br/>EmbeddingCloudLayer.tsx:122"]
+    CANVAS --> ECL["EmbeddingCloudLayer<br/>EmbeddingCloudLayer.tsx:123"]
     CANVAS -->|"canvasReady and nodeCount above 0"| GM["GraphManager<br/>GraphCanvas.tsx:373-374"]
-    GM --> GN["GemNodes x3 populations<br/>GraphManager.tsx:674"]
-    GM --> GE["GlassEdges x2, main and selection highlight<br/>GraphManager.tsx:702, :718"]
-    GM --> OL["OverviewLayer, edges and sprites (VC-31.12)<br/>GraphManager.tsx:729-736"]
-    OL --> IE["InferredEdges on the overview path<br/>GraphManager.tsx:735, InferredEdges.tsx:54"]
-    GM --> KR["KnowledgeRings<br/>KnowledgeRings.tsx:32"]
-    GM --> CH["ClusterHulls<br/>ClusterHulls.tsx:206"]
+    GM --> GN["GemNodes x3 populations<br/>GraphManager.tsx:679"]
+    GM --> GE["GlassEdges x2, main and selection highlight<br/>GraphManager.tsx:707, :724"]
+    GM --> OL["OverviewLayer, edges and sprites (VC-31.12)<br/>GraphManager.tsx:736-744"]
+    OL --> IE["InferredEdges on the overview path<br/>GraphManager.tsx:743, InferredEdges.tsx:55"]
+    GM --> KR["KnowledgeRings<br/>KnowledgeRings.tsx:31"]
+    GM --> CH["ClusterHulls<br/>ClusterHulls.tsx:219"]
     GM --> VAM["VirtualAgentMarkers, agents are not graph nodes (ADR-2142)<br/>VirtualAgentMarkers.tsx:35"]
-    GM --> TBL["TransientBeamsLayer<br/>GraphManager.tsx:762"]
-    GM --> IL["InstancedLabels<br/>GraphManager.tsx:769"]
+    GM --> TBL["TransientBeamsLayer<br/>GraphManager.tsx:769"]
+    GM --> IL["InstancedLabels<br/>GraphManager.tsx:776"]
     CANVAS --> AO["AgentOverlay, nameplates, trails, collab edges, payment labels<br/>GraphCanvas.tsx:382, AgentOverlay.tsx:23"]
     CANVAS --> OC["OrbitControls makeDefault<br/>GraphCanvas.tsx:387"]
     CANVAS --> GPP["GemPostProcessing enabled by glow.enabled<br/>GraphCanvas.tsx:196, :408"]
@@ -155,47 +155,47 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant R3F as R3F render loop
-    participant GM as GraphManager.useFrame priority -2<br/>GraphManager.tsx:391
-    participant WP as getPositionsSync<br/>graphWorkerProxy.ts:316
+    participant GM as GraphManager.useFrame priority -2<br/>GraphManager.tsx:394
+    participant WP as getPositionsSync<br/>graphWorkerProxy.ts:321
     participant DP as drawnPositions<br/>drawnPositions.ts:17,46
     participant LT as lerpLayoutTransition<br/>layoutTransition.ts:37
     participant MP as agentMarkers pass<br/>agentMarkerPass.ts:71,144
     participant SEL as useGraphSelection focusCameraOnNode writes the fly-to refs<br/>useGraphSelection.ts:120-133
     participant EBC as useEdgeBufferComputation useFrame<br/>useEdgeBufferComputation.ts:122, registered at priority -0.5 (:248)
-    participant GE as GlassEdges imperative handle<br/>GlassEdges.tsx:483-571
+    participant GE as GlassEdges imperative handle<br/>GlassEdges.tsx:491-579
 
     rect rgb(232,238,250)
-    Note over GM: INVARIANT frame order by priority: GraphManager -2 (GraphManager.tsx:501), GemNodes -1 (GemNodes.tsx:1166),<br/>edges -0.5 (useEdgeBufferComputation.ts:248), position texture -0.4 (OverviewLayer.tsx:74), sprites -0.3 (OverviewNodes.tsx:198),<br/>labels 0, post-processing 1 (GemPostProcessing.tsx:270). Every reader sees this frame's drawn copy.
+    Note over GM: INVARIANT frame order by priority: GraphManager -2 (GraphManager.tsx:504), GemNodes -1 (GemNodes.tsx:1166),<br/>edges -0.5 (useEdgeBufferComputation.ts:248), position texture -0.4 (OverviewLayer.tsx:77), sprites -0.3 (OverviewNodes.tsx:198),<br/>labels 0, post-processing 1 (GemPostProcessing.tsx:270). Every reader sees this frame's drawn copy.
     R3F->>GM: frame(state, delta)
-    opt flyToTargetRef.current set (GraphManager.tsx:398)
+    opt flyToTargetRef.current set (GraphManager.tsx:401)
         GM->>SEL: read flyToTargetRef, flyToLookAtRef, flyToProgressRef
-        GM->>GM: progress += delta / 0.6, eased 1-(1-p)^3 - GraphManager.tsx:412-414
+        GM->>GM: progress += delta / 0.6, eased 1-(1-p)^3 - GraphManager.tsx:415-417
         alt p at least 1
-            GM->>GM: camera.position.copy(dest), cancelFlyTo() - GraphManager.tsx:424-428
+            GM->>GM: camera.position.copy(dest), cancelFlyTo() - GraphManager.tsx:427-431
         else in flight
-            GM->>GM: lerp camera and OrbitControls pivot - GraphManager.tsx:416-419
+            GM->>GM: lerp camera and OrbitControls pivot - GraphManager.tsx:419-422
         end
     end
-    GM->>WP: getPositionsSync() - GraphManager.tsx:433
+    GM->>WP: getPositionsSync() - GraphManager.tsx:436
     alt positions null
         GM-->>R3F: return (skip rest of frame)
     else positions available
         opt nothing published yet and the prefix is all zero
-            GM-->>R3F: return, so the overview never sees an all-zero texture - GraphManager.tsx:436-442
+            GM-->>R3F: return, so the overview never sees an all-zero texture - GraphManager.tsx:439-445
         end
-        GM->>DP: drawn = drawnPositions.copy(positions), one copy a frame - GraphManager.tsx:446, drawnPositions.ts:26
-        GM->>GM: nodePositionsRef.current = drawn, setSharedNodePositions(drawn) - GraphManager.tsx:447-448
+        GM->>DP: drawn = drawnPositions.copy(positions), one copy a frame - GraphManager.tsx:449, drawnPositions.ts:26
+        GM->>GM: nodePositionsRef.current = drawn, setSharedNodePositions(drawn) - GraphManager.tsx:450-451
         Note over GM: the module-level singleton publishes the drawn copy without a React context (NodePositionContext.tsx:7-8)
         opt transitionRef.current.active (layout mode change)
-            GM->>LT: easeInOutQuad progress, lerp every slot by its own degree - GraphManager.tsx:451-459
+            GM->>LT: easeInOutQuad progress, lerp every slot by its own degree - GraphManager.tsx:454-462
             LT->>LT: progress / transitionMassFactor(degree), 1 / (1 + sqrt(cc)*0.3) - layoutTransition.ts:9-11, :48
         end
-        Note over GM,LT: degrees come from slotDegrees, keyed by the id in each slot, built once per transition<br/>(GraphManager.tsx:289, layoutTransition.ts:18-31). The old render-index lookup is gone.
-        GM->>GM: every 30 frames the scene edge from sceneFitBounds - GraphManager.tsx:462-467
-        GM->>MP: agentMarkers.step(..., edge, clocks), the only agent position writer - GraphManager.tsx:471-478 (ADR-2142, ADR-2135)
-        GM->>DP: applyDrag(dragIndex, hand) once, into the copy - GraphManager.tsx:480-482, drawnPositions.ts:36
-        GM->>GM: tickCameraFit() (fit itself: VC-37) - GraphManager.tsx:484
-        GM->>GM: fillLabelPositions(drawn, labelCount, labelArr) - GraphManager.tsx:486-499
+        Note over GM,LT: degrees come from slotDegrees, keyed by the id in each slot, built once per transition<br/>(GraphManager.tsx:292, layoutTransition.ts:18-31). The old render-index lookup is gone.
+        GM->>GM: every 30 frames the scene edge from sceneFitBounds - GraphManager.tsx:465-470
+        GM->>MP: agentMarkers.step(..., edge, clocks), the only agent position writer - GraphManager.tsx:474-481 (ADR-2142, ADR-2135)
+        GM->>DP: applyDrag(dragIndex, hand) once, into the copy - GraphManager.tsx:483-485, drawnPositions.ts:36
+        GM->>GM: tickCameraFit() (fit itself: VC-37) - GraphManager.tsx:487
+        GM->>GM: fillLabelPositions(drawn, labelCount, labelArr) - GraphManager.tsx:489-502
     end
     end
 
@@ -216,7 +216,7 @@ sequenceDiagram
         EBC->>GE: updateWidths BEFORE updatePoints, then updateColors - useEdgeBufferComputation.ts:206-209
     end
     end
-    Note over GM,EBC: the plan is returned to GraphManager, which hands it to OverviewLayer (useEdgeBufferComputation.ts:250, GraphManager.tsx:504, :730). See VC-30 for the worker SAB.
+    Note over GM,EBC: the plan is returned to GraphManager, which hands it to OverviewLayer as a ref plus version, never the plan as a prop (useEdgeBufferComputation.ts:250, GraphManager.tsx:506, :527, :737). See VC-30 for the worker SAB.
 ```
 
 **What it shows.** One frame of the CPU side: drawn copy, layout transition, agent markers, drag, then the edge pass that feeds either every edge or only the tube subset. **Why it is this way.** One copy of the shared buffer per frame keeps every drawer on the same positions (ADR-2135, ADR-2142). ADR-2181 D3 makes tubes a close-zoom subset whose CPU cost scales with the tube budget, not the edge count. The transition mass now follows the node in each slot (a2ecefdb0), and the unread label tick and frustum are deleted.
@@ -262,16 +262,16 @@ sequenceDiagram
     autonumber
     participant CALLER as useEdgeBufferComputation useFrame<br/>useEdgeBufferComputation.ts:122
     participant TS as selectTubeEdges<br/>tubeSelect.ts:134
-    participant GE as GlassEdges<br/>GlassEdges.tsx:210
+    participant GE as GlassEdges<br/>GlassEdges.tsx:217
     participant GEOM as createGlassEdgeGeometry<br/>GlassEdgeMaterial.ts:128
-    participant CIM as computeInstanceMatrices<br/>GlassEdges.tsx:133
+    participant CIM as computeInstanceMatrices<br/>GlassEdges.tsx:140
     participant MESH as THREE.InstancedMesh
 
-    Note over GEOM: CylinderGeometry radius, height 1, open-ended. Default radius 0.03 (GlassEdgeMaterial.ts:128),<br/>but GlassEdges passes settings.baseWidth, falling back to 0.1 (GlassEdges.tsx:241)
-    Note over GE: EDGE_INITIAL 1024, DEFAULT_EDGE_CEILING 65536 (GlassEdges.tsx:40-41). The highlight instance sits on the bloom layer (GlassEdges.tsx:294, :602)
+    Note over GEOM: CylinderGeometry radius, height 1, open-ended. Default radius 0.03 (GlassEdgeMaterial.ts:128),<br/>but GlassEdges passes settings.baseWidth, falling back to 0.1 (GlassEdges.tsx:249)
+    Note over GE: EDGE_INITIAL 1024, DEFAULT_EDGE_CEILING 65536 (GlassEdges.tsx:40-41). The highlight instance sits on the bloom layer (GlassEdges.tsx:302, :610)
 
     rect rgb(240,236,252)
-    Note over CALLER,TS: tubeLod from resolveTubeLod: null only when the overview edges are off or faulted, so a pending overview<br/>(startup) already gets the subset. maxDistance = gemLodDistance, or 0 when glassAtCloseZoom is off, budget 4096<br/>(GraphManager.tsx:100-107, tubeSelect.ts:49-58, :36). Pinned by tubeSelect.test.ts:122-149
+    Note over CALLER,TS: tubeLod from resolveTubeLod: null only when the overview edges are off or faulted, so a pending overview<br/>(startup) already gets the subset. maxDistance = gemLodDistance, or 0 when glassAtCloseZoom is off, budget 4096<br/>(GraphManager.tsx:101-108, tubeSelect.ts:49-58, :36). Pinned by tubeSelect.test.ts:122-149
     CALLER->>TS: selectTubeEdges(plan, adjacency, positions, mask, emphasis, camera, lod) - useEdgeBufferComputation.ts:149-153
     TS->>TS: 1. edges of hovered nodes and focus-to-neighbour edges - tubeSelect.ts:158-169
     TS->>TS: 2. edges of the nodes nearest the camera within maxDistance, nearest first - tubeSelect.ts:171-196
@@ -282,26 +282,26 @@ sequenceDiagram
     end
 
     rect rgb(236,250,232)
-    CALLER->>GE: updateWidths(weights, count), cached factors = clamp(sqrt(w), 0.5, 2) - GlassEdges.tsx:512, :121-125
-    CALLER->>GE: updatePoints(points, count) - GlassEdges.tsx:483-500
-    GE->>GE: imperativeActiveRef = true, the prop-driven reveal stops for good - GlassEdges.tsx:489
-    GE->>GE: ensureCapacity, grow x2 up to the ceiling, else clamp - GlassEdges.tsx:405-417
-    GE->>CIM: computeInstanceMatrices(mesh, pts, capacity, undefined, len, radiusFactors) - GlassEdges.tsx:499
+    CALLER->>GE: updateWidths(weights, count), cached factors = clamp(sqrt(w), 0.5, 2) - GlassEdges.tsx:520, :128-132
+    CALLER->>GE: updatePoints(points, count) - GlassEdges.tsx:491-508
+    GE->>GE: imperativeActiveRef = true, the prop-driven reveal stops for good - GlassEdges.tsx:497
+    GE->>GE: ensureCapacity, grow x2 up to the ceiling, else clamp - GlassEdges.tsx:413-425
+    GE->>CIM: computeInstanceMatrices(mesh, pts, capacity, undefined, len, radiusFactors) - GlassEdges.tsx:507
     loop for each edge
         alt length below 1e-6
-            CIM->>MESH: zero-scale matrix - GlassEdges.tsx:155
+            CIM->>MESH: zero-scale matrix - GlassEdges.tsx:162
         else
-            CIM->>MESH: compose(midpoint, quat from up to dir, scale r,len,r) - GlassEdges.tsx:166-179
+            CIM->>MESH: compose(midpoint, quat from up to dir, scale r,len,r) - GlassEdges.tsx:173-186
         end
     end
-    CIM->>MESH: mesh.count = renderCount, instanceMatrix.needsUpdate - GlassEdges.tsx:183-184
+    CIM->>MESH: mesh.count = renderCount, instanceMatrix.needsUpdate - GlassEdges.tsx:190-191
     end
-    Note over GE: own useFrame, default priority: emissive pulse, plus the reveal ramp until the imperative path takes over (GlassEdges.tsx:576-597).<br/>Historical fix: no hash gate on updatePoints, a 3-sample hash froze edges (GlassEdges.tsx:480-482)
+    Note over GE: own useFrame, default priority: emissive pulse, plus the reveal ramp until the imperative path takes over (GlassEdges.tsx:584-605).<br/>Historical fix: no hash gate on updatePoints, a 3-sample hash froze edges (GlassEdges.tsx:488-490)
 ```
 
 **What it shows.** How tubes are chosen and instanced once the overview edges are live. **Why it is this way.** ADR-2181 D3 demotes world-space tubes, which were sub-pixel at fit and capped at 65,536, to close-zoom detail within a 4,096 budget.
 
-**Tension (ADR-2181 D3 vs code):** D3 picks close-zoom tubes by on-screen edge length. The code picks the edges of nodes within `gemLodDistance` world units of the camera (`tubeSelect.ts:172-180`, `GraphManager.tsx:106`).
+**Tension (ADR-2181 D3 vs code):** D3 picks close-zoom tubes by on-screen edge length. The code picks the edges of nodes within `gemLodDistance` world units of the camera (`tubeSelect.ts:172-180`, `GraphManager.tsx:107`).
 
 **Tension (ADR-2183 D1 vs code):** the tube subset skips only SELECTED edges (`tubeSelect.ts:147-156`), and `GlassEdges` reads no mask, so at close zoom a greyed edge near the camera is drawn as a full-colour tube over its greyed overview line.
 
@@ -522,16 +522,16 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as handleAgentActionTagged<br/>store/websocket/binaryProtocol.ts:427
+    participant WS as handleAgentActionTagged<br/>store/websocket/binaryProtocol.ts:435
     participant STORE as transientBeamStore.pushBeams<br/>transientBeamStore.ts:68
     participant LAYER as TransientBeamsLayer<br/>TransientBeamsLayer.tsx:69
     participant HOOK as useTransientBeams<br/>useTransientBeams.ts:24
     participant MESH as TransientBeamMesh.updateBeam useFrame<br/>TransientBeamsLayer.tsx:166
     participant ENC as semanticEncoding agentActionColorHex/Shape<br/>semanticEncoding.ts:126,131
 
-    Note over WS: 0x23 wire frame is a bare type tag, not a V4 header colon separated fields<br/>count:u16 then repeated len:u16 plus event bytes (store/websocket/binaryProtocol.ts:413-417, decoded at :427-430). See VC-30<br/>for the surrounding websocket store and worker plumbing.
-    WS->>WS: dispatchAgentActions drops state frames (presence and lifecycle reach only the registry)<br/>store/websocket/binaryProtocol.ts:434-438, :447
-    WS->>STORE: pushTransientBeams(work) exported non-React entry point<br/>(store/websocket/binaryProtocol.ts:444, transientBeamStore.ts:119)
+    Note over WS: 0x23 wire frame is a bare type tag, not a V4 header colon separated fields<br/>count:u16 then repeated len:u16 plus event bytes (store/websocket/binaryProtocol.ts:421-425, decoded at :435-438). See VC-30<br/>for the surrounding websocket store and worker plumbing.
+    WS->>WS: dispatchAgentActions drops state frames (presence and lifecycle reach only the registry)<br/>store/websocket/binaryProtocol.ts:442-446, :455
+    WS->>STORE: pushTransientBeams(work) exported non-React entry point<br/>(store/websocket/binaryProtocol.ts:452, transientBeamStore.ts:119)
     STORE->>STORE: pushBeams -- clampDuration(durationMs) floor MIN_BEAM_DURATION_MS=400,<br/>default DEFAULT_BEAM_DURATION_MS=1500
     STORE->>STORE: beams.concat(incoming), FIFO trim to MAX_TRANSIENT_BEAMS=256 (oldest<br/>evicted first)
 
@@ -552,7 +552,7 @@ sequenceDiagram
         Note over ENC: Create widens into target, Delete narrows into it, Query thin probe, Link<br/>thick tie, Transform rounder beam. Colours QUERY blue UPDATE yellow CREATE green DELETE<br/>red LINK purple TRANSFORM cyan
         MESH->>MESH: CylinderGeometry(radiusTop, radiusBottom, height=1, radialSegments, 1,<br/>openEnded=true) built once in useMemo
         loop every frame (own useFrame, per beam mesh)
-            MESH->>MESH: resolveAgentPosition(sourceAgentId), resolveNodePosition(targetNodeId) - TransientBeamsLayer.tsx:166-172<br/>the agent resolver is agentMarkerPosition, so a beam starts at the drawn agent marker (GraphManager.tsx:179)
+            MESH->>MESH: resolveAgentPosition(sourceAgentId), resolveNodePosition(targetNodeId) - TransientBeamsLayer.tsx:166-172<br/>the agent resolver is agentMarkerPosition, so a beam starts at the drawn agent marker (GraphManager.tsx:180)
             alt either resolver returns false
                 MESH->>MESH: mesh.visible = false, skip silently (never throws)
             else both resolved
@@ -583,7 +583,7 @@ sequenceDiagram
     participant PP as PerfProbe.useFrame priority -10000<br/>PerfProbe.tsx:407
     participant CTRL as PerfController singleton<br/>PerfProbe.tsx:49, window.__perf
 
-    R3F->>FPS: frame(state, delta) -- mounted inside GraphManager, GraphManager.tsx:160
+    R3F->>FPS: frame(state, delta) -- mounted inside GraphManager, GraphManager.tsx:161
     alt qualityGates.autoAdjust is false
         FPS->>FPS: reset internal tracking (samples, degradeLevel) but leave visual settings alone
     else autoAdjust enabled
@@ -633,15 +633,15 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant WS as 0x23 agent-action dispatch<br/>client/src/store/websocket/binaryProtocol.ts:434
+    participant WS as 0x23 agent-action dispatch<br/>client/src/store/websocket/binaryProtocol.ts:442
     participant REG as agentTargetStore registry<br/>client/src/store/agentTargetStore.ts:43
-    participant GM as GraphManager.useFrame<br/>client/src/features/graph/components/GraphManager.tsx:471
+    participant GM as GraphManager.useFrame<br/>client/src/features/graph/components/GraphManager.tsx:474
     participant MP as AgentMarkerPass.step<br/>client/src/features/bots/agentMarkerPass.ts:77
     participant NUDGE as stepAgentOffset<br/>client/src/features/graph/utils/agentNudge.ts:62
     participant OUT as positions map, wire id to world point<br/>client/src/features/bots/agentMarkerPass.ts:73
 
-    WS->>REG: pushActions(actions) - presence, targets and lifecycle state<br/>client/src/store/websocket/binaryProtocol.ts:447
-    GM->>MP: agentMarkers.step(liveMarkerDeps, resolveNode, triFrame, edge, clocks) once per frame, after the drawn copy<br/>client/src/features/graph/components/GraphManager.tsx:471-478, agentMarkerPass.ts:152-154
+    WS->>REG: pushActions(actions) - presence, targets and lifecycle state<br/>client/src/store/websocket/binaryProtocol.ts:455
+    GM->>MP: agentMarkers.step(liveMarkerDeps, resolveNode, triFrame, edge, clocks) once per frame, after the drawn copy<br/>client/src/features/graph/components/GraphManager.tsx:474-481, agentMarkerPass.ts:152-154
     loop each agent in registry.seenAt with live presence (agentMarkerPass.ts:82-83)
         alt no work node on record
             MP->>MP: base = scene centre - agentMarkerPass.ts:87-88
@@ -676,41 +676,41 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph SRC["Inputs, render-indexed (VC-31.13)"]
-        DRAWN["drawn positions, nodePositionsRef<br/>GraphManager.tsx:447"]
+        DRAWN["drawn positions, nodePositionsRef<br/>GraphManager.tsx:450"]
         MASK["highlight mask bytes and version<br/>highlightMask.ts:101, :221"]
         PLAN["edge plan: srcIdx, tgtIdx, colours, weights<br/>useEdgeBufferComputation.ts:81-88"]
     end
-    DRAWN --> TEX["NodePositionTexture.update, priority -0.4, then setOverviewPositions(true)<br/>OverviewLayer.tsx:67-74"]
+    DRAWN --> TEX["NodePositionTexture.update, priority -0.4, then setOverviewPositions(true)<br/>OverviewLayer.tsx:70-77"]
     MASK --> TEX
     TEX --> SKIP["INVARIANT: no upload unless positions, mask version or count changed<br/>nodePositionTexture.ts:75-76"]
     SKIP --> FILL["RGBA float texel i = x, y, z, highlightLevel, 2048 wide, nearest<br/>nodePositionTexture.ts:21, :57-66, :84-92"]
-    FILL --> GROW["grow-only power-of-two rows, listeners rebind uPos<br/>nodePositionTexture.ts:77-83, OverviewEdgeLines.tsx:89"]
-    PLAN --> CAPN["resolveOverviewEdgeCapacity: auto = next power of two, a number caps it<br/>OverviewLayer.tsx:79-84, overviewEdgeCapacity.ts:27-33"]
+    FILL --> GROW["grow-only power-of-two rows, listeners rebind uPos<br/>nodePositionTexture.ts:77-83, OverviewEdgeLines.tsx:92"]
+    PLAN --> CAPN["resolveOverviewEdgeCapacity: auto = next power of two, a number caps it<br/>OverviewLayer.tsx:83-88, overviewEdgeCapacity.ts:27-33"]
     CAPN --> PICK["truncated: selectDrawnEdges keeps the heaviest, ties by plan order<br/>edgeStyle.ts:145-163"]
-    CAPN --> REP["publishOverviewEdgeReport, N of M edges drawn<br/>OverviewLayer.tsx:86-90, overviewEdgeStore.ts:56-59"]
-    PICK --> EL["OverviewEdgeLines: instance attributes only on data or width change<br/>OverviewEdgeLines.tsx:115-141"]
+    CAPN --> REP["publishOverviewEdgeReport, N of M edges drawn<br/>OverviewLayer.tsx:92-96, overviewEdgeStore.ts:56-59"]
+    PICK --> EL["OverviewEdgeLines: instance attributes only on a data version or width change<br/>OverviewEdgeLines.tsx:118-144"]
     FILL --> EL
-    SET["Edge Opacity (all edges), Look - Edges, 0 to 0.3, default 0.15<br/>look.ts:15, defaults.ts:308"] --> OPA["overviewEdgeOpacity: piecewise linear, default maps to 0.6, slider top to 1<br/>edgeStyle.ts:107-120, OverviewLayer.tsx:98-99"]
+    SET["Edge Opacity (all edges), Look - Edges, 0 to 0.3, default 0.15<br/>look.ts:15, defaults.ts:317"] --> OPA["overviewEdgeOpacity: piecewise linear, default maps to 0.6, slider top to 1<br/>edgeStyle.ts:107-120, OverviewLayer.tsx:104-105"]
     OPA --> EL
     OPA -.-> I2["INVARIANT: the default reproduces base alpha 0.6, the whole slider is live,<br/>bad input falls back (edgeOpacity.test.ts:12-35)"]
-    EL --> EUN["per frame only uniforms, and hidden until positions are ready or once faulted<br/>OverviewEdgeLines.tsx:143-158"]
+    EL --> EUN["per frame only uniforms, and hidden until positions are ready or once faulted<br/>OverviewEdgeLines.tsx:146-161"]
     EUN --> EMAT["edge quad: fetch both endpoints, extrude by half width in px,<br/>alpha = fadeAlphaWith on TSL nodes times opacity<br/>OverviewEdgeMaterial.ts:169-214, :200"]
     EMAT -.-> ONE["one fade: fadeAlphaWith over ScalarOps, numbers for the tests,<br/>TSL nodes for the shader (edgeStyle.ts:16-26, :79-85, :51-68)"]
     FILL --> NODES["OverviewNodes, priority -0.3: mirror the knowledge gem mesh,<br/>hidden until positions are ready (OverviewNodes.tsx:120-152)"]
-    NODES --> HALO["halo batch: emphasised nodes only, additive, on the bloom layer<br/>OverviewNodes.tsx:98, :109, :159-170"]
-    NODES --> NMAT["sprite size = spriteSizePx scaled by the encoded size, clamped 2 to 24 px<br/>OverviewNodeMaterial.ts:157-166"]
-    FILL --> INF["InferredEdges: dashed amber, same texture and edge component<br/>InferredEdges.tsx:54-55, :76-84"]
+    NODES --> HALO["halo batch: emphasised nodes only, on the bloom layer, max-blended so overlaps keep the brightest<br/>OverviewNodes.tsx:98, :109, :159-170, OverviewNodeMaterial.ts:144-157"]
+    NODES --> NMAT["sprite size = spriteSizePx scaled by the encoded size, clamped 2 to 24 px<br/>OverviewNodeMaterial.ts:173-182"]
+    FILL --> INF["InferredEdges: dashed amber, same texture and edge component<br/>InferredEdges.tsx:55-56, :77-86"]
     REP --> NOTICE["OverviewEdgeNotice joins fault, node-buffer and edge text<br/>OverviewEdgeNotice.tsx:18-25"]
-    WRK["worker SAB grows from the node count, else N of M nodes drawn<br/>graphWorkerProxy.ts:344-363"] --> NOTICE
-    NODES -.-> O1["scope moved since the ADR-2182 note: the sprites mirror one population, the largest at 1000 nodes or more,<br/>so an ontology-dominant scene hands off as a knowledge one, the rest stay gems<br/>(gemLod.ts:23, :33-41, GraphManager.tsx:667-668, OverviewLayer.tsx:53-54, :121, the header at :13 still says knowledge)"]
-    OPA -.-> O2["OPEN: the tubes take the same setting verbatim (GlassEdges.tsx:375-376),<br/>so one slider means two different curves"]
+    WRK["worker SAB grows from the node count, else N of M nodes drawn<br/>graphWorkerProxy.ts:349-368"] --> NOTICE
+    NODES -.-> O1["scope moved since the ADR-2182 note: the sprites mirror one population, the largest at 1000 nodes or more,<br/>so an ontology-dominant scene hands off as a knowledge one, the rest stay gems<br/>(gemLod.ts:23, :33-41, GraphManager.tsx:672-673, OverviewLayer.tsx:56-57, :127, the header at :13 still says knowledge)"]
+    OPA -.-> O2["OPEN: the tubes take the same setting verbatim (GlassEdges.tsx:383-384),<br/>so one slider means two different curves"]
 ```
 
-**What it shows.** How the screen-space overview gets its endpoints and centres from one texture refilled only on change, how one Edge Opacity setting maps onto the line alpha, and how capacity limits become a visible notice. **Why it is this way.** ADR-2181 D1/D4 and ADR-2182 D1/D5 ask for no per-edge CPU loop, no per-node work on a settled graph and no silent truncation. The renderer consolidation left one TSL material per layer and one length fade (`edgeStyle.ts:1-10`); the scene blends in linear space on both backends, so the grey-out alpha is used as set (`OverviewLayer.tsx:93-95`).
+**What it shows.** How the screen-space overview gets its endpoints and centres from one texture refilled only on change, how one Edge Opacity setting maps onto the line alpha, and how capacity limits become a visible notice. **Why it is this way.** ADR-2181 D1/D4 and ADR-2182 D1/D5 ask for no per-edge CPU loop, no per-node work on a settled graph and no silent truncation. The renderer consolidation left one TSL material per layer and one length fade (`edgeStyle.ts:1-10`); the scene blends in linear space on both backends, so the grey-out alpha is used as set (`OverviewLayer.tsx:99-101`).
 
-**Invariant:** the overview meshes stay hidden until real positions reach the texture (`overviewLive.ts:17-20`, `OverviewEdgeLines.tsx:146`, `OverviewNodes.tsx:123-125`), and GraphManager publishes `nodePositionsRef` only once the stream has non-zero positions (`GraphManager.tsx:436-442`), so the sprites never collapse onto the origin while the gems are hidden.
+**Invariant:** the overview meshes stay hidden until real positions reach the texture (`overviewLive.ts:17-20`, `OverviewEdgeLines.tsx:149`, `OverviewNodes.tsx:123-125`), and GraphManager publishes `nodePositionsRef` only once the stream has non-zero positions (`GraphManager.tsx:439-445`), so the sprites never collapse onto the origin while the gems are hidden.
 
-**Open (risk):** `setOverviewPositions(true)` runs every frame once `nodePositionsRef` is set (`OverviewLayer.tsx:67-73`), relying on GraphManager's first-frame all-zero check (`GraphManager.tsx:436-442`); that check runs only while nothing is published, so a later all-zero buffer (a reset stream) still counts as ready.
+**Open (risk):** `setOverviewPositions(true)` runs every frame once `nodePositionsRef` is set (`OverviewLayer.tsx:70-76`), relying on GraphManager's first-frame all-zero check (`GraphManager.tsx:439-445`); that check runs only while nothing is published, so a later all-zero buffer (a reset stream) still counts as ready.
 
 ## VC-31.13 Highlight mask and node encoding: the render-index contracts
 ```mermaid
@@ -719,7 +719,7 @@ flowchart TB
     subgraph W["Writers, through named sources (explore lane: other topic)"]
         WF["settings node filter greys via writeFilter exclude<br/>useGraphFiltering.ts:115-131, filterRegistry.ts:92"]
         WS["selection, neighbours, search via writeEmphasis<br/>useGraphSelection.ts:188-189, :215, filterRegistry.ts:117"]
-        WH["hover<br/>GraphManager.tsx:593, filterRegistry.ts:175"]
+        WH["hover<br/>GraphManager.tsx:598, filterRegistry.ts:175"]
     end
     IDX --> W
     W --> REC["HighlightMask.recompose: FILTERED_OUT if any filter excludes, emphasis flags ORed,<br/>version++ (highlightMask.ts:193-222)"]
@@ -728,24 +728,24 @@ flowchart TB
     HV --> GN["GemNodes colour and scale passes<br/>GemNodes.tsx:883, :922"]
     LVL --> TEXL["texel w of the position texture<br/>nodePositionTexture.ts:91"]
     LVL --> LBL["label eligibility<br/>labelBudget.ts:174"]
-    ENC["useNodeEncodingSync, the one encodeAll caller over all delivered nodes<br/>GraphManager.tsx:92, useNodeEncodingSync.ts:48, :100"] --> NE["nodeEncoding colours and sizes by render index, version++<br/>nodeEncoding.ts:206-226"]
+    ENC["useNodeEncodingSync, the one encodeAll caller over all delivered nodes<br/>GraphManager.tsx:93, useNodeEncodingSync.ts:48, :100"] --> NE["nodeEncoding colours and sizes by render index, version++<br/>nodeEncoding.ts:206-226"]
     AC["analyticColours: communityHsl, clusterHsl, centralityHsl, anomalyRgb<br/>analyticColours.ts:12-28"] --> NE
     AC --> GN
     NE --> GN
     GN --> SPR["instanceColor is the sprite colour source<br/>OverviewNodes.tsx:126, :149"]
-    TEXL --> LIN["greyed alpha used as set, both backends blend in linear space<br/>OverviewLayer.tsx:93-95, OverviewEdgeMaterial.ts:205"]
+    TEXL --> LIN["greyed alpha used as set, both backends blend in linear space<br/>OverviewLayer.tsx:99-101, OverviewEdgeMaterial.ts:205"]
     WF -.-> T1["opt-in removal accepted in ADR-2183 notes: hideFiltered drops greyed<br/>nodes from the render set (useGraphFiltering.ts:140-149)"]
 ```
 
-**What it shows.** The two render-indexed buffers that every drawer reads, who writes them, and how a highlight bit becomes a look. The analytic colour formulas now live once, in `analyticColours.ts`, read by the encoding for knowledge nodes (`nodeEncoding.ts:36`, `:91-100`) and by GemNodes for ontology and agent nodes (`GemNodes.tsx:36`, `:529-540`). **Why it is this way.** ADR-2183 D1-D3 has filters grey nodes out through one combinator instead of removing them, and ADR-2184 D4 makes the encoding the single source of the knowledge base colour, so sprites, gems and labels agree. The blend-space correction went with the WebGLRenderer, its only cause (5d1b2d04d).
+**What it shows.** The two render-indexed buffers that every drawer reads, who writes them, and how a highlight bit becomes a look. The analytic colour formulas now live once, in `analyticColours.ts`, read by the encoding for knowledge nodes (`nodeEncoding.ts:36`, `:91-100`) and by GemNodes for ontology and agent nodes (`GemNodes.tsx:35`, `:529-540`). **Why it is this way.** ADR-2183 D1-D3 has filters grey nodes out through one combinator instead of removing them, and ADR-2184 D4 makes the encoding the single source of the knowledge base colour, so sprites, gems and labels agree. The blend-space correction went with the WebGLRenderer, its only cause (5d1b2d04d).
 
 ## VC-31.14 Overview-live gating and the GPU fault fallback
 ```mermaid
 flowchart TB
     MB["useOverviewMaterial: one TSL build, async, paired with its geometry,<br/>a rejected build calls onError (useOverviewMaterial.ts:14-46)"]
     MB -->|"onError = buildFault(layer)"| MARK
-    MB --> LIVE["setOverviewLive edges or nodes when the mesh exists<br/>OverviewEdgeLines.tsx:107-112, OverviewNodes.tsx:111-117"]
-    POS["setOverviewPositions: first upload of real positions<br/>OverviewLayer.tsx:73, overviewLive.ts:59-63"] --> STATE
+    MB --> LIVE["setOverviewLive edges or nodes when the mesh exists<br/>OverviewEdgeLines.tsx:110-115, OverviewNodes.tsx:111-117"]
+    POS["setOverviewPositions: first upload of real positions<br/>OverviewLayer.tsx:76, overviewLive.ts:59-63"] --> STATE
     LIVE --> STATE["live = positions ready and mounted and not faulted<br/>overviewLive.ts:43-50, :93-95"]
     STATE --> GEMS["gem LOD only when the sprites of the chosen population are live<br/>GemNodes.tsx:947, gemLod.ts:23, :33-41"]
     TUBES["tubeLod null only when overview edges are off or faulted,<br/>pending already takes the subset (tubeSelect.ts:49-58)"]
@@ -764,13 +764,13 @@ flowchart TB
     MARK --> HIDE["mesh hidden every frame, live drops, gems return, tubes get every edge<br/>useRenderFaultWatch.ts:19-32, tubeSelect.ts:56"]
     HIDE --> TXT["notice: Overview ... failed on this GPU, drawing gems and glass tubes instead,<br/>labels named without a fallback (overviewLive.ts:106-112)"]
     G1 -.-> D1["DEBT: the guard catches every throw and warns once per object; an object<br/>with no fault hook just stops drawing (rendererFactory.ts:173-189)"]
-    TXT -.-> T1["P4 gap: back on all-edge tubes, the 65,536 ceiling<br/>clips with a console line only (GlassEdges.tsx:412-430), which the notice never mentions"]
+    TXT -.-> T1["P4 gap: back on all-edge tubes, the 65,536 ceiling<br/>clips with a console line only (GlassEdges.tsx:420-438), which the notice never mentions"]
     TUBES -.-> TR["trade-off: the far edges are blank for the pending frames<br/>instead of drawn as tubes (tubeSelect.ts:42-47)"]
 ```
 
 **What it shows.** An overview layer counts as live only once its material has built, real positions are in the texture and no fault has been seen. A throw, a WebGPU pipeline error, a WebGL2 link failure or a rejected build hands the frame back to gems and tubes, and the canvas notice says so; the labels layer reports the same way with no fallback. **Why it is this way.** ADR-2181 D4 rules out a silent skip. Pipeline and program failures never throw on either backend (`renderFaults.ts:52-71`), so the fallback listens to three's console and its shader-error hook as well as wrapping `renderObject`. The tube trigger stopped waiting for "live" because feeding every edge during startup grew `GlassEdges` to its ceiling (`tubeSelect.ts:38-48`, f3738825c).
 
-**Tension (ADR-2179 P4 vs fallback):** after a fault the tubes carry every edge again, and above the 65,536 ceiling they clip with only a console line (`GlassEdges.tsx:412-430`). The canvas notice reports the fault but not that clip (`overviewLive.ts:106-112`).
+**Tension (ADR-2179 P4 vs fallback):** after a fault the tubes carry every edge again, and above the 65,536 ceiling they clip with only a console line (`GlassEdges.tsx:420-438`). The canvas notice reports the fault but not that clip (`overviewLive.ts:106-112`).
 
 **Debt (loose end):** only meshes that set a fault hook are protected; any other object whose draw throws is skipped every frame after one console warning (`rendererFactory.ts:174-186`, `renderFaults.ts:46-48`). The renderer lane records this as the remaining part of the old fault gap.
 
@@ -783,19 +783,19 @@ flowchart TB
     M2 --> M3["at the D2 defaults the box saturates, still at a quarter of the alpha<br/>overdraw.test.ts:52-58"]
     M3 --> M4["half coverage needs about 0.004 per-edge alpha, a few thousand edges at 0.15<br/>overdraw.test.ts:60-69"]
     SYM --> L1["root cause: knowledge nodes pinned at the 400-unit soft cube, p5 and p95 on y at +-400<br/>ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65"]
-    L1 --> L2["fix b11d8cba1: default_bounds_size 1600, PhysicsSettings default 1600<br/>physics_config.rs:138-140, :593"]
+    L1 --> L2["fix b11d8cba1: default_bounds_size 1600, PhysicsSettings default 1600<br/>physics_config.rs:172-174, :655"]
     L2 --> L3["client copies follow: defaults.ts:57, registry slider max 2000 at motion.ts:42"]
-    L2 --> L4["INVARIANT: test_physics_settings_default asserts 1600<br/>physics_config.rs:911"]
-    L2 -.-> DR["DRIFT RESOLVED at visionclaw 46edc196 for the comment on the default, physics_config.rs:590-592 now says it was measured under the earlier 400u bounds<br/>the test comment still says the graph settles within the 400u cube, physics_config.rs:906"]
+    L2 --> L4["INVARIANT: test_physics_settings_default asserts 1600<br/>physics_config.rs:1036"]
+    L2 -.-> DR["DRIFT RESOLVED at visionclaw 46edc196 for the comment on the default, physics_config.rs:652-654 now says it was measured under the earlier 400u bounds<br/>the test comment still says the graph settles within the 400u cube, physics_config.rs:1031"]
     E1["Dawn Draw(0) warnings: empty trails and collab edges"] --> E2["setLineDrawCount hides a line with fewer than 2 vertices<br/>lineDrawCount.ts:12-15, AgentTrail.tsx:26, AgentCollabEdges.tsx:41"]
 ```
 
 **What it shows.** Two explanations of the overview "slab" side by side: an overdraw planning model that says the default alpha saturates a dense fit box, and the measured root cause, a layout crushed against the 400-unit physics bounds; plus the empty-line fix from the same WebGPU fault lane. **Why it is this way.** The overdraw model is a planning tool for the D2/D4 thresholds, not a renderer path (`edgeStyle.ts:180-181`). The real-WebGPU check found the slab survived an edge alpha of 0.05 and that the nodes themselves formed the square, so the bounds default was raised (b11d8cba1; `ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65`).
 
-**Tension (ADR-2181 D2 vs code, resolved):** the slab at default fit was read as a D2 alpha failure, but it was a boundary-pinned layout; `default_bounds_size` went from 400 to 1600 (`physics_config.rs:138-140`, `:593`), with the ADR-2181 note recording "check the position quantiles before touching edge alpha" (`ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65`).
+**Tension (ADR-2181 D2 vs code, resolved):** the slab at default fit was read as a D2 alpha failure, but it was a boundary-pinned layout; `default_bounds_size` went from 400 to 1600 (`physics_config.rs:172-174`, `:655`), with the ADR-2181 note recording "check the position quantiles before touching edge alpha" (`ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65`).
 
 **Tension (overdraw test vs ADR-2181 note):** `overdraw.test.ts:52` names its case "the slab is overdraw, on any backend", while the ADR note says the slab was the nodes crushed into the cube (`ADR-2181-overview-edges-are-screen-space-lines-with-no-silent-cap.md:65`).
 
-**Debt (parallel):** the bounds default is written four times, `default_bounds_size` (`physics_config.rs:138-140`), the `PhysicsSettings` literal (`:593`), the client defaults (`defaults.ts:57`) and the registry description (`motion.ts:42`); only the Rust test pins one (`physics_config.rs:911`).
+**Debt (parallel):** the bounds default is written four times, `default_bounds_size` (`physics_config.rs:172-174`), the `PhysicsSettings` literal (`:655`), the client defaults (`defaults.ts:57`) and the registry description (`motion.ts:42`); only the Rust test pins one (`physics_config.rs:1036`).
 
-**Drift:** RESOLVED at visionclaw 46edc196 for the comment on the default (`physics_config.rs:590-592` now says it was measured under the earlier 400u bounds), but `:906` still says the graph settles "within the ~400u soft-cube bounds", beside the 1600 it annotates.
+**Drift:** RESOLVED at visionclaw 46edc196 for the comment on the default (`physics_config.rs:652-654` now says it was measured under the earlier 400u bounds), but `:1031` still says the graph settles "within the ~400u soft-cube bounds", beside the 1600 it annotates.

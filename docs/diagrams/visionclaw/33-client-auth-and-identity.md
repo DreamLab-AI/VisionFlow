@@ -38,11 +38,11 @@ sources:
   - ../project/client/src/services/powerUserStatus.ts
   - ../project/src/handlers/admin_rbac_handler.rs
   - ../project/src/utils/nip98.rs
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 ## For developers
 
-How the browser client proves who the user is. NIP-07 extension login, per-request NIP-98 signing through the one header helper (ADR-2074), the dev-token realm, passkey ceremonies, the Solid login boundary, and UI gating that knows only `isPowerUser` while the server holds the roles (ADR-2075). Re-read at ec785afa9: no authentication mechanism changed since `86cdd7635`. The settings row now also carries a storage-scope badge beside the power-user lock, and the settings read path strips retired paths at the boundary; both belong to VC-57.
+How the browser client proves who the user is. NIP-07 extension login, per-request NIP-98 signing through the one header helper (ADR-2074), the dev-token realm, passkey ceremonies, the Solid login boundary, and UI gating that knows only `isPowerUser` while the server holds the roles (ADR-2075). Re-read at 4900ec60b: since 010e110 a sign-in binds one browser session key that signs later requests (ADR-2205), and dev-token mode needs a loopback origin. The settings row now also carries a storage-scope badge beside the power-user lock, and the settings read path strips retired paths at the boundary; both belong to VC-57.
 
 ## For the business
 
@@ -54,54 +54,55 @@ sequenceDiagram
     autonumber
     participant U as User
     participant H as useNostrAuth<br/>client/src/hooks/useNostrAuth.ts:7
-    participant NA as NostrAuthService<br/>client/src/services/nostrAuthService.ts:197
+    participant NA as NostrAuthService<br/>client/src/services/nostrAuthService.ts:243
     participant EXT as window.nostr<br/>NIP-07 extension
     participant LS as localStorage
 
     H->>NA: initialize() useNostrAuth.ts:22
-    NA->>NA: isDevMode() check nostrAuthService.ts:235-237
-    alt dev mode VITE_DEV_MODE_AUTH=true
-        NA->>NA: ephemeral pubkey sessionStorage ephemeral_session_pubkey nostrAuthService.ts:323-333
+    NA->>NA: isDevMode() check nostrAuthService.ts:308-319
+    alt dev mode VITE_DEV_MODE_AUTH=true on a loopback origin (nostrAuthService.ts:312)
+        NA->>NA: ephemeral pubkey sessionStorage ephemeral_session_pubkey nostrAuthService.ts:561-571
         Note over NA: auto-authenticated as isPowerUser true. no extension needed
     else normal mode
-        NA->>LS: getItem nostr_user nostrAuthService.ts:343
+        NA->>LS: getItem nostr_user nostrAuthService.ts:581
         LS-->>NA: cached SimpleNostrUser or null
-        NA->>NA: restorePasskeySession() nostrAuthService.ts:357,581
+        NA->>NA: restorePasskeySession() nostrAuthService.ts:595,828
         opt user cached but no signer available
-            NA->>NA: waitForNip07Provider 5000ms nostrAuthService.ts:227,367
-            NA->>EXT: poll and Object.defineProperty hook waitForNip07 nostrAuthService.ts:70-144
+            NA->>NA: waitForNip07Provider 5000ms nostrAuthService.ts:294,605
+            NA->>EXT: poll and Object.defineProperty hook waitForNip07 nostrAuthService.ts:71-145
             alt extension appears within 5s
                 EXT-->>NA: window.nostr set
                 Note over NA: session considered valid again
             else timeout
-                NA->>NA: clear stale session nostrAuthService.ts:373-378
+                NA->>NA: clear stale session nostrAuthService.ts:611-616
                 NA->>LS: removeItem nostr_user
             end
         end
     end
-    NA-->>H: notifyListeners AuthState nostrAuthService.ts:479
+    NA-->>H: notifyListeners AuthState nostrAuthService.ts:726
 
     U->>H: login() useNostrAuth.ts:66
-    H->>NA: login() nostrAuthService.ts:390
-    NA->>NA: hasNip07Provider() nostrAuthService.ts:213-215
+    H->>NA: login() nostrAuthService.ts:628
+    NA->>NA: hasNip07Provider() nostrAuthService.ts:280-282
     alt no NIP-07 provider installed
-        NA-->>H: throw Nostr NIP-07 provider not found nostrAuthService.ts:391-395
+        NA-->>H: throw Nostr NIP-07 provider not found nostrAuthService.ts:629-633
     else provider present
-        NA->>EXT: getPublicKey() nostrAuthService.ts:400
+        NA->>EXT: getPublicKey() nostrAuthService.ts:638
         alt user rejects in extension popup
             EXT-->>NA: reject User rejected
-            NA-->>H: errorMessage Login request rejected in Nostr extension nostrAuthService.ts:418-419
+            NA-->>H: errorMessage Login request rejected in Nostr extension nostrAuthService.ts:659-660
         else success
             EXT-->>NA: pubkey hex
-            NA->>NA: hexToNpub(pubkey) nip19.npubEncode nostrAuthService.ts:408,505
-            NA->>NA: currentUser = pubkey npub isPowerUser false nostrAuthService.ts:406-410
+            NA->>NA: hexToNpub(pubkey) nip19.npubEncode nostrAuthService.ts:646,752
+            NA->>NA: currentUser = pubkey npub isPowerUser false nostrAuthService.ts:644-648
             Note over NA: isPowerUser is a client-side placeholder. server determines it per-request from<br/>POWER_USER_PUBKEYS. no verify endpoint exists in this file
-            NA->>LS: storeCurrentUser, setItem nostr_user JSON nostrAuthService.ts:412, nostrAuthService.ts:440-442
+            NA->>LS: storeCurrentUser, setItem nostr_user JSON nostrAuthService.ts:650, nostrAuthService.ts:685-687
+            NA->>NA: ensureSessionKey() - bind one browser session key with one real signature (ADR-2205), see VC-33.2<br/>nostrAuthService.ts:653, :358
             NA-->>H: AuthState authenticated true user
         end
     end
     H-->>U: authState re-render
-    Note over NA: getSessionToken() is deprecated. always returns null nostrAuthService.ts:435.<br/>NIP-98 is per-request, no bearer token is minted here
+    Note over NA: getSessionToken() is deprecated. always returns null nostrAuthService.ts:680.<br/>NIP-98 is per-request, no bearer token is minted here
 ```
 
 ## VC-33.2 NIP-98 per-request signing — two independent signing sites (DIVERGENCE)
@@ -109,14 +110,14 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant C as Component
-    participant UAC as UnifiedApiClient<br/>client/src/services/api/UnifiedApiClient.ts:116
+    participant UAC as UnifiedApiClient<br/>client/src/services/api/UnifiedApiClient.ts:130
     participant AI as authRequestInterceptor<br/>client/src/services/api/authInterceptor.ts:80
     participant AX as axios.interceptors.request<br/>client/src/api/settings/endpoints.ts:42
-    participant NA as NostrAuthService<br/>nostrAuthService.ts:197
+    participant NA as NostrAuthService<br/>nostrAuthService.ts:243
     participant EXT as window.nostr or local passkey key
 
     rect rgb(255,235,235)
-    Note over UAC,AI: SITE A. UnifiedApiClient path, wired at client/src/app/main.tsx:28<br/>initializeAuthInterceptor. Keeps X-Request-ID and the release-mode 401 warning<br/>locally, delegates the auth branch to computeAuthHeaders authInterceptor.ts:51
+    Note over UAC,AI: SITE A. UnifiedApiClient path, wired at client/src/app/main.tsx:34<br/>initializeAuthInterceptor. Keeps X-Request-ID and the release-mode 401 warning<br/>locally, delegates the auth branch to computeAuthHeaders authInterceptor.ts:51
     C->>UAC: request GET or PUT api-path
     UAC->>AI: onRequest(config,url) authInterceptor.ts:80
     AI->>AI: headers['X-Request-ID']=uuidv4() authInterceptor.ts:89-90
@@ -141,23 +142,26 @@ sequenceDiagram
     end
     end
 
-    Note over AI,AX: RESOLVED ADR-2074. FOUR transports carried this branch - authInterceptor, the<br/>axios global, contextLoader.fetchWithAuth and ldpClient.fetchWithAuth. All four<br/>now call one exported computeAuthHeaders(fullUrl, method, body) at<br/>authInterceptor.ts:51. The literal Bearer dev-session-token is constructed in<br/>exactly one place, authInterceptor.ts:64. Transport concerns (X-Request-ID, URL<br/>derivation, Headers copy, warn-on-failure) stay with each caller
+    Note over AI,AX: RESOLVED ADR-2074. FOUR transports carried this branch - authInterceptor, the<br/>axios global, contextLoader.fetchWithAuth and ldpClient.fetchWithAuth. All four<br/>now call one exported computeAuthHeaders(fullUrl, method, body) at<br/>authInterceptor.ts:51. The dev bearer header is built in exactly one place,<br/>authInterceptor.ts:64, from getDevSessionToken (literal nostrAuthService.ts:236). Transport concerns (X-Request-ID, URL<br/>derivation, Headers copy, warn-on-failure) stay with each caller
 
-    NA->>NA: build kind 27235 tags u=fullUrl method=METHOD nonce nostrAuthService.ts:254-258,289-293
+    NA->>NA: build kind 27235 tags u=fullUrl method=METHOD nonce nostrAuthService.ts:472-476,289-293
     Note over NA: INVARIANT. the u tag must be the exact request URL including query string. constructed via new URL(url, origin).href in both sites
     opt body present
-        NA->>NA: sha256 digest hex append payload tag nostrAuthService.ts:260,295-302
+        NA->>NA: sha256 digest hex append payload tag nostrAuthService.ts:478,533-540
     end
-    NA->>NA: unsignedEvent kind 27235 created_at tags content empty nostrAuthService.ts:269,304
+    NA->>NA: unsignedEvent kind 27235 created_at tags content empty nostrAuthService.ts:507,542
+    Note over NA: signRequest order nostrAuthService.ts:326-346 - local passkey key first, then (ADR-2205) a bound session key<br/>unless requiresRealSigner(url, method) :214 or dev mode, else one NIP-07 signature per request
     alt localPrivateKey set (passkey-derived)
-        NA->>NA: finalizeEvent(eventTemplate, localPrivateKey) nostrAuthService.ts:311
+        NA->>NA: finalizeEvent(eventTemplate, localPrivateKey) nostrAuthService.ts:549
+    else bound session key live (ensureSessionKey nostrAuthService.ts:358, bind :373)
+        NA->>NA: finalizeEvent with the ephemeral key, session tag names the principal nostrAuthService.ts:490-499
     else NIP-07 extension
-        NA->>EXT: window.nostr.signEvent(unsignedEvent) nostrAuthService.ts:276
+        NA->>EXT: window.nostr.signEvent(unsignedEvent) nostrAuthService.ts:514
         alt no signer available
-            NA-->>AI: throw No signing method available nostrAuthService.ts:250-251
+            NA-->>AI: throw No signing method available nostrAuthService.ts:333-334
         end
     end
-    NA->>NA: btoa(JSON.stringify(signedEvent)) nostrAuthService.ts:277-278,312-313
+    NA->>NA: btoa(JSON.stringify(signedEvent)) nostrAuthService.ts:515-516,312-313
     NA-->>AI: base64 token
     AI->>AI: headers Authorization = Nostr token authInterceptor.ts:77
     Note right of AI: server-side single-use replay cache and freshness window validate this token — ADR-2002 src/utils/nip98.rs
@@ -167,26 +171,26 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant NA as NostrAuthService<br/>nostrAuthService.ts:236
+    participant NA as NostrAuthService DEV_SESSION_TOKEN<br/>nostrAuthService.ts:236
     participant AI as computeAuthHeaders<br/>authInterceptor.ts:51
     participant LDP as fetchWithAuth<br/>client/src/services/solidPod/ldpClient.ts:92
     participant S as Server verify_access<br/>src/utils/auth.rs (ADR-2009)
 
-    Note over NA: isDevMode() true requires BOTH import.meta.env.DEV and<br/>VITE_DEV_MODE_AUTH=true nostrAuthService.ts:235-237. Build-time gate, not a runtime<br/>toggle
+    Note over NA: isDevMode() true requires import.meta.env.DEV, VITE_DEV_MODE_AUTH=true AND a loopback<br/>page hostname nostrAuthService.ts:308-314, :239-241. Off loopback a dev build signs NIP-98 like production.<br/>getDevSessionToken() returns the one literal :317-319
     AI->>AI: computeAuthHeaders(fullUrl, method, body) authInterceptor.ts:51
     AI->>AI: Authorization Bearer dev-session-token authInterceptor.ts:64
     AI->>AI: X-Nostr-Pubkey user.pubkey authInterceptor.ts:67-69
     Note over AI: RESOLVED ADR-2074. The dev-token pair is constructed in ONE place.<br/>The other three HTTP transports call the same helper and add nothing of<br/>their own - endpoints.ts:52, contextLoader.ts:46, ldpClient.ts:105.<br/>An earlier reading called two of them ungated. that was WRONG - all four<br/>always branched on isDevMode. the defect was duplication, now closed
     par WebSocket auth frames stay separate - browsers cannot set WS headers
-        Note over AI: client/src/api/analyticsApi.ts:476 sends JSON type auth token dev-session-token
+        Note over AI: client/src/api/analyticsApi.ts:476 sends JSON type auth with token getDevSessionToken()
     and
-        Note over AI: client/src/services/VoiceWebSocketService.ts:143-147 sends type authenticate with token dev-session-token and the pubkey, a different shape - ADR-2075, see VC-35.4
+        Note over AI: client/src/services/VoiceWebSocketService.ts:143-147 sends type authenticate with token getDevSessionToken() and the pubkey, a different shape - ADR-2075, see VC-35.4
     and
         Note over AI: client/src/store/websocket/connectionManager.ts:334 sends its own - see VC-32.1
     end
-    Note over AI: A further reference at<br/>client/src/features/graph/managers/dataManager/restClient.ts:221 is a COMMENT<br/>documenting the pattern, not a call site
+    Note over AI: A further reference at<br/>client/src/features/graph/managers/dataManager/restClient.ts:221 is a COMMENT<br/>documenting the pattern (now worded the dev bearer), not a call site
     AI->>S: request with Bearer dev-session-token
-    alt server is a debug build or built with --features dev-auth, AND DEV_AUTH_LOOPBACK=1 AND loopback peer<br/>(ADR-2012 triple gate, src/utils/auth.rs:133-141, :223-227)
+    alt server is a debug build or built with --features dev-auth, AND DEV_AUTH_LOOPBACK=1 AND loopback peer<br/>(ADR-2012 triple gate, src/utils/auth.rs:133-141, :292-296), and every X-Real-IP / X-Forwarded-For hop loopback too (:164-180)
         S-->>AI: 200 dev-admin principal granted
     else release build or gate not satisfied
         S-->>AI: 401 Unauthorized
@@ -194,8 +198,9 @@ sequenceDiagram
         Note over AI: one-shot console.warn. skipAuth is informational only client-side. the<br/>server alone decides ADR-06 section D1 comment authInterceptor.ts:12-25
     end
 
-    Note over S: since this stamp verify_access reuses the signer an outer RbacGate or RequireAuth already verified (NIP-98 ids are single-use, a second verification would be a replay) and checks only the level required here, and missing credentials now answer 401, not 403<br/>src/utils/auth.rs:272, :338
-    Note over NA,S: NON-DEV realm. ADR-2009 legacy session-bearer fallback (UUID minted at<br/>login, plain-equality check against token_expiry) is a SERVER-side acceptance path in<br/>src/utils/auth.rs and src/services/nostr_service.rs:510-519, and since the stamp it answers only when<br/>VISIONCLAW_LEGACY_SESSIONS is 1 or true, default off (src/services/nostr_service.rs:113-117, :174-176, :511). No client code in this tree<br/>ever constructs an X-Nostr-Token session header — nostrAuthService.getSessionToken()<br/>always returns null nostrAuthService.ts:435. The browser client's only two realms<br/>actually exercised are NIP-98 (VC-33.2) and the dev-session-token bearer above
+    Note over S: since this stamp verify_access reuses the signer an outer RbacGate or RequireAuth already verified (NIP-98 ids are single-use, a second verification would be a replay) and checks only the level required here, and missing credentials now answer 401, not 403<br/>src/utils/auth.rs:341, :427
+    Note over S: ADR-2205 (since 010e110): verify_access resolves a session-key token to its principal via verify_nip98_identity (src/utils/auth.rs:369),<br/>answers 401 session_key_expired when the binding is gone (:404) and 403 session_key_scope on session_key_denied routes (:192)
+    Note over NA,S: NON-DEV realm. ADR-2009 legacy session-bearer fallback (UUID minted at<br/>login, plain-equality check against token_expiry) is a SERVER-side acceptance path in<br/>src/utils/auth.rs and src/services/nostr_service.rs:647-656, and since the stamp it answers only when<br/>VISIONCLAW_LEGACY_SESSIONS is 1 or true, default off (src/services/nostr_service.rs:156-160, :297-299, :648). No client code in this tree<br/>ever constructs an X-Nostr-Token session header — nostrAuthService.getSessionToken()<br/>always returns null nostrAuthService.ts:680. The browser client's only two realms<br/>actually exercised are NIP-98 (VC-33.2) and the dev-session-token bearer above
 ```
 
 ## VC-33.4 Passkey / WebAuthn registration and authentication ceremonies
@@ -267,38 +272,38 @@ sequenceDiagram
     autonumber
     participant U as User
     participant H as useNostrAuth<br/>useNostrAuth.ts:81
-    participant NA as NostrAuthService<br/>nostrAuthService.ts:429
+    participant NA as NostrAuthService<br/>nostrAuthService.ts:670
     participant SPS as SolidPodService<br/>client/src/services/SolidPodService.ts:426
     participant LS as localStorage
     participant SS as sessionStorage
 
     U->>H: logout()
-    H->>NA: logout() nostrAuthService.ts:429
-    NA->>NA: clearSession() nostrAuthService.ts:448
+    H->>NA: logout() nostrAuthService.ts:670
+    NA->>NA: clearSession() nostrAuthService.ts:693
     NA->>NA: currentUser = null
     critical wipe key material
-        NA->>NA: localPrivateKey.fill(0) then null nostrAuthService.ts:450-453
-        NA->>NA: module-scoped _localKeyHex cleared nostrAuthService.ts:454-457
+        NA->>NA: localPrivateKey.fill(0) then null nostrAuthService.ts:697-700
+        NA->>NA: module-scoped _localKeyHex cleared nostrAuthService.ts:701-704
     end
-    NA->>LS: removeItem nostr_user nostrAuthService.ts:458
-    NA->>LS: removeItem nostr_session_token legacy nostrAuthService.ts:460
-    NA->>SS: removeItem nostr_privkey, nostr_passkey_pubkey, nostr_prf nostrAuthService.ts:463-465
-    NA-->>H: notifyListeners authenticated false nostrAuthService.ts:432
+    NA->>LS: removeItem nostr_user nostrAuthService.ts:705
+    NA->>LS: removeItem nostr_session_token legacy nostrAuthService.ts:707
+    NA->>SS: removeItem nostr_privkey, nostr_passkey_pubkey, nostr_prf nostrAuthService.ts:710-712
+    NA-->>H: notifyListeners authenticated false nostrAuthService.ts:677
     H-->>U: authState cleared useNostrAuth.ts:84-86
 
-    Note over NA,SS: NOT cleared by logout(). sessionStorage ephemeral_session_pubkey (dev mode tab<br/>identity, nostrAuthService.ts:323-329) survives — it is only ever read in<br/>isDevMode(), so it has no effect on a normal logged-out session
+    Note over NA,SS: NOT cleared by logout(). sessionStorage ephemeral_session_pubkey (dev mode tab<br/>identity, nostrAuthService.ts:561-567) survives — it is only ever read in<br/>isDevMode(), so it has no effect on a normal logged-out session
     par app-level teardown wired at client/src/app/App.tsx:74,79
         Note over SPS: App.tsx effect on authenticated=false calls solidPodService.disconnect()
         SPS->>SPS: notifications.disconnect() SolidPodService.ts:426
     end
-    Note right of SS: window beforeunload listener also wipes _localKeyHex on tab close nostrAuthService.ts:40-47, independent of explicit logout
+    Note right of SS: window beforeunload listener also wipes _localKeyHex on tab close nostrAuthService.ts:41-48, independent of explicit logout
 ```
 
 ## VC-33.6 RBAC-driven UI gating — client has no role model, only isPowerUser (DIVERGENCE)
 ```mermaid
 sequenceDiagram
     autonumber
-    participant NA as NostrAuthService<br/>nostrAuthService.ts:406-410
+    participant NA as NostrAuthService<br/>nostrAuthService.ts:644-648
     participant App as App.tsx effect<br/>client/src/app/App.tsx:44-52
     participant Store as settingsStore coreSlice<br/>client/src/store/settings/coreSlice.ts:183-186
     participant PUS as fetchPowerUserStatus<br/>client/src/services/powerUserStatus.ts:26
@@ -308,11 +313,11 @@ sequenceDiagram
 
     NA->>App: AuthState authenticated user.isPowerUser App.tsx:49
     App->>Store: setUser({isPowerUser, pubkey}) App.tsx:48-51, coreSlice.ts:183-186
-    Note over Store: isPowerUser is a single boolean.<br/>login()/loginWithPasskey() set it false and only<br/>devLogin()/dev-mode auto-login sets true, and outside dev<br/>mode App.tsx then overwrites it from the server whoami<br/>answer. NEVER the<br/>four-tier Owner/Admin/Editor/Viewer role —<br/>nostrAuthService.ts:409,544,632 vs 334,676
+    Note over Store: isPowerUser is a single boolean.<br/>login()/loginWithPasskey() set it false and only<br/>devLogin()/dev-mode auto-login sets true, and outside dev<br/>mode App.tsx then overwrites it from the server whoami<br/>answer. NEVER the<br/>four-tier Owner/Admin/Editor/Viewer role —<br/>nostrAuthService.ts:647,791,879 vs 334,676
     opt user.isPowerUser false (every non-dev sign-in)
         App->>PUS: fetchPowerUserStatus(pubkey) -- ER-26, client/src/app/App.tsx:53-65
-        PUS->>SRV: GET /api/admin/rbac/whoami, signed by the shared API<br/>client -- client/src/services/powerUserStatus.ts:28
-        Note over PUS,SRV: DEBT (source-traced, not run): the shared client already prepends its base /api to every<br/>relative path (client/src/services/api/UnifiedApiClient.ts:77, :182), so this request goes to<br/>/api/api/admin/rbac/whoami. The server mounts whoami at /api/admin/rbac/whoami<br/>(src/handlers/admin_rbac_handler.rs:282-286), and the repo itself records the doubled<br/>prefix as a 404. fetchPowerUserStatus then catches and returns null (powerUserStatus.ts:36-38),<br/>so the ER-26 fix never lifts a real power user. Its unit test mocks the client and cannot see it
+        PUS->>SRV: GET /admin/rbac/whoami through the shared API client (base /api),<br/>signed by it -- client/src/services/powerUserStatus.ts:28
+        Note over PUS,SRV: RESOLVED since 010e110 (was DEBT, the doubled /api/api prefix): the call now passes /admin/rbac/whoami<br/>(powerUserStatus.ts:28) and the client's buildUrl joins a path that already repeats the base once<br/>(client/src/services/api/UnifiedApiClient.ts:91, :212-218, :221), so it reaches /api/admin/rbac/whoami<br/>(src/handlers/admin_rbac_handler.rs:282-286). Errors still return null (powerUserStatus.ts:36-38)
         Note over SRV: RbacGate lets any signed-in user read it (AccessLevel<br/>Authenticated), every other method or sub-path stays Admin<br/>src/middleware/rbac_gate.rs:164-166, handler<br/>src/handlers/admin_rbac_handler.rs:81-98
         SRV-->>PUS: pubkey, role, is_power_user
         PUS-->>App: boolean, or null on error or when the answer names another<br/>key client/src/services/powerUserStatus.ts:29-38
@@ -333,9 +338,9 @@ sequenceDiagram
     Note over Row,Ctl: DIVERGENCE. this is the ENTIRE client-side gating surface<br/>— a binary<br/>power-user flag, not the server's UserRole lattice (Owner<br/>greater than Admin greater<br/>than Editor greater than Viewer,<br/>docs/BASELINE-architecture.md:378). The client reads only<br/>the is_power_user bit of its own whoami answer<br/>(client/src/services/powerUserStatus.ts:35), never the<br/>role. All real enforcement happens server-side per-request<br/>in<br/>RbacGate and a rejected write surfaces only as a 401/403<br/>after the fact, not as<br/>pre-emptive UI disablement of non-power-user fields tied<br/>to WriteGraph/Admin
     Note over Row: DOC-DRIFT. docs/BASELINE-architecture.md:382 cites the<br/>structural default at<br/>rbac_gate.rs:122-128 - public_reads_enabled is now at<br/>src/middleware/rbac_gate.rs:135-141 with its doc at<br/>:130-134, pushed down by the routed_path helper added<br/>above it.<br/>DOC-DRIFT. docs/BASELINE-architecture.md:378-387 documents<br/>server RBAC<br/>posture only. It makes no claim the client UI reflects<br/>role — none of the governing docs<br/>claim client-side role gating exists, matching what was<br/>found here
 
-    Note over Row,Ctl: server posture (not client-enforced). structural default<br/>RBAC_PUBLIC_READS=false src/middleware/rbac_gate.rs:141<br/>unwrap_or(false), but<br/>docker-compose.unified.yml:132 sets RBAC_PUBLIC_READS=1 in<br/>the dev/unified compose<br/>service. An unassigned authenticated pubkey resolves to<br/>Editor via<br/>UserRole::default_authenticated()<br/>src/models/rbac.rs:68-70,<br/>src/services/role_store.rs:188,196-198, a default the<br/>compose sets to editor (RBAC_DEFAULT_ROLE,<br/>docker-compose.unified.yml:140) — see<br/>docs/BASELINE-architecture.md:378-384
+    Note over Row,Ctl: server posture (not client-enforced). structural default<br/>RBAC_PUBLIC_READS=false src/middleware/rbac_gate.rs:141<br/>unwrap_or(false), but<br/>docker-compose.unified.yml:150 sets RBAC_PUBLIC_READS=1 in<br/>the dev/unified compose<br/>service. An unassigned authenticated pubkey resolves to<br/>Editor via<br/>UserRole::default_authenticated()<br/>src/models/rbac.rs:68-70,<br/>src/services/role_store.rs:188,196-198, a default the<br/>compose sets to editor (RBAC_DEFAULT_ROLE,<br/>docker-compose.unified.yml:158) — see<br/>docs/BASELINE-architecture.md:378-384
     Note over SRV: INVARIANT the gate classifies routed_path(req), which is<br/>req.match_info().as_str(), the percent-decoded path the<br/>router matches, not the raw req.path(). Classifying the<br/>raw path let /api/%73ettings route to the settings<br/>handlers under the graph-write level and /api/%61dmin skip<br/>the Admin rule (ER, 2026-10-18 security review).<br/>src/middleware/rbac_gate.rs:69-71, :262
-    Note over Row,Ctl: DOC-DRIFT: docs/BASELINE-architecture.md:382 still cites<br/>docker-compose.unified.yml:93 for RBAC_PUBLIC_READS=1 and<br/>:94 (line 273) for<br/>RBAC_ALLOW_OWNERLESS=1. The block has since moved<br/>repeatedly - ADR-2108 to :99/:100,<br/>ADR-2114's corpus-source env additions to :106/:107, and<br/>the System One shared block and VISIONCLAW_JEV_* env (compose :2-25, ADR-2148 amendment 2026-10-30) and further additions above it to :132/:133 at this stamp -<br/>the citations were<br/>never re-anchored. The posture is unchanged, the citations<br/>are not.<br/>docker-compose.unified.yml:132, :133
+    Note over Row,Ctl: DOC-DRIFT: docs/BASELINE-architecture.md:382 still cites<br/>docker-compose.unified.yml:93 for RBAC_PUBLIC_READS=1 and<br/>:94 (line 273) for<br/>RBAC_ALLOW_OWNERLESS=1. The block has since moved<br/>repeatedly - ADR-2108 to :99/:100,<br/>ADR-2114's corpus-source env additions to :106/:107, and<br/>the System One shared block and VISIONCLAW_JEV_* env (compose :2-25, ADR-2148 amendment 2026-10-30) and further additions above it to :132/:133 at 010e110, then to :150/:151 at this stamp -<br/>the citations were<br/>never re-anchored. The posture is unchanged, the citations<br/>are not.<br/>docker-compose.unified.yml:150, :151
     Note over Row,Ctl: DIVERGENCE. compose ships public reads open and<br/>unassigned-pubkey-is-Editor by default, while the Rust<br/>struct-level default is<br/>fail-closed (no public reads) — two different postures<br/>depending whether you read the<br/>binary default or the shipped compose env
 ```
 
@@ -380,20 +385,20 @@ classDiagram
         +bool isPowerUser
         storage localStorage key nostr_user JSON
         lifetime survives reload until logout or stale-session detect
-        definedAt nostrAuthService.ts:149-153
+        definedAt nostrAuthService.ts:150-154
     }
     class LocalPrivateKeyMaterial {
         +Uint8Array localPrivateKey
         +string _localKeyHex module closure
         storage in-memory only, never sessionStorage
         lifetime cleared on logout, tab close beforeunload
-        definedAt nostrAuthService.ts:14,200
+        definedAt nostrAuthService.ts:15,246
     }
     class PasskeyPubkeyMarker {
         +string pubkey hex
         storage sessionStorage key nostr_passkey_pubkey
         lifetime tab session, verified against derived pubkey on restore
-        definedAt nostrAuthService.ts:551,604
+        definedAt nostrAuthService.ts:798,851
     }
     class DevSessionToken {
         +string literal Bearer dev-session-token
@@ -405,7 +410,7 @@ classDiagram
         +string base64 signed kind 27235 event
         storage not stored, minted per-request in signRequest/signWithLocalKey
         lifetime single-use, server-enforced via replay cache ADR-2002
-        definedAt nostrAuthService.ts:244,284
+        definedAt nostrAuthService.ts:326,522
     }
     class WebIdUrl {
         +string webId URL
@@ -425,7 +430,7 @@ classDiagram
         +UUID minted at login, plain-equality check vs token_expiry
         storage NEVER constructed by this client
         lifetime N, the server accepts it only with VISIONCLAW_LEGACY_SESSIONS set, default off, and no client code path exists
-        definedAt ADR-2009 verified_paths list, nostr_service.rs:510-519
+        definedAt ADR-2009 verified_paths list, nostr_service.rs:647-656
     }
 
     SimpleNostrUser --> LocalPrivateKeyMaterial : signs with when passkey path chosen
