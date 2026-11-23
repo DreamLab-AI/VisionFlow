@@ -126,13 +126,13 @@ sequenceDiagram
     participant Skill as tree-search-coder skill<br/>skills/tree-search-coder/SKILL.md
     participant CLI as tree-search-cap bin<br/>services/agentbox-ops/src/bin/tree-search-cap.rs:1
     participant Limiter as Limiter::reserve<br/>services/agentbox-ops/src/cost_cap/mod.rs:361
-    participant Ledger as Ledger #40;flock#41;<br/>services/agentbox-ops/src/cost_cap/ledger.rs
+    participant Ledger as Ledger (flock)<br/>services/agentbox-ops/src/cost_cap/ledger.rs
 
     rect rgb(235,235,235)
     Note over Agent,Skill: Branch A — [skills.tree_search_coder].enabled = false
     Agent->>Skill: invoke tree-search-coder
     Skill->>CLI: tree-search-cap reserve --run r1 --estimate 0.10
-    CLI->>Limiter: reserve_at#40;run_id, estimate, now#41;
+    CLI->>Limiter: reserve_at(run_id, estimate, now)
     Limiter-->>CLI: Err CapabilityDisabled skill=tree_search_coder
     CLI-->>Skill: exit 3, JSON ok=false refused=capability_disabled
     Note over Skill,Agent: INVARIANT: byte-identical-when-off — no candidate dispatched, no kernel session, no ledger row written
@@ -142,14 +142,14 @@ sequenceDiagram
     Note over Agent,Ledger: Branch B — gate on, under cap
     Agent->>Skill: invoke tree-search-coder N=3
     Skill->>CLI: reserve --run r2 --estimate 0.10
-    CLI->>Limiter: reserve_at#40;"r2", 0.10, now#41;
-    Limiter->>Ledger: with_state#40;exclusive flock#41;
+    CLI->>Limiter: reserve_at("r2", 0.10, now)
+    Limiter->>Ledger: with_state(exclusive flock)
     Ledger-->>Limiter: run.committed=0.00, outstanding=0.00
     Limiter-->>CLI: Ok Reservation id=res-... remaining_usd=0.40
     CLI-->>Skill: exit 0, reservation JSON
     Skill->>Skill: dispatch sparc:coder branch in fresh kernel
     Skill->>CLI: settle --run r2 --reservation res-... --actual 0.09
-    CLI->>Limiter: settle_at#40;stub, 0.09, Completed, now#41;
+    CLI->>Limiter: settle_at(stub, 0.09, Completed, now)
     Limiter-->>CLI: Settlement committed_usd=0.09 remaining_usd=0.41
     CLI-->>Skill: exit 0
     end
@@ -158,8 +158,8 @@ sequenceDiagram
     Note over Agent,Ledger: Branch C — gate on, spend-capped refusal
     Agent->>Skill: invoke tree-search-coder branch 6
     Skill->>CLI: reserve --run r3 --estimate 0.13
-    CLI->>Limiter: reserve_at#40;"r3", 0.13, now#41;
-    Limiter->>Ledger: with_state — committed 0.38 + outstanding 0.00 + 0.13 #62; cap 0.50
+    CLI->>Limiter: reserve_at("r3", 0.13, now)
+    Limiter->>Ledger: with_state — committed 0.38 + outstanding 0.00 + 0.13 above cap 0.50
     Limiter-->>CLI: Err SpendCapExceeded cap_usd=0.50 committed_usd=0.38 requested_usd=0.13
     CLI-->>Skill: exit 3, JSON refused=spend_cap_exceeded
     Note over Skill: INVARIANT: tree-search-coder never auto-routed, always carries spend_cap_usd (ADR-2020)
@@ -189,17 +189,17 @@ sequenceDiagram
     Entry->>Entry: export AGENTBOX_ANTIGRAVITY_MODEL only if not already set
     Entry->>Sup: reconcile [dream_machine] enabled — dream-engine reads /etc/agentbox.toml itself at start
     Note over Sup: apply_class boot — dream-engine self-reads the manifest,<br/>so a restart (not a hot edit) is what applies a dream_machine change
-    Note over Entry: ADR-2118, same boot phase — entrypoint-unified.sh:3032 also runs<br/>agentbox-manifest instructions-project #40;CATALOGUE id instruction-tiers, gate null#41;,<br/>composing #126;/.claude/CLAUDE.md and #126;/workspace/AGENTS.md #124; CLAUDE.md from<br/>config/instructions/ every restart, repo-authoritative, drift-checked
+    Note over Entry: ADR-2118, same boot phase — entrypoint-unified.sh:3032 also runs<br/>agentbox-manifest instructions-project (CATALOGUE id instruction-tiers, gate null),<br/>composing ~/.claude/CLAUDE.md and ~/workspace/AGENTS.md / CLAUDE.md from<br/>config/instructions/ every restart, repo-authoritative, drift-checked
 
     Note over API: live — every GET /v1/system request
     API->>SM: buildSystemView(manifest, adapters)
     loop for each CATALOGUE entry
         SM->>SM: resolveGate(manifest, entry.gate) -- tomlval-equivalent dotted lookup<br/>system-manifest.js:460
-        SM->>SM: stateOf(manifest, entry) -- on #124; off #124; available<br/>system-manifest.js:474
+        SM->>SM: stateOf(manifest, entry) -- on, off or available<br/>system-manifest.js:474
     end
     SM-->>API: apply_classes, core, surfaces, modules, counts
-    API-->>API: reply.send #40;generated_at, ...view, execution#41;
-    Note over SM: RESOLVED ADR-2069 #40;2026-09-05#41;: catalogue drift now FAILS the build.<br/>scripts/ci/check-manifest-catalogue.js rejects any agentbox.toml boolean key that is neither<br/>catalogued nor in an explicit BASELINE, and the BASELINE is a ratchet — an entry that has since<br/>been catalogued, or has left the toml, fails too, so the list can only shrink. 16 baselined keys<br/>are real capabilities still owed a CATALOGUE entry and warn on every run (check-manifest-catalogue.js:167,225)
+    API-->>API: reply.send (generated_at, ...view, execution)
+    Note over SM: RESOLVED ADR-2069 (2026-09-05): catalogue drift now FAILS the build.<br/>scripts/ci/check-manifest-catalogue.js rejects any agentbox.toml boolean key that is neither<br/>catalogued nor in an explicit BASELINE, and the BASELINE is a ratchet — an entry that has since<br/>been catalogued, or has left the toml, fails too, so the list can only shrink. 16 baselined keys<br/>are real capabilities still owed a CATALOGUE entry and warn on every run (check-manifest-catalogue.js:167,225)
 ```
 
 ## AB-15.4 Apply-class lifecycle of a gate
@@ -246,7 +246,7 @@ sequenceDiagram
 
     Op->>Val: node agentbox-config-validate.js agentbox.toml
     Val->>TOML: read max_candidates, per_branch_timeout_s, spend_cap_usd
-    alt max_candidates undeclared or #62; 5
+    alt max_candidates undeclared or above 5
         Val-->>Op: W051 token spend scales linearly with N
     end
     alt spend_cap_usd not a positive number
@@ -264,11 +264,11 @@ sequenceDiagram
     loop candidate 0..N-1 (max_candidates)
         Skill->>CLI: reserve --run RUN_ID --estimate E_i
         CLI->>Lim: reserve_at(RUN_ID, E_i, now)
-        alt admitted #62;#61; max_candidates
+        alt admitted at least max_candidates
             Lim-->>CLI: Err CandidateLimitExceeded
             CLI-->>Skill: exit 3
             Note over Skill: halt loop, return best-so-far candidate
-        else committed+outstanding+E_i #62; cap
+        else committed+outstanding+E_i above cap
             Lim-->>CLI: Err SpendCapExceeded
             CLI-->>Skill: exit 3
             Note over Skill: halt loop, return best-so-far candidate (SKILL.md:70 enforced spend_cap_usd)
@@ -305,9 +305,9 @@ sequenceDiagram
         Classify-->>Agent: scheme agentbox-ledger, payable = CONSUMER_ENABLED==="true"
         Note over Classify: both header and accepts[] present and cost_sats != accepts amount<br/>-> scheme unknown, reason amount-mismatch (pay402.js:220)
     else x402 — integer x402Version + accepts[] with scheme/network
-        Classify-->>Agent: scheme x402, payable false #40;version!=1 -> reason unsupported-version#41;
-    else l402 — status 401 or 402, WWW-Authenticate L402#124;LSAT
-        Classify-->>Agent: scheme l402, payable false always #40;macaroon+invoice required, ln-prefix checked#41;
+        Classify-->>Agent: scheme x402, payable false (version!=1 -> reason unsupported-version)
+    else l402 — status 401 or 402, WWW-Authenticate L402 or LSAT
+        Classify-->>Agent: scheme l402, payable false always (macaroon+invoice required, ln-prefix checked)
     else unknown
         Classify-->>Agent: scheme unknown, payable false, reason null — terminal, fail-closed
     end
@@ -320,7 +320,7 @@ sequenceDiagram
     Pay->>Pod: GET /pay/.balance
     Pod-->>Pay: balance_sats
     Pay-->>Agent: 200 balance_sats, dream_balance
-    alt balance_sats #62;#61; required
+    alt balance_sats at least required
         Agent->>Merchant: retry original request with payment proof
         Merchant-->>Agent: 200 OK — settled
     else insufficient balance
@@ -332,7 +332,7 @@ sequenceDiagram
     end
     Note over Agent,Pay: DEBT — the authority classification table names payment_settlement<br/>zero-tolerance as an irreversible above-threshold sats spend (agentbox.toml:1497),<br/>but no production path passes that actionClass to the gate. The only call sites<br/>are tests/sovereign/authority.test.js:129 and authority.test.js:248, and routes/payments.js never<br/>reaches management-api/lib/authority.js:226. see AB-14.11
     Note over Agent,Pay: DEBT — spend is accounted in three stores that never reconcile:<br/>the flock-guarded cost_cap ledger file (services/agentbox-ops/src/cost_cap/ledger.rs:119,136),<br/>the pod-held sats balance behind GET /v1/pay/balance (management-api/routes/payments.js:205),<br/>and the marketplace token_budget carried on a grant (management-api/lib/llm-marketplace.js:85).<br/>No surface sums them, so no single number answers what this container has spent
-    Note over Agent: DIVERGENCE: #91;payments.consumer#93;.enabled = false by default #40;agentbox.toml:2007#41;,<br/>#91;payments.broadcast#93;.enabled = false and well_known = false #40;agentbox.toml:2016-2017#41; — see AB-11.15
+    Note over Agent: DIVERGENCE: [payments.consumer].enabled = false by default (agentbox.toml:2007),<br/>[payments.broadcast].enabled = false and well_known = false (agentbox.toml:2016-2017) — see AB-11.15
 ```
 
 ## AB-15.7 routes/payments.js — GET info, GET balance, POST deposit
@@ -352,14 +352,14 @@ sequenceDiagram
         R-->>C: 200 chains, base_cost_sats, dream_per_sat, tiers, operator_did
     else pod-rs unreachable
         Note over R: logged, falls through to local config — never a 502 here (payments.js:174-180)
-        R-->>C: 200 chains=#91;btc#93; #40;local default#41;, tiers from TIER_MULTIPLIERS
+        R-->>C: 200 chains=[btc] (local default), tiers from TIER_MULTIPLIERS
     end
 
     C->>R: GET /v1/pay/balance<br/>payments.js:203
     alt callerDid(req) is null — bearer auth, no identity
         R-->>C: 401 identity-required
     else NIP-98 identity present
-        R->>Pod: GET /pay/.balance #40;Authorization forwarded#41;
+        R->>Pod: GET /pay/.balance (Authorization forwarded)
         alt pod-rs error
             Pod-->>R: non-2xx or unreachable
             R-->>C: err.statusCode or 502 payment-service-error
@@ -383,11 +383,11 @@ sequenceDiagram
     participant Pod as solid-pod-rs<br/>127.0.0.1:8484
 
     C->>R: POST /v1/pay/estimate {endpoint, units}<br/>payments.js:315
-    alt TIER_MULTIPLIERS#91;endpoint#93; undefined
+    alt TIER_MULTIPLIERS[endpoint] undefined
         R-->>C: 400 unknown-tier
     else valid tier
-        R->>R: perUnitSats = BASE_COST_SATS*multiplier<br/>hold_sats = ceil#40;estimated*HOLD_BUFFER_RATIO#41;
-        R-->>C: 200 estimated_sats, hold_sats, dream_tokens, breakdown #40;local computation, no pod-rs call#41;
+        R->>R: perUnitSats = BASE_COST_SATS*multiplier<br/>hold_sats = ceil(estimated*HOLD_BUFFER_RATIO)
+        R-->>C: 200 estimated_sats, hold_sats, dream_tokens, breakdown (local computation, no pod-rs call)
     end
 
     C->>R: POST /v1/pay/buy {amount}<br/>payments.js:402
@@ -398,7 +398,7 @@ sequenceDiagram
         alt pod-rs error
             Pod-->>R: non-2xx or unreachable
             R-->>C: err.statusCode or 502 payment-service-error
-        else currentBalance #60; costSats #40;ceil#40;amount/DREAM_PER_SAT#41;#41;
+        else currentBalance below costSats (ceil(amount/DREAM_PER_SAT))
             R-->>C: 402 insufficient-balance, required_sats, balance_sats, X-Cost header
         else sufficient balance
             R->>Pod: POST /pay/.buy {dream_amount, cost_sats}
@@ -415,14 +415,14 @@ sequenceDiagram
     C->>R: POST /v1/pay/withdraw {amount}<br/>payments.js:525
     alt callerDid(req) is null
         R-->>C: 401 identity-required
-    else floor#40;amount/DREAM_PER_SAT#41; #60;#61; 0
+    else floor(amount/DREAM_PER_SAT) at most 0
         R-->>C: 400 amount-too-small
     else identified and non-zero
         R->>Pod: GET /pay/.balance
         alt pod-rs error
             Pod-->>R: non-2xx or unreachable
             R-->>C: err.statusCode or 502 payment-service-error
-        else currentDreamBalance #60; amount
+        else currentDreamBalance below amount
             R-->>C: 402 insufficient-dream-balance, required_dream, dream_balance
         else sufficient DREAM balance
             R->>Pod: POST /pay/.withdraw {dream_amount, sats_received}
@@ -451,7 +451,7 @@ sequenceDiagram
     alt validateAdvertisement fails
         R-->>Prov: 422 validation_failed
     else valid
-        R->>OB: addAdvertisement(pubkey, body) -- key #96;pubkey:model#96;, replaceable (kind 38300)
+        R->>OB: addAdvertisement(pubkey, body) -- key pubkey:model, replaceable (kind 38300)
         R-->>Prov: 200 event, urn, stored=true
     end
 
@@ -468,34 +468,34 @@ sequenceDiagram
     alt provider grants
         Prov->>R: POST /v1/llm/grant {request_event_id, grantee_pubkey, model, token_allocation}<br/>:275
         R->>OB: addGrant(grantId, {providerPubkey, consumerPubkey, tokenAllocation, tokensUsed:0, expiresAt})
-        R-->>Prov: 201 event #40;kind 38302#41;, grant_id, urn
+        R-->>Prov: 201 event (kind 38302), grant_id, urn
     else provider denies
         Prov->>R: POST /v1/llm/deny {request_event_id, grantee_pubkey, reason}<br/>:341
-        R-->>Prov: 200 event #40;kind 38303#41;
+        R-->>Prov: 200 event (kind 38303)
     end
 
     Cons->>R: POST /v1/llm/receipt {grant_id, consumer_pubkey, model, tokens_used}<br/>:378
     R->>OB: recordUsage(grant_id, tokens_used)
-    alt tokensUsed + tokens_used #62; tokenAllocation, or grant not found
+    alt tokensUsed + tokens_used above tokenAllocation, or grant not found
         OB-->>R: false
         R-->>Cons: 402 budget_exceeded
     else within allocation
         OB-->>R: true, running total updated
-        R-->>Cons: 200 event #40;kind 38304#41;, accepted=true, urn
+        R-->>Cons: 200 event (kind 38304), accepted=true, urn
     end
 
     Prov->>R: POST /v1/llm/revoke {grant_id, reason}<br/>:438
     opt authorityEnabled -- mandate_revoke is a zero-tolerance action class
-        R->>Gate: guard#40;actionClass: mandate_revoke#41; -- kind-31402 ActionRequest, blocks for signed kind-31403 (see AB-14.x)
+        R->>Gate: guard(actionClass: mandate_revoke) -- kind-31402 ActionRequest, blocks for signed kind-31403 (see AB-14.x)
         alt gate.decision != allow
             Gate-->>R: DENY -- fail-closed, no timeout/reject/unverified escape
             R-->>Prov: 403 authority_denied
         end
     end
     R->>OB: revokeGrant(grant_id)
-    R-->>Prov: 200 event #40;kind 38305#41;, revoked=true
+    R-->>Prov: 200 event (kind 38305), revoked=true
 
-    Note over R: GET /v1/llm/grants #40;routes/llm-marketplace.js:534, pruneExpired + getActiveGrants#40;pubkey#41;#41; and<br/>GET /v1/llm/stats #40;routes/llm-marketplace.js:556, orderbook.stats#40;#41; + KINDS#41; are read-only summaries, not shown above
+    Note over R: GET /v1/llm/grants (routes/llm-marketplace.js:534, pruneExpired + getActiveGrants(pubkey)) and<br/>GET /v1/llm/stats (routes/llm-marketplace.js:556, orderbook.stats() + KINDS) are read-only summaries, not shown above
 ```
 
 ## AB-15.10 headroom compression-capacity model and its 3 MCP tools
@@ -505,20 +505,20 @@ sequenceDiagram
     participant MCP as MCP caller
     participant Tools as headroom-mcp-tools.js<br/>handleTool()<br/>lib/headroom-mcp-tools.js:111
     participant HR as headroom.js<br/>compress/retrieve/stats<br/>lib/headroom.js:1
-    participant Addon as headroom_napi.node<br/>#40;Rust N-API addon#41;
-    participant TOML as #91;compression#93; #91;compression.slots#93;<br/>agentbox.toml
+    participant Addon as headroom_napi.node<br/>(Rust N-API addon)
+    participant TOML as [compression] [compression.slots]<br/>agentbox.toml
 
-    Note over HR: DIVERGENCE: this is a context-COMPRESSION capacity model<br/>#40;ttl_minutes, max_entries, target_ratio#41;, not a USD spend/budget cap —<br/>no financial "budget" field exists in headroom.js #40;lib/headroom.js:70-84#41;
+    Note over HR: DIVERGENCE: this is a context-COMPRESSION capacity model<br/>(ttl_minutes, max_entries, target_ratio), not a USD spend/budget cap —<br/>no financial "budget" field exists in headroom.js (lib/headroom.js:70-84)
 
     MCP->>Tools: call headroom_compress {content, content_type}<br/>:65
-    Tools->>HR: detectContentType#40;content#41; -- when content_type="auto"
-    HR->>Addon: addon.detectContentType#40;content#41;
-    Tools->>HR: smartCrush #124; compressLog #124; compressDiff#40;content#41; by detected type
-    HR->>HR: _readManifestConfig#40;#41; -- caches #91;compression#93; from loadManifest#40;#41;<br/>:56 enabled, backend, ttl_minutes, max_entries, target_ratio
-    HR->>TOML: read #91;compression.slots#93;.#123;memory,pods,beads,orchestrator#125;
-    Note over HR: INVARIANT: slots.events is hard-coded false always -- the audit trail is never compressed #40;headroom.js:15,79#41;
-    HR->>Addon: addon.smartCrush#40;content, {targetRatio}#41; #40;or compressLog/compressDiff#41;
-    alt addon absent, compression.enabled=false, or ratio #62;#61; 1.0
+    Tools->>HR: detectContentType(content) -- when content_type="auto"
+    HR->>Addon: addon.detectContentType(content)
+    Tools->>HR: smartCrush, compressLog or compressDiff(content) by detected type
+    HR->>HR: _readManifestConfig() -- caches [compression] from loadManifest()<br/>:56 enabled, backend, ttl_minutes, max_entries, target_ratio
+    HR->>TOML: read [compression.slots].{memory,pods,beads,orchestrator}
+    Note over HR: INVARIANT: slots.events is hard-coded false always -- the audit trail is never compressed (headroom.js:15,79)
+    HR->>Addon: addon.smartCrush(content, {targetRatio}) (or compressLog/compressDiff)
+    alt addon absent, compression.enabled=false, or ratio at least 1.0
         HR-->>Tools: passthrough {compressed:false, content unchanged}
         Note over HR: fail-open contract -- headroom.js:6-9
     else beneficial compression
@@ -528,8 +528,8 @@ sequenceDiagram
     Tools-->>MCP: {compressed, ratio, ccr_entries}
 
     MCP->>Tools: call headroom_retrieve {hash}<br/>:34
-    Tools->>HR: ccrRetrieve#40;hash#41;
-    HR->>Addon: addon.ccrRetrieve#40;hash#41;
+    Tools->>HR: ccrRetrieve(hash)
+    HR->>Addon: addon.ccrRetrieve(hash)
     alt entry found
         Addon-->>HR: Buffer
         HR-->>Tools: decompressed content
@@ -541,8 +541,8 @@ sequenceDiagram
     end
 
     MCP->>Tools: call headroom_stats {}<br/>:53
-    Tools->>HR: ccrStats#40;#41;
-    HR->>Addon: addon.ccrStats#40;#41;
+    Tools->>HR: ccrStats()
+    HR->>Addon: addon.ccrStats()
     Addon-->>HR: entries, bytes_stored, hit_count, miss_count
     HR-->>Tools: normalised stats
     Tools-->>MCP: {entries, bytes_stored, hit_count, miss_count, hit_rate}
@@ -561,15 +561,15 @@ sequenceDiagram
 
     rect rgb(220,240,220)
     Note over PreBoot,Entry: branch A — AGENTBOX_ANTIGRAVITY_MODEL set before boot
-    Entry->>Entry: #91; -z "$#123;AGENTBOX_ANTIGRAVITY_MODEL:-#125;" #93; is false -- skip projection
+    Entry->>Entry: [ -z "${AGENTBOX_ANTIGRAVITY_MODEL:-}" ] is false -- skip projection
     Note over Entry: INVARIANT: a non-empty pre-boot env override wins (ADR-2031)
     end
 
     rect rgb(230,230,250)
     Note over Entry,TOML: branch B — env unset, manifest declares a model
     Entry->>MB: agentbox-manifest toml-string --manifest /etc/agentbox.toml --path consultants.antigravity.model
-    MB->>TOML: tomlval::get#40;&cfg, "consultants.antigravity.model"#41;
-    TOML-->>MB: Value::String#40;"gemini-4-hydrogen"#41;
+    MB->>TOML: tomlval::get(&cfg, "consultants.antigravity.model")
+    TOML-->>MB: Value::String("gemini-4-hydrogen")
     MB-->>Entry: prints "gemini-4-hydrogen", exit 0
     Entry->>Entry: export AGENTBOX_ANTIGRAVITY_MODEL="gemini-4-hydrogen"
     end
@@ -578,12 +578,12 @@ sequenceDiagram
     Note over Entry,TOML: branch C — env unset, manifest missing/non-string/unparseable
     Entry->>MB: agentbox-manifest toml-string ...
     MB->>TOML: parse_file_lenient -- unreadable or key absent
-    MB-->>Entry: prints "" #40;empty#41;, exit 0 -- fail-open #40;main.rs:19#41;
+    MB-->>Entry: prints "" (empty), exit 0 -- fail-open (main.rs:19)
     Entry->>Entry: export AGENTBOX_ANTIGRAVITY_MODEL="" -- registry default applies downstream
     end
 
     Entry->>Srv: spawn consultant-antigravity with AGENTBOX_ANTIGRAVITY_MODEL in env
-    Srv->>Srv: const MODEL = process.env.AGENTBOX_ANTIGRAVITY_MODEL #124;#124; 'gemini-4-hydrogen' #40;server.js:31#41;
+    Srv->>Srv: const MODEL = process.env.AGENTBOX_ANTIGRAVITY_MODEL, falling back to 'gemini-4-hydrogen' (server.js:31)
     Note over Srv,Reg: registry and server defaults both name Hydrogen (skills/mcp.json:343, server.js:31), the registry auth default is api_key (skills/mcp.json:344).<br/>Setup-template and URL-context defaults still name Flash (ADR-2031-consultant-model-manifest-projection.md:94-99).
     Srv->>Srv: authMode reads AGENTBOX_ANTIGRAVITY_AUTH_MODE, anything but oauth is api_key (server.js:34-36)<br/>the entrypoint projects it from [providers.gemini].auth_mode when the Antigravity CLI is enabled<br/>(entrypoint-unified.sh:3381-3384), and the shipped manifest sets oauth (agentbox.toml:1607), ADR-2214
     alt auth mode oauth
@@ -602,9 +602,9 @@ sequenceDiagram
     Note over Srv: healthCheck runs --version and models with the same auth settings.<br/>It is discovery, not proof of key validity, quota or successful inference (server.js:137-168).
 
     rect rgb(245,220,220)
-    Note over TOML: TUI save path — tui_write.rs:37 run#40;#41;
-    Note over TOML: if state has no "consultants.antigravity.model" key, carry forward<br/>the EXISTING manifest's value rather than overwrite it #40;tui_write.rs:37-48#41;
-    Note over TOML: INVARIANT: a TUI save never resets an operator's model #40;ADR-2031#41;
+    Note over TOML: TUI save path — tui_write.rs:37 run()
+    Note over TOML: if state has no "consultants.antigravity.model" key, carry forward<br/>the EXISTING manifest's value rather than overwrite it (tui_write.rs:37-48)
+    Note over TOML: INVARIANT: a TUI save never resets an operator's model (ADR-2031)
     end
 ```
 
@@ -612,48 +612,48 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Caller as Coordinator #40;Claude session#41;
+    participant Caller as Coordinator (Claude session)
     participant Base as BaseConsultant._handleConsult<br/>consultant-base.js:275
-    participant Onto as ontoBrain#40;#41;.ask<br/>ontology-retrieval.js
+    participant Onto as ontoBrain().ask<br/>ontology-retrieval.js
     participant Spawn as spawnCli<br/>spawn-cli.js:36
-    participant CLI as agy #124; codex #124; z #40;vendor CLI#41;
+    participant CLI as agy, codex or z (vendor CLI)
     participant Div as model-diversity.js<br/>verificationRecord/selectVerifier<br/>model-diversity.js:208,162
     participant Log as MemoryLogger.log<br/>memory-logger.js:67
     participant API as management-api<br/>/v1/agent-events/emit
 
     Caller->>Base: CallToolRequest consult {question, context_excerpt, producer_family, ontology_context}
-    Base->>Base: validate question non-empty #40;consultant-base.js:276#41;
-    opt ontologyAugmentEnabled#40;args#41; -- args.ontology_context===true or CONSULT_ONTOLOGY_AUGMENT=1
-        Base->>Onto: ask#40;{query, model_tier:'sonnet', mode:'expand', max_tokens:1500}#41;
+    Base->>Base: validate question non-empty (consultant-base.js:276)
+    opt ontologyAugmentEnabled(args) -- args.ontology_context===true or CONSULT_ONTOLOGY_AUGMENT=1
+        Base->>Onto: ask({query, model_tier:'sonnet', mode:'expand', max_tokens:1500})
         alt ontology call throws
-            Onto-->>Base: fail-open -- proceed ungrounded #40;consultant-base.js:298 catch#41;
+            Onto-->>Base: fail-open -- proceed ungrounded (consultant-base.js:298 catch)
         else turtle returned
             Onto-->>Base: {turtle, seed_iris, tokens_used, degraded}
             Base->>Base: prepend Turtle to context_excerpt, coordinator's excerpt preserved whole
         end
     end
-    Base->>Spawn: this.callConsult#40;{question, context_excerpt, format}#41; under<br/>_withTimeout#40;timeout_ms#41;
-    Spawn->>CLI: spawn#40;cmd, args, env: scrubbed + PASSTHROUGH_ENV TLS/proxy vars#41;<br/>spawn-cli.js:47,51
+    Base->>Spawn: this.callConsult({question, context_excerpt, format}) under<br/>_withTimeout(timeout_ms)
+    Spawn->>CLI: spawn(cmd, args, env: scrubbed + PASSTHROUGH_ENV TLS/proxy vars)<br/>spawn-cli.js:47,51
     alt exit code non-zero or SIGKILL on timeout
         CLI-->>Spawn: {code!=0, killed, stderr}
-        Spawn-->>Base: throws -- memlog.log#40;{ok:false, error}#41;, rethrow
+        Spawn-->>Base: throws -- memlog.log({ok:false, error}), rethrow
     else success
         CLI-->>Spawn: {stdout, code:0}
         Spawn-->>Base: {response, model, tokens, cost_usd, citations}
     end
-    Base->>Base: mint consultation_urn via uris.mint#40;kind:'activity', payload:{consultant,question}#41;<br/>#40;ADR-013 URN grammar#41;
+    Base->>Base: mint consultation_urn via uris.mint(kind:'activity', payload:{consultant,question})<br/>(ADR-013 URN grammar)
     opt args.producer_family set -- REC-8 anti-fox closure verification
-        Base->>Div: verificationRecord#40;{producerFamily, verifier:this.name, task:'closure-verification'}#41;
+        Base->>Div: verificationRecord({producerFamily, verifier:this.name, task:'closure-verification'})
         Div-->>Base: {producer_family, verifier_family, anti_fox_ok}
         alt anti_fox_ok===false
-            Base->>Base: logger.error -- same-family self-verification WARNING #40;:360-364#41;
+            Base->>Base: logger.error -- same-family self-verification WARNING (:360-364)
         end
     end
-    Base->>Log: memlog.log#40;{ok:true, question, model, tokens, cost_usd, latency_ms, verification}#41;
+    Base->>Log: memlog.log({ok:true, question, model, tokens, cost_usd, latency_ms, verification})
     opt AGENTBOX_INTELLIGENCE_DIR set and response_len is number
-        Log->>Log: _writeIntelligenceSignal -- ADR-043 QualitySignal JSON #40;memory-logger.js:87-113#41;
+        Log->>Log: _writeIntelligenceSignal -- ADR-043 QualitySignal JSON (memory-logger.js:87-113)
     end
-    Base->>API: POST /v1/agent-events/emit #40;Bearer MANAGEMENT_API_KEY, else TASK_ACTION_TOKEN#41; -- fire-and-forget, best-effort<br/>#40;consultant-base.js:13-14, consultant-base.js:46-50#41;
+    Base->>API: POST /v1/agent-events/emit (Bearer MANAGEMENT_API_KEY, else TASK_ACTION_TOKEN) -- fire-and-forget, best-effort<br/>(consultant-base.js:13-14, consultant-base.js:46-50)
     Base-->>Caller: envelope {ok, response, model, tokens, cost_usd, citations, consultation_urn, verification}
 ```
 
@@ -703,7 +703,7 @@ flowchart TD
     ENTRY["entrypoint-unified.sh boot reconcile<br/>AGENTBOX_MODEL_ROUTER_* exported,<br/>scoped to the router session process only<br/>entrypoint-unified.sh:2299-2315"]
     WRAP["config/harness-wrappers/router.sh<br/>exec'd by the agentbox-sessions router seed --<br/>asserts privacy_tier=public, hard-fails loudly"]
     CONSOLE["config/model-router/console.mjs<br/>embeds offline, asks metaharness router<br/>inside the baked ruflo closure, executes<br/>through OpenRouter"]
-    CLI["agentbox.sh model-router<br/>fetch #124; check #124; status #124; route #124; console<br/>agentbox.sh:2396"]
+    CLI["agentbox.sh model-router<br/>fetch, check, status, route or console<br/>agentbox.sh:2396"]
     CATCHECK["scripts/ci/check-manifest-catalogue.js<br/>BASELINE: model_routing.neural.trajectory<br/>sub-option of the catalogued gate"]
 
     T -->|"apply_class rebuild"| NIX

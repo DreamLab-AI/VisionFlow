@@ -14,6 +14,10 @@ sources:
   - ../project/agentbox/scripts/ci/check-seccomp.sh
   - ../project/agentbox/config/hooks/trust-seed.cjs
   - ../project/agentbox/config/hooks/nostr-live-mirror.cjs
+  - ../project/agentbox/config/hooks/lib/egress-policy.cjs
+  - ../project/agentbox/services/nostr-pod-bridge/src/egress_policy.rs
+  - ../project/agentbox/services/nostr-pod-bridge/src/session_summary.rs
+  - ../project/agentbox/docs/adr/ADR-2026-session-mirror-egress-boundary.md
   - ../project/agentbox/config/nostr-gateway/gateway.cjs
   - ../project/agentbox/config/nip98-proxy/proxy.mjs
   - ../project/agentbox/management-api/lib/agent-identity.js
@@ -45,7 +49,7 @@ sources:
   - ../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md
   - ../project/agentbox/tests/runtime-contract/RC-X1-06.sh
   - ../project/agentbox/docs/adr/ADR-2101-federation-topology-and-key-separation.md
-verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
+verified_commit: {agentbox: 3f66d51ff7614db0e6fac23f6d3d4350bccd4bd4, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## AB-16.1 Container hardening posture — what actually confines the box
@@ -435,6 +439,7 @@ sequenceDiagram
 ```
 
 ## AB-16.11 Egress profiles — mirror versus digest have different contracts
+> **Superseded** by AB-16.15 at 3f66d51 (frozen at 59b1aca).
 
 ```mermaid
 flowchart TB
@@ -557,3 +562,38 @@ flowchart TB
 **Drift (resolved 2026-10-03, secrets inventory vs the sealed chain):** this topic used to omit two files in the `agentbox-secrets` volume — the sidestr signer key at mode 0400, which ADR-2101 D3 requires be neither in `identity.env` nor derived from the identity key, and the parent node's testnet4 RPC cookie. The role table now names both as deliveries to the producer uid (`../project/agentbox/config/role-accounts.json:67-68`, `../project/agentbox/config/role-accounts.json:86-87`) and AB-16.13 draws them. Both are still read by path rather than passed as arguments (see AB-32.4, AB-32.3, AB-34.1).
 
 **Tension (custody boundary vs the faucet key):** since the sidechain faucet became a supervised program (2026-09-30), its treasury signing key is read from the workspace bind, not the `agentbox-secrets` volume — the manifest points at `/home/devuser/workspace/sidestr/agents/treasury.key` (`../project/agentbox/agentbox.toml:2035`), which is also the schema's default when the key is empty — so a spend-capable key sits on a host-visible bind, outside the `agentbox-secrets` volume this topic's custody model inventories. Narrowed again at `8f55d9a43`: the role table now sources the treasury key from the volume copy and names the workspace file only as its legacy twin (`../project/agentbox/config/role-accounts.json:79`), so under the flag the faucet uid reads a role-owned copy; but the migrate step copies the legacy file once and never deletes it (`../project/agentbox/docs/adr/ADR-2122-role-service-accounts-run-secrets-and-the-identity-port.md:318-321`), and with the flag off the manifest still points the faucet at the bind.
+
+## AB-16.15 Egress profiles — one policy contract, redaction before the wrap or the provider request
+
+```mermaid
+flowchart TB
+    S["session content"]
+    S --> M["nostr-live-mirror.cjs per-turn hook"]
+    S --> D["session_summary.rs SessionEnd digest, kind 30840"]
+    M --> MP["egressDecision live-mirror<br/>nostr-live-mirror.cjs:410"]
+    MP --> MS["refuses on global AGENTBOX_EGRESS=0, per-path AGENTBOX_LIVE_MIRROR=0,<br/>AGENTBOX_EGRESS_REDACTION=0 or no identity<br/>egress-policy.cjs:145-158"]
+    MP --> MA["recipient allowlist AGENTBOX_MIRROR_RECIPIENTS must be set and hex<br/>else skipped recipient-allowlist-missing-or-invalid<br/>nostr-live-mirror.cjs:412-416, egress-policy.cjs:46-53"]
+    MA --> MR["recipient resolved, checked again against the allowlist<br/>nostr-live-mirror.cjs:433-440"]
+    MR --> MX["redactForEgress on the composed body, a null result is a skip<br/>nothing sent<br/>nostr-live-mirror.cjs:456-461, egress-policy.cjs:118-127"]
+    MX --> MW["NIP-59 gift-wrap to the derived child identity, see AB-16.5 and AB-13.9"]
+    MW --> MC["cloud worker relay, the only non-LAN destination in this domain<br/>wss://dreamlab-nostr-relay.solitary-paper-764d.workers.dev"]
+    D --> DD["egress_decision<br/>egress_policy.rs:77, session_summary.rs:401"]
+    DD --> DS["same global AGENTBOX_EGRESS switch, own AGENTBOX_SESSION_DIGEST switch,<br/>refuses when redaction is disabled<br/>egress_policy.rs:80-102"]
+    DS --> DX["redact_for_egress on the transcript before the provider request is built<br/>session_summary.rs:363, egress_policy.rs:428"]
+    DX --> DP["flattened redacted input to the summarisation provider,<br/>then a separately signed public digest"]
+    MX -.-> FX["both redactors satisfy one fixture<br/>tests/fixtures/egress-redaction.v1.json<br/>egress_policy.rs:444-449"]
+    DX -.-> FX
+    MC -.-> OPEN["OPEN ADR-2026 decision_status proposed, implementation partial, activation inactive<br/>ADR-2026-session-mirror-egress-boundary.md:5-7 - live delivery and remote retention unverified"]
+    DP -.-> OPEN
+    OPEN -.-> DRIFT["DRIFT SECURITY-profiles.md:11 still says the live hook composes unredacted text before wrapping,<br/>which nostr-live-mirror.cjs:456-461 contradicts"]
+```
+
+**What it shows.** At agentbox 3f66d51ff both egress paths read one decision table and redact the exact bytes they are about to send: the mirror before composing and wrapping (`nostr-live-mirror.cjs:456-461`), the digest before it builds the provider request (`session_summary.rs:363`). There is no configuration that sends unredacted text, because disabling the redactor disables the path (`egress-policy.cjs:154-156`). The paths still differ in what they enforce on recipients: the mirror requires an enumerated recipient allowlist, while the digest is published as public kind 30840.
+
+**Why it is this way.** ADR-2026 asked for a governed boundary with default-redact content scope, a fail-closed off switch and a recipient allowlist. The 2026-09-05 closeout implemented it twice and tied the copies to one fixture, which AB-13.9 and AB-13.17 draw in sequence form. AB-16.11 recorded the state before that closeout.
+
+**Invariant:** redaction runs before any transport on both paths, and a redaction failure is a skip with nothing sent (`nostr-live-mirror.cjs:457-460`).
+
+**Open:** ADR-2026 keeps `decision_status: proposed`, `implementation_status: partial` and `activation_status: inactive` (`ADR-2026-session-mirror-egress-boundary.md:5-7`), because deployed configuration, live delivery and remote retention were not exercised.
+
+**Drift:** `SECURITY-profiles.md:11` still carries the pre-closeout sentence that the live hook composes unredacted text, while the same file records redaction before egress at `SECURITY-profiles.md:69`.

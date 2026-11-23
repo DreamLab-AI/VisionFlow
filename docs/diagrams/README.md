@@ -67,6 +67,8 @@ governing: [../project/docs/IDENTITY-authority-chain.md]
 adrs: [ADR-2009, ADR-2011]
 sources: [../project/src/main.rs, ../project/src/middleware/rbac_gate.rs]   # relative to VisionFlow root, must exist
 verified_commit: b00c28a0d     # one sha, or {visionclaw: …, agentbox: …} for a topic whose sources span repos
+aliases:                       # optional: old panel ID → the panel that now holds it (see Repair convention)
+  VC-02.17: VC-03.4
 ---
 ## VC-03.1 GET /api/graph/data — read path
 ```mermaid
@@ -94,8 +96,9 @@ uncommitted edits cannot flag a correct anchor; it falls back to the working tre
 
 Every mermaid block sits under an `## <file-id>.<n> <title>` heading; ids are unique tree-wide; at most
 three prose lines per diagram. Notes use the prefixes `INVARIANT:`, `DIVERGENCE:` (governing-doc open
-item), `DOC-DRIFT:` (doc says X, code does Y), `EXTERNAL:` (asserted by this repo about another repo), `RESOLVED:` (a register item closed, with the
-revision that closed it), `see XX-NN.n` (cross-reference).
+item), `DOC-DRIFT:` (doc says X, code does Y), `EXTERNAL:` (asserted by this repo about another repo),
+`see XX-NN.n` (cross-reference). `RESOLVED:` is retired for new work: a closed item gets a successor panel, not an in-place
+marker (see Repair convention).
 
 ## Tooling
 
@@ -105,8 +108,57 @@ node scripts/diagram-index-gen.cjs docs/diagrams --check --render     # + render
 node scripts/diagram-index-gen.cjs docs/diagrams --check --cite-check # + resolve every path:line citation
 node scripts/diagram-index-gen.cjs docs/diagrams --check --strict-citations   # the gate: refuse anything unverified
 node scripts/diagram-index-gen.cjs docs/diagrams                      # regenerate the index below + COVERAGE.md
+node scripts/diagram-index-gen.cjs docs/diagrams --check --report out.json   # + JSON report: size warnings, aliases, frozen panels, ratchet
+node scripts/diagram-index-gen.cjs docs/diagrams --check --update-resolved-baseline   # prune resolved-ratchet.json (never adds)
 node scripts/diagram-register-gen.cjs [--check]                      # regenerate REGISTER-visionclaw.md from visionclaw/*.md markers (--check: fail if stale)
 ```
+
+### Repair convention
+
+When a defect a panel records is fixed, **do not edit the panel to say so**. In-place `RESOLVED` retrofits are banned
+for new work. Freeze the old panel and describe the current behaviour in a successor.
+
+- **Freeze.** The old panel keeps its heading and body. Add one line directly under the heading (first non-blank
+  line, exact text, sha 7 to 12 lowercase hex):
+
+  ```
+  > **Superseded** by VC-03.4 at b00c28a.
+  ```
+
+  The target must be an existing panel ID or a resolvable alias. A frozen panel may not itself contain `RESOLVED`.
+  The banner is not counted in the three-prose-lines-per-diagram cap.
+- **Frozen citations.** `at` is the successor's revision. Once the topic is re-stamped, the frozen panel's
+  `path:line` anchors no longer hold at `verified_commit`, so a frozen panel should also record the revision it
+  was verified at:
+
+  ```
+  > **Superseded** by AB-16.15 at 3f66d51 (frozen at 59b1aca).
+  ```
+
+  `--cite-check` and `--strict-citations` then read that panel's citations at `59b1aca`, in the topic's own
+  repository (other repositories in a `{repo: sha}` map keep the topic's sha), so the panel stays verifiable. Without
+  `(frozen at ...)` the panel is checked at the topic's `verified_commit`, like any other. Never edit a frozen
+  panel's anchors to chase a newer revision; add `(frozen at ...)` instead.
+- **Ratchet.** Any panel containing the word `RESOLVED` (case-sensitive: heading, prose, node labels, Notes) fails
+  the gate unless it is listed in [`resolved-ratchet.json`](resolved-ratchet.json), generated from the corpus as it
+  stood when the convention began. The list may only shrink: an entry whose panel is gone, frozen or no longer
+  contains `RESOLVED` fails as stale, so prune it with `--update-resolved-baseline` (which can remove entries but
+  never add one). Do not add to it by hand; write a successor.
+- **Splitting a large topic.** Move panels to the new topic and map each old ID in the new topic's frontmatter:
+
+  ```
+  aliases:
+    AB-02.17: AB-44.3
+  ```
+
+  (inline `aliases: {AB-02.17: AB-44.3}` also parses). The generator fails if the target does not exist, if the old
+  ID is still a live panel, if an alias chains (point it straight at the live panel) or loops, or if two topics
+  alias the same old ID. Aliases are followed by banners, `see XX-NN.n` references, panel links
+  (`file.md#anchor`), the registers and the review ledger. An unresolvable `see` reference or panel link fails;
+  an unresolvable bare mention only warns.
+- **Size.** A topic over 600 lines or 15 panels draws a warning (console and `--report`), never a failure.
+- **Indexes.** `COVERAGE.md` and the README index mark each frozen panel with a link to its successor and list
+  every alias, so an old link can be followed.
 
 ### Where the citation gate runs
 
@@ -195,7 +247,7 @@ sidecar. Hero images regenerate with `hero/src/batch-generate.sh` (Nano Banana P
 ## Diagram index
 
 <!-- BEGIN GENERATED DIAGRAM INDEX -->
-_310 topic files, 2262 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
+_310 topic files, 2268 diagrams. Regenerate with_ `node scripts/diagram-index-gen.cjs docs/diagrams`.
 
 ### visionflow
 
@@ -294,7 +346,7 @@ _310 topic files, 2262 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | AB-13 | [Nostr — relay, gateway, pod bridge, session mirror](agentbox/13-nostr-relay-gateway-bridge-mirror.md) | 16 | flowchart, sequenceDiagram, classDiagram, stateDiagram-v2 | [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md), [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md), [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md) | ADR-2012, ADR-2025, ADR-2026, ADR-2061, ADR-2085, ADR-2105 |
 | AB-14 | [Governance — journal, action pipeline, approvals](agentbox/14-governance-journal-actions-approvals.md) | 15 | flowchart, stateDiagram-v2, sequenceDiagram | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md), [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md) | ADR-2022, ADR-2027, ADR-2041, ADR-2071, ADR-2085, ADR-2087, ADR-2108, ADR-2122 |
 | AB-15 | [Capability gating, spend caps and consultants](agentbox/15-capability-gating-spend-consultants.md) | 15 | flowchart, sequenceDiagram, stateDiagram-v2 | [GOVERNANCE-capabilities.md](../../../project/agentbox/docs/GOVERNANCE-capabilities.md), [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md) | ADR-2020, ADR-2031, ADR-2033, ADR-2080, ADR-2153 |
-| AB-16 | [Secrets custody, seccomp and runtime profiles](agentbox/16-secrets-custody-seccomp-profiles.md) | 14 | flowchart, classDiagram, sequenceDiagram, stateDiagram-v2 | [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md) | ADR-2007, ADR-2026, ADR-2027, ADR-2033, ADR-2046, ADR-2122 |
+| AB-16 | [Secrets custody, seccomp and runtime profiles](agentbox/16-secrets-custody-seccomp-profiles.md) | 15 | flowchart, classDiagram, sequenceDiagram, stateDiagram-v2 | [SECURITY-profiles.md](../../../project/agentbox/docs/SECURITY-profiles.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md) | ADR-2007, ADR-2026, ADR-2027, ADR-2033, ADR-2046, ADR-2122 |
 | AB-17 | [Agent events and the BC20 provenance bridge](agentbox/17-agent-events-and-provenance-bridge.md) | 8 | classDiagram, sequenceDiagram | [PROTOCOL-registry.md](../../../project/agentbox/docs/PROTOCOL-registry.md), [INGRESS-identity.md](../../../project/agentbox/docs/INGRESS-identity.md) | ADR-2011, ADR-2022, ADR-2025, ADR-2061, ADR-2085 |
 | AB-20 | [RuVector memory path — every MCP memory tool end to end](agentbox/20-ruvector-memory-path.md) | 13 | sequenceDiagram, flowchart, stateDiagram-v2, erDiagram | [LEARNING-memory.md](../../../project/agentbox/docs/LEARNING-memory.md) | ADR-2014, ADR-2018, ADR-2019, ADR-2051, ADR-2082 |
 | AB-21 | [Learning loop — capture, judge, distil, consume](agentbox/21-learning-loop.md) | 10 | sequenceDiagram, classDiagram, stateDiagram-v2, flowchart | [LEARNING-memory.md](../../../project/agentbox/docs/LEARNING-memory.md) | ADR-2015, ADR-2016, ADR-2017, ADR-2018, ADR-2051, ADR-2052, ADR-2164 |
@@ -362,12 +414,12 @@ _310 topic files, 2262 diagrams. Regenerate with_ `node scripts/diagram-index-ge
 | NF-15 | [Two-chain wallets — identity, freshness and delivery](nostr-rust-forum/15-multichain-wallet-receipts.md) | 6 | flowchart | [ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md](../../../nostr-rust-forum/docs/adr/ADR-2021-two-pinned-sidestr-chains-dreamlab-and-dreamlab-txbt4.md) | ADR-2021 |
 | NF-16 | [Wallet foundations — custody, attribution and parent balances](nostr-rust-forum/16-wallet-foundations-and-parent-balances.md) | 6 | flowchart | [ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md](../../../nostr-rust-forum/docs/adr/ADR-2015-member-wallets-on-sidestr-dreamlab-and-dream-tips.md), [ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md](../../../nostr-rust-forum/docs/adr/ADR-2019-member-wallet-shows-blake2b-testnet4-coins-read-only.md) | ADR-2015, ADR-2019 |
 | NF-17 | [Relay read caches — authority, cost and activity persistence](nostr-rust-forum/17-relay-read-cache-and-activity-boundaries.md) | 6 | flowchart | [ADR-2018-relay-read-caches-and-activity-throttle.md](../../../nostr-rust-forum/docs/adr/ADR-2018-relay-read-caches-and-activity-throttle.md) | ADR-2018 |
-| NF-18 | [Web Push — registration, wake-up ordering and display receipts](nostr-rust-forum/18-web-push-delivery-and-account-boundaries.md) | 6 | flowchart | [ADR-2023-content-free-web-push-for-pwa-alerts.md](../../../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md) | ADR-2023 |
+| NF-18 | [Web Push — registration, wake-up ordering and display receipts](nostr-rust-forum/18-web-push-delivery-and-account-boundaries.md) | 9 | flowchart | [ADR-2023-content-free-web-push-for-pwa-alerts.md](../../../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md) | ADR-2023 |
 | NF-19 | [BBS signer — adoption, account lifetime and key custody](nostr-rust-forum/19-bbs-signer-adoption-and-custody.md) | 6 | flowchart | [ADR-2008-bbs-signer-holds-key-directly.md](../../../nostr-rust-forum/docs/adr/ADR-2008-bbs-signer-holds-key-directly.md) | ADR-2008 |
 | NF-20 | [Device keys — producer contracts, authority and revocation](nostr-rust-forum/20-device-keys-contracts-and-revocation.md) | 6 | flowchart | [ADR-2004-device-keys-default-off-dual-worker-gate.md](../../../nostr-rust-forum/docs/adr/ADR-2004-device-keys-default-off-dual-worker-gate.md) | ADR-2004 |
 | NF-21 | [Subkey parity, consumer identity and rotation boundaries](nostr-rust-forum/21-subkey-parity-and-identity-lifecycle.md) | 4 | flowchart | [ADR-2003-derive-subkey-raw-hmac-js-parity.md](../../../nostr-rust-forum/docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md) | ADR-2003, ADR-094, ADR-100 |
 | NF-22 | [Recovery export, phone import and device attribution boundaries](nostr-rust-forum/22-recovery-sheet-and-phone-import.md) | 6 | flowchart | [ADR-095-recovery-device-onboarding-sheet.md](../../../nostr-rust-forum/docs/archive/adr/ADR-095-recovery-device-onboarding-sheet.md), [ADR-098-connect-magic-link-onboarding.md](../../../nostr-rust-forum/docs/archive/adr/ADR-098-connect-magic-link-onboarding.md), [ADR-099-revocable-device-keys.md](../../../nostr-rust-forum/docs/archive/adr/ADR-099-revocable-device-keys.md) | ADR-095, ADR-098, ADR-099, ADR-2004 |
-| NF-23 | [Passkey client-worker contracts, PRF inputs and validation limits](nostr-rust-forum/23-passkey-client-worker-contracts.md) | 6 | flowchart | [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md), [ADR-2003-derive-subkey-raw-hmac-js-parity.md](../../../nostr-rust-forum/docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md) | ADR-2003 |
+| NF-23 | [Passkey client-worker contracts, PRF inputs and validation limits](nostr-rust-forum/23-passkey-client-worker-contracts.md) | 8 | flowchart | [IDENTITY-keys-and-trust.md](../../../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md), [ADR-2003-derive-subkey-raw-hmac-js-parity.md](../../../nostr-rust-forum/docs/adr/ADR-2003-derive-subkey-raw-hmac-js-parity.md) | ADR-2003 |
 | NF-24 | [Trust transitions, sweep fairness and audit consistency](nostr-rust-forum/24-trust-transition-and-sweep-contracts.md) | 4 | flowchart, sequenceDiagram | [ADR-2006-trust-demotion-cron-tl3-never.md](../../../nostr-rust-forum/docs/adr/ADR-2006-trust-demotion-cron-tl3-never.md), [ADR-102-trust-demotion-inactivity-sweep.md](../../../nostr-rust-forum/docs/archive/adr/ADR-102-trust-demotion-inactivity-sweep.md) | ADR-2006 |
 | NF-25 | [Membership lifecycle, cohort grants and admin consistency](nostr-rust-forum/25-membership-lifecycle-and-admin-consistency.md) | 8 | flowchart, sequenceDiagram | [ADR-2014-member-lifecycle-one-source-of-truth.md](../../../nostr-rust-forum/docs/adr/ADR-2014-member-lifecycle-one-source-of-truth.md) | ADR-2014, ADR-2016, ADR-2033 |
 | NF-26 | [Sealed history migration and reader contracts](nostr-rust-forum/26-sealed-history-migration-and-reader-contracts.md) | 8 | flowchart, sequenceDiagram | [ADR-2017-sealed-original-history-migration.md](../../../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md) | ADR-2017 |

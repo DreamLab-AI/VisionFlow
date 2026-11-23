@@ -40,7 +40,7 @@ sources:
   - ../project/agentbox/config/session-plane/client.cjs
   - ../project/agentbox/config/custody/session-plane-acl.json
   - ../project/agentbox/services/agentbox-sessions/src/api.rs
-verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
+verified_commit: 3f66d51ff7614db0e6fac23f6d3d4350bccd4bd4
 ---
 
 ## AB-13.1 Nostr topology — relay, gateway, pod bridge, mirror, mesh
@@ -424,7 +424,7 @@ Note over BOOT,GDW: CORRECTION — despite the path mcp/servers/nostr-bridge.js,
     end
     NB-->>RC: onInbound(event, relayUrl) relay-consumer.js:271,553
     RC->>RC: _verifySig(event) I01 relay-consumer.js:555,750
-    Note over RC: RESOLVED at this revision: _verifySig requires verifyEvent(event) === true and any<br/>load or verifier error returns false, so a string-shaped id/sig no longer passes I01<br/>(relay-consumer.js:750-763). The repair is described in AB-40.1.
+    Note over RC: INVARIANT: _verifySig requires verifyEvent(event) === true and any<br/>load or verifier error returns false, so a string-shaped id/sig does not pass I01<br/>(relay-consumer.js:750-763). The rejection path is described in AB-40.1.
     RC->>RC: _passesIngressPolicy(event) I07 relay-consumer.js:562, definition :765, an empty allowlist refuses every author :775
     RC->>RC: _findRecipientNpub(event) I10 relay-consumer.js:568
     alt kind in 38000-38099 (agent-intent) and intentSpec present
@@ -436,7 +436,7 @@ RC->>GDW: governanceDecisionSink.notify(...) server.js:1466,<br/>relay-consumer.
 Note over NB,CONN: subscription keepalive — a Cloudflare Durable-Object relay stops<br/>PUSHING to an idle subscription ~20s after its last REQ regardless of socket<br/>liveness, and only begins pushing again for a FRESH subId (reusing a known id on<br/>reconnect+re-AUTH is why junkiejarvis went deaf, mcp/servers/nostr-bridge.js:306-311).<br/>Every subRefreshMs tick re-issues every active subscription under a fresh wire id.<br/>the default is now 3600000 (AGENTBOX_BRIDGE_SUB_REFRESH_MS) because each tick<br/>replays the full filter history from the relay's D1 and 15s cost ~1.5M rows per day<br/>(nostr-bridge.js:319-344)
 ```
 
-**Tension (JS consumer allowlist):** RESOLVED at agentbox 2c1f857 — with `ingressPolicy = allowlist` an empty allowlist now admits nobody in the JS consumer (`mcp/nostr-bridge/relay-consumer.js:771-776`), matching the Rust boundary's deny-all (`services/nostr-pod-bridge/src/admission.rs:35-45`), and the constructor warns once when it starts with an empty list (`mcp/nostr-bridge/relay-consumer.js:161-167`). The flake now projects the same baked `relayAllowedPubkeysCsv` into the management-api program as `AGENTBOX_RELAY_ALLOWED_PUBKEYS` (`flake.nix:2896`), which the consumer reads (`management-api/server.js:1453`), so both consumers admit the same roster. Fanout is unchanged: the shipped manifest sets `external_fanout = "bidirectional"` (`agentbox.toml:174`), projected as `AGENTBOX_RELAY_FANOUT` (`flake.nix:4758`), and any value other than `off` adds the public relays in `NOSTR_RELAYS` (image default `wss://relay.damus.io,wss://relay.primal.net`, `flake.nix:4564`) to the subscription (`mcp/nostr-bridge/relay-consumer.js:254-262`); an event from those relays still has to come from a listed author to pass I07. The authority gate keeps its own responder allowlist for 31403 decisions (`management-api/lib/authority-consumer.js:265-272`).
+**Invariant (JS consumer allowlist):** with `ingressPolicy = allowlist` an empty allowlist admits nobody in the JS consumer (`mcp/nostr-bridge/relay-consumer.js:771-776`), matching the Rust boundary's deny-all (`services/nostr-pod-bridge/src/admission.rs:35-45`), and the constructor warns once when it starts with an empty list (`mcp/nostr-bridge/relay-consumer.js:161-167`). The flake now projects the same baked `relayAllowedPubkeysCsv` into the management-api program as `AGENTBOX_RELAY_ALLOWED_PUBKEYS` (`flake.nix:2896`), which the consumer reads (`management-api/server.js:1453`), so both consumers admit the same roster. Fanout is unchanged: the shipped manifest sets `external_fanout = "bidirectional"` (`agentbox.toml:174`), projected as `AGENTBOX_RELAY_FANOUT` (`flake.nix:4758`), and any value other than `off` adds the public relays in `NOSTR_RELAYS` (image default `wss://relay.damus.io,wss://relay.primal.net`, `flake.nix:4564`) to the subscription (`mcp/nostr-bridge/relay-consumer.js:254-262`); an event from those relays still has to come from a listed author to pass I07. The authority gate keeps its own responder allowlist for 31403 decisions (`management-api/lib/authority-consumer.js:265-272`).
 
 ## AB-13.8 Control gateway — operator command to handler mapping
 

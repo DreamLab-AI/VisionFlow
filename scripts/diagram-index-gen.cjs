@@ -39,7 +39,14 @@
  *               fails the run and is reported as file:block-id with the Mermaid
  *               line, and any render wider than 4500px fails as illegible.
  *   --jobs N    accepted for compatibility; Pele renders synchronously.
- *   --only S    restrict to files whose relative path contains S.
+ *   --only S    restrict to files whose relative path contains S. Alias and banner
+ *               targets are still resolved against the whole tree; the ratchet
+ *               staleness check is skipped (it needs the whole tree).
+ *   --report P  write a JSON report (totals, size warnings, aliases, frozen panels,
+ *               RESOLVED ratchet status, cross-reference resolution) to path P.
+ *   --update-resolved-baseline  prune <dir>/resolved-ratchet.json: it creates the
+ *               file from the corpus when absent, otherwise it only REMOVES entries
+ *               that are stale. It can never add one.
  *   --no-source-paths  skip the sources:/governing: existence checks (hosted CI has no
  *               sibling checkouts); --cite-check is meaningless with it.
  *
@@ -67,12 +74,24 @@
  *
  * Every mermaid block must sit under an H2 whose first token is `<file-id>.<n>`;
  * that token is the diagram id and must be unique across the tree.
+ *
+ * Repair convention and aliases (scripts/lib/diagram-convention.cjs; the human
+ * statement is docs/diagrams/README.md § Repair convention):
+ *   - a frozen panel carries, as the first non-blank line under its heading,
+ *       > **Superseded** by <PANEL-ID> at <short-sha>.
+ *   - a panel containing the word RESOLVED fails unless listed in
+ *     <dir>/resolved-ratchet.json (shrink-only); a frozen panel may not carry it.
+ *   - topic frontmatter `aliases:` maps an old panel ID to its new one:
+ *       aliases:
+ *         AB-02.17: AB-44.3
+ *   - a topic over 600 lines or 15 panels draws a warning (never a failure).
  * The generated README.md diagram table and COVERAGE.md are build artefacts.
  */
 
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const conv = require('./lib/diagram-convention.cjs');
 
 const AREAS = new Set(['visionflow', 'visionclaw', 'agentbox', 'solid-pod-rs', 'nostr-rust-forum', 'dreamlab-ai-website', 'vowl-wasm', 'knowledgegraph', 'visiongraph', 'sidestr-rs', 'ontomark', 'dream-engine', 'visiontouch-rs', 'sealmap', 'codescape', 'visioncraft', 'prose-sanitiser', 'diagram-ir', 'loom', 'ontomark-obsidian', 'vitrine-object-sidecar', 'thg-world-record-attempt', 'wasmvowl', 'estate']);
 // Areas imported from a repository's own narrative corpus (the diagrams-as-code
@@ -90,7 +109,7 @@ const REQUIRED = ['id', 'title', 'area', 'governing', 'adrs', 'sources', 'verifi
 
 function usage(msg) {
   if (msg) console.error(msg);
-  console.error('Usage: node scripts/diagram-index-gen.cjs <dir> [--check] [--render] [--cite-check] [--strict-citations] [--worktree-citations] [--check-verification] [--no-source-paths] [--jobs N] [--only S] [--jev[=diagram]] [--jev-report PATH] [--jev-max N]');
+  console.error('Usage: node scripts/diagram-index-gen.cjs <dir> [--check] [--render] [--cite-check] [--strict-citations] [--worktree-citations] [--check-verification] [--no-source-paths] [--jobs N] [--only S] [--jev[=diagram]] [--jev-report PATH] [--jev-max N] [--report PATH] [--update-resolved-baseline]');
   process.exit(2);
 }
 
@@ -112,9 +131,13 @@ for (let i = 1; i < argv.length; i++) {
   else if (a === '--jev' || a.startsWith('--jev=')) flags.jev = a === '--jev' ? true : a.slice(6); // opt-in advisory review, see docs/jev-option.md
   else if (a === '--jev-report') flags.jevReport = argv[++i];
   else if (a === '--jev-max') flags.jevMax = parseInt(argv[++i], 10) || 5;
+  else if (a === '--report') flags.report = argv[++i];
+  else if (a === '--update-resolved-baseline') flags.updateBaseline = true;
   else usage(`unknown flag ${a}`);
 }
 if (flags.strictCitations && flags.noSourcePaths) usage('--strict-citations requires source paths; do not combine with --no-source-paths');
+if (flags.report !== undefined && !String(flags.report || '').trim()) usage('--report needs a path');
+if (flags.updateBaseline && flags.only) usage('--update-resolved-baseline judges the whole tree; do not combine with --only');
 if (flags.checkVerification && flags.only) usage('--check-verification judges the whole tree; do not combine with --only');
 if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) usage(`not a directory: ${root}`);
 const repoRoot = path.resolve(root, '..', '..');
@@ -166,6 +189,8 @@ function parseFrontmatter(text, file, errors) {
     } else if (/^\s*-\s+/.test(raw) && key) {
       if (!Array.isArray(fm[key])) fm[key] = [];
       fm[key].push(parseScalar(raw.replace(/^\s*-\s+/, '')));
+    } else if (key === 'aliases' && /^\s+\S/.test(raw) && conv.addAliasLine(fm, raw)) {
+      // an indented `OLD: NEW` pair under `aliases:`
     } else {
       errors.push(`${file}: unparseable frontmatter line: ${raw}`);
     }
@@ -207,6 +232,7 @@ function parseTopic(file, errors) {
   const { fm, body } = parsed;
   for (const k of REQUIRED) if (!(k in fm)) errors.push(`${rel}: missing frontmatter field '${k}'`);
   for (const k of ['governing', 'adrs', 'sources']) if (k in fm && !Array.isArray(fm[k])) fm[k] = [fm[k]];
+  fm.aliases = conv.normaliseAliases(fm.aliases, rel, errors);
   if (fm.area && !AREAS.has(fm.area)) errors.push(`${rel}: area '${fm.area}' not in ${[...AREAS].join('|')}`);
   const areaDir = rel.split(path.sep)[0];
   if (fm.area && areaDir !== fm.area) errors.push(`${rel}: area '${fm.area}' does not match directory '${areaDir}'`);
@@ -303,8 +329,15 @@ function parseTopic(file, errors) {
   closeUnit();
   if (inFence) errors.push(`${rel}: unterminated code fence`);
   if (diagrams.length === 0) errors.push(`${rel}: no mermaid diagrams`);
+  // The Superseded banner is convention, not prose: freezing a panel must not trip the cap.
+  const bodyStart = text.slice(0, text.length - body.length).split('\n').length;
+  const pan = conv.extractPanels(body, fm.id, bodyStart);
+  for (const pr of pan.problems) errors.push(`${rel}:${pr}`);
+  for (const d of diagrams) { const pp = pan.panels.find((x) => x.id === d.id); if (pp && pp.banner && pp.banner.frozenAt) d.frozenAt = pp.banner.frozenAt; }
+  proseLines -= pan.panels.filter((p) => p.banner).length;
   if (!narrative && proseLines > diagrams.length * 3) errors.push(`${rel}: ${proseLines} prose lines for ${diagrams.length} diagrams — this tree is diagrams-only (max 3 lines per diagram; narrative areas: ${[...NARRATIVE_AREAS].join(', ')})`);
-  return { file, rel, fm, diagrams, prose };
+  const lineCount = text.split('\n').length - (text.endsWith('\n') ? 1 : 0);
+  return { file, rel, fm, diagrams, prose, panels: pan.panels, headings: pan.headings, lineCount, body };
 }
 
 // ---------------------------------------------------------------- citation check
@@ -357,6 +390,7 @@ function repoOf(p) {
   return null;
 }
 function shaFor(t, repoKey) {
+  if (FROZEN_SHA && AREA_REPO[t.fm.area] === repoKey) return FROZEN_SHA;
   const v = t.fm.verified_commit;
   if (!v) return null;
   if (typeof v === 'string' && v.trim().startsWith('{')) {
@@ -371,6 +405,10 @@ function shaFor(t, repoKey) {
 }
 const revCache = new Map();
 let CURRENT_TOPIC = null;
+// A frozen panel's citations are read at the revision its banner names (`frozen at`),
+// not at the topic's verified_commit, which has moved on. Set per diagram; applies
+// to the topic's own repository only (other repositories in a {repo: sha} map keep the topic's sha).
+let FROZEN_SHA = null;
 // Every path that does NOT end in 'revision' means the bytes judged were the
 // working tree's, not the declared revision's. That fallback is why a corpus
 // can report zero warnings while a slice of it was never verified against any
@@ -545,6 +583,7 @@ function citeCheck(topics) {
   for (const t of topics) {
     CURRENT_TOPIC = t;
     for (const d of [...t.diagrams, ...(t.prose || [])]) {
+      FROZEN_SHA = d.frozenAt || null;
       const check = (cited, a, b) => {
         if (/^\d+(\.\d+)+$/.test(cited)) return; // host:port such as 127.0.0.1:8080, not a citation
         // An allowlisted citation is waived, counted apart and printed as such.
@@ -646,6 +685,7 @@ function citeCheck(topics) {
       }
     }
   }
+  FROZEN_SHA = null;
   // An allowlist entry that matches nothing is stale: the citation it waived has
   // been fixed, renumbered or deleted. Left alone it silently broadens over time
   // into a blanket waiver, so it fails the run instead. (--only sees part of the
@@ -671,7 +711,8 @@ function symbolCheck(topics) {
   let linesOf = (p) => revisionLines(CURRENT_TOPIC, p); // bound per topic below
   for (const t of topics) {
     CURRENT_TOPIC = t;
-    for (const m of t.diagrams.map((d) => d.src).join('\n').matchAll(PART_RE)) {
+    for (const [m, dFrozen] of t.diagrams.flatMap((d) => [...d.src.matchAll(PART_RE)].map((x) => [x, d.frozenAt || null]))) {
+      FROZEN_SHA = dFrozen;
       const label = m[1];
       const c = new RegExp(CITE_RE.source).exec(label);
       if (!c) continue;
@@ -708,6 +749,7 @@ function symbolCheck(topics) {
       }
     }
   }
+  FROZEN_SHA = null;
   return warnings;
 }
 
@@ -752,9 +794,9 @@ function mdLink(rel, anchor) {
   return anchor ? `${rel}#${anchor}` : rel;
 }
 function slug(id, title) {
-  return `${id} ${title}`.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+  return conv.slug(id, title);
 }
-function writeIndexes(topics) {
+function writeIndexes(topics, convention) {
   const byArea = Object.fromEntries([...AREAS].map((a) => [a, []]));
   for (const t of topics) byArea[t.fm.area].push(t);
   for (const k of Object.keys(byArea)) byArea[k].sort((a, b) => a.fm.id.localeCompare(b.fm.id, undefined, { numeric: true }));
@@ -776,6 +818,7 @@ function writeIndexes(topics) {
     }
   }
   const total = topics.reduce((n, t) => n + t.diagrams.length, 0);
+  rows.push(...conv.indexLines(convention, '', '###'));
   const gen = `${START}\n_${topics.length} topic files, ${total} diagrams. Regenerate with_ \`node scripts/diagram-index-gen.cjs docs/diagrams\`.\n${rows.join('\n')}\n${END}`;
   if (text.includes(START) && text.includes(END)) {
     text = text.slice(0, text.indexOf(START)) + gen + text.slice(text.indexOf(END) + END.length);
@@ -809,7 +852,8 @@ function writeIndexes(topics) {
   out.push('## Diagrams\n');
   out.push('| Diagram | Kind | Topic file |');
   out.push('|---------|------|------------|');
-  for (const area of AREAS) for (const t of byArea[area] || []) for (const d of t.diagrams) out.push(`| [${d.id} ${d.title}](${t.rel}#${slug(d.id, d.title)}) | ${d.kind} | ${t.fm.id} |`);
+  for (const area of AREAS) for (const t of byArea[area] || []) for (const d of t.diagrams) out.push(`| [${d.id} ${d.title}](${t.rel}#${slug(d.id, d.title)})${conv.frozenMark(convention, d.id, '')} | ${d.kind} | ${t.fm.id} |`);
+  out.push(...conv.indexLines(convention, '', '##'));
   out.push('\n## By ADR\n');
   out.push('Keys are repository-qualified. `estate-unresolved` preserves an unqualified cross-repository reference pending owner resolution; it must not be read as one shared decision.\n');
   out.push('| ADR | Topic files |');
@@ -867,11 +911,63 @@ async function jevCitationReview(deps = {}) {
   }
 }
 
+// ---------------------------------------------------------------- repair convention
+// Whole-tree facts (aliases, panel IDs, the ratchet) are judged against EVERY topic
+// even under --only, so a banner or alias that targets a panel outside the filter
+// still resolves; only the findings for the selected topics are reported.
+function lightTopic(file) {
+  const rel = path.relative(root, file);
+  const text = fs.readFileSync(file, 'utf8');
+  const parsed = parseFrontmatter(text, rel, []);
+  if (!parsed) return null;
+  const { fm, body } = parsed;
+  fm.aliases = conv.normaliseAliases(fm.aliases, rel, []);
+  const bodyStart = text.slice(0, text.length - body.length).split('\n').length;
+  const pan = conv.extractPanels(body, fm.id, bodyStart);
+  return { rel, fm, panels: pan.panels, headings: pan.headings, lineCount: text.split('\n').length - (text.endsWith('\n') ? 1 : 0), body };
+}
+function runConvention(topics, allFiles, errors) {
+  const mine = new Map(topics.map((t) => [t.rel, t]));
+  const registry = allFiles.map((f) => mine.get(path.relative(root, f)) || lightTopic(f)).filter(Boolean);
+  if (flags.updateBaseline) {
+    const w = conv.writeBaseline(root, registry);
+    console.log(w.wrote ? `${conv.BASELINE_FILE}: ${w.before} -> ${w.after} entr${w.after === 1 ? 'y' : 'ies'}` : `${conv.BASELINE_FILE}: nothing to prune (${w.after} entr${w.after === 1 ? 'y' : 'ies'})`);
+  }
+  const baseline = conv.loadBaseline(root, errors);
+  const extraTexts = [];
+  for (const name of fs.readdirSync(root).sort()) {
+    if (/^REGISTER.*\.md$/.test(name) || name === 'review-ledger.jsonl') extraTexts.push({ where: name, text: fs.readFileSync(path.join(root, name), 'utf8'), kind: name });
+  }
+  const result = conv.check({ topics: registry, selected: new Set(topics.map((t) => t.rel)), partial: !!flags.only, baseline, extraTexts });
+  errors.push(...result.errors);
+  const d = result.data;
+  console.log(`convention: ${d.panels} panels, ${d.aliases.length} alias(es), ${d.frozen.length} frozen, ${d.resolved.marked.length} RESOLVED panel(s) vs ${d.resolved.baseline.length} in ${conv.BASELINE_FILE}, ${d.size.warnings.length} oversize topic(s) (warning only), ${d.references.viaAlias.length} reference(s) followed via alias`);
+  for (const w of result.warnings) console.warn(`  ! ${w}`);
+  return result;
+}
+function writeReport(topics, result, errors, total) {
+  const d = result.data;
+  const report = {
+    generatedAt: new Date().toISOString(),
+    root,
+    totals: { topics: topics.length, diagrams: total, panels: d.panels, aliases: d.aliases.length, frozen: d.frozen.length, resolvedBaseline: d.resolved.baseline.length, sizeWarnings: d.size.warnings.length, errors: errors.length, warnings: result.warnings.length },
+    errors: errors.slice(),
+    warnings: result.warnings.slice(),
+    convention: d,
+    topics: topics.map((t) => ({ id: t.fm.id || null, file: t.rel.split(path.sep).join('/'), area: t.fm.area || null, title: t.fm.title || null, lines: t.lineCount, panels: t.panels.length, diagrams: t.diagrams.map((x) => x.id) })),
+  };
+  const abs = path.resolve(flags.report);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, JSON.stringify(report, null, 2) + '\n');
+  console.log(`wrote report ${abs}`);
+}
+
 // ---------------------------------------------------------------- main
 (async () => {
   const errors = [];
   ALLOWLIST = loadAllowlist(errors);
-  let files = walk(root, []);
+  const allFiles = walk(root, []);
+  let files = allFiles;
   if (flags.only) files = files.filter((f) => path.relative(root, f).includes(flags.only));
   const topics = files.map((f) => parseTopic(f, errors)).filter(Boolean);
   const seenTopic = new Map(), seenDiag = new Map();
@@ -886,6 +982,7 @@ async function jevCitationReview(deps = {}) {
   }
   const total = topics.reduce((n, t) => n + t.diagrams.length, 0);
   console.log(`parsed ${topics.length} topic files, ${total} mermaid diagrams`);
+  const convention = runConvention(topics, allFiles, errors);
   for (const x of SOURCE_AT_REVISION) console.log(`  ~ ${x}`);
   // An allowlist entry for a topic that no longer exists is as stale as one for a
   // citation that no longer exists, and is caught here because it never reaches
@@ -944,13 +1041,14 @@ async function jevCitationReview(deps = {}) {
     console.log(`rendered ${count - rerr.length}/${count} diagrams via pele`);
     errors.push(...rerr);
   }
+  if (flags.report) writeReport(topics, convention, errors, total);
   if (errors.length) {
     console.error(`\n${errors.length} error(s):`);
     for (const e of errors) console.error(`  - ${e}`);
     process.exit(1);
   }
   if (!flags.check && !flags.only) {
-    writeIndexes(topics);
+    writeIndexes(topics, convention);
     console.log('wrote README.md index block + COVERAGE.md');
   }
 })().catch((e) => { console.error(e); process.exit(2); });

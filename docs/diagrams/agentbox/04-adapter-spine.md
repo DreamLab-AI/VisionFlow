@@ -43,7 +43,7 @@ sources:
   - ../project/agentbox/management-api/lib/pg-config.js
   - ../project/agentbox/management-api/adapters/memory/external-pg.js
   - ../project/agentbox/mcp/servers/lib/memory-evidence.js
-verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
+verified_commit: 3f66d51ff7614db0e6fac23f6d3d4350bccd4bd4
 ---
 
 ## AB-04.1 resolveAdapters — slot to implementation resolution
@@ -534,7 +534,7 @@ sequenceDiagram
     participant L2 as Layer 2 privacy<br/>privacy-filter.js:654
     participant OA as LocalProcessManagerOrchestratorAdapter<br/>orchestrator/local-process-manager.js:26
     participant OD as applyOntologyDecision<br/>lib/ontology-apply.js:372
-    participant VC as vault CLI<br/>runVaultCommand ontology-apply.js:256
+    participant VC as ontomark CLI, vault CLI for propose and panel<br/>runVaultCommand ontology-apply.js:256, binFor ontology-apply.js:157
     participant P as spawned agent process
 
     R->>L1: orchestrator.spawnAgent(spec)
@@ -565,7 +565,7 @@ sequenceDiagram
         else existing page
             OD->>OD: resolveIriToPage(iri, opts) — ontology-apply.js:401, :215
         end
-        OD->>VC: vault edit page --set ... --expect N --json (ontology-apply.js:427-429)
+        OD->>VC: ontomark --repo root edit page --set ... --expect N --json (ontology-apply.js:264, :426-431)
         VC-->>OD: edited or refused
         OD->>OD: attest(ledger body) — ontology-apply.js:438, :627, :742
         OD-->>OA: applied, page, outcome, attested, attestError
