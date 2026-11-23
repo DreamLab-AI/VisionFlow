@@ -21,7 +21,7 @@ sources:
   - ../visionGraph/scripts/check-bases.sh
   - ../visionGraph/quartz/quartz/plugins/filters/explicit.ts
   - ../visionGraph/quartz/quartz.config.ts
-verified_commit: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8
+verified_commit: 08390b1fc7f7c509eae477b933731ee33d152480
 ---
 
 ## For developers
