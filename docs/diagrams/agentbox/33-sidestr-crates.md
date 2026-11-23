@@ -16,7 +16,7 @@ sources:
   - ../project/agentbox/scripts/activation/sidechain-witness-replay/Cargo.toml
   - ../project/agentbox/docs/BASELINE-container.md
   - ../project/agentbox/lib/sidestr-agent.nix
-verified_commit: {agentbox: 0693c761c782457066f081b46daf8f7f4ea29e3c, sidestr-rs: 60259e848795d0cd5c5718ca5d0eb658f69fd0d7}
+verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, sidestr-rs: 17da8b8e5b2c2decf94551ecb4ea47c732669214}
 ---
 
 ## For developers
