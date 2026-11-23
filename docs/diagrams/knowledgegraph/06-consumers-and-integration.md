@@ -11,6 +11,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/ontocast_import.py
   - ../visionGraph/.github/workflows/publish.yml
+  - ../project/.github/workflows/ontology-publish.yml
   - ../project/src/services/corpus_source/mod.rs
   - ../project/src/services/corpus_source/github.rs
   - ../project/src/services/github_sync_service.rs
@@ -18,7 +19,7 @@ sources:
   - ../project/agentbox/scripts/hp-loom-reconcile.sh
   - ../loom/crates/loom-facade/src/lib.rs
   - ../loom/crates/loom-facade/src/bundle.rs
-verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, loom: 741c5dffd3253038bbe4fadea7fada7c46474a25}
+verified_commit: {knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visiongraph: 08390b1fc7f7c509eae477b933731ee33d152480, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, loom: 355946dd2deacfdef21171d53eafd025887e447e}
 ---
 
 ## For developers
@@ -36,9 +37,11 @@ flowchart TB
     %% visionGraph/.github/workflows/publish.yml:175
     VG["visionGraph vault<br/>ontomark build in the publisher"]
     %% visionGraph/.github/workflows/publish.yml:544
-    PUB["Public website publication<br/>knowledgeGraph gh-pages"]
+    PUB["Public website publication<br/>knowledgeGraph gh-pages, CNAME narrativegoldmine.com<br/>publish.yml:548-551"]
     %% visionGraph/.github/workflows/publish.yml:554
     DISPATCH["After deployment: corpus-sync event<br/>sent to VisionClaw with source SHA<br/>Request delivery, not ingestion completion"]
+    %% project/.github/workflows/ontology-publish.yml:3-9
+    PARKED["TENSION: VisionClaw ontology-publish.yml is parked<br/>workflow_dispatch only, no corpus-sync listener<br/>ontology-publish.yml:3-9"]
     %% agentbox/scripts/hp-loom-reconcile.sh:133
     SNAP["Agentbox reconciliation route<br/>Clean worktree of committed vault HEAD"]
     %% agentbox/scripts/hp-loom-reconcile.sh:149
@@ -46,13 +49,14 @@ flowchart TB
     %% agentbox/scripts/hp-loom-reconcile.sh:198
     LOOM["Transfer and verifying HP reload<br/>Compare served generation with source SHA"]
     VG --> PUB --> DISPATCH
+    DISPATCH -.-> PARKED
     VG -.->|"Separate distribution route"| SNAP --> BUILD --> LOOM
-    NOTE["DRIFT: the old ontology-bridge route is retired<br/>Manifest describes CLI and Loom HTTP access<br/>agentbox/agentbox.toml:1192"]
+    NOTE["DRIFT: the old ontology-bridge route is retired<br/>Manifest describes CLI and Loom HTTP access<br/>agentbox/agentbox.toml:1216-1217"]
     LOOM --- NOTE
 ```
 
 **What it shows:** Public publication and agent grounding have distinct build, delivery and completion boundaries.
-**Why it is this way:** The publisher emits a refresh request, while the agentbox reconciler separately builds a committed snapshot and checks Loom's served generation; neither route establishes the other's success.
+**Why it is this way:** The publisher emits a refresh request that VisionClaw's parked workflow no longer accepts, while the agentbox reconciler separately builds a committed snapshot and checks Loom's served generation; neither route establishes the other's success.
 
 ## KG-06.2 Two consumers with different input contracts
 
@@ -62,22 +66,24 @@ flowchart TB
     SELECT["VisionClaw CorpusSource selection<br/>Explicit local or github wins<br/>Otherwise nonempty VAULT_ROOT selects local"]
     %% src/services/corpus_source/github.rs:60
     REMOTE["GitHubSource lists Markdown<br/>Trees API, Contents API fallback"]
-    %% src/services/github_sync_service.rs:391
-    INGEST["GitHubSyncService filters page identities<br/>under configured base paths<br/>Full listing builds the vault index"]
-    %% loom/crates/loom-facade/src/lib.rs:72
+    %% src/services/github_sync_service.rs:352
+    INGEST["GitHubSyncService filters page identities<br/>under configured base paths<br/>Full listing builds the vault index<br/>github_sync_service.rs:378-384"]
+    %% loom/crates/loom-facade/src/lib.rs:164
     BUNDLE["Loom activates local generation data<br/>LoadedBundle before lexical and graph loading"]
-    %% loom/crates/loom-facade/src/bundle.rs:117
+    %% loom/crates/loom-facade/src/bundle.rs:125
     VERIFY["Commit marker present: verify artefacts<br/>Absent marker: unattested degraded identity<br/>In-flight promotion: reject"]
-    %% loom/crates/loom-facade/src/lib.rs:84
-    LOAD["Load lexical index and local Oxigraph data<br/>Unavailable adapters degrade separately"]
+    %% loom/crates/loom-facade/src/lib.rs:176
+    LOAD["Load lexical index and local Oxigraph data<br/>Unavailable adapters degrade separately<br/>lib.rs:199"]
+    FALL["Activation fails or marker is not valid JSON:<br/>a retained generation that activates strictly is served<br/>as a reported fallback, never advanced to served<br/>lib.rs:80,99,124 and bundle.rs:214"]
     SELECT -->|"github selected"| REMOTE --> INGEST
     SELECT -->|"local selected"| INGEST
     BUNDLE --> VERIFY --> LOAD
+    VERIFY -->|"rejected"| FALL --> LOAD
     NOTE["DRIFT: historical ecosystem narrative is not<br/>evidence of a current static-Turtle fetch route<br/>ecosystem.md:102"]
     INGEST --- NOTE
 ```
 
-**What it shows:** VisionClaw ingests pages through its source port; Loom loads its own generation and adapters, with explicit degradation cases.
+**What it shows:** VisionClaw ingests pages through its source port; Loom loads its own generation and adapters, with explicit degradation and retained-generation fallback cases.
 **Why it is this way:** Current entry points supersede the old documentation-only claim that agent grounding always reads VisionClaw's reasoned graph; this panel does not claim to enumerate every optional RDF importer.
 
 ## KG-06.4 Archived OntoCast adapter and its evidence limits

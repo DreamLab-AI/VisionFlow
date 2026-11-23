@@ -18,7 +18,7 @@ sources:
   - ../visioncraft/src/process.rs
   - ../visioncraft/tests/core.rs
   - ../visioncraft/docs/adr/0001-portable-quality-contract.md
-verified_commit: 6add68eebf1e8fb81a05eb86e2e27e732c4da1c3
+verified_commit: 952c9d2e443d114a39186e67d6afeaf3fd887d86
 ---
 
 ## VK-02.1 Seven EDD steps and the typed record each one leaves
@@ -34,8 +34,8 @@ flowchart TB
     S7["7 Stabilise: regression-critical scenarios become permanent checks<br/>edd.md:23"]
     T1["Expectation record<br/>plan.rs:205"]
     T3["ExecutionReceipt<br/>evidence.rs:46"]
-    T4["AuditReceipt<br/>evidence.rs:217"]
-    T4b["ManualObservation<br/>evidence.rs:243"]
+    T4["AuditReceipt<br/>evidence.rs:223"]
+    T4b["ManualObservation<br/>evidence.rs:249"]
     T7["Stabilizer: check_id plus test_id<br/>plan.rs:195"]
     S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7
     S6 -. "repeat" .-> S2
