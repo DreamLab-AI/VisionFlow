@@ -26,7 +26,7 @@ sources:
   - ../project/crates/visionclaw-tri-layout/src/lib.rs
   - ../project/src/handlers/socket_flow_handler/session_relay.rs
   - ../project/src/handlers/socket_flow_handler/message_routing.rs
-verified_commit: {visionclaw: 2e7ecc2e731ed475982176d522877d9c89e3ff51}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -50,7 +50,7 @@ The honest limits are in the register below: the headset has not yet been used t
 ```mermaid
 flowchart TB
     subgraph gd["GDScript owners on the scene-tree thread"]
-        GS["_on_graph_text routes by message type<br/>xr-client/scripts/graph_scene.gd:4554"]
+        GS["_on_graph_text routes by message type<br/>xr-client/scripts/graph_scene.gd:4552"]
         LAYER["MemoryCloudLayer owns the cloud, the frame and the route objects<br/>xr-client/scripts/memory_cloud_layer.gd:132"]
         SEARCH["MemorySearch owns the query object and one HTTP request in flight<br/>xr-client/scripts/memory_search.gd:58"]
         BEATGD["BeatPulse script wraps the gdext BeatPulse and pings every 2 s<br/>xr-client/scripts/beat_pulse.gd:32"]
@@ -385,14 +385,14 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:4554
+    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:4552
     participant L as apply_route_json<br/>xr-client/scripts/memory_cloud_layer.gd:473
     participant MR as offer_json<br/>xr-client/rust/src/memory_route.rs:1664
     participant G as RouteGate offer<br/>xr-client/rust/src/memory_route.rs:606
     participant AR as ActiveRoute set<br/>xr-client/rust/src/memory_route.rs:1455
     participant T as tick<br/>xr-client/rust/src/memory_route.rs:1830
 
-    GS->>L: memoryRoute frame, the layer gates it xr-client/scripts/graph_scene.gd:4574
+    GS->>L: memoryRoute frame, the layer gates it xr-client/scripts/graph_scene.gd:4572
     L->>MR: offer_json(json, loaded snapshot id, positions) xr-client/scripts/memory_cloud_layer.gd:476
     MR->>MR: parse_route, a failure returns error and sets last_error xr-client/rust/src/memory_route.rs:516
     MR->>G: offer(frame, loaded, rows)
@@ -555,7 +555,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:4554
+    participant GS as _on_graph_text<br/>xr-client/scripts/graph_scene.gd:4552
     participant BG as BeatPulse script on_text<br/>xr-client/scripts/beat_pulse.gd:95
     participant BP as BeatPulse handle_text<br/>xr-client/rust/src/pulse.rs:65
     participant BS as BeatSync and ClockOffset<br/>xr-client/rust/src/beat.rs:397
@@ -565,7 +565,7 @@ sequenceDiagram
     BP-->>BG: ping JSON stamped with local epoch ms xr-client/rust/src/beat.rs:265
     BG->>SV: send_text(ping) on the graph socket xr-client/rust/src/binary_protocol.rs:1499
     SV-->>GS: pong echoing the timestamp with serverTime
-    GS->>BG: _beat.on_text(json, type) after the settings router xr-client/scripts/graph_scene.gd:4564
+    GS->>BG: _beat.on_text(json, type) after the settings router xr-client/scripts/graph_scene.gd:4562
     BG->>BP: handle_text(json) for beatClock and pong only xr-client/scripts/beat_pulse.gd:99
     alt beatClock frame
         BP->>BS: parse_beat_clock_frame then on_remote(frame, now) xr-client/rust/src/beat.rs:236 xr-client/rust/src/beat.rs:433

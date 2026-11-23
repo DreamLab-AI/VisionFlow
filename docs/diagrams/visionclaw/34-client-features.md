@@ -70,7 +70,8 @@ sources:
   - ../project/client/src/store/websocket/binaryProtocol.ts
   - ../project/client/src/features/graph/components/GemNodes.tsx
   - ../project/client/src/features/graph/components/ClusterHulls.tsx
-  - ../project/client/src/features/physics/hooks/usePhysicsService.ts
+  - ../project/src/handlers/physics_handler.rs
+  - ../project/src/handlers/layout_handler.rs
   - ../project/client/src/features/command-palette/CommandRegistry.ts
   - ../project/client/src/features/command-palette/hooks/useCommandPalette.ts
   - ../project/client/src/features/command-palette/defaultCommands.ts
@@ -123,13 +124,13 @@ sources:
   - ../project/client/src/api/settings/schemaMappings.ts
   - ../project/client/src/api/settings/__tests__/settingsRoundTrip.test.ts
   - ../project/client/src/features/control-center/drawer/RightDrawer.tsx
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 ## For developers
 
 `client/src/features/` holds one directory per product surface, and this topic traces what each one calls on the server: REST through `unifiedApiClient`, WebSocket through `webSocketService`, and settings through the registry and autosave chain. The ec785afa9 refresh picked up the ADR-2189 control-centre rework, and the 809a859 refresh picks up the settings-integrity audit: a failed or held save is now recorded and shown as an unsaved count (VC-34.1), the chat no longer writes a node opacity nothing reads, and glow is the one glow switch (VC-34.19). The analytics store sends only a numeric SSSP source and computes locally otherwise (VC-34.12). Every settings change from a registry row, a dock dial, the Ask box or a Jev patch now goes through one function, `applySettingWrites` (VC-34.1, VC-34.19). The registry regroups its ten source groups into seven sections, and the emitter writes a v2.0 manifest plus two `ia.json` copies (VC-34.2). The memory explorer has moved into the right drawer (VC-34.20). The analytics store's SSSP call targets the surviving `pathfinding/sssp` route (VC-34.12). The section layout, the drawer and the scope badges belong to VC-57, and the explore layer to VC-56.
 
-**Debt (parallel):** the chat clamp `EDGE_OPACITY_MAX` (`CommandInput.tsx:148`) restates `EDGE_OPACITY_SLIDER_MAX` (`edgeStyle.ts:96`) instead of importing it. A test pins the edgeStyle constant to the registry slider top (`edgeOpacity.test.ts:29-30`); nothing pins the chat copy.
+**Debt (parallel):** the chat clamp `EDGE_OPACITY_MAX` (`CommandInput.tsx:161`) restates `EDGE_OPACITY_SLIDER_MAX` (`edgeStyle.ts:96`) instead of importing it. A test pins the edgeStyle constant to the registry slider top (`edgeOpacity.test.ts:29-30`); nothing pins the chat copy.
 
 **Debt (parallel):** shortest path has two client callers on two routes, `analyticsStore.ts:356` (`/api/analytics/pathfinding/sssp`) and `useSemanticService.ts:200` (`/api/semantic/shortest-path`).
 
@@ -148,13 +149,13 @@ sequenceDiagram
     participant Store as useSettingsStore.updateSettings<br/>client/src/store/settingsStore.ts
     participant ASM as autoSaveManager<br/>client/src/store/autoSaveManager.ts:65
     participant LA as layoutApi.setMode<br/>client/src/api/layoutApi.ts
-    participant EP as settingsApi.updateSettingsByPaths<br/>client/src/api/settings/endpoints.ts:307
+    participant EP as settingsApi.updateSettingsByPaths<br/>client/src/api/settings/endpoints.ts:326
     participant SRV as Rust settings handlers
 
     U->>SS: drag slider
     SS->>USF: set(next)
     USF->>SW: applySettingWrites([path, next]) useSettingField.ts:47
-    Note over USF,SW: ADR-2189 one writer per setting - the registry row,<br/>the dock dials (useMacro.ts:35-37) and the Ask box (CommandInput.tsx:561)<br/>all call this one function (settingWrites.ts:2-11)
+    Note over USF,SW: ADR-2189 one writer per setting - the registry row,<br/>the dock dials (useMacro.ts:35-37) and the Ask box (CommandInput.tsx:601)<br/>all call this one function (settingWrites.ts:2-11)
     SW->>Store: updateSettings(draft) one immer batch over every write settingWrites.ts:46-58
     Note over Store: path is the FROZEN backend contract (settingsRegistry.ts:5)
     Store-->>ASM: queueChanges (internal, autoSaveManager.queueChange path -> value)
@@ -170,7 +171,7 @@ sequenceDiagram
         USF->>ASM: further edits reset the 500ms timer
     end
     ASM->>EP: updateSettingsByPaths(updates) on flush autoSaveManager.ts:120
-    EP->>EP: bucket path by prefix - physics/rendering/qualityGates/nodeFilter/constraints/visual/local-only endpoints.ts:320-342
+    EP->>EP: bucket path by prefix - physics/rendering/qualityGates/nodeFilter/constraints/visual/local-only endpoints.ts:339-361
     par physics bucket
         EP->>SRV: PUT /api/settings/physics
     and rendering bucket
@@ -184,8 +185,8 @@ sequenceDiagram
     end
     alt any bucket rejects, 401 included
         EP-->>ASM: markUnsaved(paths, failed), then each update<br/>goes to settingsRetryManager.addFailedUpdate autoSaveManager.ts:123-148
-        ASM->>EP: retry processor every 5 s, one path through updateSettingByPath,<br/>which now rethrows settingsRetryManager.ts:106-115, endpoints.ts:288-290
-        Note over EP,ASM: OPEN: the processor catches never raise attempts (settingsRetryManager.ts:112-115),<br/>so the give-up at settingsRetryManager.ts:121 is unreachable from it and a failing path<br/>is re-sent until reload. settings-auth-failed still has no listener (endpoints.ts:283)
+        ASM->>EP: retry processor every 5 s, one path through updateSettingByPath,<br/>which now rethrows settingsRetryManager.ts:106-115, endpoints.ts:307-309
+        Note over EP,ASM: OPEN: the processor catches never raise attempts (settingsRetryManager.ts:112-115),<br/>so the give-up at settingsRetryManager.ts:121 is unreachable from it and a failing path<br/>is re-sent until reload. settings-auth-failed still has no listener (endpoints.ts:302)
     else PUT ok
         SRV-->>EP: 200
         EP-->>ASM: markSaved(paths) clears them from the unsaved list autoSaveManager.ts:122
@@ -207,7 +208,7 @@ flowchart TD
     Sections --> Registry["settingsRegistry.ts:30 REGISTRY - SECTION_DATA with icons attached"]
     DriftReg["DRIFT: the header still says the registry assembles GROUP_DATA (settingsRegistry.ts:4)<br/>and manifest.ts:6 says the same, while REGISTRY maps SECTION_DATA (settingsRegistry.ts:30)"] -.-> Registry
     Sections -->|npm run gen:manifest, ts-node| Emit["client/scripts/emit-settings-manifest.ts:24 buildManifest()<br/>and buildIa() written twice, emit-settings-manifest.ts:19-21, :27"]
-    Emit --> ManifestJson["registry/settings-manifest.json - version 2.0, 247 settings, 7 sections<br/>each entry now carries section, sourceGroup, subgroup and scope (manifest.ts:156)"]
+    Emit --> ManifestJson["registry/settings-manifest.json - version 2.0, 253 settings, 7 sections (settings-manifest.json:2-4)<br/>each entry now carries section, sourceGroup, subgroup and scope (manifest.ts:156)"]
     Emit --> Ia["registry/ia.json and xr-client/data/ia.json - section, subsection, fields<br/>built by buildIa (manifest.ts:238), see VC-57 for the parity test and scope badges"]
     ManifestJson -->|consumed by| QA["browser-automation coverage phase: assert every testid present+interactive"]
     ADR["ADR-2041 renamed logseq to knowledge, superseded by ADR-2115<br/>which retires the server-side logseq alias entirely -<br/>touches settings.ts, app_settings.rs, generate_types.rs output"] -.-> RustStruct
@@ -267,9 +268,9 @@ sequenceDiagram
     participant Panel as OntologyPanel / InferencePanel / SparqlConsole<br/>client/src/features/ontology/components/
     participant UIS as useInferenceService<br/>client/src/features/ontology/hooks/useInferenceService.ts:49
     participant Sparql as sparqlService.runSparqlSelect<br/>client/src/features/ontology/services/sparqlService.ts:73
-    participant Inferred as inferredAxiomsService<br/>client/src/features/ontology/services/inferredAxiomsService.ts:168
+    participant Inferred as inferredAxiomsService<br/>client/src/features/ontology/services/inferredAxiomsService.ts:193
     participant Hier as useHierarchyData<br/>client/src/features/ontology/hooks/useHierarchyData.ts:57
-    participant Stats as useConstraintStats<br/>client/src/features/ontology/hooks/useConstraintStats.ts:25
+    participant Stats as useConstraintStats<br/>client/src/features/ontology/hooks/useConstraintStats.ts:26
     participant UAC as unifiedApiClient
     participant SRV as Rust /api/inference and /api/ontology handlers
 
@@ -288,10 +289,10 @@ sequenceDiagram
     Sparql->>UAC: POST /ontology/sparql (SPARQL_ENDPOINT) sparqlService.ts:30, sparqlService.ts:80
     UAC->>SRV: query executed against Oxigraph
     Panel->>Inferred: fetchReasoningReport()
-    Inferred->>UAC: GET /ontology/inferred (INFERRED_ENDPOINT) inferredAxiomsService.ts:43, inferredAxiomsService.ts:170
+    Inferred->>UAC: GET /ontology/inferred?offset&limit=500 (INFERRED_ENDPOINT) page by page while the reply says truncated,<br/>at most 40 pages, count is the server total and partial marks a capped fetch<br/>inferredAxiomsService.ts:43, inferredAxiomsService.ts:100-102, inferredAxiomsService.ts:175-178, inferredAxiomsService.ts:199-206, inferredAxiomsService.ts:214-221
     Note right of Inferred: INVARIANT - urn:ngm:graph:ontology:inferred<br/>is a read-only projection, never hand-edited
     Hier->>Hier: fetch(url) direct, not the shared API client, so no auth interceptor runs - hierarchy tree endpoint useHierarchyData.ts:96
-    loop every 5000ms (intervalMs default) useConstraintStats.ts:25, useConstraintStats.ts:45
+    loop every 5000ms (intervalMs default) useConstraintStats.ts:26, useConstraintStats.ts:46
         Stats->>Stats: poll constraint stats while enabled
     end
 ```
@@ -386,7 +387,7 @@ sequenceDiagram
     participant WsStat as useWebSocketStatus<br/>client/src/features/control-center/status/useConnectionTelemetry.ts:28
     participant LM as useLayoutMotion<br/>client/src/features/control-center/status/useConnectionTelemetry.ts:61
     participant SPHook as useSpacePilot (control-center)<br/>client/src/features/control-center/status/useSpacePilot.ts:33
-    participant Kpi as KpiPanel/useKpiSummary<br/>client/src/features/control-center/kpi/useKpiSummary.ts:25
+    participant Kpi as KpiPanel/useKpiSummary<br/>client/src/features/control-center/kpi/useKpiSummary.ts:26
     participant UAC as unifiedApiClient
     participant Macro as useMacro<br/>client/src/features/control-center/macros/useMacro.ts:47
     participant Echo as echoPulseBus<br/>client/src/features/control-center/echo/echoPulseBus.ts:39
@@ -420,7 +421,7 @@ sequenceDiagram
     loop poll every currentInterval (2000ms active / 10000ms idle) AgentPollingService.ts:97-98
         Svc->>UAC: getData GET /bots/data AgentPollingService.ts:221
         UAC->>SRV: HTTP GET
-        Note right of SRV: ADR-2142 amendment - GetBotsGraphData forwarded by the supervisor<br/>graph_service_supervisor.rs:1815 to AgentBeamActor agent_beam_actor.rs:271<br/>the roster stays SEPARATE from the main graph, /graph/data?graph_type=agent stays empty
+        Note right of SRV: ADR-2142 amendment - GetBotsGraphData forwarded by the supervisor<br/>graph_service_supervisor.rs:1829 to AgentBeamActor agent_beam_actor.rs:271<br/>the roster stays SEPARATE from the main graph, /graph/data?graph_type=agent stays empty
         SRV-->>Svc: envelope {success, data:{nodes, edges}} or bare body (older builds)
         Svc->>Svc: use envelope.data only when envelope.data.nodes is truthy, else the whole envelope AgentPollingService.ts:227-228
         Svc->>Svc: hashData(data) - skip callback fan-out if unchanged AgentPollingService.ts:235
@@ -456,7 +457,7 @@ sequenceDiagram
     WSS-->>WSI: message.type == graph-update | botsGraphUpdate | bots-full-update BotsWebSocketIntegration.ts:55-91
     WSI->>Bus: emit message:bots BotsWebSocketIntegration.ts:53
     WSI->>WSI: emit knowledge-graph-update / bots-graph-update / bots-full-update<br/>BotsWebSocketIntegration.ts:57, BotsWebSocketIntegration.ts:80, BotsWebSocketIntegration.ts:91
-    Note over WSI,WSS: DEBT: the bots-position-update listener was removed from this class since the last<br/>stamp, and nothing else in client/src listens for it, yet the store still emits it for every<br/>frame with agent ids (store/websocket/binaryProtocol.ts:325, :380). Agents reach the scene<br/>only through the 0x23 registry (VC-32.11). See VC-32 for the frame layout
+    Note over WSI,WSS: DEBT: the bots-position-update listener was removed from this class since the last<br/>stamp, and nothing else in client/src listens for it, yet the store still emits it for every<br/>frame with agent ids (store/websocket/binaryProtocol.ts:333, :388). Agents reach the scene<br/>only through the 0x23 registry (VC-32.11). See VC-32 for the frame layout
     WSStore->>Feed: on(agent-action) - the decoded 0x23 batch emitted by the store useAgentActionFeed.ts:93
     Feed->>Feed: drop state frames, newest first into a bounded ring,<br/>agentActionVerb(actionType) for the line useAgentActionFeed.ts:99-108, useAgentActionFeed.ts:22
     Panel->>UAC: POST /bots/interrupt {task_id, agent_id} AgentDetailPanel.tsx:104
@@ -503,49 +504,38 @@ sequenceDiagram
     participant USS as useSemanticService<br/>client/src/features/analytics/hooks/useSemanticService.ts:85
     participant AS as useAnalyticsStore<br/>client/src/features/analytics/store/analyticsStore.ts:286
     participant UAC as unifiedApiClient
-    participant WSBin as handleLegacyBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:352
+    participant WSBin as handleLegacyBinaryData<br/>client/src/store/websocket/binaryProtocol.ts:360
     participant NAS as nodeAnalyticsStore<br/>client/src/features/analytics/store/nodeAnalyticsStore.ts:36
     participant Gem as GemNodes / ClusterHulls<br/>client/src/features/graph/components/
 
-    USS->>UAC: GET /api/semantic/statistics useSemanticService.ts:100
-    USS->>UAC: POST /api/semantic/communities useSemanticService.ts:136
-    USS->>UAC: POST /api/semantic/centrality useSemanticService.ts:168
+    USS->>UAC: GET /semantic/statistics useSemanticService.ts:100
+    USS->>UAC: POST /semantic/communities useSemanticService.ts:136
+    USS->>UAC: POST /semantic/centrality useSemanticService.ts:168
     SPC->>USS: computeShortestPath(request)
-    USS->>UAC: POST /api/semantic/shortest-path useSemanticService.ts:200
-    USS->>UAC: POST /api/semantic/constraints/generate useSemanticService.ts:232
-    USS->>UAC: POST /api/semantic/cache/invalidate useSemanticService.ts:262
-    AS->>UAC: POST /api/analytics/pathfinding/sssp {sourceIdx: Number(id)} only for an all-digit id,<br/>old shortest-path route gone server-side analyticsStore.ts:346-358
+    USS->>UAC: POST /semantic/shortest-path useSemanticService.ts:200
+    USS->>UAC: POST /semantic/constraints/generate useSemanticService.ts:232
+    USS->>UAC: POST /semantic/cache/invalidate useSemanticService.ts:262
+    AS->>UAC: POST /analytics/pathfinding/sssp {sourceIdx: Number(id)} only for an all-digit id,<br/>old shortest-path route gone server-side analyticsStore.ts:346-358
     AS->>AS: toDistanceMap(result.distances) accepts the whole-graph array<br/>or the gated id-keyed object, keeps finite values below 3.0e38,<br/>unreachable becomes Infinity analyticsStore.ts:83-93, analyticsStore.ts:369-374
     Note over AS,UAC: analyticsStore and useSemanticService still hit distinct endpoints<br/>for the same shortest-path feature - not unified
+    Note over USS,UAC: these paths carry no /api prefix, unifiedApiClient joins them to its /api base<br/>client/src/services/api/UnifiedApiClient.ts:91, client/src/services/api/UnifiedApiClient.ts:212-218
     Note over AS,UAC: a non-numeric id, a server error or a failed reply falls back to the local dijkstra or bellmanFord<br/>analyticsStore.ts:353-355, analyticsStore.ts:399-413
     Note right of NAS: ADR-03 D7, ADR-031 D2/D6 - stride 5 buffer<br/>[clusterId, anomalyScore, communityId, centrality, ssspDistance]
-    Gem->>NAS: getIndexedBuffer(nodeIdToIndexMap) on every 30th frame while an analytic colour scheme or quality gate is on (GemNodes.tsx:654-657),<br/>and every TICK_INTERVAL frames in ClusterHulls.tsx:237-241. nodeAnalyticsStore.ts:97
+    Gem->>NAS: getIndexedBuffer(nodeIdToIndexMap) on every 30th frame while an analytic colour scheme or quality gate is on (GemNodes.tsx:654-657),<br/>and every TICK_INTERVAL frames in ClusterHulls.tsx:253-257. nodeAnalyticsStore.ts:104
     Note over WSBin,Gem: see VC-32 for the binary frame layout, VC-15 for GPU-side computation,<br/>VC-31 for the graph feature's own render-pipeline internals (not redrawn here)
 ```
-## VC-34.13 physics — live simulation control (distinct from settings persistence)
+## VC-34.13 physics — the live-simulation client hook is gone, settings persistence remains
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant Hook as usePhysicsService<br/>client/src/features/physics/hooks/usePhysicsService.ts:86
-    participant UAC as unifiedApiClient
-    participant SRV as Rust /api/physics handlers
-
-    Hook->>UAC: GET /api/physics/status usePhysicsService.ts:101
-    Hook->>UAC: POST /api/physics/start {simulation_id} usePhysicsService.ts:138
-    Hook->>UAC: POST /api/physics/stop usePhysicsService.ts:170
-    Hook->>UAC: POST /api/physics/parameters (params) usePhysicsService.ts:198
-    Hook->>UAC: POST /api/physics/step usePhysicsService.ts:222
-    Hook->>UAC: POST /api/physics/reset usePhysicsService.ts:250
-    Hook->>UAC: POST /api/physics/optimize usePhysicsService.ts:279
-    Hook->>UAC: POST /api/physics/nodes/pin {nodes} usePhysicsService.ts:307
-    Hook->>UAC: POST /api/physics/nodes/unpin {node_ids} usePhysicsService.ts:331
-    Hook->>UAC: POST /api/physics/forces/apply {forces} usePhysicsService.ts:355
-    opt after start, stop, step and reset only
-        Hook->>UAC: GET /api/physics/status - refetch to confirm applied state usePhysicsService.ts:147, usePhysicsService.ts:177, usePhysicsService.ts:229, usePhysicsService.ts:257
-    end
-    Note over Hook,UAC: DEBT: no component calls usePhysicsService outside its tests, and every path leads with /api although<br/>unifiedApiClient prepends /api (client/src/services/api/UnifiedApiClient.ts:77, :182), so each call would reach /api/api/physics/...
-    UAC->>SRV: HTTP request
-    Note right of Hook: /api/physics/* (this hook) is a live-simulation control<br/>surface, separate from /api/settings/physics (VC-34.1) which persists PhysicsSettings config
+flowchart TB
+    GONE["REMOVED: usePhysicsService, the only client caller of /api/physics/*,<br/>was deleted with no importer left, so the client has no live-simulation control surface"]
+    SRV["the server still mounts scope /physics: start, stop, status, optimize, step,<br/>forces/apply, nodes/pin, nodes/unpin, parameters, reset, settle-mode<br/>src/handlers/physics_handler.rs:429-445"]
+    ADP["/api/physics/start and /parameters stay reachable but feed a private<br/>PhysicsOrchestratorActor with no GPU address, so nothing they send reaches the device<br/>src/handlers/layout_handler.rs:81-83"]
+    CFG["physics configuration persists through PUT /api/settings/physics (VC-34.1)<br/>client/src/api/settings/endpoints.ts:102"]
+    UAC["RESOLVED: the /api/api double prefix the hook would have hit is closed in the client:<br/>a path that already starts with the /api base is joined once<br/>client/src/services/api/UnifiedApiClient.ts:212-218"]
+    GONE -.-> SRV
+    SRV --> ADP
+    GONE -.-> CFG
+    GONE -.-> UAC
 ```
 ## VC-34.14 command-palette, help and onboarding — CustomEvent dispatch chain
 ```mermaid
@@ -562,7 +552,7 @@ sequenceDiagram
 
     U->>CP: Ctrl+K opens palette, types query
     CP->>UCP: filter Reg.getCommands() by query/category
-    opt Jev palette-search enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:21, the server routes it through the shared agentbox proxy :7-11 by default, fail-open)
+    opt Jev palette-search enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:24, the server routes it through the shared agentbox proxy :7-11 by default, fail-open)
         UCP->>UCP: after a 350 ms debounce, jevRankPalette(query, enabled commands)<br/>client/src/features/command-palette/hooks/useCommandPalette.ts:47-60
         UCP-->>CP: suggestedCommands appended AFTER the lexical results under "Suggested (semantic)", never reordering them<br/>client/src/services/jev/jevClient.ts:156, :182
     end
@@ -632,7 +622,7 @@ sequenceDiagram
         WS-->>Hook: onclose
         Hook->>Hook: setTimeout(connectWebSocket, 5000) - manual reconnect useWorkspaces.ts:404-409
     end
-    Note over Hook,WS: DEBT: no server route serves /ws/workspaces (git grep over src finds none, while the REST scope is mounted at<br/>src/main.rs:1198), so the socket never opens and the 5 s reconnect retries forever. useWorkspaces itself has no caller in client/src
+    Note over Hook,WS: DEBT: no server route serves /ws/workspaces (git grep over src finds none, while the REST scope is mounted at<br/>src/main.rs:1182), so the socket never opens and the 5 s reconnect retries forever. useWorkspaces itself has no caller in client/src
     Comp->>Hook: createWorkspace(data)
     Hook->>API: createWorkspace - validates name length <=100 workspaceApi.ts:173-174
     API->>UAC: POST /workspace/create
@@ -676,35 +666,37 @@ sequenceDiagram
 
     participant SW as applySettingWrites<br/>client/src/features/control-center/state/settingWrites.ts:42
     U->>CI: types command, submit
-    CI->>CI: parseCommandToActions(cmd) - keyword match against lower-cased text CommandInput.tsx:176, CommandInput.tsx:671
-    Note over CI,SW: ADR-2189 - every settings action is now a writes list, not a direct PUT or a store mutation,<br/>so chat edits honour the Sync switch and the layout side effect (settingWrites.ts:12-14, CommandInput.tsx:46-53)
-    alt matches a dial-owned or physics command (spread, springs, damping, reset, labels)
-        CI->>CI: spread and label-budget wording reuse the dock dial transfer functions MACROS_BY_ID.density and .focus,<br/>reset reads DEFAULT_PHYSICS_SETTINGS instead of restating numbers CommandInput.tsx:201-205, CommandInput.tsx:390, CommandInput.tsx:398, CommandInput.tsx:334-340
+    CI->>CI: parseCommandToActions(cmd) - keyword match against lower-cased text CommandInput.tsx:189, CommandInput.tsx:724
+    Note over CI,SW: ADR-2189 - every settings action is now a writes list, not a direct PUT or a store mutation,<br/>so chat edits honour the Sync switch and the layout side effect (settingWrites.ts:12-14, CommandInput.tsx:51-58)
+    alt knowledge-engineer question (main themes, what connects X and Y, gaps), checked before every other rule
+        CI->>CI: planInsightIntent(cmd) - the answer line rides on a writes list, each analytics request is optional<br/>so a failure becomes a Skipped status line and the rest still run CommandInput.tsx:196-217, CommandInput.tsx:740-746
+    else matches a dial-owned or physics command (spread, springs, damping, reset, labels)
+        CI->>CI: spread and label-budget wording reuse the dock dial transfer functions MACROS_BY_ID.density and .focus,<br/>reset reads DEFAULT_PHYSICS_SETTINGS instead of restating numbers CommandInput.tsx:241-245, CommandInput.tsx:430, CommandInput.tsx:438, CommandInput.tsx:374-380
     else edge transparency wording
-        CI->>CI: edgeOpacityFromCommand(lower) - a stated value is a fraction or percentage of the Edge Opacity slider range 0 to 0.3,<br/>transparency inverts it, bare fainter or stronger words scale the default CommandInput.tsx:148, CommandInput.tsx:158-174
-        Note over CI: INVARIANT: chat edge values stay inside the slider range - round clamps to EDGE_OPACITY_MAX (CommandInput.tsx:163),<br/>pinned by edgeOpacity.test.ts:38-52. The edge rule runs before the node rule, which used to swallow it (CommandInput.tsx:298-301)
+        CI->>CI: edgeOpacityFromCommand(lower) - a stated value is a fraction or percentage of the Edge Opacity slider range 0 to 0.3,<br/>transparency inverts it, bare fainter or stronger words scale the default CommandInput.tsx:161, CommandInput.tsx:171-187
+        Note over CI: INVARIANT: chat edge values stay inside the slider range - round clamps to EDGE_OPACITY_MAX (CommandInput.tsx:176),<br/>pinned by edgeOpacity.test.ts:38-52. The edge rule runs before the node rule, which used to swallow it (CommandInput.tsx:338-341)
     else node plus opacity or transparency wording
-        CI->>U: no write - replies that node opacity is not a setting and names Edge Opacity and Gem Transmission CommandInput.tsx:306-314
+        CI->>U: no write - replies that node opacity is not a setting and names Edge Opacity and Gem Transmission CommandInput.tsx:346-354
         Note over CI: the old nodes.opacity write is gone and the path is retired (retiredPaths.ts:25)
     else glow or bloom wording
-        CI->>CI: writes visualisation.glow.enabled, the one glow switch, bloom.* is retired CommandInput.tsx:345-352, retiredPaths.ts:86-90
-        CI->>Pod: dynamic import SolidPodService then saveGraphView/loadGraphView/listGraphViews CommandInput.tsx:464, CommandInput.tsx:479, CommandInput.tsx:507
-        CI->>CI: a loaded view's defined physics keys and nodeTypeVisibility become one writes list CommandInput.tsx:481-492
+        CI->>CI: writes visualisation.glow.enabled, the one glow switch, bloom.* is retired CommandInput.tsx:385-392, retiredPaths.ts:86-90
+        CI->>Pod: dynamic import SolidPodService then saveGraphView/loadGraphView/listGraphViews CommandInput.tsx:504, CommandInput.tsx:519, CommandInput.tsx:547
+        CI->>CI: a loaded view's defined physics keys and nodeTypeVisibility become one writes list CommandInput.tsx:521-532
     else matches inject/show agent or swarm (and not node/only)
-        CI->>UAC: POST /bots/mock-agents {agents: [...]} CommandInput.tsx:528
+        CI->>UAC: POST /bots/mock-agents {agents: [...]} CommandInput.tsx:568
         UAC->>SRV: HTTP POST
-        CI->>CI: window.dispatchEvent visionclaw:status with injected count CommandInput.tsx:537
+        CI->>CI: window.dispatchEvent visionclaw:status with injected count CommandInput.tsx:577
     else no deterministic keyword match
-        opt Jev command flow enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:21, server-side route is the shared agentbox proxy :7-11)
-            CI->>CI: planJevCommand(cmd, registry fields) -- a patch or intent suggestion held for the user's decision, null on flag off, error, timeout or low confidence<br/>client/src/features/visualisation/components/CommandInput.tsx:680, client/src/services/jev/commandFlow.ts:43
-            CI->>U: Apply, Run, Ask the settings assistant instead, or Dismiss -- Apply also goes through applySettingWrites, Jev itself writes nothing<br/>client/src/features/visualisation/components/CommandInput.tsx:726-730
+        opt Jev command flow enabled (server-driven, jevClient.ts:122-124, on under Compose via docker-compose.unified.yml:24, server-side route is the shared agentbox proxy :7-11)
+            CI->>CI: planJevCommand(cmd, registry fields) -- a patch or intent suggestion held for the user's decision, null on flag off, error, timeout or low confidence<br/>client/src/features/visualisation/components/CommandInput.tsx:733, client/src/services/jev/commandFlow.ts:43
+            CI->>U: Apply, Run, Ask the settings assistant instead, or Dismiss -- Apply also goes through applySettingWrites, Jev itself writes nothing<br/>client/src/features/visualisation/components/CommandInput.tsx:787-791
         end
-        CI->>CI: dispatchToSettingsLLM(command) when no review is held CommandInput.tsx:681-686
-        CI->>UAC: POST /bots/settings-command {command, settingsContext} CommandInput.tsx:119, CommandInput.tsx:129
+        CI->>CI: dispatchToSettingsLLM(command) when no review is held CommandInput.tsx:734-739
+        CI->>UAC: POST /bots/settings-command {command, settingsContext} CommandInput.tsx:132, CommandInput.tsx:142
         Note right of CI: agent applies changes back through /api/settings/* -<br/>see VC-34.1 for that write path
     end
-    CI->>SW: executeAction(action) - writes first, then localAction CommandInput.tsx:559-564
-    CI->>CI: endpoint actions (non-setting jobs only) strip a leading /api and use<br/>unifiedApiClient.request(method, path, body) CommandInput.tsx:570-571
+    CI->>SW: executeAction(action) - writes first, then localAction, then the endpoint, a string from localAction<br/>or afterRequest comes back as an answer line that stays until the next command CommandInput.tsx:599-616, CommandInput.tsx:713
+    CI->>CI: endpoint actions (non-setting jobs only) strip a leading /api and use<br/>unifiedApiClient.request(method, path, body) CommandInput.tsx:612-613
     Note over CI,SRV: raw fetch would send no auth and get 401 -<br/>unifiedApiClient's interceptor injects NIP-98/dev token (VC-33)
 ```
 ## VC-34.20 visualisation — EmbeddingCloudLayer and TransientBeamsLayer
@@ -718,12 +710,12 @@ sequenceDiagram
     participant TBH as useTransientBeams<br/>client/src/features/visualisation/hooks/useTransientBeams.ts:24
     participant TBL as TransientBeamsLayer<br/>client/src/features/visualisation/components/TransientBeamsLayer.tsx:69
 
-    ECL->>MCS: reads snapshot, status, query run and response (selectors)<br/>EmbeddingCloudLayer.tsx:132
+    ECL->>MCS: reads snapshot, status, query run and response (selectors)<br/>EmbeddingCloudLayer.tsx:134
     Note right of MCS: points are a stratified PCA-projected sample from GET /api/memory-cloud, loaded by the memory explorer store.<br/>The static /embedding-cloud.json is retired.<br/>EmbeddingCloudLayer.tsx:4
     ECL->>ECL: enabled flag check, frame the cloud on the graph (cloudFrame.ts) and slice to maxPoints
-    WSStore->>ECL: on('memoryFlash', event)<br/>EmbeddingCloudLayer.tsx:332
+    WSStore->>ECL: on('memoryFlash', event)<br/>EmbeddingCloudLayer.tsx:334
     ECL->>ECL: resolveFlashTargets -- the flashed key, else a few rows of its namespace, else counted as unmatched for the explorer HUD
-    ECL->>MCS: recordFlash(match)<br/>EmbeddingCloudLayer.tsx:336
+    ECL->>MCS: recordFlash(match)<br/>EmbeddingCloudLayer.tsx:338
     ECL->>ECL: spawnBurst with semanticBurstColor at each matched point
     Note over ECL,MCS: while a query route is shown the cloud stops rotating and off-route points dim.<br/>The explorer panel is now a Memory tab of the right drawer, mounted only while the cloud is on<br/>(client/src/features/control-center/drawer/RightDrawer.tsx:91, :291, :301, see VC-57)
     Note over Store,TBH: 0x23 AGENT_ACTION frame decoded in binaryProtocol.ts<br/>pushes into transientBeamStore, state frames dropped (transientBeamStore.ts:70-72) - see VC-32.11 for the dispatch
