@@ -42,7 +42,7 @@ sequenceDiagram
     FR->>FR: mask below the area floor stays unsegmented (identify.py:324,326)
     FR->>FR: write masks/frameNNNNN_ii_label.png (identify.py:336,339)
     RI-->>ST: IdentifyResult, identify.json written (identify.py:399)
-    Note over SM: DEBT: seg_match_iou 0.30 is configured and recorded but the match accepts any IoU at or above 0.0 (identify.py:72,411,583)
+    Note over SM: DEBT: seg_match_iou 0.30 is configured and recorded but the match accepts any positive IoU (identify.py:72,411,581,583)
     Note over FR: INVARIANT: an unsegmented box is kept with status unsegmented, never a box-shaped mask (identify.py:314,316)
 ```
 

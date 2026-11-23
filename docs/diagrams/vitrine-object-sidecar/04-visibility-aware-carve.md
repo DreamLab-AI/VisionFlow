@@ -63,7 +63,7 @@ flowchart TB
     PV --- DEBT1
     TENS["TENSION: the robust auto band that fixed the nc04 outlier inflation is reached only by direct callers such as the recarve tool, never by the driver<br/>tools_recarve_and_score.py:43<br/>pipeline.py:628"]
     AUTO --- TENS
-    TENS2["TENSION: README carve IoU 0.928 comes from the single-object carve on projected cheat masks, the integration test gates only above 0.6, and the driver runs carve_instances<br/>README.md:54<br/>test_integration_carve.py:3,108,119"]
+    TENS2["TENSION: README reports carve IoU 0.928, the only tracked carve-versus-ground-truth test uses the single-object carve on projected cheat masks and gates only above 0.6, while the driver runs carve_instances<br/>README.md:54<br/>test_integration_carve.py:3,108,119"]
     C1 --- TENS2
 ```
 

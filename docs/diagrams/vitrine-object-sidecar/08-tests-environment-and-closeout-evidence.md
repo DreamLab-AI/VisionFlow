@@ -31,7 +31,6 @@ sources:
   - ../vitrine-object-sidecar/tools_score_bakeoff.py
   - ../vitrine-object-sidecar/tools_contact_sheets.py
   - ../vitrine-object-sidecar/report/main.tex
-  - ../vitrine-object-sidecar/report/Makefile
 verified_commit: {vitrine-object-sidecar: 8011b32a57d183dd40af38fcf7bfcf952167603d}
 ---
 

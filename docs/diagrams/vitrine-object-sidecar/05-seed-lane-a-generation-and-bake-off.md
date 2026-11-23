@@ -82,7 +82,8 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    SC["score_candidates: emplace each GLB against real masks, score is mean silhouette IoU<br/>generate.py:243,271,276"]
+    SC["score_candidates: emplace each GLB against real masks, score is mean silhouette IoU<br/>generate.py:243,271,276<br/>emplace.py:117"]
+    P1["pass-1 tool scorer: coarse emplace, 8 yaws, no refine<br/>tools_score_bakeoff.py:73,74"]
     SV["seed variance: mean, std, min, max, range per metric<br/>evalkit.py:405,428,429,430,433"]
     PCS["per_camera_scores with PSNR and SSIM exists, unused by the selector<br/>evalkit.py:303,335,336"]
     BEST["best: highest score, else first ok candidate<br/>generate.py:148,149,151,152"]
@@ -96,6 +97,7 @@ flowchart TB
     CLEAN["tools_recarve_and_score writes the same radio_bakeoff_clean.json, Lane-A best is fixed at seed_0000<br/>tools_recarve_and_score.py:60,84"]
     HEAD["STATE-OF-PLAY headline: Lane-A 0.212 vs Lane-B 0.136 and 0.127<br/>STATE-OF-PLAY.md:69,70,71"]
     STUB --> LOG --> HEAD
+    P1 -.-> HEAD
     CLEAN --> HEAD
     DEBT1["DEBT: the instance-aware scorer behind the headline ranking is not in the repository, only its docstring and log<br/>score_bakeoff.py:1,5<br/>score_bakeoff_run.log:5"]
     STUB --- DEBT1
@@ -108,4 +110,4 @@ flowchart TB
     LIN --- DEBT2
 ```
 
-**What it shows.** Selection exists as a library call; the published ranking was produced by root tools and an uncommitted scorer, on one object.
+**What it shows.** Selection exists as a library call; the published ranking was produced by root tools and a scorer not present in the repository, on one object.

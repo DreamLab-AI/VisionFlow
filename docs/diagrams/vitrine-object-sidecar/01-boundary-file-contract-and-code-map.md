@@ -130,6 +130,10 @@ flowchart TB
     LB --> EMP
     DRIFT["DOC-DRIFT: README lists ten stages including generate, select, texture, compose under one run command<br/>README.md:17,21,24,25,35"]
     STAGES --- DRIFT
+    DRIFT2["DOC-DRIFT: ADR-001 and STATE-OF-PLAY say the sidecar emits per-object GLBs and composed_scene.glb, the CLI writes Gaussian-subset PLYs only<br/>adr-001-sidecar-boundary.md:10<br/>STATE-OF-PLAY.md:46,47<br/>pipeline.py:647"]
+    WMAN --- DRIFT2
+    DRIFT3["DOC-DRIFT: the report says the sidecar validates a handoff, can write scene_cleaned.ply and imports uos-vitrine cleanly, no code does the first two and the COLMAP reader exists to avoid the import<br/>06-interface-contract.tex:6,7,8,18<br/>colmap_model.py:3,4,5,6"]
+    WMAN --- DRIFT3
 ```
 
 **What it shows.** Four stages are wired; generation, refinement, texture and composition exist as tested functions with no tracked production caller, and Lane B has no code here.

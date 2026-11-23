@@ -76,7 +76,7 @@ flowchart TB
     CFG --> SUMCFG
     DEBT1["DEBT: per_instance_carve, cluster_radius_frac and max_views_per_label have no CLI flag<br/>pipeline.py:544,545,546<br/>__main__.py:75,84"]
     C3 --- DEBT1
-    DEBT2["DEBT: the recorded config omits lane_b_k, max_views_per_label, extra_originals and device, so a run cannot be replayed from summary.json alone<br/>pipeline.py:848,856"]
+    DEBT2["DEBT: the recorded config omits max_components_per_label, lane_b_k, max_views_per_label, extra_originals and device, so a run cannot be replayed from summary.json alone<br/>pipeline.py:848,856"]
     SUMCFG --- DEBT2
 ```
 
