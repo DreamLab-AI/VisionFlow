@@ -11,12 +11,12 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/write/create.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
   - ../ontomark/crates/ontomark-compile/src/write/proposal.rs
-verified_commit: {agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
+verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, ontomark: f5cca7d16e56fca95c38fab5e46a3ef0fac065a2}
 ---
 
 ## For developers
 
-**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](13-certificate-transaction-and-identity-repairs.md). This historical topic retains its declared source revision; the successor states the repaired contracts and acceptance boundaries. This topic follows the mutation consumer after a governance decision reaches Agentbox. It distinguishes a proposal's own digest from the decision's case tag, and a proposal's page from the filename selected by creation. The [31 October audit](../../estate-review/2026-10-31-proposal-application.md) includes real-CLI probes and explains which upstream checks were not exercised. Source pins identify the inspected implementation; they do not certify a deployed forum journey.
+**Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](13-certificate-transaction-and-identity-repairs.md). This topic is re-stamped at the current heads, where its cited sources say what it draws (the agentbox change is an import and a named constant for the forum request kind, `local-process-manager.js:20,586`); the successor states the repaired contracts and acceptance boundaries. This topic follows the mutation consumer after a governance decision reaches Agentbox. It distinguishes a proposal's own digest from the decision's case tag, and a proposal's page from the filename selected by creation. The [31 October audit](../../estate-review/2026-10-31-proposal-application.md) includes real-CLI probes and explains which upstream checks were not exercised. Source pins identify the inspected implementation; they do not certify a deployed forum journey.
 
 ## For the business
 
@@ -26,15 +26,15 @@ A reviewer needs to know which approved change reached which page. The applicati
 
 ```mermaid
 flowchart TD
-    A["approve outcome<br/>local-process-manager.js:218"] --> Q["Resolve same case and ontology panel;<br/>proposal digest must equal decision tag<br/>local-process-manager.js:379,397,400"]
-    P["promote or demote outcome<br/>local-process-manager.js:226"] --> R["Roster and own-key refusal<br/>local-process-manager.js:232,508"]
+    A["approve outcome<br/>local-process-manager.js:219"] --> Q["Resolve same case and ontology panel;<br/>proposal digest must equal decision tag<br/>local-process-manager.js:380,398,401"]
+    P["promote or demote outcome<br/>local-process-manager.js:227"] --> R["Roster and own-key refusal<br/>local-process-manager.js:233,509"]
     Q --> R
-    R --> B["Resolve request; compare request tag and signed IRI<br/>local-process-manager.js:419,444,450"]
+    R --> B["Resolve request; compare request tag and signed IRI<br/>local-process-manager.js:420,445,451"]
     B --> D["Dispatch by outcome and proposal kind<br/>ontology-apply.js:372"]
     D --> C["create proposal: reconstruct staged Markdown<br/>ontology-apply.js:560,578"]
     D --> M["promote amend: stage proposal JSON<br/>ontology-apply.js:692"]
     D --> E["ordinary status edit or demotion<br/>ontology-apply.js:410"]
-    B -.-> X["TENSION: explicit promote checks request tag,<br/>but lacks approve's proposal-digest equality check<br/>local-process-manager.js:444,400"]
+    B -.-> X["TENSION: explicit promote checks request tag,<br/>but lacks approve's proposal-digest equality check<br/>local-process-manager.js:445,401"]
 ```
 
 **What it shows.** Approve and explicit promote have different checks before reaching the same amendment writer. A valid proposal digest inside the CLI does not prove that it is the case digest used by the caller.

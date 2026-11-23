@@ -33,7 +33,7 @@ sources:
   - ../loom/crates/loom-vector-ruvector/src/artifact.rs
   - ../project/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: fbe30244c6842879297883b571965f5bc1ce0441, loom: c016dab5ae8afa0bf41519ff0b2685647dc717f3, agentbox: 3a2c59764028e1fd8475abfda61bb3bcefab46d5, visionflow: fdeab5dc36a859b3b881d7d587af067c88795217}
+verified_commit: {ontomark: f5cca7d16e56fca95c38fab5e46a3ef0fac065a2, loom: 355946dd2deacfdef21171d53eafd025887e447e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 
 ## OM-06.1 build --scope public|machine — the surface, the refusals and where run_with forks
@@ -173,8 +173,8 @@ flowchart TB
         N1 -.- N3
     end
     subgraph LOOMR["Loom marker reader tolerance of scope — VERIFIED field by field"]
-        L1["vault_build_generation reads named fields by key with Value::get: generated_at, commit, promoted_at, artifacts, class_count, content_digest, page_count, vocabulary_version, stale_after, and the optional built_by compiler identity, which is kept when present and never inferred when absent; scope is never read, so it is ignored<br/>loom-facade/src/mirror.rs:270-292"]
-        L2["parse_marker_strict gates on id, dirty, commit, content_digest, class_count, page_count, vocabulary_version and artifacts; an unknown key is not a refusal<br/>loom-facade/src/mirror.rs:401-444"]
+        L1["vault_build_generation reads named fields by key with Value::get: generated_at, commit, promoted_at, promoted_by, previous_generation, artifacts, class_count, content_digest, page_count, vocabulary_version, stale_after, and the optional built_by compiler identity, which is kept when present and never inferred when absent; scope is never read, so it is ignored<br/>loom-facade/src/mirror.rs:278-301"]
+        L2["parse_marker_strict gates on id, dirty, commit, content_digest, class_count, page_count, vocabulary_version and artifacts; an unknown key is not a refusal<br/>loom-facade/src/mirror.rs:411-454"]
         L3["promote_vault_build reads id and artifacts and rewrites the marker as a Value, so scope survives the rewrite<br/>loom-vector-ruvector/src/artifact.rs:168-175, loom-vector-ruvector/src/artifact.rs:255-260"]
         L4["INVARIANT: C3 records that Loom tolerates the field, verified live 2026-10-12, and that a consumer cache keyed on ontology_digest must also key on scope<br/>sovereign-corpus-contracts.md:148-152"]
         L1 --> L2 --> L3 --> L4
