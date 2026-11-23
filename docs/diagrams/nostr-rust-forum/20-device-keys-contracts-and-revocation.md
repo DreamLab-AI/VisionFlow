@@ -15,7 +15,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/settings.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/recovery_sheet.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/index.html
-verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
+verified_commit: {nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
 ---
 
 ## For developers
@@ -34,7 +34,7 @@ A lost-phone control needs a working device list and a measurable point at which
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/devices.rs:100
     A["Auth worker reads its own setting"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3735
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3737
     B["Relay worker reads its own setting"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-core/src/feature_gate.rs:64
     C["Shared rule: exact string true only"]
@@ -117,9 +117,9 @@ flowchart TB
     B["Set session authed_pubkey to raw author"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/session.rs:334
     C["Persist raw public key for hibernation"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3779
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3781
     D["Later effective_pubkey applies feature gate"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3761
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3763
     E["Registry query selects only revoked = 0"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1006
     F["No mapping: retain raw public key<br/>no explicit revoked-key rejection here"]

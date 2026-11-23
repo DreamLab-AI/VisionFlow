@@ -12,7 +12,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/push.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/js/push.js
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/sw.js
-verified_commit: {nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
+verified_commit: {nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
 ---
 
 ## For developers
