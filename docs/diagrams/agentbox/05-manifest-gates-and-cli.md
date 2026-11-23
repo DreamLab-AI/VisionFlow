@@ -165,7 +165,7 @@ flowchart TD
     VB --> VB6["env_root, env_pages, env_working_pages, env_transcripts<br/>read from the process the container actually booted with — system-manifest.js:559-562"]
     VB6 --> DRIFT["drift = root set AND VAULT_ROOT set AND they differ<br/>system-manifest.js:563"]
     DRIFT --> DOC["so /v1/system and the doctor can show manifest-vs-running drift"]
-    TOML -.-> DIV["RESOLVED 2026-10-31 — BASELINE 'Vault compatibility and Notes qualification'<br/>used to record ADR-2028 as partial because a legacy ONTOLOGY_PAGES_DIR override survived<br/>a disabled vault. The override and its opt-in are removed, VAULT_* is the only path source<br/>(BASELINE-container.md:356, entrypoint-unified.sh:77-84). See AB-02.14"]
+    TOML -.-> DIV["RESOLVED 2026-10-31 — BASELINE 'Vault compatibility and Notes qualification'<br/>used to record ADR-2028 as partial because a legacy ONTOLOGY_PAGES_DIR override survived<br/>a disabled vault. The override and its opt-in are removed, VAULT_* is the only path source<br/>(BASELINE-container.md:356, entrypoint-unified.sh:77-84). See AB-45.6"]
 ```
 
 ## AB-05.5 agentbox.sh top-level subcommand dispatch
@@ -564,7 +564,7 @@ flowchart TB
         B1["/etc/supervisord.roles.conf and /etc/agentbox/role-secrets.tsv<br/>flake.nix:4255"]
         B2["/etc/passwd role lines flake.nix:4275<br/>/etc/group role lines flake.nix:4288"]
     end
-    BOOT["entrypoint reads it once in Stage A and exports it<br/>entrypoint-unified.sh:317, see AB-02.24"]
+    BOOT["entrypoint reads it once in Stage A and exports it<br/>entrypoint-unified.sh:317, see AB-46.8"]
     KEY --> SCH
     KEY --> CATE
     KEY --> BOOT
