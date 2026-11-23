@@ -36,7 +36,7 @@ verified_commit: {visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb, agentbox
 ```mermaid
 flowchart TB
     R["Declared health roster: 21 repositories<br/>scripts/estate-health/roster.json:5-25"] --> P["Primary diagram directories include:<br/>VisionFlow, VisionClaw, Agentbox, pod, forum,<br/>website, knowledgeGraph, visionGraph, vowl-wasm,<br/>sidestr-rs (roster.json:13), ontomark (roster.json:14),<br/>visiontouch-rs (roster.json:22), Dream Engine (roster.json:21)"]
-    R --> S["Also on roster: Loom (see LM-01), ontomark-obsidian (see OO-01), WasmVOWL,<br/>prose-sanitiser, diagram-ir, codescape, sealmap, visioncraft. The Dream Engine row still<br/>describes a fork of ruvnet/dream-machine, roster.json:21<br/>(see DE-01)"]
+    R --> S["Also on roster: Loom (see LM-01), ontomark-obsidian (see OO-01), WasmVOWL (see WV-01),<br/>vitrine-object-sidecar (see VO-01), THG-world-record-attempt (see TH-01),<br/>prose-sanitiser, diagram-ir, codescape, sealmap, visioncraft. The Dream Engine row still<br/>describes a fork of ruvnet/dream-machine, roster.json:21<br/>(see DE-01)"]
     C["Git census and ADR candidate discovery<br/>scripts/estate-doc-audit.py"] --> R
     C --> D["Consumed or historical extension:<br/>RuVector, RuView, archived Logseq"]
     C --> N["Other checkouts: inventory only,<br/>no estate adoption from directory proximity"]
