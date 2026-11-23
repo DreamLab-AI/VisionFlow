@@ -21,7 +21,7 @@ sources:
   - ../dreamlab-ai-website/scripts/check-claims.mjs
   - ../dreamlab-ai-website/.github/workflows/deploy.yml
   - ../dreamlab-ai-website/docs/archive/adr/043-ai-search-visibility-aeo.md
-verified_commit: 567bed67f54c2be66edf7e1333442f9458294241
+verified_commit: e255b2b113ee47d58a0c872c6b4702afc62a46e5
 ---
 
 ## DW-02.1 Route table — lazy-loaded, code-split
@@ -93,7 +93,7 @@ flowchart LR
     DISC["check-discovery.mjs:32 fails the build on any token"] -. guards .-> NODATE
 ```
 - The CSP is why the React `__p` deep-link pickup lives in the external `public/spa-redirect.js` rather than an inline script injected at deploy time (see DW-01.7; `index.html:85-88`); an inline script would be blocked.
-- **Drift:** the earlier reading of this topic (and the archived ADR-043, `docs/archive/adr/043-ai-search-visibility-aeo.md:5-6`) that a Vite `inject-build-date` plugin replaces `__BUILD_DATE__` in `index.html` is false at HEAD: the plugin and every placeholder are gone, `dateModified` is no longer stamped with the build date, and freshness is the per-page git commit date in the sitemap `<lastmod>` (`scripts/prerender.mjs:44-47`), omitted rather than faked on a shallow clone (`scripts/prerender.mjs:43`), which is why `deploy.yml` checks out with `fetch-depth: 0` (`.github/workflows/deploy.yml:159-160`).
+- **Drift:** the earlier reading of this topic (and the archived ADR-043, `docs/archive/adr/043-ai-search-visibility-aeo.md:5-6`) that a Vite `inject-build-date` plugin replaces `__BUILD_DATE__` in `index.html` is false at HEAD: the plugin and every placeholder are gone, `dateModified` is no longer stamped with the build date, and freshness is the per-page git commit date in the sitemap `<lastmod>` (`scripts/prerender.mjs:44-47`), omitted rather than faked on a shallow clone (`scripts/prerender.mjs:43`), which is why `deploy.yml` checks out with `fetch-depth: 0` (`.github/workflows/deploy.yml:160-161`).
 - OG/social-card image URLs (src/lib/og-meta.ts:42-51) must point at files that already exist under `public/`; there is no OG-image generation pipeline, so meta and imagery are hand-kept in sync.
 
 ## DW-02.7 Contact form — RHF + Zod boundary, no database write

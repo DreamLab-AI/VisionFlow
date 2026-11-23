@@ -32,7 +32,7 @@ sources:
   - ../dreamlab-ai-website/docs/adr/ADR-2002-split-hosting-pages-workers.md
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/pod_browser.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
-verified_commit: {dreamlab-ai-website: 567bed67f54c2be66edf7e1333442f9458294241, nostr-rust-forum: af4f0d56f735ca29dddf9be2549d5c0e9f987891}
+verified_commit: {dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5, nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
 ---
 
 ## DW-03.1 The four-zone model plus the encryption master gate
@@ -52,7 +52,7 @@ flowchart TB
 - **Drift:** `IDENTITY-zones.md` still records that the README markets locked "Friends, Family, and DreamLab" zones although the config has no `friends` zone — the second zone is `minimoonoir` (`IDENTITY-zones.md:155-158`, `dreamlab.toml:112-115`) — and that "Public MiniMooNoir landing" is misleading because `minimoonoir` (`zone2`) is `visibility = "locked"` (`IDENTITY-zones.md:159-162`, `dreamlab.toml:107,121`). The rewritten README now lists the public **Welcome** zone and locked **Minimoonoir**, **Family** and **DreamLab** zones (`dreamlab-ai-website/README.md:69`) and mentions Friends only in captions of earlier screenshots (`dreamlab-ai-website/README.md:99-101`), so the divergence entry outlives the README text it describes.
 - DOC-DRIFT: `dreamlab_zone_names()` (`branding.rs:40-42`) documents a legacy 3-zone naming scheme (`home`/`members`/`private` displayed as `Lobby`/`DreamLab`/`MiniMooNoir`) predating this four-zone model; its only caller is its own unit test (`branding.rs:65-71`) — not `workers.rs`, `lib.rs`, or any deploy step — so it is dead code describing a superseded scheme.
 - The branding overlay matches the authored TOML: `dreamlab_branding()` sets `node_name` to `MINIMOONOIR` and `logo_url` to `/brand/mark.svg` (`branding.rs:17,28`), the values `dreamlab.toml:82,86` author, and a unit test pins the pair so the programmatic mirror cannot diverge again (`branding.rs:54-63`; dream-cycle candidate `5dbf18b`, 2026-10-02). The golden-field mark replaced the earlier state in which the overlay returned `None` because `/assets/logo.svg` was a 404.
-- The earlier **Drift** on the BBS logo is closed: `BBS_LOGO_URL` is now `https://dreamlab-ai.com/brand/mark.svg` (`deploy.yml:120`), injected as `window.__ENV__.LOGO_URL` (`deploy.yml:360`), agreeing with the overlay and TOML in asset though not in form (absolute URL in the deploy env, root-relative path in `dreamlab.toml:86` and `branding.rs:17`); `BBS_NODE_NAME` (`deploy.yml:116`) still agrees.
+- The earlier **Drift** on the BBS logo is closed: `BBS_LOGO_URL` is now `https://dreamlab-ai.com/brand/mark.svg` (`deploy.yml:120`), injected as `window.__ENV__.LOGO_URL` (`deploy.yml:361`), agreeing with the overlay and TOML in asset though not in form (absolute URL in the deploy env, root-relative path in `dreamlab.toml:86` and `branding.rs:17`); `BBS_NODE_NAME` (`deploy.yml:116`) still agrees.
 
 ## DW-03.3 Admin roster — four trust domains, one unsplit key
 ```mermaid
@@ -145,7 +145,7 @@ flowchart TB
     end
 ```
 - Seven mirror groups total across DW-03.5/DW-03.6 — this is the actual shape of the brief's "known three-way manual sync anomaly": not three locations but seven independently-tracked governed data points, each with its own site count. `encryption-enabled` is the newest of the enumerated seven, added alongside `[encryption].enabled` (see DW-03.1).
-- `check-config-mirrors.mjs` now imports and runs `checkOperatorVarMirrors` beside `checkConfigMirrors` (`check-config-mirrors.mjs:15,27-35`), so the `Config mirror parity` CI step gates `[webauthn]` `rp_id`/`expected_origin`, `[mesh]` `mode`/`peer_relays`/`allowed_remote_dids`/`federated_kinds`, `[features].poker` and `[poker]` (`config-mirrors.mjs:337-353,416-506`, estate register ER-23); the vitest bench test covers them too (`operator-var-mirrors.test.mjs:53-60`). The poker pair is compared as key-sorted JSON against `deploy.yml` `POKER`/`POKER_CONFIG_JSON` (`deploy.yml:101-102`, injected at `deploy.yml:288,360`; `config-mirrors.mjs:468-506`), so the earlier unenumerated eighth mirror is now checked, though it is not one of the `MIRROR_BEARING_KEYS` the DW-03.7 sweep scans (`config-mirrors.mjs:41-47`, wrangler `[vars]` only).
+- `check-config-mirrors.mjs` now imports and runs `checkOperatorVarMirrors` beside `checkConfigMirrors` (`check-config-mirrors.mjs:15,27-35`), so the `Config mirror parity` CI step gates `[webauthn]` `rp_id`/`expected_origin`, `[mesh]` `mode`/`peer_relays`/`allowed_remote_dids`/`federated_kinds`, `[features].poker` and `[poker]` (`config-mirrors.mjs:337-353,416-506`, estate register ER-23); the vitest bench test covers them too (`operator-var-mirrors.test.mjs:53-60`). The poker pair is compared as key-sorted JSON against `deploy.yml` `POKER`/`POKER_CONFIG_JSON` (`deploy.yml:101-102`, injected at `deploy.yml:289,361`; `config-mirrors.mjs:468-506`), so the earlier unenumerated eighth mirror is now checked, though it is not one of the `MIRROR_BEARING_KEYS` the DW-03.7 sweep scans (`config-mirrors.mjs:41-47`, wrangler `[vars]` only).
 - **Debt:** `[nip05]` is still not compared at all: its `dreamlab.toml` section is "still elided from source views" in the checker's own header (`config-mirrors.mjs:360-361`).
 
 ## DW-03.7 Completeness sweep — catching an unenumerated mirror
@@ -172,14 +172,14 @@ flowchart TB
     DETECT -->|placeholder present| FAIL1["DeployConfigError::UnresolvedPlaceholder<br/>unit test EXPECTS >= 2 (auth + pod) to remain<br/>deploy_config.rs:271-296"]
     SECRETS["REQUIRED_AUTH_SECRETS: PRF_SERVER_SECRET, ADMIN_PUBKEYS,<br/>NATIVE_POD_ADMIN_KEY, NATIVE_POD_URL<br/>deploy_config.rs:73-78"] --> CHECK["validate_required_secrets(configured)<br/>deploy_config.rs:232-253<br/>called only from this crate's unit tests"]
     CHECK -->|missing| FAIL2["DeployConfigError::MissingSecret"]
-    DEPLOYSTEP["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>bash: PRF_SERVER_SECRET, ADMIN_PUBKEYS required, NATIVE_POD_* warn only<br/>workers-deploy.yml:301-337, fails the deploy job"]
+    DEPLOYSTEP["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>bash: PRF_SERVER_SECRET, ADMIN_PUBKEYS required, NATIVE_POD_* warn only<br/>workers-deploy.yml:302-338, fails the deploy job"]
     SECRETS -.->|"Tension: four required here, two at deploy"| DEPLOYSTEP
-    SUBQ["TYPESAFE_API_KEY: job set-system-one-secrets runs after set-secrets and set-push-secret (Cloudflare 409 on concurrent writes, retried up to five times) and pushes the GH secret to dreamlab-search-api, dreamlab-nostr-relay and dreamlab-auth-api, failing when it is empty<br/>.github/workflows/set-worker-secrets.yml:146-184"] --> SUBQCHK["workers-deploy.yml 'Validate public System One credential', search and relay only (the auth worker is not checked): fails the deploy when the Worker secret name is absent<br/>.github/workflows/workers-deploy.yml:287-297"]
+    SUBQ["TYPESAFE_API_KEY: job set-system-one-secrets runs after set-secrets and set-push-secret (Cloudflare 409 on concurrent writes, retried up to five times) and pushes the GH secret to dreamlab-search-api, dreamlab-nostr-relay and dreamlab-auth-api, failing when it is empty<br/>.github/workflows/set-worker-secrets.yml:146-184"] --> SUBQCHK["workers-deploy.yml 'Validate public System One credential', search and relay only (the auth worker is not checked): fails the deploy when the Worker secret name is absent<br/>.github/workflows/workers-deploy.yml:288-298"]
     OPTIN["OPEN: the overlay is configured to opt in JEV_TRIAGE, JEV_SEARCH_RERANK and JEV_RATIONALE_CHECK, with a 5-minute relay cron for the triage sweep, deployed by the Cloudflare Workers run 41028875471 (success, 2026-10-30, kit 9c36b60) whose credential check covered search and relay only, so the auth worker's secret has no receipt; all three reach TypeSafe jev-latest directly, and the auth worker's rationale check is cloud by default and private only when JEV_RATIONALE_CHECK_LOCAL_ONLY=1<br/>forum-config/deploy/SYSTEM-ONE.md:3-5, forum-config/deploy/relay-worker.wrangler.toml:16, forum-config/deploy/search-worker.wrangler.toml:33, forum-config/deploy/auth-worker.wrangler.toml:61-66, forum-config/deploy/relay-worker.wrangler.toml:99-100"]
 ```
-- The `provision-kv` pre-job in `workers-deploy.yml` (`workers-deploy.yml:60`) resolves or creates a SINGLE shared `dreamlab-admin-kv` namespace before the per-worker matrix runs, specifically so the auth-worker's `ADMIN_KV` (read/write) and pod-worker's `ADMIN_KV_RO` (read-only) bind the same namespace — a per-worker title would split it and silently drop bans/mutes.
-- `NATIVE_POD_ADMIN_KEY`/`NATIVE_POD_URL` are OPTIONAL secrets (`workers-deploy.yml:312-318`): absent, `/api/native-pod/provision` 503s "native pod not configured" rather than crashing — the deploy step warns but does not block on these two.
-- **Tension:** the Rust validator lists all four as required and says `NATIVE_POD_URL` is "gated here so a fresh deploy without it fails fast" (`deploy_config.rs:67-78`), but no workflow calls `validate_required_secrets` or `validate_deploy_dir`; the deploy gate is the bash step, which requires two and warns on two (`workers-deploy.yml:318-336`), and the placeholder test asserts the placeholders are still present rather than failing on them (`deploy_config.rs:271-296`). The repo's own security closeout records the validator as test-only (`CLOSEOUT-SECURITY-AUDIT.md:148-152`). Closing it means either invoking the validator in the deploy job or deleting it and treating the bash as canonical.
+- The `provision-kv` pre-job in `workers-deploy.yml` (`workers-deploy.yml:61`) resolves or creates a SINGLE shared `dreamlab-admin-kv` namespace before the per-worker matrix runs, specifically so the auth-worker's `ADMIN_KV` (read/write) and pod-worker's `ADMIN_KV_RO` (read-only) bind the same namespace — a per-worker title would split it and silently drop bans/mutes.
+- `NATIVE_POD_ADMIN_KEY`/`NATIVE_POD_URL` are OPTIONAL secrets (`workers-deploy.yml:313-319`): absent, `/api/native-pod/provision` 503s "native pod not configured" rather than crashing — the deploy step warns but does not block on these two.
+- **Tension:** the Rust validator lists all four as required and says `NATIVE_POD_URL` is "gated here so a fresh deploy without it fails fast" (`deploy_config.rs:67-78`), but no workflow calls `validate_required_secrets` or `validate_deploy_dir`; the deploy gate is the bash step, which requires two and warns on two (`workers-deploy.yml:319-337`), and the placeholder test asserts the placeholders are still present rather than failing on them (`deploy_config.rs:271-296`). The repo's own security closeout records the validator as test-only (`CLOSEOUT-SECURITY-AUDIT.md:148-152`). Closing it means either invoking the validator in the deploy job or deleting it and treating the bash as canonical.
 
 ## DW-03.9 Per-worker wrangler bindings (1/2) — auth-worker and pod-worker
 ```mermaid
@@ -205,7 +205,7 @@ flowchart TB
     A_R2 -.->|"shared physical R2"| P_R2
     A_ADMIN -.->|"same namespace, RO here"| P_KVRO
 ```
-- `ADMIN_KV` (auth, read/write) and `ADMIN_KV_RO` (pod, read-only) are a deliberate split; both ship the unresolved `REPLACE_WITH_NEW_ADMIN_KV_ID` placeholder (DW-03.8). `workers-deploy.yml`'s `provision-kv` job resolves or creates the one namespace (`workers-deploy.yml:74-84`), and the per-worker deploy job then substitutes its id into each manifest with `sed` (`workers-deploy.yml:231-237`).
+- `ADMIN_KV` (auth, read/write) and `ADMIN_KV_RO` (pod, read-only) are a deliberate split; both ship the unresolved `REPLACE_WITH_NEW_ADMIN_KV_ID` placeholder (DW-03.8). `workers-deploy.yml`'s `provision-kv` job resolves or creates the one namespace (`workers-deploy.yml:75-85`), and the per-worker deploy job then substitutes its id into each manifest with `sed` (`workers-deploy.yml:232-238`).
 
 ## DW-03.10 Per-worker wrangler bindings (2/2) — relay, search, preview
 ```mermaid
@@ -251,9 +251,9 @@ flowchart TB
 flowchart TB
     TOML["[native_pod] enabled = true<br/>base_url pods-native.dreamlab-ai.com, cohorts zone2-4<br/>dreamlab.toml:253-258"]
     SCHEMA["kit config crate parses the table<br/>nostr-bbs-config/src/schema.rs:51"]
-    GHSEC["GH secret NATIVE_POD_URL<br/>baked into the forum build<br/>deploy.yml:248"]
+    GHSEC["GH secret NATIVE_POD_URL<br/>baked into the forum build<br/>deploy.yml:249"]
     CARD["Pod Browser mesh card<br/>rendered only when NATIVE_POD_URL is non-empty<br/>pod_browser.rs:128,999"]
-    CFSEC["auth-worker CF secrets NATIVE_POD_URL, NATIVE_POD_ADMIN_KEY<br/>set-worker-secrets.yml:23,45, optional at deploy<br/>workers-deploy.yml:318"]
+    CFSEC["auth-worker CF secrets NATIVE_POD_URL, NATIVE_POD_ADMIN_KEY<br/>set-worker-secrets.yml:23,45, optional at deploy<br/>workers-deploy.yml:319"]
     PROV["/api/native-pod/provision<br/>503 when unset<br/>auth-worker.wrangler.toml:86-89"]
     HOST["pods-native.dreamlab-ai.com via CF Tunnel<br/>DIVERGENCE: no DNS record on 2026-11-22<br/>ADR-2002-split-hosting-pages-workers.md:138-143"]
     TOML --> SCHEMA
@@ -263,5 +263,5 @@ flowchart TB
     CFSEC --> PROV --> HOST
 ```
 - DIVERGENCE: the tier is advertised but unreachable; ADR-2002 records the missing DNS record as observed on 2026-11-22 (not re-checked here) and the owner has parked it (`ADR-2002-split-hosting-pages-workers.md:130-146`).
-- **Open:** ADR-2002's second remedy is `[native_pod] enabled = false` (`ADR-2002-split-hosting-pages-workers.md:156-158`). At kit `af4f0d5` the card's only gate found is the build variable (`pod_browser.rs:128-131,997-999`) and the auth worker reads its own secrets (`auth-worker.wrangler.toml:93-98`); no reader of `enabled` beyond the schema turned up, so flipping it may leave the card shown. Untested; emptying the `NATIVE_POD_URL` build secret is the gate the code shows.
+- **Open (closed):** ADR-2002's second remedy now says the card is not controlled by `[native_pod] enabled` but by the `NATIVE_POD_URL` build variable, so clear that secret and set `enabled = false` as well (`ADR-2002-split-hosting-pages-workers.md:156-163`). The kit agrees at `4a73a7a`: the card's only gate is the build variable (`pod_browser.rs:128-131,997-999`) and the auth worker reads its own secrets (`auth-worker.wrangler.toml:93-98`). The ADR still marks the remedy untested.
 - **Debt:** none of the three copies is in the `config-mirrors.mjs` set; the auth-worker comment is the only record that its secret equals `base_url` (`auth-worker.wrangler.toml:89-91`).
