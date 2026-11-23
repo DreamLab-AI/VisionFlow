@@ -13,6 +13,7 @@ sources:
   - ../dream-engine/crates/dream-gate/Cargo.toml
   - ../dream-engine/crates/dream-cli/Cargo.toml
   - ../dream-engine/crates/dream-core/src/readiness.rs
+  - ../dream-engine/crates/dream-core/src/seams.rs
   - ../dream-engine/crates/pairwise-gate/Cargo.toml
   - ../dream-engine/crates/failure-fingerprint/Cargo.toml
   - ../dream-engine/docs/adr/ADR-DE-001-standalone-rust-engine.md
@@ -30,7 +31,7 @@ sources:
   - scripts/generate-release-manifest.sh
   - tests/gates/release-manifest.test.sh
   - scripts/estate-browser-journeys.mjs
-verified_commit: {dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5, agentbox: 720e0d89656a4360998b3a716d0f3ee8cac66f93, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
+verified_commit: {dream-engine: 881075377625a9e20e69e9137f679506e93f4b68, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 
 DE-01 to DE-06 are the estate's view of dream-engine. The repository's own corpus is DE-07 to DE-14 in this area (moved on 2026-11-05); DE-11 draws the same crate DAG and licence boundary from inside the repository.
@@ -77,3 +78,5 @@ flowchart TB
 **Drift (ADR-2141 vs the manifest):** the record's Pinning bullet names `dream-core` and `dream-gate` `=0.2.0` (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:68`) and its last re-verification adopts `=0.3.0` for both (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:92`), while the adapter pins `dream-core =0.4.1` and `dream-gate =0.3.0` (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`).
 
 **Drift (autoMerge inert):** the permissive repository's option exists but the adapter publishes through `Forge::publish_draft` (`../project/agentbox/services/dream-engine/src/engine.rs:1869`), and the dream-engine README and ADR-DE-006 now say that path never merges, whatever `autoMerge` says (`../dream-engine/README.md:130-135`, `../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:44-48`). See ES-05 and AB-23.6. **Invariant (darwin):** darwin entrypoints without the declared sandbox flag are refused by evaluator readiness as a safety check. `assess` only appends an `Unusable::DarwinSandboxMissing` problem for the report and changes nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). **Open (candidate and evidence boundaries):** source-level checks do not establish formatter confinement or evidence integrity. DE-02 records an out-of-worktree formatter write, duplicate test-name collapse, receipt filename collisions and manifest archive replacement, reproduced against the same production source.
+
+**Tension (source vs pinned version):** dream-engine `main` adds a required `head_sha` field to `DraftPr` and a third parameter to `Forge::enable_automerge` (`../dream-engine/crates/dream-core/src/seams.rs:355`, `../dream-engine/crates/dream-core/src/seams.rs:406`) while `dream-core` still declares 0.4.1 (`../dream-engine/crates/dream-core/Cargo.toml:3`), the exact version the adapter pins (`../project/agentbox/services/dream-engine/Cargo.toml:26`). The adapter's `DraftPr` literal has no `head_sha` (`../project/agentbox/services/dream-engine/src/engine.rs:1869`), so it does not compile against `main`'s source; whether the registry's 0.4.1 carries the change is not checked here.

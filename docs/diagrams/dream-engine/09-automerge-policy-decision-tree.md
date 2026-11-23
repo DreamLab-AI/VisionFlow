@@ -10,7 +10,7 @@ sources:
   - ../dream-engine/crates/dream-core/src/runstate.rs
   - ../dream-engine/crates/dream-core/src/seams.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
-verified_commit: b40d50724bb6344dc00d57270f7166b138714406
+verified_commit: 881075377625a9e20e69e9137f679506e93f4b68
 ---
 ## For developers
 
@@ -24,7 +24,7 @@ automerge (`crates/dream-core/src/persist.rs:291`).
 
 ## For the business
 
-Automerge defaults off. A host may publish a draft and opt in to requesting automerge when the policy accepts its supplied facts. The policy refuses unknown or empty required-check lists and recognised engine repositories. It does not establish that checks passed, the PR head matches the evaluated tree, or every renamed engine fork is recognised.
+Automerge defaults off. A host may publish a draft and opt in to requesting automerge when the policy accepts its supplied facts. The policy refuses unknown or empty required-check lists and recognised engine repositories. The merge request is pinned to the head commit the host names. The policy does not establish that checks passed, that the named head is the evaluated tree, or that every renamed engine fork is recognised.
 
 ## DE-09.1 The decision tree
 
@@ -77,7 +77,7 @@ sequenceDiagram
     P->>D: decide with the gathered facts, persist.rs line 322
     D-->>P: Disabled, Refused or Allowed
     alt Allowed with PR URL
-        P->>F: enable_automerge, persist.rs line 325
+        P->>F: enable_automerge with pr.head_sha, persist.rs line 325
         F-->>P: ok or error kept in automerge_error
     else Disabled or Refused
         P->>P: no enable request
@@ -90,10 +90,12 @@ the branch the PR really targets, and a mismatch with the expected base is a
 refusal (`crates/dream-core/src/persist.rs:311`).
 **Why it is this way.** A forge that cannot say what protects a branch never
 gets automerge: the trait defaults return `Unsupported`, which the policy
-treats as a refusal (`crates/dream-core/src/seams.rs:377`).
+treats as a refusal (`crates/dream-core/src/seams.rs:381`).
 **Tension:** the forge step is untested against live GitHub. The only test
-touching `GhForge` is a dyn-safety check (`crates/dream-core/src/seams.rs:647`),
-so the protection parsing, the draft-to-ready transition and the squash
+touching `GhForge` itself is a dyn-safety check (`crates/dream-core/src/seams.rs:708`);
+two unit tests pin the merge argument vector and its refusal of a missing or malformed
+head commit (`crates/dream-core/src/seams.rs:576`, `crates/dream-core/src/seams.rs:595`),
+but the protection parsing, the draft-to-ready transition and the squash
 request have only been exercised against fakes.
 **Debt:** the publish outcome is not reconciled. The host contract requires journalling `Persisted` before the forge request and nothing records the push, the pull request URL or
 the ledger commit afterwards, so the delivery guarantee is at-most-once: a
@@ -104,5 +106,5 @@ restart finalises the night to `Complete` without asking the forge
 Recovery is the operator's `reset_night`, which archives the journal so the
 night runs again; the night key `(repo, date, night_id)` is the idempotency key
 for any future reconciliation (`crates/dream-core/src/runstate.rs:441`).
-**Debt:** `GhForge` runs `gh pr ready` before `gh pr merge --auto --squash`. If the second command fails, the PR can remain ready while `automerge_error` reports failure; no rollback or retry restores draft state (`crates/dream-core/src/seams.rs:469`).
+**Debt:** `GhForge` runs `gh pr ready` before `gh pr merge --auto --squash --match-head-commit`. If the second command fails, the PR can remain ready while `automerge_error` reports failure; no rollback or retry restores draft state (`crates/dream-core/src/seams.rs:477`).
 **Debt:** `draft_clean` means only `pushed && pr_url.is_some()`. It does not validate an empty URL, remote head or PR identity; required-check names do not prove check success (`crates/dream-core/src/persist.rs:299`).

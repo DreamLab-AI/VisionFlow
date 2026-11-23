@@ -16,7 +16,7 @@ sources:
   - ../dream-engine/README.md
   - ../dream-engine/docs/adr/ADR-DE-003-protected-path-guard.md
   - ../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md
-verified_commit: b40d50724bb6344dc00d57270f7166b138714406
+verified_commit: 881075377625a9e20e69e9137f679506e93f4b68
 ---
 ## For developers
 
