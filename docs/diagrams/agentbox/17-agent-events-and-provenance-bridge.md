@@ -22,7 +22,7 @@ sources:
   - ../project/agentbox/management-api/lib/elevation-stage.js
   - ../project/agentbox/management-api/lib/elevation-publisher.js
   - ../project/agentbox/docs/PROTOCOL-registry.md
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-17.1 The agent-event wire envelope — single canonical builder
@@ -80,7 +80,7 @@ classDiagram
     AgentEventPublisher --> AgentActionType : numeric action_type, string name derived by reverse lookup
     AgentEventPublisher --> WireEvent : builds
     WireEvent --* Notification : params.event
-    note for AgentEventPublisher "INVARIANT — createMcpNotification is the SINGLE canonical wire-envelope builder (agent-event-publisher.js:296-303).<br/>The /v1/agent-events/stream WebSocket and the deprecated MCP-TCP bridge emit through here,<br/>so ADR-013 identity attribution (source_urn / target_urn / pubkey) is kept on those paths.<br/>DRIFT - the live outbound forwarder does NOT: it sends the bare event (agent-event-ws-subscriber.js:147),<br/>which VisionClaw ingest rejects as Malformed. see ES-02, finding W2-01<br/>agentbox is the canonical schema source. VisionClaw mirrors this shape in src/agent_events/schema.rs, PARTIALLY:<br/>that struct has no failure_mode or authority_class field. see ES-02"
+    note for AgentEventPublisher "INVARIANT — createMcpNotification is the SINGLE canonical wire-envelope builder (agent-event-publisher.js:296-303).<br/>The /v1/agent-events/stream WebSocket and the deprecated MCP-TCP bridge emit through here,<br/>so ADR-013 identity attribution (source_urn / target_urn / pubkey) is kept on those paths.<br/>The live outbound forwarder now wraps through it too, agent_action only (agent-event-ws-subscriber.js:172-174),<br/>closing finding W2-01, and it refuses to start without AGENTBOX_HOST_WS_TOKEN,<br/>sent as a Bearer header on the upgrade (agent-event-ws-subscriber.js:75-80, :117). see ES-02<br/>agentbox is the canonical schema source. VisionClaw mirrors this shape in src/agent_events/schema.rs, PARTIALLY:<br/>that struct has no failure_mode or authority_class field. see ES-02"
     note for Notification "method notifications/agent_action. message_type 0x23 AGENT_ACTION for binary-frame parity (agent-event-publisher.js:338).<br/>protocol_version 2. version 3 inside the event. eventBuffer is a ring capped at maxBufferSize 1000 — the oldest event is shift()ed out,<br/>but every event is first appended to the durable agentEventArchive, fail-open (agent-event-publisher.js:154-160). see AB-14"
     note for WireEvent "BYTE-COMPATIBILITY DISCIPLINE — every additive field (failure_mode REC-5, token_count/handoff_id/verification REC-3 CTC,<br/>authority_class REC-6 AC4) is emitted as null when absent, so an existing success-only consumer sees an unchanged frame.<br/>DIVERGENCE — source_urn/target_urn/pubkey are OPTIONAL in Phase 1 and only become required under fail-closed attribution in Phase 5. Phase 5 is not here."
 ```
@@ -409,7 +409,7 @@ sequenceDiagram
     participant U as uris.mint
     participant BC as bc20.toVisionclaw
     participant GATE as gateElevation<br/>agentbox/management-api/lib/elevation-stage.js:226
-    participant EP as elevation-publisher<br/>agentbox/management-api/lib/elevation-publisher.js:152
+    participant EP as elevation-publisher<br/>agentbox/management-api/lib/elevation-publisher.js:183
     participant ST as JsonlUrnMappingStore
     participant PUB as agentEventPublisher
     participant VC as VisionClaw
@@ -422,20 +422,20 @@ sequenceDiagram
     EX->>BC: toVisionclaw(thingUrn) — plain toVisionclaw, NOT crossOutbound, so nothing is stored here
     BC->>BC: sha12 over the agentbox URN string
     BC-->>EX: urn:visionclaw:kg:<pubkey>:<sha256-12> as proposal_foreign_urn
-    Note over EX: DIVERGENCE — routes/kg-elevation.js resolves ownerPubkey as auth.pubkey or<br/>AGENTBOX_X_ONLY_PUBKEY_HEX or AGENTBOX_PUBKEY (kg-elevation.js:162), so an elevation<br/>can be attributed to the operator identity when the request carries no verified<br/>pubkey — same shape as AB-17.2's env fallback.
-    EX->>GATE: gateElevation(proposal, {env}) — kg-elevation.js:182,<br/>BEFORE anything is emitted or federated
+    Note over EX: DIVERGENCE — routes/kg-elevation.js resolves ownerPubkey as auth.pubkey or<br/>AGENTBOX_X_ONLY_PUBKEY_HEX or AGENTBOX_PUBKEY (kg-elevation.js:182), so an elevation<br/>can be attributed to the operator identity when the request carries no verified<br/>pubkey — same shape as AB-17.2's env fallback.
+    EX->>GATE: gateElevation(proposal, {env}) — kg-elevation.js:202,<br/>BEFORE anything is emitted or federated
     GATE->>GATE: stage proposal as a page, validate standalone,<br/>run vault propose --diff --dry-run. see AB-03.18
-    par observability, when the request's emit flag is true (kg-elevation.js:202)
-        EX->>PUB: emitAgentAction {action_type LINK, source/target ids hashed from the URNs,<br/>target_urn = the concept URN, source_urn = auth.did when verified} (kg-elevation.js:204-217)
+    par observability, when the request's emit flag is true (kg-elevation.js:222)
+        EX->>PUB: emitAgentAction {action_type LINK, source/target ids hashed from the URNs,<br/>target_urn = the concept URN, source_urn = auth.did when verified} (kg-elevation.js:224-237)
         PUB->>PUB: proposal_urn and proposal_foreign_urn travel in metadata,<br/>whether or not the candidate was blocked. see AB-17.1
     end
     alt blocked — stage failure or vault propose blockers
         GATE-->>EX: {proposable false, blocked true, blockers, stage_issues}
-        Note over EX,EP: ADR-2116 — a blocked candidate keeps its observability beam<br/>(the scan found it, that is true)<br/>but gets NO signed 31402: elevationPublisher.publish is skipped (kg-elevation.js:229-233)
+        Note over EX,EP: ADR-2116 — a blocked candidate keeps its observability beam<br/>(the scan found it, that is true)<br/>but gets NO signed 31402: elevationPublisher.publish is skipped (kg-elevation.js:249-253)
     else proposable
         GATE-->>EX: {proposal PatchProposal, blocked false}
         EX->>EP: publish(proposal) carries propose_command.argv/iri<br/>and patch_proposal. see AB-14.13
-        EP->>ST: durableStore().put(proposal_urn to proposal_foreign_urn), additive (elevation-publisher.js:163-173)
+        EP->>ST: durableStore().put(proposal_urn to proposal_foreign_urn), additive (elevation-publisher.js:196-206)
         EP->>VC: signed elevation event
         Note over EP: elevation-publisher and the agent-control-surface authority gate share a<br/>producer-plus-injected-consumer dependency shape deliberately, testable without a<br/>live relay (see AB-11.10)<br/>the full eligibility branches (gate-off / no-relays / no-signing-stack) and the<br/>propose_command/propose_iri/patch_proposal fields are in AB-14.13.
     end
@@ -444,4 +444,4 @@ sequenceDiagram
     Note over BC,ST: DIVERGENCE PROTOCOL-registry — three contract rows stay open.<br/>Content address: JS sha12 hashes a UTF-8 string, VisionClaw content_address hashes<br/>bytes, byte-parity asserted nowhere.<br/>Precomputed KG address: the Rust constructor checks only the PREFIX, not the full grammar.<br/>Durable translation: helpers return a mapping, but replay, round-trip and recovery receipts do not exist.<br/>The URN crossing row is stale: see AB-17.5.
 ```
 
-**Debt:** the kg URN a beam carries in `metadata.proposal_foreign_urn` is persisted to the durable mapping store only inside `elevationPublisher.publish` (`agentbox/management-api/lib/elevation-publisher.js:163-173`), which runs only for an unblocked candidate after the signing stack loads (`agentbox/management-api/lib/elevation-publisher.js:153-155`, `agentbox/management-api/routes/kg-elevation.js:229-233`). A blocked candidate, or one emitted while federation is unavailable, puts a `urn:visionclaw:kg` address on the wire that `toAgentbox` can never resolve back (`agentbox/management-api/lib/bc20-provenance-bridge.js:287-289`).
+**Debt:** the kg URN a beam carries in `metadata.proposal_foreign_urn` is persisted to the durable mapping store only inside `elevationPublisher.publish` (`agentbox/management-api/lib/elevation-publisher.js:196-206`), which runs only for an unblocked candidate after the signing stack loads (`agentbox/management-api/lib/elevation-publisher.js:184-188`, `agentbox/management-api/routes/kg-elevation.js:249-253`). A blocked candidate, or one emitted while federation is unavailable, puts a `urn:visionclaw:kg` address on the wire that `toAgentbox` can never resolve back (`agentbox/management-api/lib/bc20-provenance-bridge.js:287-289`).

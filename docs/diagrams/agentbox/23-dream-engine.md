@@ -92,7 +92,7 @@ sources:
   - ../dream-engine/crates/dream-cli/src/lib.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
-verified_commit: {agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, dream-engine: 413f1bbd2927251fcd3a919f64b824837d80d1f5}
+verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, dream-engine: 881075377625a9e20e69e9137f679506e93f4b68}
 ---
 Repair follow-up, 2026-11-03: [AB-41.3](41-process-governance-and-dream-repairs.md#ab-413-supply-the-reusable-core-with-verifiable-host-inputs) and [DE-06](../dream-engine/06-formatting-and-evidence-repairs.md) record the adapter's registry adoption and core formatting/source/integrity repairs. This topic retains its historical source stamp.
 
@@ -277,9 +277,9 @@ flowchart TB
 
 **Why it is this way.** The engine does not merge. The command policy also permits an operator-delegated `/dream sweep` on non-excluded repositories, with green head checks, protected paths respected and a recorded sweep comment; it must not invent human review evidence (`skills/dream-machine/commands/dream.md:80-105`). The core's `autoMerge` policy is only used by `persist::publish`, which this adapter does not call. The [1 November forge/seam audit](../../estate-review/2026-11-01-dream-forge-and-seam-contracts.md) exercises the real GhForge subprocess boundary with local Git remotes and an offline replacement for gh; it does not establish live GitHub behaviour or current deployment.
 
-**Open (publication identity):** the PR request carries a branch name, not the verified commit hash (`../dream-engine/crates/dream-core/src/seams.rs:341`). A successful create command returns Some even for empty stdout (`../dream-engine/crates/dream-core/src/seams.rs:531`); the adapter then selects the acceptance notice by Option presence. The tested command boundary does not validate the URL or bind the pushed head to the evaluated tree.
+**Open (publication identity):** at the dream-engine head the core `DraftPr` carries `head_sha`, the commit at the branch tip that was reviewed and pushed (`../dream-engine/crates/dream-core/src/seams.rs:351-355`), but it is used only to pin automerge with `--match-head-commit` (`../dream-engine/crates/dream-core/src/seams.rs:506-521`); `publish_draft` never reads it (`../dream-engine/crates/dream-core/src/seams.rs:433`). The agentbox adapter's request still carries only a branch name, not the verified commit hash: it builds `DraftPr` without `head_sha` (`../project/agentbox/services/dream-engine/src/engine.rs:1869-1875`) against the registry pin `dream-core =0.4.1` (`../project/agentbox/services/dream-engine/Cargo.toml:26`). A successful create command returns Some even for empty stdout (`../dream-engine/crates/dream-core/src/seams.rs:566`); the adapter then selects the acceptance notice by Option presence. The tested command boundary does not validate the URL or bind the pushed head to the evaluated tree.
 
-**Tension (error ownership):** draft creation exposes only pushed and an optional URL, losing the command error detail (`../dream-engine/crates/dream-core/src/seams.rs:425`, `../dream-engine/crates/dream-core/src/seams.rs:512`). Memory errors are journalled and logged but tolerated (`../project/agentbox/services/dream-engine/src/engine.rs:1994`); they are not automatically written into the core run-state last_error field. ADR-DE-005's universal error-propagation wording is broader than this implementation.
+**Tension (error ownership):** draft creation exposes only pushed and an optional URL, losing the command error detail (`../dream-engine/crates/dream-core/src/seams.rs:433`, `../dream-engine/crates/dream-core/src/seams.rs:547`). Memory errors are journalled and logged but tolerated (`../project/agentbox/services/dream-engine/src/engine.rs:1994`); they are not automatically written into the core run-state last_error field. ADR-DE-005's universal error-propagation wording is broader than this implementation.
 
 ## AB-23.7 Run journal — restart, resume, abandonment and the finished-night rule
 
@@ -571,8 +571,8 @@ flowchart TB
     %% adr-2071-api-down-night.sh:139-140
     %% adr-2071-api-down-night.sh:141-142
     %% adr-2071-api-down-night.sh:145-148
-    %% adr-2087-check.sh:397-419
-    %% adr-2087-check.sh:410-417
+    %% adr-2087-check.sh:401-423
+    %% adr-2087-check.sh:414-421
     %% adr-2071-api-down-night.sh:121-124
     HIST["Historical acceptance: manual wrapper on 4 October<br/>Cron experiment was NOT used; marker and cron block retired<br/>ADR-2071 lines 195-203"]
     HIST -.-> TICK["Retained script for future reuse<br/>Requires external scheduling plus marker and state<br/>tick lines 29-31"]
