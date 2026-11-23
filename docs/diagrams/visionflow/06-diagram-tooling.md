@@ -328,7 +328,7 @@ flowchart TB
     WTFLAG --> READ
     A --> BARE["Bare-line context from explicit citations and participant bindings<br/>diagram-index-gen.cjs:641-643"]
     BARE --> READ
-    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>symbolCheck diagram-index-gen.cjs:663"]
+    A --> SYMBOL["Function-labelled participant checked against a unique definition<br/>symbolCheck diagram-index-gen.cjs:669"]
     READ --> DIAG["Diagnostic: ambiguous, missing, unreadable, out of bounds or empty anchor"]
     SYMBOL --> DIAG
     DIAG --> EXIT["Strict mode adds diagnostics to errors<br/>diagram-index-gen.cjs:916"]

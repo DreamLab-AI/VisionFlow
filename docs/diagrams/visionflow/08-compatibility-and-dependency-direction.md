@@ -54,14 +54,14 @@ flowchart TB
     RV["RuVector: selected core or image"] --> LOOM
     RV -->|MCP and Postgres boundary| AB
     CLI["Ontomark corpus operations, pin 0.9.0<br/>lib/ontomark.nix:48<br/>ontology-apply.js:157"] --> AB
-    VAULT["vault governance transport: propose and panel<br/>ontology-apply.js:153"] --> AB
+    VAULT["vault governance transport: propose and panel<br/>ontology-apply.js:154"] --> AB
     GATE["Both packages share vaultCliActive<br/>flake.nix:1062 and flake.nix:1080"] --> CLI
     GATE --> VAULT
     SCOPE["Arrows identify implemented source seams, not a verified complete mesh"]
     VF -.-> SCOPE
 ```
 
-**Current Agentbox corpus dispatch, 2026-10-31:** `binFor` routes `propose` and `panel` through `vault`, and other corpus verbs through `ontomark` (`../project/agentbox/management-api/lib/ontology-apply.js:153`). Both are selected under the same Nix gate (`../project/agentbox/flake.nix:1062`, `../project/agentbox/flake.nix:1080`). The old vault-only statement did not describe the migrated consumer. This source trace is not a universal absence claim about every estate MCP adapter.
+**Current Agentbox corpus dispatch, 2026-10-31:** `binFor` routes `propose` and `panel` through `vault`, and other corpus verbs through `ontomark` (`../project/agentbox/management-api/lib/ontology-apply.js:154-158`). Both are selected under the same Nix gate (`../project/agentbox/flake.nix:1062`, `../project/agentbox/flake.nix:1080`). The old vault-only statement did not describe the migrated consumer. This source trace is not a universal absence claim about every estate MCP adapter.
 
 **INVARIANT: `verified_commit` is a `{repo: sha}` map, not one sha, for any topic whose `sources:` span more than one repo (`scripts/diagram-index-gen.cjs:215-225`).** A missing repository pin can fall back to working-tree bytes, but the current checker reports that as unverified (`scripts/diagram-index-gen.cjs:583`) and strict mode rejects warnings (`scripts/diagram-index-gen.cjs:916`). Such a fallback must not be presented as revision-backed verification.
 
