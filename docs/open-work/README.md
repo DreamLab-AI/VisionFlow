@@ -17,10 +17,10 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 104 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 108 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
-| Closed | 145 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
+| Closed | 147 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
 ## Waiting on the owner (19)
 
@@ -60,7 +60,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 3 | 0 |
 | [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 4 | 3 |
 | [Agent control and activity](by-seam.md#agent-control-api) | agentbox, visionclaw | 1 | 11 |
-| [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 7 | 12 |
+| [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 8 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 5 | 8 |
 | [Forum zones and message keys](by-seam.md#forum-zones) | nostr-rust-forum, dreamlab-ai-website, agentbox | 1 | 4 |
 | [Pod storage](by-seam.md#pod-api) | solid-pod-rs, visionclaw, agentbox, nostr-rust-forum, dreamlab-ai-website | 17 | 4 |
@@ -70,7 +70,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
 | [Versions and pins across repositories](by-seam.md#release-pins) | estate | 4 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 3 | 2 |
-| [Inside one component](by-seam.md#none) | one component | 48 | 102 |
+| [Inside one component](by-seam.md#none) | one component | 51 | 102 |
 
 ## By component
 
@@ -80,8 +80,8 @@ An item that touches two components is counted under both.
 |---|---|---|---|
 | visionclaw | 13 | 16 | 75 |
 | agentbox | 18 | 16 | 72 |
-| nostr-rust-forum | 9 | 5 | 28 |
-| dreamlab-ai-website | 0 | 0 | 8 |
+| nostr-rust-forum | 10 | 5 | 28 |
+| dreamlab-ai-website | 0 | 1 | 8 |
 | solid-pod-rs | 23 | 1 | 31 |
 | sidestr-rs | 2 | 1 | 11 |
 | loom | 3 | 2 | 10 |
@@ -92,7 +92,7 @@ An item that touches two components is counted under both.
 | codescape | 0 | 0 | 4 |
 | visiontouch-rs | 0 | 1 | 1 |
 | wasmvowl | 0 | 2 | 1 |
-| visionflow | 1 | 5 | 3 |
+| visionflow | 1 | 7 | 3 |
 | estate | 0 | 0 | 5 |
 
 ## Live work by what blocks it
@@ -101,7 +101,7 @@ An item that touches two components is counted under both.
 |---|---|
 | Waiting on an owner decision | 13 |
 | Waiting on an owner act | 6 |
-| Ordinary engineering: can start now | 53 |
+| Ordinary engineering: can start now | 57 |
 | Needs a live deployment | 20 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |

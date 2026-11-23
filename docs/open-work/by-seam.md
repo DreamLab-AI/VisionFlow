@@ -89,7 +89,7 @@ How a caller proves who they are across components: NIP-98 request signing, did:
 
 Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website.
 
-7 live, 12 unverified, 12 closed.
+8 live, 12 unverified, 12 closed.
 
 ### Live
 
@@ -102,6 +102,7 @@ Between: nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-websi
 | AB-MANDATE-REVOKE-NOT-PUBLISHED (also AB-11.7, AB-11.8, AB-11.13) | agentbox: mandate revocation only rewrites the local registry and signs; it writes no pod ACL and publishes nothing, and is unsigned when no operator stack is configured | agentbox | owner-decision | open | 2026-11-23 |
 | AB-MANDATE-GRANT-NEVER-ENFORCED | agentbox: mandate grants never reach a pod (ACL never PUT, wrong sidecar path and IRIs, no owner block, 30078 never published), so revocation has nothing to undo | agentbox | owner-decision | open | 2026-11-23 |
 | AB-NIP98-ADR-DOCS-STALE | agentbox: ADR-2210 Residuals and the ADR-2122 amendment still describe the old nip98-proxy config ownership and location | agentbox | engineering | open | 2026-11-23 |
+| SP-ACCOUNT-DELETE-MISSES-ADMIN-PODS | solid-pod-rs: pods created through admin provisioning are not found by `account delete` and bypass the deleted-name tombstone | solid-pod-rs | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -227,7 +228,7 @@ Anything that moves or records value: pay routes, the teller and credit ledger, 
 
 Between: sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox.
 
-5 live, 8 unverified, 8 closed.
+5 live, 8 unverified, 10 closed.
 
 ### Live
 
@@ -235,9 +236,9 @@ Between: sidestr-rs, solid-pod-rs, nostr-rust-forum, visionclaw, agentbox.
 |---|---|---|---|---|---|
 | SIDESTR-F1 | No remediation had landed for any of the 25 open sidestr rows since the audit pin 814b9e54 | sidestr-rs | untriaged | open | 2026-11-20 |
 | SP-MRC20-FOLLOWUPS-PREEXISTING | solid-pod-rs MRC20: RBF of an unconfirmed head keeps the credit; empty chains lets caller choose network; replay key ignores recipient; bt_address omits the pod so shared issuer+ticker pods each credit; every issuer mark spends the tip so deposits race the issuer | solid-pod-rs | engineering | open | 2026-11-23 |
-| SP-MRC20-PROOF-OMITS-OUTPOINT | solid-pod-rs: server-issued anchor proofs (anchor_proof_json) do not emit the new named outpoint, so honest depositors fall back to the sorted walk where earlier-confirmed dust can still crowd out the anchor | solid-pod-rs | engineering | open | 2026-11-23 |
 | DW-POKER-NO-LATE-PAY-PATH | poker: a member who lost and returns after the 10-minute Done window has no pay path (offer debt list is text-only, Offer.owed carries no destination or Agreed) and refusal() then locks them out | nostr-rust-forum | owner-decision | open | 2026-11-23 |
-| DW-POKER-ALERTS-UNMONITORED | poker house: Effect::Alert (halted payout debts, repeated producer refusals) goes only to stderr; halted debts hold bankroll until an operator pays on chain with memo hand:<root> | nostr-rust-forum | engineering | open | 2026-11-23 |
+| DW-POKER-CLAIM-NONHEX-TXID | poker: a non-hex 64-byte transaction id can renew a payment claim's timestamp | nostr-rust-forum | engineering | open | 2026-11-23 |
+| DW-POKER-ALERT-KEY-WHITELIST | poker alerts: the relay admits a gift wrap only to a whitelisted recipient, so alert_pubkey must be the operator's forum account; a refused wrap is only logged and not retried within its window | nostr-rust-forum | engineering | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
 
@@ -407,7 +408,7 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-48 live, 102 unverified, 87 closed.
+51 live, 102 unverified, 87 closed.
 
 ### visionclaw
 
@@ -538,6 +539,10 @@ Recorded as open, not re-checked:
 
 ### dreamlab-ai-website
 
+| Id | Item | Components | Blocked by | State | Checked |
+|---|---|---|---|---|---|
+| DW-KIT-SHA-STALE-IN-DOCS | dreamlab-ai-website: BASELINE-architecture.md:118 and ADR-2004 still name kit fd31193; no gate reads them (DW-06.11 reopens D9) | dreamlab-ai-website | engineering | open | 2026-11-23 |
+
 Recorded as open, not re-checked:
 
 | Id | Item | Components | Kind | Last recorded |
@@ -665,6 +670,8 @@ Recorded as open, not re-checked:
 | VF-SITE-PLAYWRIGHT-NO-CI | VisionFlow: no workflow runs the Playwright suite, so the site tests and the media-byte cap run only locally | visionflow | engineering | open | 2026-11-21 |
 | VF-SITE-POSTER-WEBP | VisionFlow: the featured-film poster is a 114 KB eagerly loaded JPEG; WebP would roughly halve it | visionflow | engineering | open | 2026-11-21 |
 | VF-DIAGRAM-SIDECAR-PORT-DRIFT | VisionFlow diagrams: ES-01, ES-09 and AB-06 still describe the sidecar ports as sanctioned LAN publishes, but they publish on a loopback default now | visionflow | engineering | open | 2026-11-21 |
+| AB-15-CITES-DELETED-HEADROOM | diagrams AB-15 still cites management-api/lib/headroom-mcp-tools.js, deleted in agentbox 1d26ebe42 | visionflow | engineering | open | 2026-11-23 |
+| DIAGRAMS-FD31193-AT-OWN-STAMPS | diagrams: DW-01, DW-04, ES-05, ES-11, NF-05, NF-06 and NF-10 still name kit fd31193 at their own stamps | visionflow | engineering | open | 2026-11-23 |
 
 Recorded as open, not re-checked:
 
