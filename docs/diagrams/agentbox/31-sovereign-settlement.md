@@ -31,7 +31,7 @@ sources:
   - ../project/agentbox/services/nostr-pod-bridge/src/contract.rs
   - ../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md
   - ../project/agentbox/management-api/lib/sidestr-spend-key.js
-verified_commit: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## For developers
@@ -82,7 +82,7 @@ flowchart TB
     U -.-> W
     subgraph note["Status"]
         direction TB
-        N1["PARTIAL since 2026-09-30: [sidechain] gates the interim JS sidestr-producer,<br/>and its mirror and faucet children. No sidestr-node, no sidestr-bridge and no<br/>loopback port 9097 bind exist. The crates live in sidestr-rs (ADR-2112), only<br/>the standalone sidestr-agent is baked - BASELINE-container.md:276"]
+        N1["PARTIAL since 2026-09-30: [sidechain] gates the interim JS sidestr-producer,<br/>and its mirror and faucet children. No sidestr-node, no sidestr-bridge and no<br/>loopback port 9097 bind exist. The crates live in sidestr-rs (ADR-2112), only<br/>the standalone sidestr-agent is baked - BASELINE-container.md:284"]
         N2["PROPOSED: this document is scope, not authority. The eight ADRs are the<br/>decisions and the governing documents are the compliance surface<br/>sovereign-settlement.md:21-23"]
         N3["the eight decisions land as DDD-022, bounded context BC25<br/>sovereign-settlement-domain.md:5"]
         N1 ~~~ N2 ~~~ N3
@@ -127,7 +127,7 @@ stateDiagram-v2
     Withdrawn --> [*]
 ```
 
-**Invariant:** a proposed section states its own non-authority in the document that carries it, so a reader who lands on it by search cannot mistake it for a live rule (`../project/agentbox/docs/BASELINE-container.md:276`, `../project/agentbox/docs/GOVERNANCE-capabilities.md:655-657`).
+**Invariant:** a proposed section states its own non-authority in the document that carries it, so a reader who lands on it by search cannot mistake it for a live rule (`../project/agentbox/docs/BASELINE-container.md:284`, `../project/agentbox/docs/GOVERNANCE-capabilities.md:655-657`).
 
 ## AB-31.5 PROPOSED - a settlement through the authority gate
 
@@ -139,7 +139,7 @@ sequenceDiagram
     participant POL as spend-policy, the only authoriser<br/>agentbox/docs/adr/ADR-2100-every-settlement-passes-the-authority-gate.md:45
     participant GATE as PROPOSED lib/authority.js under payment_settlement<br/>agentbox/docs/GOVERNANCE-capabilities.md:659-661
     participant HUM as the approving human
-    participant NODE as PROPOSED sidestr-node<br/>agentbox/docs/BASELINE-container.md:445
+    participant NODE as PROPOSED sidestr-node<br/>agentbox/docs/BASELINE-container.md:454
 
     AG->>WAL: request a spend
     WAL->>POL: max_sats_per_call, daily_budget_sats, origin allowlist, threshold
@@ -251,7 +251,7 @@ flowchart TB
 
 **Tension (INGRESS-identity vs PROTOCOL-registry and code):** the identity governing document still derives `k_spend` with `derive_subkey(k_id, "sidestr/spend/" ‖ chain_id)` and says the binding carries the derived spend pubkey (`../project/agentbox/docs/INGRESS-identity.md:507`, `../project/agentbox/docs/INGRESS-identity.md:520`), while the protocol registry and the built module mint `k_spend` independently and never derive it (`../project/agentbox/docs/PROTOCOL-registry.md:174`, `../project/agentbox/management-api/lib/sidestr-spend-key.js:7-12`). ADR-2101, whose D3/D4 the module cites, still records `implementation_status: none`.
 
-**Drift:** the account binding and the five domain events moved from a claimed-free `38106`-`38201` range (which overlapped the ADR-009 agent-response reservation) to the clean `38400`-`38499` band, and gained five concrete kind numbers where the design had left the domain events as a range (`../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:95-99, ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:123-127`).
+**Drift:** the account binding and the five domain events moved from a claimed-free `38106`-`38201` range (which overlapped the ADR-009 agent-response reservation) to the clean `38400`-`38499` band, and gained five concrete kind numbers where the design had left the domain events as a range (`../project/agentbox/docs/adr/ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:114-118, ADR-2105-agentbox-kind-bands-and-the-colloquy-move.md:142-146`).
 
 ## AB-31.9 PROPOSED - the five phases, and the one that touches real value
 
@@ -302,4 +302,4 @@ stateDiagram-v2
 
 **Open:** PRD-024 lists its own outstanding questions and ranked risks (`../project/agentbox/docs/proposals/sovereign-settlement.md:463`, `../project/agentbox/docs/proposals/sovereign-settlement.md:427`); none is answered by anything in this repository today.
 
-**Drift (this topic vs the repository since 1639f86ab):** the account binding moved from kind `38110` to `38420` (AB-34.4), `crates/sidestr/` now holds only a pointer — the published crates live in `DreamLab-AI/sidestr-rs` (AB-33.7), the root chain named here as proposed has been sealed (AB-32.1), and since `d0fa1b80b` its interim producer, mirror and faucet are wired under supervisord behind `[sidechain]` (AB-34.1), and the manifest now ships that gate `true` after recovering validated prefixes following an ENOSPC block-persistence failure, with a second sealed chain `[sidechain.dreamlab-txbt4]` also enabled (`../project/agentbox/agentbox.toml:1995-1996`, `../project/agentbox/agentbox.toml:2011-2012`). The record's own status line agrees at this revision: the settlement "remains partial" (`../project/agentbox/docs/BASELINE-container.md:276`), so AB-31.1's and AB-31.6's PROPOSED status notes still describe the live state.
+**Drift (this topic vs the repository since 1639f86ab):** the account binding moved from kind `38110` to `38420` (AB-34.4), `crates/sidestr/` now holds only a pointer — the published crates live in `DreamLab-AI/sidestr-rs` (AB-33.7), the root chain named here as proposed has been sealed (AB-32.1), and since `d0fa1b80b` its interim producer, mirror and faucet are wired under supervisord behind `[sidechain]` (AB-34.1), and the manifest now ships that gate `true` after recovering validated prefixes following an ENOSPC block-persistence failure, with a second sealed chain `[sidechain.dreamlab-txbt4]` also enabled (`../project/agentbox/agentbox.toml:2029-2030`, `../project/agentbox/agentbox.toml:2045-2046`). The record's own status line agrees at this revision: the settlement "remains partial" (`../project/agentbox/docs/BASELINE-container.md:284`), so AB-31.1's and AB-31.6's PROPOSED status notes still describe the live state.

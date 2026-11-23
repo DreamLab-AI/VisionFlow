@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/services/secret-backup/src/main.rs
   - ../project/agentbox/docs/archive/adr/ADR-024-setup-dashboard.md
   - ../project/agentbox/docs/BASELINE-container.md
-verified_commit: 3a2c59764028e1fd8475abfda61bb3bcefab46d5
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 **Debt (title vs panels):** the title names secret-backup and `sources:` lists `../project/agentbox/services/secret-backup/src/main.rs`, but no panel draws it; the topic starts at AB-30.2. Either a secret-backup panel is owed or the title and source entry should go.
@@ -97,32 +97,32 @@ sequenceDiagram
     AX-->>AX: tokio::select! resolves the shutdown branch, process exits<br/>setup/server/src/main.rs:296-308
 ```
 
-**Drift (default seed vs its own claim):** the seed comment says every learning and hygiene gate ships off (`../project/agentbox/setup/server/src/main.rs:70-72`, repeated in the file header `../project/agentbox/setup/agentbox.default.toml:5-6`), but the shipped default sets `[memory_learning] enabled = true` (`../project/agentbox/setup/agentbox.default.toml:450`) and `[seo_watch] enabled = true` (`../project/agentbox/setup/agentbox.default.toml:844`), so a fresh-install operator is offered both already on.
+**Drift (default seed vs its own claim):** the seed comment says every learning and hygiene gate ships off (`../project/agentbox/setup/server/src/main.rs:70-72`, repeated in the file header `../project/agentbox/setup/agentbox.default.toml:5-6`), but the shipped default sets `[memory_learning] enabled = true` (`../project/agentbox/setup/agentbox.default.toml:449`) and `[seo_watch] enabled = true` (`../project/agentbox/setup/agentbox.default.toml:845`), so a fresh-install operator is offered both already on.
 
 ## AB-30.4 https-bridge — self-signed TLS termination in front of a plain-HTTP target
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2913-2922
-    participant BOOT as entrypoint root phase<br/>flake.nix:4455-4470
+    participant SUP as supervisord [program:https-bridge]<br/>flake.nix:2937-2946
+    participant BOOT as entrypoint root phase<br/>flake.nix:4484-4499
     participant OSSL as openssl req -x509
     participant NODE as https-proxy.js<br/>process.env-driven config
     participant BROWSER as Browser client
     participant TARGET as http://HOST_IP:TARGET_PORT
 
-    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:4461, flake.nix:3952
+    BOOT->>BOOT: mkdir -p /var/lib/https-bridge/certs (tmpfs, uid 1000)<br/>flake.nix:4490, flake.nix:3976
     alt server.key already present
         BOOT-->>NODE: skip generation — cert persists for the tmpfs lifetime
     else missing
-        BOOT->>OSSL: openssl req -x509 -newkey rsa:2048 -days 365 -nodes -subj "/CN=localhost"<br/>flake.nix:4463-4466
-        OSSL-->>BOOT: server.key #40;0600#41;, server.crt #40;0644#41; — flake.nix:4467-4469
+        BOOT->>OSSL: openssl req -x509 -newkey rsa:2048 -days 365 -nodes -subj "/CN=localhost"<br/>flake.nix:4492-4495
+        OSSL-->>BOOT: server.key #40;0600#41;, server.crt #40;0644#41; — flake.nix:4496-4498
     end
-    Note over SUP,BOOT: GATE — the program block is emitted only when [sovereign_mesh].enabled AND https_bridge are both true (flake.nix:2911, setup/agentbox.default.toml:44,47),<br/>while the certificate pre-generation above is not gated on either (flake.nix:4462), so a container without the program still carries the cert files
-    SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2917
-    Note over SUP,NODE: flake.nix:2350 copies ./https-bridge into the built image. SUP's full<br/>environment= is HOME, MANAGEMENT_API_PORT, CERT_DIR, SSL_KEY, SSL_CERT #40;flake.nix:2917#41;,<br/>stdout/stderr logged to /var/log/https-bridge.log + .error.log #40;flake.nix:2921-2922#41;.<br/>Its tmpfs #40;mode=755 size=8M uid/gid=1000#41; is declared in BOTH docker-compose.yml:115<br/>AND flake.nix:3952 — keep the two in sync
+    Note over SUP,BOOT: GATE — the program block is emitted only when [sovereign_mesh].enabled AND https_bridge are both true (flake.nix:2935, setup/agentbox.default.toml:44,47),<br/>while the certificate pre-generation above is not gated on either (flake.nix:4491), so a container without the program still carries the cert files
+    SUP->>NODE: node https-proxy.js<br/>CERT_DIR=/var/lib/https-bridge/certs, MANAGEMENT_API_PORT env — flake.nix:2941
+    Note over SUP,NODE: flake.nix:2374 copies ./https-bridge into the built image. SUP's full<br/>environment= is HOME, MANAGEMENT_API_PORT, CERT_DIR, SSL_KEY, SSL_CERT #40;flake.nix:2941#41;,<br/>stdout/stderr logged to /var/log/https-bridge.log + .error.log #40;flake.nix:2945-2946#41;.<br/>Its tmpfs #40;mode=755 size=8M uid/gid=1000#41; is declared in BOTH docker-compose.yml:116<br/>AND flake.nix:3976 — keep the two in sync
     NODE->>NODE: ensureCertificates#40;#41; — fs.existsSync check, hand-rolled node:crypto<br/>X.509 builder ONLY IF openssl's boot-time generation is somehow absent<br/>https-proxy.js:48-49,67 — buildSelfSignedX509 at :79
-    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:4455-4460#41; — not the primary certificate source
+    Note over BOOT,NODE: DESIGN: the trusted path is openssl #40;flake.nix#41; — the hand-rolled builder in<br/>https-proxy.js is a fail-open FALLBACK only, per the boot-script's own comment<br/>#40;flake.nix:4484-4489#41; — not the primary certificate source
     NODE->>NODE: https.createServer#40;{key, cert}#41;.listen#40;HTTPS_PORT, HTTPS_HOST#41;<br/>https-proxy.js:190,262 — HTTPS_HOST defaults 0.0.0.0, published loopback-only<br/>via compose #40;R-003 comment, https-proxy.js:31-33#41;
     BROWSER->>NODE: HTTPS request to localhost:HTTPS_PORT
     NODE->>NODE: detectGatewayIP#40;#41; if HOST_IP unset — `ip route | grep default`<br/>https-proxy.js:21-28, falls back to 192.168.0.51 on any failure
@@ -131,5 +131,5 @@ sequenceDiagram
     NODE->>NODE: set Access-Control-Allow-Origin * AND Access-Control-Allow-Credentials true<br/>https-proxy.js:208-211
     NODE-->>BROWSER: response, CORS headers attached
     Note over NODE: DIVERGENCE: Access-Control-Allow-Origin "*" combined with<br/>Access-Control-Allow-Credentials "true" is a combination browsers reject for<br/>credentialed requests per the Fetch spec — the two headers as written cannot<br/>both take effect for any request that actually carries credentials
-    Note over SUP: BASELINE-container.md:124 supervisord table names this program 'pod HTTPS<br/>bridge' — its own module doc-comment #40;https-proxy.js:3-4#41; describes it more<br/>generically as solving cross-origin issues for local dev against the<br/>management API. Both describe the same mechanism, framing differs by doc
+    Note over SUP: BASELINE-container.md:127 supervisord table names this program 'pod HTTPS<br/>bridge' — its own module doc-comment #40;https-proxy.js:3-4#41; describes it more<br/>generically as solving cross-origin issues for local dev against the<br/>management API. Both describe the same mechanism, framing differs by doc
 ```
