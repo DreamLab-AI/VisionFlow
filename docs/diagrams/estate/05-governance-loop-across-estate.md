@@ -283,7 +283,7 @@ sequenceDiagram
     participant DT as declared_tier_of and gate_tier<br/>src/handlers/enrichment_proposals_handler.rs:383
     participant CK as check_rationale<br/>src/handlers/enrichment_proposals_handler.rs:410
     participant RL as relay 31403 handler<br/>nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1374
-    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:765
+    participant FG as governance check_rationale<br/>nostr-rust-forum/crates/nostr-bbs-core/src/governance.rs:813
 
     UI->>AD: decide a case with an outcome and optional reasoning
     opt production profile, no forum client, ALLOW_DECIDE_WITHOUT_FORUM unset

@@ -485,7 +485,7 @@ sequenceDiagram
 
     rect rgb(230,245,232)
     Note over VC,TASKS: TRUST BOUNDARY: VisionClaw container -> agentbox management-api, http://agentic-workstation:9090
-    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:221-251 -> agentbox/management-api/routes/tasks.js:16
+    VC->>TASKS: POST /v1/tasks {agent,task,provider,claude_flow_agent_id?,user_context?,with_beads?,parent_bead_id?}<br/>Authorization: Bearer api_key<br/>src/services/management_api_client.rs:221-334 -> agentbox/management-api/routes/tasks.js:16
     TASKS->>AUTH: authMiddleware(request)
     alt Bearer token matches API_KEY (authMode allows bearer)
         AUTH-->>TASKS: request.auth = bearerResult
@@ -499,7 +499,7 @@ sequenceDiagram
         AUTH-->>TASKS: 403 "Task action tokens may only post agent actions"<br/>agentbox/management-api/middleware/auth.js:207-216
     end
     VC->>TASKS: GET /v1/tasks/:taskId<br/>src/services/management_api_client.rs:336-364 -> agentbox/management-api/routes/tasks.js:107
-    TASKS-->>VC: 200 TaskStatus{status:Running|Completed|Failed|Stopped,exit_code?,claude_flow_agent_id?} or 4xx ApiError<br/>Stopped is terminal, not a failure, src/services/management_api_client.rs:70-75
+    TASKS-->>VC: 200 TaskStatus{status:TaskState(Running|Completed|Failed|Stopped),exit_code?,claude_flow_agent_id?} or 4xx ApiError<br/>TaskStatus src/services/management_api_client.rs:46-51, TaskState gains Stopped, terminal, not a failure, src/services/management_api_client.rs:70-75
     VC->>TASKS: GET /v1/tasks<br/>src/services/management_api_client.rs:366-394 -> agentbox/management-api/routes/tasks.js:166
     TASKS-->>VC: 200 TaskListResponse{active_tasks:List~TaskInfo~,count}
     VC->>TASKS: DELETE /v1/tasks/:taskId<br/>src/services/management_api_client.rs:435-460 -> agentbox/management-api/routes/tasks.js:211
