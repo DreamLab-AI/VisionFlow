@@ -44,7 +44,7 @@ sources:
   - ../project/client/src/services/WebSocketEventBus.ts
   - ../project/src/actors/elevation_actor.rs
   - ../project/client/src/components/VoiceButton.tsx
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9, agentbox: e458b308c9fdc6d15e557c9ba3c09898ba04dd3a, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, unmute: e348e567c7020d40020412024f7aa03c38a3bc3e}
 ---
 
 ## For developers
@@ -346,11 +346,11 @@ sequenceDiagram
         Note over SS,PGV: COM-15 / D6 (the ack is now PocketTts, ab5724422): a bound command ALWAYS takes this governed path<br/>(signed 31402 to /v1/voice-intent to a PocketTts ack), never the settings<br/>assistant - falsification clause 2. speech_socket_handler.rs:780-786. A malformed DID is filtered out<br/>and the command falls to the unbound branch below
         SS->>PGV: process_governed_voice(app_state,session_key,text,actor_did,confidence)<br/>speech_socket_handler.rs:802-808. session_key is sessionId else the socket id :797-800
         PGV->>PGV: take_pending_clarification(session_key)<br/>speech_socket_handler.rs:384 - a repair turn if one is pending, else fresh
-        opt Jev option (default off, fail-open, Compose flag on: docker-compose.unified.yml:21, final transcript sent via the shared agentbox proxy :7-11) -- VC-35-S1-01
+        opt Jev option (default off, fail-open, Compose flag on: docker-compose.unified.yml:24, final transcript sent via the shared agentbox proxy :7-11) -- VC-35-S1-01
             PGV->>PGV: reply_abandons_pending(jev, pending, transcript) -- on a repair turn Jev may judge the reply abandons the pending request, which is then evaluated fresh instead of merged<br/>src/services/jev_voice.rs:75, speech_socket_handler.rs:393-399
         end
         PGV->>GATE: pending some ? merge(pending,transcript,confidence) : evaluate(transcript,confidence)<br/>speech_socket_handler.rs:397, :399, :402
-        PGV->>PGV: tighten(jev, outcome) -- after the gate Jev may only HOLD a dispatch it judges unclear and can never release a held utterance<br/>OPEN: the outcome-changing threshold is unset in Compose (docker-compose.unified.yml:25),<br/>which accepts nothing automatically, so neither Jev call alters a turn yet,<br/>and activation is live (VisionClaw ADR-2148 accepted / complete / live, docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching docs/BASELINE-architecture.md:56-58)<br/>docs/reference/configuration.md:475<br/>src/services/jev_voice.rs:113, speech_socket_handler.rs:404
+        PGV->>PGV: tighten(jev, outcome) -- after the gate Jev may only HOLD a dispatch it judges unclear and can never release a held utterance<br/>OPEN: the outcome-changing threshold is unset in Compose (docker-compose.unified.yml:31),<br/>which accepts nothing automatically, so neither Jev call alters a turn yet,<br/>and activation is live (VisionClaw ADR-2148 accepted / complete / live, docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7, matching docs/BASELINE-architecture.md:56-58)<br/>docs/reference/configuration.md:477<br/>src/services/jev_voice.rs:113, speech_socket_handler.rs:404
         alt GateOutcome::Clarify {prompt, pending}
             PGV->>PGV: set_pending_clarification(session_key, pending)<br/>speech_socket_handler.rs:411-414
             PGV->>KO: speak the clarification prompt over the PocketTts path<br/>speech_socket_handler.rs:416-420 - NOT dispatched
@@ -554,12 +554,12 @@ flowchart TB
     U2 -.-> UNPIN
     UNPIN["DEBT: voice-stack/unmute is a NESTED checkout that the VisionClaw repo<br/>does not track, so a citation into it can only be pinned through its own<br/>revision. This topic carries an unmute key in verified_commit for exactly<br/>that reason, and its working tree is dirty: read the declared revision,<br/>never the files on disk.<br/>unmute/docker-compose.yml:3"]
     legacy --> SEP
-    VL["TENSION: ADR-2151 (VoiceLink, voice at the client edge over the ssh attach chain) is decision_status proposed, activation inactive, and implementation partial<br/>since its 2026-11-02 reconciliation (was none; source and bake exist), agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, :21, while the live manifest has the [voicelink] slot enabled = true, agentbox/agentbox.toml:2301.<br/>It is a per-connection voice-paned process, not part of Track A or the VisionClaw voice loop"]
+    VL["TENSION: ADR-2151 (VoiceLink, voice at the client edge over the ssh attach chain) is decision_status proposed, activation inactive, and implementation partial<br/>since its 2026-11-02 reconciliation (was none; source and bake exist), agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, :21, while the live manifest has the [voicelink] slot enabled = true, agentbox/agentbox.toml:2335.<br/>It is a per-connection voice-paned process, not part of Track A or the VisionClaw voice loop"]
     SEP -.-> VL
     SEP["SEPARATE SUBSYSTEM: this is the agentbox tmux voice plane (Track A),<br/>not the VisionClaw graph voice loop of VC-35.1 to VC-35.11. Its LLM is<br/>the tab0-bridge reached as KYUTAI_LLM_URL, its STT is the Kyutai<br/>service, and its TTS is now the SAME pocket-tts VisionClaw uses.<br/>agentbox/voice/compose.web.yml:45, :44. see AB-06 for the console boundary"]
     owned --> CONV
     CONV["DRIFT CLOSED 2026-09-13 (ab5724422): the two tracks used to run<br/>different synthesisers - Kokoro for the VisionClaw visualiser and<br/>Kyutai TTS for the web stack. One pocket-tts service now serves both,<br/>and voice-stack/unmute-override.yml was deleted with the split.<br/>voice-stack/README.md:3, :8"]
-    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore lines 240-242 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container. git ls-files returns nothing for any of them.<br/>Kokoros and Whisper-WebUI are now doubly stale: the Kokoro TTS branch was<br/>deleted from the server on 2026-09-13. xinference is DIFFERENT - it has live<br/>compose consumers (docker-compose.unified.yml:160, :405, agentbox/docker-compose.yml:86),<br/>so Xinference is a runtime endpoint dependency. Those URL consumers do not prove<br/>the dangling checkout link is used. see ES-01.6"]
+    DIV["Kokoros, Whisper-WebUI and xinference are UNTRACKED symlinks at the repo root,<br/>gitignored at .gitignore lines 240-242 and absent from .gitmodules - NOT submodules.<br/>All three dangle in this container. git ls-files returns nothing for any of them.<br/>Kokoros and Whisper-WebUI are now doubly stale: the Kokoro TTS branch was<br/>deleted from the server on 2026-09-13. xinference is DIFFERENT - it has live<br/>compose consumers (docker-compose.unified.yml:178, :428, agentbox/docker-compose.yml:87),<br/>so Xinference is a runtime endpoint dependency. Those URL consumers do not prove<br/>the dangling checkout link is used. see ES-01.6"]
     legacy --> DIV
     HIST["Historical engine benchmarks and their retired harness live under<br/>docs/gap-close-evidence/voice-latency-2026-09-10/ and are NOT<br/>deployment files. voice-stack/README.md:14, :15"]
     CONV --> HIST
