@@ -19,7 +19,7 @@ sources:
   - ../project/crates/visionclaw-gpu/tests/force_kernel_baseline/main.rs
   - ../project/docs/adr/ADR-2191-graph-sized-gpu-buffers-are-declared-once-and-sssp-spring-adjust-is-off-by-default.md
   - ../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md
-verified_commit: {visionclaw: 010e1109bd78f253f0d82382bb94908b5023b1e9}
+verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
 ## For developers
@@ -34,39 +34,39 @@ The layout engine's memory now grows and shrinks as one piece, so a graph that c
 
 ```mermaid
 flowchart TB
-    TABLE["graph_sized_buffers! table<br/>buffers.rs:122<br/>positions, CSR, edge rest snapshot, partials, node_degrees"] --> EXT["Extent: Nodes, NodesPlusOne, Edges, NodeBlocks<br/>buffers.rs:32-53"]
+    TABLE["graph_sized_buffers! table<br/>buffers.rs:122<br/>positions, CSR, edge rest snapshot, partials,<br/>repulsion_strength buffers.rs:157, community_degrees buffers.rs:186"] --> EXT["Extent: Nodes, NodesPlusOne, Edges, NodeBlocks<br/>buffers.rs:32-53"]
     TABLE --> ALLOC["allocate the whole set<br/>buffers.rs:90"]
     TABLE --> LEN["graph_sized_lengths for checks<br/>buffers.rs:115"]
-    FIXED["FIXED_EXTENT: buffers that do not follow the graph, with a reason<br/>buffers.rs:208"] --> REGTEST["CPU registry test: a DeviceBuffer field in neither list fails"]
+    FIXED["FIXED_EXTENT: buffers that do not follow the graph, with a reason<br/>buffers.rs:212"] --> REGTEST["CPU registry test: a DeviceBuffer field in neither list fails"]
     TABLE --> REGTEST
-    RESIZE["resize_buffers<br/>memory.rs:472"] --> INV["invalidate_node_indexed_state first<br/>memory.rs:473"]
-    INV --> FRESH["GraphSizedBuffers.allocate in full<br/>memory.rs:501"]
-    FRESH --> CARRY["positions and velocities carried across<br/>memory.rs:537"]
-    CARRY --> INSTALL["install_graph_sized, only after everything succeeded<br/>memory.rs:544"]
+    RESIZE["resize_buffers<br/>memory.rs:527"] --> INV["invalidate_node_indexed_state first<br/>memory.rs:528"]
+    INV --> FRESH["GraphSizedBuffers.allocate in full<br/>memory.rs:556"]
+    FRESH --> CARRY["positions and velocities carried across<br/>memory.rs:592"]
+    CARRY --> INSTALL["install_graph_sized, only after everything succeeded<br/>memory.rs:599"]
 ```
 
 **What it shows:** the macro table is the single declaration of every node- or edge-sized buffer; resize allocates a complete fresh set and installs it only after the carry succeeds. **Why it is this way:** ADR-2191 decisions 1 and 8: buffers resized one by one had drifted apart, and a failed growth must leave the engine intact.
 
-**Invariant:** a growth replaces the whole buffer set at once: allocation (`../project/src/utils/unified_gpu_compute/memory.rs:501`) and the carry (`:537`) complete before `install_graph_sized` (`:544`).
+**Invariant:** a growth replaces the whole buffer set at once: allocation (`../project/src/utils/unified_gpu_compute/memory.rs:556`) and the carry (`:592`) complete before `install_graph_sized` (`:599`).
 
 ## VC-60.2 A graph change discards everything indexed by node
 
 ```mermaid
 flowchart TB
-    INIT["initialize_graph<br/>memory.rs:844"] --> CNT{"node or edge count changed<br/>memory.rs:853"}
-    CNT -->|"yes"| RES["resize_buffers<br/>memory.rs:854"]
-    CNT -->|"no"| FP{"CSR fingerprint differs<br/>memory.rs:855"}
-    FP -->|"yes"| INVN["invalidate_node_indexed_state<br/>memory.rs:857"]
+    INIT["initialize_graph<br/>memory.rs:899"] --> CNT{"node or edge count changed<br/>memory.rs:908"}
+    CNT -->|"yes"| RES["resize_buffers<br/>memory.rs:909"]
+    CNT -->|"no"| FP{"CSR fingerprint differs<br/>memory.rs:910"}
+    FP -->|"yes"| INVN["invalidate_node_indexed_state<br/>memory.rs:912"]
     FP -->|"no, identical re-upload"| KEEP["state kept"]
     RES --> INVN
-    INVN --> LIST["SSSP distances, compute mask, community labels,<br/>degree weights, hold overlay rest lengths, SemanticGpu<br/>buffers.rs:292-300"]
-    LIST -.-> NOTC["OPEN: the constraint index is not covered,<br/>constraint actors re-send on their own schedule<br/>buffers.rs:290-291"]
-    UP["upload_edges_csr<br/>memory.rs:860"] --> SSSPI["invalidate_graph_derived_state, SSSP only<br/>memory.rs:222, buffers.rs:272-275"]
+    INVN --> LIST["SSSP distances, compute mask, community labels,<br/>degree weights, FA2 repulsion buffer, hold overlay rest lengths,<br/>SemanticGpu buffers.rs:297-306"]
+    LIST -.-> NOTC["OPEN: the constraint index is not covered,<br/>constraint actors re-send on their own schedule<br/>buffers.rs:295-296"]
+    UP["upload_edges_csr<br/>memory.rs:915"] --> SSSPI["invalidate_graph_derived_state, SSSP only<br/>memory.rs:227, buffers.rs:276-279"]
 ```
 
 **What it shows:** a resize, or the same counts with a different topology, clears every piece of node-indexed host state, so a term is off until the actor re-uploads it rather than acting on whichever nodes now hold old indices. **Why it is this way:** ADR-2191 decision 9 (review round 1).
 
-**Open:** constraints still name nodes by index and are not cleared on a graph change (`../project/src/utils/unified_gpu_compute/buffers.rs:290-291`); between a topology change and the constraint actors' next send, a resident constraint can act on the wrong node.
+**Open:** constraints still name nodes by index and are not cleared on a graph change (`../project/src/utils/unified_gpu_compute/buffers.rs:295-296`); between a topology change and the constraint actors' next send, a resident constraint can act on the wrong node.
 
 ## VC-60.3 SSSP: bounded runs, results that die with the graph, off for springs by default
 
@@ -75,7 +75,7 @@ sequenceDiagram
     autonumber
     participant API as compute_sssp handler<br/>pathfinding.rs
     participant RUN as run_sssp<br/>sssp.rs:72
-    participant MEM as sssp_distances_for_force_pass<br/>memory.rs:900
+    participant MEM as sssp_distances_for_force_pass<br/>memory.rs:955
     participant EX as force pass setup<br/>execution.rs:675
     API->>API: delta not finite or not above 0 gives HTTP 400 before any GPU work (sssp.rs:40-45)
     API->>RUN: run with delta
@@ -83,7 +83,7 @@ sequenceDiagram
     Note over RUN: at most SSSP_MAX_DELTA_BUCKETS 64 buckets plus 2 passes, then an error (sssp.rs:25, :163)
     EX->>MEM: d_sssp only if current, available and num_nodes long, else null
     MEM-->>EX: pointer or null (execution.rs:684)
-    Note over EX: SSSP_SPRING_ADJUST_DEFAULT false (physics_config.rs:107)<br/>and in LinLog mode the term has no rest length to adjust
+    Note over EX: SSSP_SPRING_ADJUST_DEFAULT false (physics_config.rs:108)<br/>and in LinLog mode the term has no rest length to adjust
 ```
 
 **What it shows:** SSSP checks its buffers against the table, cannot spin forever on a tiny `delta`, and the force pass reads distances only when they belong to the current graph. **Why it is this way:** ADR-2191 decisions 2–4 and 7; spring adjustment is off because SSSP reads spring stiffness as path length, so a stiffer relation got a longer rest length (decision 6).
@@ -98,7 +98,7 @@ flowchart TB
     DONE -->|"first run"| ARCH["copy each physics row with ssspEnabled true<br/>into settings_archive<br/>sqlite_settings_repository.rs:141, sqlite_settings_repository.rs:179"]
     ARCH --> SET["set that key alone to false<br/>sqlite_settings_repository.rs:188"]
     SET --> WARN["warning logged<br/>sqlite_settings_repository.rs:339"]
-    DEF["serde default and /sssp/status fallback<br/>physics_config.rs:110, sssp_handlers.rs:179"] --> SKIP
+    DEF["serde default and /sssp/status fallback<br/>physics_config.rs:111, sssp_handlers.rs:179"] --> SKIP
 ```
 
 **What it shows:** on first open after the upgrade, every stored physics row that had SSSP spring adjustment on is archived verbatim and switched off; the migration marker makes it run once. **Why it is this way:** operator decision of 10 November 2026, recorded as ADR-2191 decision 10, which supersedes decision 6's "a stored true is honoured" for rows stored before the migration.
