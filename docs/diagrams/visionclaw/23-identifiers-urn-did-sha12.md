@@ -333,7 +333,7 @@ flowchart TD
     Draft --> Lists["PageMeta.extra_lists related-to -- wikilink list, elevation_actor.rs:535-546"]
     Meta --> Render["vault::render_page(meta, body) -- frontmatter-only emission, elevation_actor.rs:566"]
     Lists --> Render
-    Render -.-> NoFence["NO JSON-LD fence, no key:: value lines -- content.starts_with('---\n'), asserted elevation_actor.rs:2042-2045"]
+    Render -.-> NoFence["NO JSON-LD fence, no key:: value lines -- content.starts_with('---\n'), asserted elevation_actor.rs:2046-2048"]
     QS["vc:qualityScore -- provenance noted in a source comment only, src/actors/client_filter.rs:117-120 -- expanded qualityScore key is consumed, the CURIE itself is not emitted as a literal there"]
     OwnerScoped["visionclaw:owner:NPUB/kg/... -- legacy ADR-050 form"] -.-> Absent["grep across src/ and crates/ -- zero occurrences -- superseded by the hex-scoped urn:visionclaw:kg:PUBKEY:ADDRESS grammar"]
 

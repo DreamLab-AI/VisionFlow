@@ -56,7 +56,7 @@ verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox
 
 This topic records which store is the write master for each data class: four SQLite databases, Oxigraph named graphs, the Solid pod and RuVector. It also covers how provenance is appended, how erasure reaches each store, and how a caller's view of the graph is cut. At ec785afa9 two mechanisms were added: the visible subgraph now scrubs hidden page names out of visible metadata (VC-22.12), and full syncs append public corpus history to the provenance graph (VC-22.13). At 809a859aa graph shares became a fifth durable SQLite store, `data/shares.sqlite3`, backed up as a required member but not reached by per-user erasure (VC-22.14), and the corpus-history writer now takes its public test from `NodeVisibility::of_node`.
 
-## For the business The governing document also now separates source review from compiler provenance (2026-11-15): a human review stamp is assessed against the exact source through Ontomark and goes stale when a bound value changes, and a compiler identity can neither certify content nor grant governance admission (`docs/DATA-authority-erasure.md:276-289`).
+## For the business The governing document also now separates source review from compiler provenance (2026-11-15): a human review stamp is assessed against the exact source through Ontomark and goes stale when a bound value changes, and a compiler identity can neither certify content nor grant governance admission (`docs/DATA-authority-erasure.md:275-290`).
 
 Every piece of data has one authoritative home, so a correction or a deletion has a known place to land. Private pages must not leak through the names other pages mention, and the history kept for audit contains only what was already public, because that history cannot yet be deleted.
 
@@ -567,7 +567,7 @@ flowchart TB
         ROW -.->|"no creator"| NC["store refuses: NoCreator, answered as 500<br/>src/adapters/sqlite_share_repository.rs:110-113"]
     end
     subgraph STORE["SqliteShareRepository, data/shares.sqlite3"]
-        OPEN["opened once in AppState.new<br/>src/app_state.rs:476-483"]
+        OPEN["opened once in AppState.new<br/>src/app_state.rs:477-483"]
         TBL["shared_graphs: creator_id, expires_at_ms, access_count<br/>src/adapters/sqlite_share_repository.rs:41-50"]
         CLAIM["claim_access and delete_owned are single statements,<br/>so workers cannot race<br/>src/adapters/sqlite_share_repository.rs:164, :193, :210"]
         OPEN --> TBL --> CLAIM
