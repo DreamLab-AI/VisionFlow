@@ -25,12 +25,12 @@ sources:
   - ../ontomark-obsidian/src/ingest-run.ts
   - ../ontomark-obsidian/src/endpoint.ts
   - ../ontomark-obsidian/src/jev-ingest.ts
-verified_commit: {ontomark-obsidian: 4b1016d1b531679a8a59992b71cbee552dac6394}
+verified_commit: {ontomark-obsidian: 64bdc5bf6309fca94bf0437b52c1484618470ed0}
 ---
 
 ## For developers
 
-The Obsidian plugin is a separate engine consumer with its own repository revision. These panels describe plugin 0.5.0 and engine v0.8.1. The 14 November source refresh reconciles per-block query channels, stable subscriptions, ingest cancellation and persisted-write reporting. Historical probe receipts remain bound to their original revisions. The [refresh audit](../../estate-review/2026-11-01-obsidian-refresh.md) binds five whole-ADR assessments, current engine execution and bounded lifecycle probes. The ADR ledger's metadata migration is not a revalidation of implementation or activation.
+The Obsidian plugin is a separate engine consumer with its own repository revision. These panels describe plugin 0.5.0 and engine v0.9.0, adopted at 64bdc5b from ontomark source f9ba200 (`engine.json:3,6`); its new `review_binding` export is not called by the plugin. The 14 November source refresh reconciles per-block query channels, stable subscriptions, ingest cancellation and persisted-write reporting. Historical probe receipts remain bound to their original revisions. The [refresh audit](../../estate-review/2026-11-01-obsidian-refresh.md) binds five whole-ADR assessments, current engine execution and bounded lifecycle probes. The ADR ledger's metadata migration is not a revalidation of implementation or activation.
 
 ## For the business
 
