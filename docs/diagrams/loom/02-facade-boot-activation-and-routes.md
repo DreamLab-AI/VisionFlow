@@ -91,9 +91,10 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph LAYERS["tower layers, outermost last, loom-facade/src/routes/mod.rs:77,81,82,83"]
-        TO["timeout LOOM_TIMEOUT, 408 on elapse, default 600 s<br/>loom-facade/src/config.rs:118,167"]
+        TO["timeout LOOM_TIMEOUT, 408 on elapse, default 600 s<br/>loom-facade/src/config.rs:119,167"]
         BL["body cap LOOM_MAX_BODY_BYTES, default 16 MiB<br/>loom-facade/src/config.rs:120,168"]
         CORS["CorsLayer permissive<br/>loom-facade/src/routes/mod.rs:82"]
+        TRACE["TraceLayer for HTTP, the outermost layer<br/>loom-facade/src/routes/mod.rs:83"]
     end
     subgraph READ["model-free routes"]
         H["GET /health<br/>loom-facade/src/routes/mod.rs:54"]

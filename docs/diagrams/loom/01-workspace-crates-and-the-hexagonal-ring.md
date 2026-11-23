@@ -44,7 +44,7 @@ verified_commit: {loom: 355946dd2deacfdef21171d53eafd025887e447e}
 
 ```mermaid
 flowchart TB
-    WS["workspace members, resolver 2, MSRV 1.89, unsafe_code deny<br/>../loom/Cargo.toml:3,24,30"]
+    WS["workspace members, resolver 2, MSRV 1.89, unsafe_code deny<br/>../loom/Cargo.toml:2,3,24,30"]
     subgraph CORE["pure core"]
         DOM["loom-domain: types and ports, depends on ontomark-parse only<br/>loom-domain/Cargo.toml:12"]
     end
