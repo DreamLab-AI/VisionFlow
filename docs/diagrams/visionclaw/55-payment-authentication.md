@@ -9,6 +9,7 @@ sources:
   - ../project/src/utils/auth.rs
   - ../project/src/utils/nip98.rs
   - ../project/tests/pay_nip98_test.rs
+  - ../project/docs/SECURITY-profiles.md
 verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
 ---
 
@@ -46,6 +47,7 @@ flowchart TD
     CLAIM -->|replay or capacity| REJECT
     CLAIM -->|session principal| SESSION
     SESSION --> REJECT
+    SESSION -.- TSCOPE["TENSION: SECURITY-profiles lists the session-key refusals as 403 session_key_scope<br/>docs/SECURITY-profiles.md:358-359, src/utils/auth.rs:210-213<br/>payments are not listed, and refuse with the generic 401<br/>src/handlers/pay_handler.rs:452-457"]
     CLAIM -->|admitted POST| EFFECT
     CLAIM -->|read-only GET| READ
     CLAIM -->|resource GET| CHARGE
@@ -53,6 +55,7 @@ flowchart TD
 ```
 
 Six route regressions and 46 shared-verifier tests pass. Separate storage commits, permissive compatibility URL matching and fresh-token operation retries remain open.
+
 
 ## VC-55.2 The replay window is one process's memory, and URL binding is looser than the signed URL
 

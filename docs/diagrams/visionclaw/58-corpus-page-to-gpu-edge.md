@@ -39,7 +39,7 @@ Follows one corpus page from the vault walk to the two GPU structures that consu
 
 ## For the business
 
-A relation written in a page (`is-a`, `requires`, `has-part`) reaches the layout as a spring whose stiffness comes from one declared table. The layout engine never sees which relation it was: two pages joined by `requires` and two joined by a plain link pull together by the same law, only with different strength. A relation the table does not know is now set aside with a warning instead of being given a guessed strength. Any change to the pages or their links now reaches the layout; earlier, only a change in the number of pages did.
+A relation written in a page (`is-a`, `requires`, `has-part`) reaches the layout as a spring whose stiffness comes from one declared table. The layout engine never sees which relation it was: two pages joined by `requires` and two joined by a plain link pull together by the same law, only with different strength. A relation the table does not know is now set aside with a warning instead of being given a guessed strength. Any change to which pages exist or how they are linked now reaches the layout; earlier, only a change in the number of pages did.
 
 ## VC-58.1 Page to node: list, fetch, parse, gate
 
@@ -78,7 +78,7 @@ flowchart TB
 
 **What it shows:** every edge kind the sync writes, the label it carries and its spring weight, all read from `relations.yaml`. Only typed relations carry a predicate IRI and a `relation` name; co-citation edges stand in for links to pages that do not exist. **Why it is this way:** ADR-2204 S2 moved labels and weights into one schema without changing any produced weight (`relations.yaml:19-23`), and a predicate the schema does not know is quarantined instead of being auto-registered with a default (`github_sync_service.rs:2135-2146`).
 
-**Tension (ADR-2140 vs code), changed at visionclaw 4900ec60:** the 010e1109b drawing found every typed edge weight computed as the registry strength times 2.0, against ADR-2140 decision 2 (`../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:28`). That multiplication is gone: the typed weight is the schema's `legacy_weight` (`../project/src/services/github_sync_service.rs:2149-2151`), which records the same product as a literal (`../project/crates/visionclaw-domain/data/relations.yaml:20-22`). The values are still code-held, not stored settings, and the 2026-11-20 amendment narrows "applied exactly as stored" to the stored settings, leaving the decision to ADR-2204 (`../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:235`).
+**Tension (ADR-2140 vs code):** CHANGED at visionclaw 4900ec60 — the 010e1109b drawing found every typed edge weight computed as the registry strength times 2.0, against ADR-2140 decision 2 (`../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:28`). That multiplication is gone: the typed weight is the schema's `legacy_weight` (`../project/src/services/github_sync_service.rs:2149-2151`), which records the same product as a literal (`../project/crates/visionclaw-domain/data/relations.yaml:20-22`). The values are still code-held, not stored settings, and the 2026-11-20 amendment narrows "applied exactly as stored" to the stored settings, leaving the decision to ADR-2204 (`../project/docs/adr/ADR-2140-physics-forces-have-one-stored-definition-and-no-scale-factors.md:235`).
 
 ## VC-58.3 Persist, reload and the hand-off to the GPU actors
 
@@ -109,7 +109,7 @@ sequenceDiagram
 
 **Drift:** the comment on `UNTYPED_EDGE_LABEL` says reload maps the stored `default` back to `None` (`../project/crates/visionclaw-domain/src/models/edge.rs:207-208`), but reload copies the stored label into `edge_type` unchanged (`../project/src/adapters/oxigraph_graph_repository.rs:1516`, `../project/src/adapters/oxigraph_graph_repository.rs:1531`).
 
-**Tension:** RESOLVED at visionclaw 4900ec60. At 010e1109b a sync that changed edges but not the node count was never forwarded to the GPU. The gate now compares a content fingerprint (`../project/src/actors/physics_orchestrator_actor.rs:538-539`, `../project/src/actors/physics_orchestrator_actor.rs:548`, `../project/src/actors/physics_orchestrator_actor.rs:1941`).
+**Tension:** RESOLVED at visionclaw 4900ec60 — at 010e1109b a sync that changed edges but not the node count was never forwarded to the GPU. The gate now compares a content fingerprint (`../project/src/actors/physics_orchestrator_actor.rs:538-539`, `../project/src/actors/physics_orchestrator_actor.rs:548`, `../project/src/actors/physics_orchestrator_actor.rs:1941`).
 
 ## VC-58.4 Two GPU shapes of one edge: CSR drops the type, COO keeps it
 
