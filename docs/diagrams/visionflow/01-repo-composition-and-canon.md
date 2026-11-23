@@ -63,7 +63,7 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: fdeab5dc36a859b3b881d7d587af067c88795217
+verified_commit: 3ae784ed0b547b562e1f94d017996f8ad197f5cb
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
@@ -88,16 +88,16 @@ flowchart LR
     end
 
     subgraph EVID["REGISTERS, RELEASES AND EVIDENCE"]
-        REG["docs/registers/ — gap-register v1.1 / v1.2 / v1.3<br/>plus the F9 fork record<br/>gap-register-v1.3.md:3 forward-chains, never edits in place"]:::reg
+        REG["docs/registers/ — gap-register v1.1 / v1.2 / v1.3<br/>plus the F9 fork record<br/>gap-register-v1.3.md:5 forward-chains, never edits in place;<br/>frozen 2026-11-16, status now in the open-work register — gap-register-v1.3.md:3"]:::reg
         REL["docs/releases/ — releases/README.md:8 generator invocation,<br/>ecosystem-release.schema.json; no committed manifest since the v1 candidate<br/>was deleted on 2026-10-15 — see VF-07"]:::reg
         CLOSE["docs/closeout/final-design.md:5 and docs/estate-closeout/<br/>dated audits — evidence of a day, not the living view"]:::reg
-        REVIEW["docs/estate-review/README.md:2<br/>in-progress estate assessment + closeout programme CP-01..CP-09"]:::reg
+        REVIEW["docs/estate-review/README.md:3<br/>in-progress estate assessment + closeout programme CP-01..CP-09<br/>linked at docs/estate-review/README.md:193; since 2026-11-16 a dated<br/>audit record, not a to-do list — docs/estate-review/README.md:10"]:::reg
     end
 
     subgraph WORDS["VOCABULARY AND DIRECTION"]
         TERM["docs/terminology.md:19<br/>canon for ontology / knowledge graph / reasoning / grounding"]:::other
         ROAD["docs/roadmap.md:11<br/>a pointer, not a second plan — still names ADR-2007<br/>as owner of sequencing; see the Drift below"]:::other
-        BIZ["docs/business/ — the 18-month business roadmap,<br/>proposed with ADR-2021 — roadmap.md:3, docs/README.md:29"]:::other
+        BIZ["docs/business/ — the 18-month business roadmap, proposed with ADR-2021<br/>and marked superseded when the owner rejected it on 2026-11-16<br/>roadmap-2026-11-to-2028-04.md:3 and roadmap-2026-11-to-2028-04.md:5<br/>DRIFT: roadmap.md:3 and docs/README.md:29 still call it proposed"]:::other
         MAP["docs/ecosystem-map.md:3<br/>sibling synthesis + gap register"]:::other
     end
 
@@ -114,7 +114,7 @@ flowchart LR
     WORDS -.-> EMPTY
 ```
 
-**Drift (roadmap vs ADR-2007):** the roadmap still says ADR-2007 and the closeout programme "now own estate-wide sequencing" (`docs/roadmap.md:11`). ADR-2007 itself records that coordinating role as overtaken by the 2026-09-21 planning cycle and narrows the decision to its evidence rule (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:26`). The roadmap's newest entry now points at the business roadmap that ADR-2021 proposes (`docs/roadmap.md:3`).
+**Drift (roadmap vs ADR-2007):** the roadmap still says ADR-2007 and the closeout programme "now own estate-wide sequencing" (`docs/roadmap.md:11`). ADR-2007 itself records that coordinating role as overtaken by the 2026-09-21 planning cycle and narrows the decision to its evidence rule (`docs/adr/ADR-2007-estate-closeout-evidence-roadmap.md:26`). The roadmap's newest entry points at the business roadmap that ADR-2021 proposed and still calls it proposed (`docs/roadmap.md:3`), although the record is now rejected (`docs/adr/README.md:53`).
 
 ## VF-01.3 Lookup and authority order — how a reader resolves a claim
 ```mermaid
@@ -258,7 +258,7 @@ sequenceDiagram
     Note over PR,IDX: "DIVERGENCE: the BASELINE change process (BASELINE-visionflow.md:349-354)<br/>also requires updating the governing doc IN THE SAME CHANGE as any new<br/>ADR, but nothing in this gate enforces that half — adr-index.yml checks<br/>frontmatter validity, the ratchet's two rules and index freshness.<br/>The BASELINE coupling is a convention, not a gate."
 ```
 
-**Debt (expired backlog rule):** `ADR_RATCHET_UNTIL` defaults to 2026-10-20 (`scripts/adr-ratchet.sh:44`) and the workflow does not override it (`.github/workflows/adr-index.yml:47-49`), so since 2026-10-21 the backlog half only reports. The step is still named "a new proposal must close a proposed one" (`.github/workflows/adr-index.yml:46`). ADR-2021 landed `proposed` on 2026-10-30 (`docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:4-5`) under the reported-only rule. Only the evidence gate still blocks.
+**Debt (expired backlog rule):** `ADR_RATCHET_UNTIL` defaults to 2026-10-20 (`scripts/adr-ratchet.sh:44`) and the workflow does not override it (`.github/workflows/adr-index.yml:47-49`), so since 2026-10-21 the backlog half only reports. The step is still named "a new proposal must close a proposed one" (`.github/workflows/adr-index.yml:46`). ADR-2021 landed `proposed` on 2026-10-30 under the reported-only rule, and the owner rejected it on 2026-11-16 (`docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:4-5`, `docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:19`). Only the evidence gate still blocks.
 
 ## VF-01.10 The first thirteen ledger records — domain, lineage and what each forecloses
 ```mermaid
@@ -351,7 +351,7 @@ flowchart TB
     INV["INVARIANT: BASELINE-visionflow.md:6 pins the document's own<br/>verified_commit; each dated subsection instead carries the commit<br/>at which ITS facts were last checked (ADR-2008 subsection: pending<br/>vs c205575, BASELINE-visionflow.md:208; ADR-2010/2011 subsection:<br/>03db671, BASELINE-visionflow.md:234) — per the change process<br/>(BASELINE-visionflow.md:349-354) this is intended per-section staging,<br/>not undetected drift, provided every subsection is re-recorded when its<br/>own facts change"]:::settled
 ```
 
-**Drift (BASELINE subsections lag the ledger):** the INVARIANT above holds only if every subsection is re-recorded when its own facts change, and at this stamp four have not been. BASELINE gives ADR-2010 as partial/staged and ADR-2011 as none/inactive (`docs/BASELINE-visionflow.md:229-233`), while both records read complete/staged (`docs/adr/README.md:42-43`). It calls ADR-2014 to ADR-2016 proposed, unimplemented and inactive (`docs/BASELINE-visionflow.md:368`), while the index shows ADR-2014 and ADR-2016 accepted/partial/staged (`docs/adr/README.md:46`, `docs/adr/README.md:48`). It says ADR-2018 and ADR-2019 are both inactive (`docs/BASELINE-visionflow.md:391`), while ADR-2019 is live (`docs/adr/README.md:51`). It still describes ADR-2007 as a staged proposal (`docs/BASELINE-visionflow.md:447-456`), while the record is accepted/complete/live (`docs/adr/README.md:39`).
+**Drift (BASELINE subsections lag the ledger):** the INVARIANT above holds only if every subsection is re-recorded when its own facts change, and at this stamp four have not been. BASELINE gives ADR-2010 as partial/staged and ADR-2011 as none/inactive (`docs/BASELINE-visionflow.md:229-233`), while both records read complete/staged (`docs/adr/README.md:42-43`). It calls ADR-2014 to ADR-2016 proposed, unimplemented and inactive (`docs/BASELINE-visionflow.md:368`), while the index shows ADR-2014 and ADR-2016 accepted/partial/staged and ADR-2015 accepted/none/inactive (`docs/adr/README.md:46-48`). It says ADR-2018 and ADR-2019 are both inactive (`docs/BASELINE-visionflow.md:391`), while ADR-2019 is live (`docs/adr/README.md:51`). It still describes ADR-2007 as a staged proposal (`docs/BASELINE-visionflow.md:447-456`), while the record is accepted/complete/live (`docs/adr/README.md:39`).
 
 ## VF-01.13 The augmentation conditions enter canon — a rubric, a graded table and a gate
 ```mermaid
@@ -412,7 +412,7 @@ flowchart TB
     REC --> P5["P5 — custody is stated honestly: the root chain is LEVEL 1<br/>with one signer we operate and is CUSTODIAL; the k-of-n<br/>federation is rung 2 of the hardening path, not reached<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:84-87"]:::prop
     REC --> P6["P6 — no regulatory claim moves; canon may not be cited<br/>as relief for any cell of the ADR-124 matrix<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:91"]:::prop
 
-    P2 --> C1["the claims P2 withdraws were corrected on the published page<br/>on 2026-10-02 (owner decision Q12): the page now says no<br/>Lightning or NWC rail is built and the pill reads<br/>'testnet research only'<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169<br/>website/static/index.html:631, website/static/index.html:1125-1126"]:::retire
+    P2 --> C1["the claims P2 withdraws were corrected on the published page<br/>on 2026-10-02 (owner decision Q12): the page now says no<br/>Lightning or NWC rail is built and the pill reads<br/>'testnet research only'<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169<br/>website/static/index.html:629, website/static/index.html:1123-1124"]:::retire
     P1 --> C2["the did:nostr payment-account claim gets a named instrument<br/>for the first time — the README row for sidestr-rs, ./README.md:31<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:45-46"]:::prop
 
     P4 --> REG["the registry owns the ALLOCATION TABLE; semantics stay with<br/>the originating record — event-kind-registry.md:8<br/>this ratification criterion is now MET: the sidestr 0.0.5 rows,<br/>the teller rows and 38420 are written, with the §2.5 collision<br/>check finding no collision and nothing new in 38400-38499 —<br/>event-kind-registry.md:135,<br/>ADR-2012-sidestr-settlement-is-ecosystem-canon.md:153"]:::tbl
@@ -430,11 +430,11 @@ flowchart TB
     REC --> VER
 ```
 
-**Tension (ADR-2012 vs the shipped site) — RESOLVED 2026-10-02:** ADR-2012 withdraws the Lightning and NWC rail claims as unbuilt (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51`), and as of owner decision Q12 the deployed page says the same: no Lightning or NWC rail is built, with the status pill reading "testnet research only" (`website/static/index.html:631`, `website/static/index.html:1125-1126`; disposition at `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169`). The record itself stays `proposed / partial / inactive` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7`).
+**Tension (ADR-2012 vs the shipped site) — RESOLVED 2026-10-02:** ADR-2012 withdraws the Lightning and NWC rail claims as unbuilt (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:51`), and as of owner decision Q12 the deployed page says the same: no Lightning or NWC rail is built, with the status pill reading "testnet research only" (`website/static/index.html:629`, `website/static/index.html:1123-1124`; disposition at `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:169`). The record itself stays `proposed / partial / inactive` (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:5-7`).
 
-**Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28-33`); the site sentences have since been rewritten in place — the withdrawal text sits at `website/static/index.html:631` and `website/static/index.html:1125`, and the corrected pill at `website/static/index.html:1126` — and the README was rewritten to 163 lines, so the README text that record names no longer exists at those lines: the sidestr-rs row now sits at `./README.md:31`.
+**Drift (ADR-2012 context vs HEAD):** the record's context still points at line 597 and lines 1015 to 1016 of the site page for the withdrawn claims, and at README lines 134 and 248 for the payment-account rows (`docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:28-33`); the site sentences have since been rewritten in place — the withdrawal text sits at `website/static/index.html:629` and `website/static/index.html:1123`, and the corrected pill at `website/static/index.html:1124` — and the README was rewritten to 163 lines, so the README text that record names no longer exists at those lines: the sidestr-rs row now sits at `./README.md:31`.
 
-The roster probes eight published sidestr-rs crates since `26df6c9` (see VF-03.1, estate register ER-3). The site's sidestr-rs tile no longer states a crate count (`website/static/index.html:1217-1220`), and neither does the README (`./README.md:31`), and BASELINE and ADR-2012 keep seven as the count at the 2026-10-01 parity release they record (`docs/BASELINE-visionflow.md:146`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:118`).
+The roster probes eight published sidestr-rs crates since `26df6c9` (see VF-03.1, estate register ER-3). The site's sidestr-rs tile no longer states a crate count (`website/static/index.html:1215-1218`), and neither does the README (`./README.md:31`), and BASELINE and ADR-2012 keep seven as the count at the 2026-10-01 parity release they record (`docs/BASELINE-visionflow.md:146`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:118`).
 
 ## VF-01.15 ADR-2013 sovereign corpus — four disagreeing doors become one vault, one parser, one gate
 ```mermaid
@@ -482,5 +482,5 @@ flowchart TB
 - ADR-2019 is accepted / partial / live (`docs/adr/README.md:51`, `docs/adr/ADR-2019-forge-and-mirror-on-in-shipped-pods.md:5-7`).
 - ADR-2020 is now accepted / complete / live, with an evidence class and acceptance boundary (`docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:5-7`, `docs/adr/ADR-2020-pele-renders-every-estate-diagram.md:14-15`).
 - ADR-2007 is now complete as well (`docs/adr/README.md:39`).
-- At this stamp the ledger also gained ADR-2021, proposed / none / inactive (`docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:5-7`). It names `docs/business/roadmap-2026-11-to-2028-04.md` as the roadmap of record, and BASELINE mirrors it in its own section (`docs/BASELINE-visionflow.md:393-402`).
+- ADR-2021 landed proposed and is now rejected / none / inactive by the owner's 2026-11-16 ruling (`docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:5-7`, `docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:19`). **Drift:** BASELINE's own section still calls it proposed and names its business roadmap the roadmap of record (`docs/BASELINE-visionflow.md:393-402`).
 - The ledger now holds ADR-2024, which separates source attribution, compilation, derivation, human review and governance admission, and binds new human certification stamps to the reviewed content; it is accepted / complete / staged and amends ADR-2023 (`docs/adr/README.md:56`, `docs/adr/ADR-2024-provenance-and-certification-freshness.md:5-9`). BASELINE records it in its own section, with release, consumer adoption and runtime activation left to separate evidence (`docs/BASELINE-visionflow.md:404-416`).
