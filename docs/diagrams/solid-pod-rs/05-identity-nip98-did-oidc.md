@@ -638,7 +638,7 @@ sequenceDiagram
         R->>CS: insert into the in-memory registered map<br/>solid-pod-rs-idp/src/registration.rs:439
     end
     R-->>B: ClientDocument, or RegError
-    B-->>App: 201 Created with the document, any error as 400<br/>solid-pod-rs-idp/src/axum_binder.rs:121
+    B-->>App: 201 Created with the document, any error as 400<br/>solid-pod-rs-idp/src/axum_binder.rs:121-122
     Note over CS: DEBT: both maps are process memory with no bound or expiry sweep<br/>(solid-pod-rs-idp/src/registration.rs:160, :162), and the open POST adds to one,<br/>so registrations are lost on restart and grow with every caller.
     Note over F: OPEN: a document that declares no client_id passes the equality check,<br/>which runs only when the field is present (solid-pod-rs-idp/src/registration.rs:313).
 ```

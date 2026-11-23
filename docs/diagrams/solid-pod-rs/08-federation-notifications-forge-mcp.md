@@ -795,14 +795,14 @@ classDiagram
         +stream, a broadcast Receiver of ChangeNotification  solid-pod-rs/src/notifications/mod.rs:303
     }
     class WebhookChannelManager {
-        -send_once, POST of serde_json bytes  solid-pod-rs/src/notifications/mod.rs:554
+        -send_once, POST of serde_json bytes  solid-pod-rs/src/notifications/mod.rs:549-554
     }
     StorageEvent ..> ChangeNotification : mapped by from_storage_event
     as_ns ..> ChangeNotification : supplies context and type
     ChangeNotification ..> WebSocketChannelManager : broadcast as the typed value
     ChangeNotification ..> WebhookChannelManager : serialised per delivery
     note for ChangeNotification "Created maps to Create, Updated to Update, Deleted to Delete\n(solid-pod-rs/src/notifications/mod.rs:91).\nobject is pod_base without its trailing slash plus the path (:95),\nid is urn:uuid with a fresh v4 (:98), published is RFC 3339 now (:100).\nOne id per event: the webhook retry loop resends the same note (:611),\nso a receiver can de-duplicate retries by id."
-    note for WebhookChannelManager "Content-Type application/ld+json\n(solid-pod-rs/src/notifications/mod.rs:560); the same bytes are what\nwebhook-signing signs when a signer is configured (SP-08.3)."
+    note for WebhookChannelManager "Content-Type application/ld+json\n(solid-pod-rs/src/notifications/mod.rs:561); the same bytes are what\nwebhook-signing signs when a signer is configured (SP-08.3)."
 ```
 
 - **What it shows:** the one payload both Notifications 0.2 managers carry, an Activity Streams 2.0 activity built from a storage event. No actor, no target and no state accompany it: a subscriber learns which resource changed and how, then reads it.

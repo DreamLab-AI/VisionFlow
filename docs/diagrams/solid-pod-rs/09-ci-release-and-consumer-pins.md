@@ -56,7 +56,7 @@ flowchart TD
     AUDIT["cargo-audit<br/>../solid-pod-rs/.github/workflows/ci.yml:182"]
     COV["coverage — tarpaulin<br/>../solid-pod-rs/.github/workflows/ci.yml:203"]
     WS["workspace — every member, default features<br/>../solid-pod-rs/.github/workflows/ci.yml:255"]
-    DIA["diagrams — the RES-c staleness guard at this stamp,<br/>REMOVED after it by solid-pod-rs PR 18<br/>../solid-pod-rs/.github/workflows/ci.yml:281"]
+    DIA["diagrams — the RES-c staleness guard at this stamp,<br/>removed by solid-pod-rs PR #18<br/>../solid-pod-rs/.github/workflows/ci.yml:281"]
     FZ["fuzz-and-bench — scheduled or dispatched only, NOT required<br/>../solid-pod-rs/.github/workflows/ci.yml:296"]
     REQ["ci-required — the single branch-protection check<br/>../solid-pod-rs/.github/workflows/ci.yml:321"]
 
@@ -78,7 +78,7 @@ flowchart TD
     COV -.-> N2B
     N3["RUSTFLAGS and RUSTDOCFLAGS are both set to -D warnings at the workflow-level<br/>env block, so a broken intra-doc link fails CI the same way a compiler warning<br/>does — applies to every job below, not just clippy.<br/>../solid-pod-rs/.github/workflows/ci.yml:31-32"]
     BT -.-> N3
-    N4["DIA guarded the repo's OWN crates/solid-pod-rs/docs/diagrams set (nine .mmd sources<br/>and their SVG and PNG renders) against stale renders. solid-pod-rs PR 18 (2026-11-23) removes the set,<br/>its script and this job in favour of this corpus: the old sources map to sections of SP-01 to SP-08 and SP-12,<br/>among them the new SP-03.15, SP-05.23 and SP-08.23, and ci-required stops waiting for diagrams. Until it merges,<br/>the job and its assertion stand as drawn (../solid-pod-rs/.github/workflows/ci.yml:352)."]
+    N4["DIA guarded the repo's OWN crates/solid-pod-rs/docs/diagrams set (nine .mmd sources<br/>and their SVG and PNG renders) against stale renders. solid-pod-rs PR #18 (2026-11-23) removes the set,<br/>its script and this job in favour of this corpus: the old sources map to sections of SP-01 to SP-08 and SP-12,<br/>among them the new SP-03.15, SP-05.23 and SP-08.23, and ci-required stops waiting for diagrams. Until it merges,<br/>the job and its assertion stand as drawn (../solid-pod-rs/.github/workflows/ci.yml:352)."]
     DIA -.-> N4
     N5["PATH FILTER: push and pull_request fire only for crates/**, Cargo.toml, Cargo.lock and<br/>ci.yml (../solid-pod-rs/.github/workflows/ci.yml:6-17). A change to deny.toml, .cargo/audit.toml<br/>or scripts/ alone starts no run until the weekly schedule or a dispatch."]
     REQ -.-> N5
@@ -128,7 +128,7 @@ flowchart TD
     COV["cargo tarpaulin --engine llvm --all-features --workspace --fail-under 60<br/>../solid-pod-rs/.github/workflows/ci.yml:227"]
     CC["Codecov upload, fail_ci_if_error false<br/>../solid-pod-rs/.github/workflows/ci.yml:235"]
     WSJ["cargo clippy --workspace and cargo test --workspace<br/>(both --all-targets, plus an explicit --doc run)<br/>../solid-pod-rs/.github/workflows/ci.yml:255"]
-    DIA["bash scripts/check-diagram-staleness.sh, removed by PR 18 (SP-09.2)<br/>../solid-pod-rs/.github/workflows/ci.yml:289"]
+    DIA["bash scripts/check-diagram-staleness.sh, removed by solid-pod-rs PR #18 (SP-09.2)<br/>../solid-pod-rs/.github/workflows/ci.yml:289"]
 
     MSRV --> GATE["ci-required"]
     MSRVF --> GATE

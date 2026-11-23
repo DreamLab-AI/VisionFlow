@@ -99,9 +99,13 @@ flowchart TD
     MEM["ldp:contains, one entry per visible child<br/>solid-pod-rs/src/ldp.rs:1179"]
     TYP["a child ending in a slash is typed as a container too,<br/>any other child as Resource only<br/>solid-pod-rs/src/ldp.rs:1159<br/>solid-pod-rs/src/ldp.rs:1166"]
     OUT["served as application/ld+json<br/>solid-pod-rs-server/src/lib.rs:2009"]
+    HTML["before it, two HTML branches: an Accept text/html request gets the container's<br/>index.html child when its own ACL allows Read, else falls through to the listing<br/>solid-pod-rs-server/src/lib.rs:1958-1978"]
+    MASH["after render, the mashlib HTML wrapper with the JSON-LD embedded, when enabled<br/>and the request is a browser navigation<br/>solid-pod-rs-server/src/lib.rs:1988-2007"]
     LH["the type rels also go out as Link headers (SP-03.11)<br/>solid-pod-rs/src/ldp.rs:150"]
 
+    HTML -.-> GET
     GET --> RC --> FULL --> OUT
+    FULL -.-> MASH
     FULL --> MEM --> TYP
     OUT -.-> LH
 
@@ -113,13 +117,13 @@ flowchart TD
     end
     RC -.-> LIB
 
-    N["DRIFT: a Prefer header has no effect on the listing, the listing is never Turtle,<br/>and it carries no modified, size or mtime triples. The removed in-repo diagram<br/>(solid-pod-rs PR 18) drew those triples as rendered on GET."]
+    N["DRIFT: a Prefer header has no effect on the listing, the listing is never Turtle,<br/>and it carries no modified, size or mtime triples. The in-repo diagrams 02 and 04<br/>(removed by solid-pod-rs PR #18) drew those triples as rendered on GET."]
     SMT -.-> N
     N2["DEBT: the doc comment says client-supplied server-managed triples MUST be<br/>ignored at PUT time (solid-pod-rs/src/ldp.rs:1097); no server write path calls<br/>find_illegal_server_managed, so nothing in the server strips them from a PUT body."]
     ILL -.-> N2
 ```
 
-- **What it shows:** the reference server's listing is one fixed shape, the Full JSON-LD view with typed `ldp:contains` members. The Prefer, Turtle and server-managed-triple helpers are library surface for embedders.
+- **What it shows:** the reference server's RDF listing is one fixed shape, the Full JSON-LD view with typed `ldp:contains` members; the only other answers to a container GET are HTML, the container's own `index.html` for an `Accept: text/html` request (`solid-pod-rs-server/src/lib.rs:1958-1978`) or the mashlib wrapper around that same JSON-LD (`solid-pod-rs-server/src/lib.rs:1988-2007`). The Prefer, Turtle and server-managed-triple helpers are library surface for embedders.
 - **Why it is this way:** `render_container` is the backwards-compatible Phase 1 alias with the default preference, and the server's GET branch calls that alias rather than `render_container_jsonld` with a parsed `Prefer`.
 
 ## SP-03.3 PUT — resource and container creation
