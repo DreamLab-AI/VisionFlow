@@ -84,4 +84,6 @@ flowchart TD
     CACHE["Current deduplication is in-memory SeenIds<br/>transport.rs:639,649,666"] -.-> JOURNAL
 ```
 
+**Changed by nostr-rust-forum 75e48b4:** the decoder unwraps with `unwrap_gift_kind` for kind 14 only, because the generic unwrap now admits reaction, deletion and file rumors (`transport.rs:474-477`).
+
 **What it shows.** Seal identity and a pinned peer are only the beginning of control admission; the durable queue remains a requirement. **Why it is this way.** Advancing a watermark before a missing lower-sequence retraction arrives can lose that command. Restart, ordering and restore tests must establish the complete delivery contract.

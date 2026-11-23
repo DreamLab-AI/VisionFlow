@@ -70,6 +70,8 @@ flowchart LR
     Server --> Gate
 ```
 
+**Changed by e535e9de4:** both Solid pins moved from bc6d9d8 (alpha.22) to eb22d21 (alpha.24) together (`../project/agentbox/lib/solid-pod-rs.nix:66`, `../project/agentbox/lib/nostr-pod-bridge.nix:67`).
+
 **What it shows:** The bridge and server share one Solid revision; both forum consumers share one forum revision. Native acceptance caught and repaired the internal Colloquy signing-key dependency mismatch.
 
 **Why it is this way:** Immutable source hashes and lockfiles close the gap between sibling-workspace compilation and the packaged consumer. Nix parsing and native tests do not establish a completed image build.

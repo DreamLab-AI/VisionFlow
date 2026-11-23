@@ -41,4 +41,4 @@ flowchart TD
     EXACT -- local yes --> LOCAL
 ```
 
-- **What it shows:** explicit signature success precedes other gates and side effects. **Why it is this way:** dependency and verifier failures must reject, including injected test verifiers. **Open:** ABI-05 consumer/roster consolidation and deployment remain unverified; five regression tests include genuine signing and altered content at agentbox/tests/sovereign/relay-signature-failure.test.cjs:43.
+- **What it shows:** explicit signature success precedes other gates and side effects. **Why it is this way:** dependency and verifier failures must reject, including injected test verifiers. **Open:** ABI-05 consumer/roster consolidation and deployment remain unverified; five regression tests include genuine signing and altered content at agentbox/tests/sovereign/relay-signature-failure.test.cjs:43. **Changed by 2c1f85706:** an empty ingress allowlist used to admit every author and now admits none (agentbox/mcp/nostr-bridge/relay-consumer.js:775); the constructor logs relay-ingress-allowlist-empty (agentbox/mcp/nostr-bridge/relay-consumer.js:163).
