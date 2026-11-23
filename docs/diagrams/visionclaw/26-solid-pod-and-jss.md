@@ -227,7 +227,7 @@ sequenceDiagram
     Note over VAL,CACHE: DRIFT (was RESOLVED ADR-2070): the governing IDENTITY-authority-chain.md section still places<br/>validate_nip98_token at nip98.rs:330 and the claim at claim_event_id :234 under a Mutex HashMap. At this revision<br/>the validator is at :431, claim_event_id is test-only, and production claims through claim_signed_id with a<br/>per-signer admission cap (nip98.rs:227, :259). The section's line numbers need a refresh.
 ```
 
-**Tension:** the embedded pod never binds a write body to its signature. `extract_user_identity` calls `validate_nip98_token(token, &expected_url, expected_method, None)` (`../project/src/handlers/solid_proxy_handler.rs:225`). The public wrapper selects `BodyBinding::RequiredWhenTagged` (`../project/src/utils/nip98.rs:442`), and with no body that policy matches the catch-all `(RequiredWhenTagged, _, _) => {}` (`../project/src/utils/nip98.rs:561`). A `payload` tag is therefore never compared on `/solid` PUT, POST or PATCH, and the `/solid` scope adds no other body check (`../project/src/handlers/solid_proxy_handler.rs:1787-1821`). Someone holding an unused token for one write can send different bytes to the same URL and method inside the 60-second window; the single-use claim (`:581`) limits this to one substitution. Source tracing only; no request was sent. It parallels SP-ID-01 in `docs/estate-review/2026-11-01-solid-identity-boundaries.md`. What would close it: pass the received body and use `BodyBinding::Required` on write methods, with a route-level test that a body differing from the signed hash is refused.
+**Tension:** the embedded pod never binds a write body to its signature. `extract_user_identity` calls `validate_nip98_token(token, &expected_url, expected_method, None)` (`../project/src/handlers/solid_proxy_handler.rs:225`). The public wrapper selects `BodyBinding::RequiredWhenTagged` (`../project/src/utils/nip98.rs:442`), and with no body that policy matches the catch-all `(RequiredWhenTagged, _, _) => {}` (`../project/src/utils/nip98.rs:561`). A `payload` tag is therefore never compared on `/solid` PUT, POST or PATCH, and the `/solid` scope adds no other body check (`../project/src/handlers/solid_proxy_handler.rs:1787-1821`). Someone holding an unused token for one write can send different bytes to the same URL and method inside the 60-second window; the single-use claim (`:578`) limits this to one substitution. Source tracing only; no request was sent. It parallels SP-ID-01 in `docs/estate-review/2026-11-01-solid-identity-boundaries.md`. What would close it: pass the received body and use `BodyBinding::Required` on write methods, with a route-level test that a body differing from the signed hash is refused.
 
 ## VC-26.5 ldpClient CRUD — LDP resource operations
 ```mermaid
@@ -524,14 +524,14 @@ sequenceDiagram
     participant M as main.rs (solid-pod-embed)<br/>main.rs:903
     participant SB as spawn_boot_pull<br/>ontology_pull.rs:446
     participant PO as pull_once<br/>ontology_pull.rs:346
-    participant GH as release directory<br/>code default GitHub ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:50)
+    participant GH as release directory<br/>code default GitHub ontology-latest (DEFAULT_RELEASE_URL, ontology_pull.rs:49)
     participant ST as Storage (FsBackend)<br/>solid_pod_rs::Storage
 
     M->>SB: spawn_boot_pull(Arc::clone(&solid_state.storage))<br/>main.rs:911
     SB->>SB: OntologyPullConfig::from_env()<br/>ontology_pull.rs:85-110
     Note over SB: ONTOLOGY_PULL_URL (default DEFAULT_RELEASE_URL), _ENABLED (default true),<br/>_TIMEOUT_SECS (default 120), _INTERVAL_SECS (default 3600, 0 = boot-only)
     alt cfg.enabled == false
-        SB-->>M: return - "ontology pull disabled" (ontology_pull.rs:446-448)
+        SB-->>M: return - "ontology pull disabled" (ontology_pull.rs:451-453)
     else enabled
         SB->>SB: tokio::spawn(async move loop)<br/>ontology_pull.rs:455 - never blocks start-up
         SB->>SB: fetcher_for(cfg) - a file:// base URL reads a local release directory (FileFetch),<br/>anything else goes over HTTP ontology_pull.rs:184-190, :456. Module doc: local delivery is the default<br/>deployment (ADR-2106 amendment 2026-11-16), GitHub parked as network-expensive ontology_pull.rs:3-10
