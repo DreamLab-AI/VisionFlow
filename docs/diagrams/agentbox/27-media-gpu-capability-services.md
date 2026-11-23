@@ -499,7 +499,7 @@ sequenceDiagram
     participant BLaunch as launch-blender.sh:18-24
     participant QLaunch as launch-qgis.sh:15
 
-    Note over Nix,Wrap: ADR-2006 — gpu.backend == "local-cuda" (agentbox.toml:1662)<br/>gpuActive gate flake.nix:546 — wrapGpuBin appends host driver dirs to<br/>LD_LIBRARY_PATH with --suffix (gpu-wrap.nix:56-63), CUDA-only, no GLX/Vulkan surface
+    Note over Nix,Wrap: ADR-2006 — gpu.backend == "local-cuda" (agentbox.toml:1662)<br/>gpuActive gate flake.nix:546 — wrapGpuBin appends host driver dirs to<br/>LD_LIBRARY_PATH with --suffix (gpu-wrap.nix:56) and set-defaults the glvnd GLX/EGL vendor<br/>and Vulkan ICD selectors (gpu-wrap.nix:57-65), so wrapped GLX/EGL/Vulkan entry points route<br/>to the injected NVIDIA vendor libs, not only CUDA (gpu-wrap.nix:53-54)
     Nix->>Wrap: local QGIS only with qgis AND qgis_local (flake.nix:1641-1645)
     Nix->>Wrap: shared lib/blender.nix only with blender AND blender_local (flake.nix:1649-1654)<br/>both local gates ship false (agentbox.toml:630,636), so neither local app is baked here
     Note over Wrap: the optional local packages do not serve blender-mcp/qgis-mcp.<br/>Both MCP servers proxy to gui-tools-service, independently of the local gates<br/>(flake.nix:2544-2548 comment: 'nix-built QGIS in agentbox-main cannot reach<br/>the nvidia driver libs ... the same constraint as Blender')
