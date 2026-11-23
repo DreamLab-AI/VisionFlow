@@ -52,19 +52,19 @@ sources:
   - ../project/agentbox/flake.nix
   - ../project/agentbox/config/harness-wrappers/router.sh
   - ../project/agentbox/docs/adr/ADR-2080-metaharness-router-console-under-aoe.md
-verified_commit: 3a2c59764028e1fd8475abfda61bb3bcefab46d5
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## AB-15.1 Gate lattice — manifest to package set to supervisor to runtime trace
 ```mermaid
 flowchart TD
     subgraph M["agentbox.toml — declared gates"]
-        M1["[skills.tree_search_coder]<br/>agentbox.toml:1112"]
-        M2["[toolchains].deepsec<br/>agentbox.toml:2319"]
-        M3["[security.deepsec]<br/>agentbox.toml:2594"]
-        M4["[dream_machine]<br/>agentbox.toml:2640"]
-        M5["[payments]<br/>agentbox.toml:1953"]
-        M6["[consultants.*]<br/>agentbox.toml:1709-1740"]
+        M1["[skills.tree_search_coder]<br/>agentbox.toml:1137"]
+        M2["[toolchains].deepsec<br/>agentbox.toml:2353"]
+        M3["[security.deepsec]<br/>agentbox.toml:2628"]
+        M4["[dream_machine]<br/>agentbox.toml:2674"]
+        M5["[payments]<br/>agentbox.toml:1987"]
+        M6["[consultants.*]<br/>agentbox.toml:1743-1774"]
         M7["[claude_code].permission_mode<br/>+ permission_deny (ADR-2116)"]
         M8["[vault].cli (ADR-2107/2108)"]
     end
@@ -170,8 +170,8 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant TOML as agentbox.toml<br/>agentbox/agentbox.toml:2594
-    participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:3357-3358
+    participant TOML as agentbox.toml<br/>agentbox/agentbox.toml:2628
+    participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:3392-3393
     participant MB as agentbox-manifest bin<br/>agentbox/services/agentbox-manifest/src/main.rs:557
     participant Sup as supervisord<br/>dream-engine program
     participant API as management-api<br/>routes/system.js:44
@@ -189,7 +189,7 @@ sequenceDiagram
     Entry->>Entry: export AGENTBOX_ANTIGRAVITY_MODEL only if not already set
     Entry->>Sup: reconcile [dream_machine] enabled — dream-engine reads /etc/agentbox.toml itself at start
     Note over Sup: apply_class boot — dream-engine self-reads the manifest,<br/>so a restart (not a hot edit) is what applies a dream_machine change
-    Note over Entry: ADR-2118, same boot phase — entrypoint-unified.sh:3022 also runs<br/>agentbox-manifest instructions-project #40;CATALOGUE id instruction-tiers, gate null#41;,<br/>composing #126;/.claude/CLAUDE.md and #126;/workspace/AGENTS.md #124; CLAUDE.md from<br/>config/instructions/ every restart, repo-authoritative, drift-checked
+    Note over Entry: ADR-2118, same boot phase — entrypoint-unified.sh:3032 also runs<br/>agentbox-manifest instructions-project #40;CATALOGUE id instruction-tiers, gate null#41;,<br/>composing #126;/.claude/CLAUDE.md and #126;/workspace/AGENTS.md #124; CLAUDE.md from<br/>config/instructions/ every restart, repo-authoritative, drift-checked
 
     Note over API: live — every GET /v1/system request
     API->>SM: buildSystemView(manifest, adapters)
@@ -238,8 +238,8 @@ stateDiagram-v2
 sequenceDiagram
     autonumber
     participant Op as Operator
-    participant Val as agentbox-config-validate.js<br/>agentbox/scripts/agentbox-config-validate.js:1714
-    participant TOML as agentbox.toml<br/>[skills.tree_search_coder]<br/>agentbox.toml:1112-1119
+    participant Val as agentbox-config-validate.js<br/>agentbox/scripts/agentbox-config-validate.js:1715
+    participant TOML as agentbox.toml<br/>[skills.tree_search_coder]<br/>agentbox.toml:1137-1144
     participant Skill as tree-search-coder SKILL.md<br/>agentbox/skills/tree-search-coder/SKILL.md:67
     participant CLI as tree-search-cap<br/>src/bin/tree-search-cap.rs:1
     participant Lim as Limiter<br/>cost_cap/mod.rs:330,336
@@ -292,7 +292,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Agent as Agentbox consumer<br/>[payments.consumer]<br/>agentbox.toml:1972
+    participant Agent as Agentbox consumer<br/>[payments.consumer]<br/>agentbox.toml:2006
     participant Merchant as External merchant endpoint
     participant Classify as pay402.classify()<br/>lib/pay402.js:165
     participant Pay as /v1/pay/* routes<br/>routes/payments.js:147-655
@@ -313,7 +313,7 @@ sequenceDiagram
     end
 
     rect rgb(220,240,220)
-    Note over Agent,Pod: payable path — [payments.consumer].enabled required (agentbox.toml:1973)
+    Note over Agent,Pod: payable path — [payments.consumer].enabled required (agentbox.toml:2007)
     Agent->>Pay: POST /v1/pay/estimate {endpoint, units}
     Pay-->>Agent: 200 estimated_sats, hold_sats = ceil(estimated*HOLD_BUFFER_RATIO)
     Agent->>Pay: GET /v1/pay/balance (NIP-98 auth)
@@ -330,9 +330,9 @@ sequenceDiagram
         Agent->>Pod: POST /pay/.deposit, MRC20 body, outside agentbox
     end
     end
-    Note over Agent,Pay: DEBT — the authority classification table names payment_settlement<br/>zero-tolerance as an irreversible above-threshold sats spend (agentbox.toml:1466),<br/>but no production path passes that actionClass to the gate. The only call sites<br/>are tests/sovereign/authority.test.js:129 and authority.test.js:248, and routes/payments.js never<br/>reaches management-api/lib/authority.js:226. see AB-14.11
+    Note over Agent,Pay: DEBT — the authority classification table names payment_settlement<br/>zero-tolerance as an irreversible above-threshold sats spend (agentbox.toml:1497),<br/>but no production path passes that actionClass to the gate. The only call sites<br/>are tests/sovereign/authority.test.js:129 and authority.test.js:248, and routes/payments.js never<br/>reaches management-api/lib/authority.js:226. see AB-14.11
     Note over Agent,Pay: DEBT — spend is accounted in three stores that never reconcile:<br/>the flock-guarded cost_cap ledger file (services/agentbox-ops/src/cost_cap/ledger.rs:119,136),<br/>the pod-held sats balance behind GET /v1/pay/balance (management-api/routes/payments.js:205),<br/>and the marketplace token_budget carried on a grant (management-api/lib/llm-marketplace.js:85).<br/>No surface sums them, so no single number answers what this container has spent
-    Note over Agent: DIVERGENCE: #91;payments.consumer#93;.enabled = false by default #40;agentbox.toml:1973#41;,<br/>#91;payments.broadcast#93;.enabled = false and well_known = false #40;agentbox.toml:1982-1983#41; — see AB-11.15
+    Note over Agent: DIVERGENCE: #91;payments.consumer#93;.enabled = false by default #40;agentbox.toml:2007#41;,<br/>#91;payments.broadcast#93;.enabled = false and well_known = false #40;agentbox.toml:2016-2017#41; — see AB-11.15
 ```
 
 ## AB-15.7 routes/payments.js — GET info, GET balance, POST deposit
@@ -553,11 +553,11 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant PreBoot as Pre-boot environment
-    participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:3357-3358
+    participant Entry as entrypoint-unified.sh<br/>agentbox/config/entrypoint-unified.sh:3392-3393
     participant MB as agentbox-manifest toml-string<br/>services/agentbox-manifest/src/main.rs:557
-    participant TOML as agentbox.toml<br/>[consultants.antigravity]<br/>agentbox.toml:1720-1724
+    participant TOML as agentbox.toml<br/>[consultants.antigravity]<br/>agentbox.toml:1754-1758
     participant Reg as skills/mcp.json registry default
-    participant Srv as antigravity server.js<br/>mcp/consultants/antigravity/server.js:21
+    participant Srv as antigravity server.js<br/>mcp/consultants/antigravity/server.js:31
 
     rect rgb(220,240,220)
     Note over PreBoot,Entry: branch A — AGENTBOX_ANTIGRAVITY_MODEL set before boot
@@ -583,18 +583,23 @@ sequenceDiagram
     end
 
     Entry->>Srv: spawn consultant-antigravity with AGENTBOX_ANTIGRAVITY_MODEL in env
-    Srv->>Srv: const MODEL = process.env.AGENTBOX_ANTIGRAVITY_MODEL #124;#124; 'gemini-4-hydrogen' #40;server.js:21#41;
-    Note over Srv,Reg: registry and server defaults both name Hydrogen (skills/mcp.json:343, server.js:21).<br/>Setup-template and URL-context defaults still name Flash (ADR-2031-consultant-model-manifest-projection.md:94-99).
-    Srv->>Srv: cliAuth chooses GEMINI_API_KEY, then GOOGLE_API_KEY, then GOOGLE_GEMINI_API_KEY<br/>(server.js:23-37). A key selects the Gemini provider and custom Hydrogen model.<br/>Without a key, the CLI uses cached OAuth in AGY_HOME.
-    Srv->>Srv: rates(now) returns source-configured API-equivalent estimates (server.js:40-48)
+    Srv->>Srv: const MODEL = process.env.AGENTBOX_ANTIGRAVITY_MODEL #124;#124; 'gemini-4-hydrogen' #40;server.js:31#41;
+    Note over Srv,Reg: registry and server defaults both name Hydrogen (skills/mcp.json:343, server.js:31), the registry auth default is api_key (skills/mcp.json:344).<br/>Setup-template and URL-context defaults still name Flash (ADR-2031-consultant-model-manifest-projection.md:94-99).
+    Srv->>Srv: authMode reads AGENTBOX_ANTIGRAVITY_AUTH_MODE, anything but oauth is api_key (server.js:34-36)<br/>the entrypoint projects it from [providers.gemini].auth_mode when the Antigravity CLI is enabled<br/>(entrypoint-unified.sh:3381-3384), and the shipped manifest sets oauth (agentbox.toml:1607), ADR-2214
+    alt auth mode oauth
+        Srv->>Srv: syncOAuthToken copies the primary sign-in token into AGY_HOME, never links it (server.js:38-61)<br/>no key and no provider override are passed, so agy uses the subscription session (server.js:64-66)
+    else api_key
+        Srv->>Srv: cliAuth chooses GEMINI_API_KEY, then GOOGLE_API_KEY, then GOOGLE_GEMINI_API_KEY (server.js:68-82)<br/>a key selects the Gemini provider and custom Hydrogen model, without one the CLI uses cached OAuth in AGY_HOME
+    end
+    Srv->>Srv: rates(now) returns source-configured API-equivalent estimates (server.js:85-93)
     alt Hydrogen
         Srv-->>Srv: flat configured rates, no dated multiplier
     else legacy Flash
         Srv-->>Srv: configured rates double on 2027-01-01
     else unknown model
-        Srv-->>Srv: null rates and cost_usd null (server.js:84-87)
+        Srv-->>Srv: null rates and cost_usd null (server.js:129-132)
     end
-    Note over Srv: healthCheck runs --version and models with the same auth settings.<br/>It is discovery, not proof of key validity, quota or successful inference (server.js:92-122).
+    Note over Srv: healthCheck runs --version and models with the same auth settings.<br/>It is discovery, not proof of key validity, quota or successful inference (server.js:137-168).
 
     rect rgb(245,220,220)
     Note over TOML: TUI save path — tui_write.rs:37 run#40;#41;
@@ -659,7 +664,7 @@ sequenceDiagram
     participant Op as visioncraft caller
     participant Wrap as visioncraft-deepsec-gate.sh<br/>scripts/visioncraft-deepsec-gate.sh:1-8
     participant Proj as agentbox-manifest deepsec-gate<br/>services/agentbox-manifest/src/deepsec_gate.rs:114
-    participant TOML as [security.deepsec]<br/>agentbox.toml:2594-2606
+    participant TOML as [security.deepsec]<br/>agentbox.toml:2628-2640
     participant VC as visioncraft deepsec<br/>executor owned by the VisionCraft package
 
     Op->>Wrap: visioncraft-deepsec-gate.sh gate flags
@@ -683,22 +688,22 @@ sequenceDiagram
     else
         VC-->>Op: route selection, findings validation, output limits, deadline, receipt and exit code
     end
-    Note over Proj,VC: EGRESS and route rules (the operator's own CLI session, a named direct vendor, the LAN Loom) are<br/>executed inside the VisionCraft package, not in this repository - see the visioncraft area topics.<br/>The host reads typed TOML and passes credential names only (docs/adr/ADR-2033-deepsec-security-gate.md:48-64)
-    Note over Op: HISTORICAL ACCEPTANCE ADR-2033: the 2026-10-30 close-out records activation live from a real --diff receipt (result BLOCK, deepsec 2.3.10, docs/adr/ADR-2033-deepsec-security-gate.md:516-521),<br/>but the 2026-11-03 amendment moved the gate to VisionCraft and its front matter says activation staged again,<br/>historical receipts describing the retired shell wrapper (docs/adr/ADR-2033-deepsec-security-gate.md:7 and ADR-2033-deepsec-security-gate.md:51-53)
+    Note over Proj,VC: EGRESS and route rules (the operator's own CLI session, a named direct vendor, the LAN Loom) are<br/>executed inside the VisionCraft package, not in this repository - see the visioncraft area topics.<br/>The host reads typed TOML and passes credential names only (docs/adr/ADR-2033-deepsec-security-gate.md:75-91)
+    Note over Op: HISTORICAL ACCEPTANCE ADR-2033: the 2026-10-30 close-out records activation live from a real --diff receipt (result BLOCK, deepsec 2.3.10, docs/adr/ADR-2033-deepsec-security-gate.md:543-548),<br/>but the 2026-11-03 amendment moved the gate to VisionCraft and its front matter says activation staged again,<br/>historical receipts describing the retired shell wrapper (docs/adr/ADR-2033-deepsec-security-gate.md:7 and ADR-2033-deepsec-security-gate.md:78-80)
 ```
 
 ## AB-15.14 ADR-2080 — the metaharness router console gate
 ```mermaid
 flowchart TD
-    T["[model_routing.neural]<br/>agentbox.toml:1811-1821<br/>enabled, provider, quality_bar,<br/>cost_ceiling_usd_per_mtok, privacy_tier=public,<br/>trajectory, assets_dir"]
-    SEED["[[interaction_plane.session_seeds]]<br/>slug=router, tool=custom:router<br/>agentbox.toml:2260-2262"]
+    T["[model_routing.neural]<br/>agentbox.toml:1845-1855<br/>enabled, provider, quality_bar,<br/>cost_ceiling_usd_per_mtok, privacy_tier=public,<br/>trajectory, assets_dir"]
+    SEED["[[interaction_plane.session_seeds]]<br/>slug=router, tool=custom:router<br/>agentbox.toml:2294-2296"]
     CAT["CATALOGUE id: model-routing-neural<br/>gate model_routing.neural.enabled<br/>apply_class rebuild<br/>system-manifest.js:118"]
     NIX["flake.nix modelRoutingNeuralCfg<br/>+ modelRouterAssets fetchurl closure<br/>flake.nix:286-288"]
-    BAKE["flake.nix bake block -- gate off ⇒<br/>nothing copied, byte-identical-when-off<br/>flake.nix:2419-2425"]
-    ENTRY["entrypoint-unified.sh boot reconcile<br/>AGENTBOX_MODEL_ROUTER_* exported,<br/>scoped to the router session process only<br/>entrypoint-unified.sh:2297-2313"]
+    BAKE["flake.nix bake block -- gate off ⇒<br/>nothing copied, byte-identical-when-off<br/>flake.nix:2443-2449"]
+    ENTRY["entrypoint-unified.sh boot reconcile<br/>AGENTBOX_MODEL_ROUTER_* exported,<br/>scoped to the router session process only<br/>entrypoint-unified.sh:2299-2315"]
     WRAP["config/harness-wrappers/router.sh<br/>exec'd by the agentbox-sessions router seed --<br/>asserts privacy_tier=public, hard-fails loudly"]
     CONSOLE["config/model-router/console.mjs<br/>embeds offline, asks metaharness router<br/>inside the baked ruflo closure, executes<br/>through OpenRouter"]
-    CLI["agentbox.sh model-router<br/>fetch #124; check #124; status #124; route #124; console<br/>agentbox.sh:2386"]
+    CLI["agentbox.sh model-router<br/>fetch #124; check #124; status #124; route #124; console<br/>agentbox.sh:2396"]
     CATCHECK["scripts/ci/check-manifest-catalogue.js<br/>BASELINE: model_routing.neural.trajectory<br/>sub-option of the catalogued gate"]
 
     T -->|"apply_class rebuild"| NIX
@@ -720,11 +725,11 @@ flowchart TD
 
 
 
-**Open:** ADR-2153 is now `accepted`, `implementation_status: partial`, `activation_status: live` and supersedes ADR-2079, so the router console is an ordinary session-plane seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/agentbox.toml:2260-2262`); its acceptance round trip excludes `router`, so the wrapper's hard-fail path is exercised by launch only, not by a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:166`).
+**Open:** ADR-2153 is now `accepted`, `implementation_status: partial`, `activation_status: live` and supersedes ADR-2079, so the router console is an ordinary session-plane seed (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:5-7`, `../project/agentbox/agentbox.toml:2294-2296`); its acceptance round trip excludes `router`, so the wrapper's hard-fail path is exercised by launch only, not by a routed task (`../project/agentbox/docs/adr/ADR-2153-session-plane-replaces-aoe.md:211`).
 
 **Drift (spend gating vs the wallet that now exists):** the capability lattice above gates LLM spend and HTTP 402 settlement, and a second spend surface has since been published — `sidestr-wallet` consults a `SpendPolicy` before every signature and ships only a permissive implementation, leaving the authority gate (ADR-2100) to the caller, which nothing in this topic yet supplies (see AB-33.7). The level-2 review that reshaped the federation design was itself run through the consultant tier drawn at AB-15.12 (see AB-35).
 
-**Drift (manifest comment vs pin):** the manifest comment still names Deepsec 2.3.10 (`../project/agentbox/agentbox.toml:2319`), while the flake pins 2.3.12 (`../project/agentbox/flake.nix:830-834`). ADR-2033 now names the current pin and host-to-VisionCraft hand-off (`../project/agentbox/docs/adr/ADR-2033-deepsec-security-gate.md:148-162`); the older execution receipt remains historical.
+**Drift (manifest comment and ADR vs pin):** the manifest comment still names Deepsec 2.3.10 (`../project/agentbox/agentbox.toml:2353`), while the flake now pins 2.3.13 (`../project/agentbox/flake.nix:843-847`). ADR-2033's Decision still says the exact pin is 2.3.12 (`../project/agentbox/docs/adr/ADR-2033-deepsec-security-gate.md:175-176`), so neither the comment nor the record names the current pin; the host-to-VisionCraft hand-off it records is unchanged (`../project/agentbox/docs/adr/ADR-2033-deepsec-security-gate.md:183-188`) and the older execution receipt remains historical.
 
 ## AB-15.15 consult_advice — an advisory, flag-gated route suggestion on every consultant server
 ```mermaid
@@ -733,7 +738,7 @@ sequenceDiagram
     participant Caller as Coordinator
     participant Base as BaseConsultant<br/>consultant-base.js:212
     participant Adv as consult-advice.js<br/>assess consult-advice.js:140
-    participant Jev as Jev endpoint<br/>System One proxy by default, keyless local backend when consult_advice is in local_only
+    participant Jev as Jev endpoint<br/>keyless local backend, consult_advice is now listed in local_only, see the note below
 
     Caller->>Base: tools/list
     alt advisoryEnabled() false (AGENTBOX_JEV_CONSULT_ADVICE unset or 0, consult-advice.js:42,183)
@@ -745,7 +750,7 @@ sequenceDiagram
     Base->>Adv: assess (consultant-base.js:393)
     Adv->>Adv: flag-off, malformed and no-adapter all return ok false without a request (consult-advice.js:147-149)
     Adv->>Jev: one typed question, 4000 ms deadline, no retry (consult-advice.js:49,156)
-    Note over Adv,Jev: localOnly follows AGENTBOX_JEV_CONSULT_LOCAL_ONLY (consult-advice.js:151)<br/>the boot projection exports it as 0 unless consult_advice is listed in [system_one].local_only, empty by default (system_one.rs:538-593), so by default, once the new image is live, the route takes the System One proxy and listing it pins the keyless local backend
+    Note over Adv,Jev: localOnly follows AGENTBOX_JEV_CONSULT_LOCAL_ONLY (consult-advice.js:151)<br/>the boot projection exports it as 1 only when consult_advice is listed in [system_one].local_only (system_one.rs:538-593),<br/>and the shipped manifest now lists it (agentbox.toml:924-943), so once the new image is live the route pins the keyless local backend
     alt Jev unavailable, malformed or below min confidence
         Adv-->>Base: ok false, reason (consult-advice.js:166)
         Base-->>Caller: advice null, fallback_reason
@@ -759,4 +764,4 @@ sequenceDiagram
 **What it shows.** An opt-in fourth tool on every consultant MCP server. It is not listed unless its flag is set; when set it asks a Jev endpoint whether the coordinator should consult at all, and returns a typed suggestion that the coordinator is free to ignore.
 **Why it is this way.** Whether to call a consultant was the one decision no gate or hook covered, and spend caps stay deterministic code, so the model only advises (`../project/agentbox/mcp/consultants/shared/consult-advice.js:20`).
 
-**Open:** the flag is now projected by `[system_one.consumers].consult_advice` (`../project/agentbox/agentbox.toml:937`, `../project/agentbox/services/agentbox-manifest/src/system_one.rs:453-458`) but SECURITY-profiles records the route as STAGED for rebuild, local-only, with no measured uplift claimed (`../project/agentbox/docs/SECURITY-profiles.md:96`), which the 2026-10-30 amendment no longer makes true because `local_only` is empty; until the candidate image boots the flag stays unset, and then consult advice takes the proxy (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:538-593`).
+**Open:** the flag is now projected by `[system_one.consumers].consult_advice` (`../project/agentbox/agentbox.toml:962`, `../project/agentbox/services/agentbox-manifest/src/system_one.rs:453-458`) and SECURITY-profiles records the route as STAGED for rebuild, local-only, with no measured uplift claimed (`../project/agentbox/docs/SECURITY-profiles.md:96`). The manifest now makes the local-only half true in its own terms: `consult_advice` is in `[system_one].local_only` and `backend` is the local `laya` route (`../project/agentbox/agentbox.toml:913-943`), so the projection pins it to the keyless local backend (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:578-593`). **Drift (code comment vs manifest):** the projector's comment still says `local_only` is empty by default (`../project/agentbox/services/agentbox-manifest/src/system_one.rs:534-537`). Until the candidate image boots the flag stays unset; whether a measured uplift will be recorded is not stated.
