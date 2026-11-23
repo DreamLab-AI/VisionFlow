@@ -450,7 +450,7 @@ sequenceDiagram
     Note right of MA: RESOLVED ADR-2097 (2026-09-05): RefreshMetadata and refresh_metadata are deleted - the message had no senders<br/>and the actor holds no source. metadata.json is owned by FileService, which pushes rebuilt stores in via UpdateMetadata
 ```
 
-**Drift:** the governing baseline places MetadataActor's start at `:802` in `src/app_state.rs` (`../project/docs/BASELINE-architecture.md:177`); at this revision the actor starts at `../project/src/app_state.rs:792`, with its log line at `:791`.
+**Drift:** the governing baseline places MetadataActor's start at line 802 of `src/app_state.rs` (`../project/docs/BASELINE-architecture.md:177`); at this revision the actor starts at `../project/src/app_state.rs:792`, with its log line at `:791`.
 
 ## VC-25.13 file_service + graph_serialization + empty-graph guard
 
