@@ -60,8 +60,10 @@ flowchart TB
     LAT --> KS
     KS --> DEC
     VAE --> DEC
-    INV["INVARIANT: UNet on GPU 0, text encoder and VAE on GPU 1, because the encoder alone filled GPU 0<br/>AGENT_NOTICE.md:4,34"]
-    VAE --- INV
+    WHY["why the split: a one-off agent notice records GPU 0 nearly full under the Mistral encoder and asks for the encoder on GPU 1, it says nothing of the VAE<br/>AGENT_NOTICE.md:4,34"]
+    VAEW["the VAE on GPU 1 is the script's own placement, as the README reports it<br/>_generate_flux2_riffs.py:72,75<br/>README.md:209"]
+    CLIP --- WHY
+    VAE --- VAEW
     TENS["TENSION: there is no LoadImage node, so garment fidelity rests on the prompt text alone<br/>_generate_flux2_riffs.py:159,160,161"]
     POS --- TENS
     DRIFT["DOC-DRIFT: the ledger records phase 1 at 25 steps and 768x1024, the committed phase 1 workflow says 20 steps at 1024x1024<br/>pipeline.json:18,22<br/>flux2-multigpu-campaign.json:83,104"]

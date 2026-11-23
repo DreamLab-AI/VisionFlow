@@ -7,6 +7,12 @@ adrs: []
 sources:
   - ../THG-world-record-attempt/README.md
   - ../THG-world-record-attempt/configs/topshop.json
+  - ../THG-world-record-attempt/configs/prompts/prompt-library.json
+  - ../THG-world-record-attempt/configs/prompts/shot-concepts.json
+  - ../THG-world-record-attempt/configs/prompts/typography-research.json
+  - ../THG-world-record-attempt/docs/afd/campaign-generator-afd.md
+  - ../THG-world-record-attempt/docs/ddd/campaign-generator-ddd.md
+  - ../THG-world-record-attempt/exports/agentdb-export-2026-03-01.json
   - ../THG-world-record-attempt/docs/prd/campaign-generator-v3.md
   - ../THG-world-record-attempt/scripts/clean_scenes.py
   - ../THG-world-record-attempt/scripts/generate_composites.py
@@ -51,15 +57,18 @@ flowchart TB
         direction TB
         CFG["brand and engine config<br/>topshop.json:2"]
         REP["formal report source, figures from reports/figures<br/>world-record-report.tex:1,88"]
+        PRM["prompt and typography records, shots from Rain Altar on<br/>prompt-library.json:4<br/>shot-concepts.json:4<br/>typography-research.json:3"]
+        DES["campaign architecture-flow and domain-design documents for the generator swarm<br/>campaign-generator-afd.md:1<br/>campaign-generator-ddd.md:1"]
+        MEM["Claude Flow agent-memory export, 12 entries, sql.js with HNSW, 384-dim embeddings<br/>agentdb-export-2026-03-01.json:3,5,6"]
     end
     CAMPAIGN --> VFX --> EVID
-    DRIFT["DOC-DRIFT: the README structure block lists reports, configs, assets, task-two-repose and scripts, but no src, tests or exports, and never names the VFX pipeline<br/>README.md:171,204"]
+    DRIFT["DOC-DRIFT: the README structure block lists reports, docs, configs, input-scenes, assets, task-two-repose and scripts, but no src, tests or exports, and never names the VFX pipeline<br/>README.md:171,184,188,204"]
     VFX --- DRIFT
     DEBT["DEBT: campaign scripts hard-code an absolute checkout under a campaign directory, not this repository root<br/>generate_composites.py:11<br/>clean_scenes.py:26<br/>generate_veo_branded.py:25<br/>batch1_repose.py:14<br/>_generate_riffs.py:10"]
     CAMPAIGN --- DEBT
     INV["INVARIANT: the Blender render scripts resolve every path from their own file location<br/>render_3d_pass.py:20,21<br/>render_tracked_composite.py:28,29"]
     BR --- INV
-    DIV["DIVERGENCE: the README describes voice-captured prompts decomposed by a Claude Flow agent swarm, no orchestration or voice-capture code is committed, only the scripts it ran<br/>README.md:33,133"]
+    DIV["DIVERGENCE: the README describes voice-captured prompts decomposed by a Claude Flow agent swarm, no orchestration or voice-capture code is committed, only the scripts it ran and one Claude Flow agent-memory export dated 2026-03-01, a record not code<br/>README.md:33,133<br/>agentdb-export-2026-03-01.json:2,3"]
     CAMPAIGN --- DIV
 ```
 
