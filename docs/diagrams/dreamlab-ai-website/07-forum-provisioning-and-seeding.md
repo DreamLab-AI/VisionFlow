@@ -34,7 +34,7 @@ sources:
   - ../dreamlab-ai-website/scripts/lib/enquiry-topic.mjs
   - ../dreamlab-ai-website/scripts/lib/digest.mjs
   - ../dreamlab-ai-website/scripts/lib/website-info.mjs
-verified_commit: f934e26f949f3b95171544ec8ec5bcfd7679f593
+verified_commit: e255b2b113ee47d58a0c872c6b4702afc62a46e5
 ---
 
 ## DW-07.2 Root-level seeders — deleted 2026-10-07 (historical)
