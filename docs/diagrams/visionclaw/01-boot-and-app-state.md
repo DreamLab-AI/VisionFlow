@@ -437,7 +437,7 @@ flowchart LR
     C --> OP["ontology_physics::configure_routes<br/>scope /ontology-physics — src/handlers/api_handler/ontology_physics/mod.rs:327<br/>POST /enable, /disable — GET /constraints, /trust-status — PUT /weights"]
     C --> DL["dev_layout_experiment::config — dev and dev-auth builds only, ADR-2204 D5<br/>GET|POST /dev/layout-experiment — src/handlers/api_handler/mod.rs:134-136,<br/>src/handlers/api_handler/dev_layout_experiment.rs:92-96"]
     C --> SF["semantic_forces::config<br/>scope /semantic-forces — src/handlers/api_handler/semantic_forces.rs:438<br/>GET /hierarchy-levels, /config (:439-440) — POST /hierarchy/recalculate<br/>GET|POST /relationship-types, POST /relationship-types/reload, GET|PUT /relationship-types/{uri} (:441-466)<br/>hierarchy-levels answers the caller's view, see VC-04.7"]
-    N["WS-0 — the duplicate /ontology scope in ontology_handler::config was collapsed<br/>into api_handler::ontology::config (src/handlers/api_handler/mod.rs:117-120)<br/>the legacy settings_handler module is deleted, no pub mod line remains (src/handlers/mod.rs:25-26),<br/>so the settings routes come only from settings::api"]
+    N["WS-0 — the duplicate /ontology scope in ontology_handler::config was collapsed<br/>into api_handler::ontology::config (src/handlers/api_handler/mod.rs:117-120)<br/>the legacy settings_handler module is deleted (commit 688775d17, SETTINGS-HANDLER-DEAD),<br/>so the settings routes come only from settings::api"]
     C --- N
 ```
 
