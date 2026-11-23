@@ -5,8 +5,9 @@ area: ontomark-obsidian
 governing:
   - ../ontomark-obsidian/README.md
   - ../ontomark-obsidian/docs/adr/ADR-OBS-001-shared-graph.md
+  - ../ontomark-obsidian/docs/adr/ADR-OBS-004-in-note-sparql-after-dot-triples.md
   - ../ontomark-obsidian/docs/adr/ADR-OBS-005-excluded-folders.md
-adrs: [ADR-OBS-001, ADR-OBS-005]
+adrs: [ADR-OBS-001, ADR-OBS-004, ADR-OBS-005]
 sources:
   - ../ontomark-obsidian/src/main.ts
   - ../ontomark-obsidian/src/api.ts
@@ -15,6 +16,8 @@ sources:
   - ../ontomark-obsidian/src/worker-core.ts
   - ../ontomark-obsidian/src/settings.ts
   - ../ontomark-obsidian/src/sparql-block.ts
+  - ../ontomark-obsidian/src/sparql-rewrite.ts
+  - ../ontomark-obsidian/src/ingest-run.ts
   - ../ontomark-obsidian/src/ingest-transport.ts
   - ../ontomark-obsidian/src/jev.ts
   - ../ontomark-obsidian/src/views/entity-view.ts
@@ -38,6 +41,8 @@ flowchart TD
     subgraph CORE["Obsidian-free core"]
         API["OntomarkApi over a VaultPort<br/>api.ts:32,84"]
         CLI["OntomarkClient: generation, epoch, mirror<br/>client.ts:100"]
+        RW["rewriteSparql: __THIS__ and [[Note]] become IRIs, # dataset: picks the dataset; strings, IRIs and comments skipped<br/>sparql-rewrite.ts:1,3,10,11,13,121"]
+        IR["runIngest: plan, model, accept, Jev judge, review, apply; an abort stops it before any write<br/>ingest-run.ts:1,5,27"]
     end
     subgraph WORK["Engine worker, built from an inlined source string"]
         WK["worker entry, initSync on transferred bytes<br/>worker.ts:18,19"]
@@ -54,6 +59,8 @@ flowchart TD
     MAIN --> SET
     MAIN --> VIEWS
     MAIN --> BLOCK
+    BLOCK -->|"rewrite before each run, sparql-block.ts:81"| RW
+    MAIN -->|"Extract facts, main.ts:484"| IR
     MAIN -->|"createApi, main.ts:292"| API
     API --> CLI
     CLI -->|"spawn a Worker from the blob URL, main.ts:285"| WK
