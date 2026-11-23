@@ -14,7 +14,7 @@ sources:
   - ../project/agentbox/services/dream-engine/src/estate.rs
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../project/agentbox/services/dream-engine/Cargo.lock
-verified_commit: 720e0d89656a4360998b3a716d0f3ee8cac66f93
+verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
 ---
 
 ## For developers
@@ -49,7 +49,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     A["Admitted explicit promote decision"] --> B{"Carries typed patch proposal?"}
-    %% Source: ../project/agentbox/management-api/adapters/orchestrator/local-process-manager.js:454
+    %% Source: ../project/agentbox/management-api/adapters/orchestrator/local-process-manager.js:455
     B -->|Yes| C{"Valid canonical digest equals signed d tag?"}
     C -->|No| D["Refuse before compiler invocation"]
     C -->|Yes| E["Continue existing page and proposal validation"]
