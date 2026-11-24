@@ -10,7 +10,7 @@ sources:
   - ../THG-world-record-attempt/scripts/veo-branded-prompts.json
   - ../THG-world-record-attempt/scripts/poll-veo-operations.py
   - ../THG-world-record-attempt/scripts/veo-operations.json
-verified_commit: {thg-world-record-attempt: e79525441acff60a4e3ca4a0c1111535a39cc1e9}
+verified_commit: {thg-world-record-attempt: 27262fa0e91f2b0d78c94b3b3fe248c7c53dba1c}
 ---
 
 ## TH-05.1 One film from prompt to branded MP4
@@ -73,6 +73,8 @@ flowchart TB
 
 ## TH-05.3 The separate poller and its operation list
 
+> **Superseded** by TH-05.4 at 27262fa (frozen at e795254).
+
 ```mermaid
 flowchart TB
     OPS["five operation names, model veo-3.0-generate-001<br/>veo-operations.json:3,4,6"]
@@ -96,3 +98,21 @@ flowchart TB
 ```
 
 **What it shows.** A second, older Veo path exists beside the generator; which of the two produced the committed films is not recorded in code.
+
+## TH-05.4 The poller's key, read from the environment
+
+```mermaid
+flowchart TB
+    K["API_KEY from GOOGLE_API_KEY, else GOOGLE_GEMINI_API_KEY<br/>poll-veo-operations.py:5"]
+    X["neither set: exit with a message before any request<br/>poll-veo-operations.py:6-7"]
+    OPS["operations file, still opened relative to the working directory<br/>poll-veo-operations.py:11"]
+    POLL["poll each pending operation up to 30 times, 30 s apart<br/>poll-veo-operations.py:19,22,29,78"]
+    URI["done with a uri, download with the key appended<br/>poll-veo-operations.py:45"]
+    K --> OPS --> POLL --> URI
+    K --> X
+    SAME["same fallback order as the submitter<br/>generate_veo_branded.py:30"]
+    K -.- SAME
+```
+
+- **What it shows:** the frozen TH-05.3 recorded the key as a string literal in the poller. Since 27262fa it is read from the environment, with the submitter's fallback, and a missing key stops the script. The rest of TH-05.3 (model name drift, the unbranded-output tension, the unpolled test operation) is unchanged at this revision.
+- **Why it is this way:** PR #1 (27262fa); the replaced key was already invalid (tested 2026-11-23), so the fix closes the pattern rather than a live credential.
