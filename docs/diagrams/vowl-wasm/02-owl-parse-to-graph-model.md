@@ -19,7 +19,7 @@ sources:
   - ../vowl-wasm/src/bindings/mod.rs
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
   - ../vowl-wasm/README.md
-verified_commit: f04ff27209a0350e926d5a8a183fe0eb8c416604
+verified_commit: 0779174612a3942b15331356422f58bf8379912b
 ---
 
 ## VW-02.1 `loadOntology()` — JSON string to `VowlGraph`
@@ -27,7 +27,7 @@ verified_commit: f04ff27209a0350e926d5a8a183fe0eb8c416604
 sequenceDiagram
     autonumber
     participant JS as JS: vowl.loadOntology(json)
-    participant WV as WebVowl::load_ontology<br/>src/bindings/mod.rs:56
+    participant WV as WebVowl::load_ontology<br/>src/bindings/mod.rs:62
     participant SP as StandardParser<br/>src/ontology/parser.rs:38
     participant OV as StandardParser::validate<br/>src/ontology/parser.rs:485 impl OntologyParser
     participant GB as GraphBuilder::from_ontology<br/>src/graph/builder.rs:20
@@ -40,9 +40,10 @@ sequenceDiagram
     WV->>GB: GraphBuilder::from_ontology(&ontology_data)
     GB->>G: add_node() per class, EdgeBuilder per property
     GB-->>WV: VowlGraph
-    WV->>WV: store metadata and graph on self<br/>src/bindings/mod.rs:69-72
+    WV->>WV: store metadata, a fresh PinManager and the graph on self<br/>src/bindings/mod.rs:75-81
+    WV->>WV: simulation.reset keeps link distance, charge and centre, CHANGED at 0779174 (0.3.0), earlier a default ForceSimulation<br/>src/bindings/mod.rs:77-80
 ```
-- Every stage's `VowlError` is mapped to `JsValue::from_str` before returning to JS (src/bindings/mod.rs:58,62,66) — see VW-01.6. Validation checks domains but permits absent datatype ranges; the builder still requires both endpoints (src/ontology/parser.rs:485-507, src/graph/mod.rs:271-285).
+- Every stage's `VowlError` is mapped to `JsValue::from_str` before returning to JS (src/bindings/mod.rs:64,68,72) — see VW-01.6. Validation checks domains but permits absent datatype ranges; the builder still requires both endpoints (src/ontology/parser.rs:485-507, src/graph/mod.rs:271-285).
 
 ## VW-02.2 `StandardParser` — classes, properties, metadata
 ```mermaid
@@ -91,7 +92,7 @@ flowchart TB
     N --> S["SemanticAttributes: iri, external,<br/>equivalent IDs, optional individual count<br/>src/graph/mod.rs:129"]
     E --> C["EdgeCharacteristics: functional,<br/>inverse_functional, transitive, symmetric<br/>src/graph/mod.rs:226"]
 ```
-- `GraphStatistics.calculate` density is defined as `0.0` when `node_count <= 1` (src/graph/statistics.rs:240-243), avoiding a divide-by-zero on `max_edges`. Parallel/synthetic edges can still make density exceed one. Component DFS follows outgoing neighbours, so component and isolation counts depend on node insertion order (src/graph/statistics.rs:371-399, src/graph/mod.rs:326-339).
+- `GraphStatistics.calculate` density is defined as `0.0` when `node_count <= 1` (src/graph/statistics.rs:240-243), avoiding a divide-by-zero on `max_edges`. Parallel/synthetic edges can still make density exceed one. Component DFS follows outgoing neighbours, so component and isolation counts depend on node insertion order (src/graph/statistics.rs:371-399, src/graph/mod.rs:340-353).
 
 ## VW-02.8 `PinManager` — node pin lifecycle
 ```mermaid
@@ -105,4 +106,4 @@ flowchart TB
     SET --> Q["is_pinned reads manager ID set<br/>src/graph/pinning.rs:151"]
 ```
 - `pin_node` returns `VowlError::InteractionError("Pinning is disabled")` when `self.enabled == false` (src/graph/pinning.rs:43-46), independent of graph state.
-- Pin IDs are separate manager state: graph replacement does not reset them, and `pin_node_at` accepts non-finite coordinates (src/bindings/mod.rs:56-72, src/graph/pinning.rs:82-105). A pinned node's `visual.fixed = true` is what `ForceSimulation::apply_forces` reads to skip velocity/position integration (see VW-03.1).
+- Pin IDs are separate manager state, replaced with an empty `PinManager` on every successful load (src/bindings/mod.rs:76); `pin_node_at` still accepts non-finite coordinates (src/graph/pinning.rs:82-105). A pinned node's `visual.fixed = true` is what `ForceSimulation::apply_forces` reads to skip velocity/position integration (see VW-03.1).
