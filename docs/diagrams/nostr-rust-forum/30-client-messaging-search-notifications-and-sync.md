@@ -47,7 +47,7 @@ aliases:
   NF-05.19: NF-30.7
   NF-05.20: NF-30.8
 ---
-Split from NF-05 on 2026-11-23: the client's messaging and relay-facing behaviour (formerly NF-05.9, NF-05.10, NF-05.13 to NF-05.15 and NF-05.18 to NF-05.20). Boot, identity, transport, config and signup stay in NF-05. Old panel IDs resolve through the `aliases:` map above; the stamp is NF-05's, and the panels were not re-read.
+Split from NF-05 on 2026-11-23: the client's messaging and relay-facing behaviour (formerly NF-05.9, NF-05.10, NF-05.13 to NF-05.15 and NF-05.18 to NF-05.20). Boot, identity, transport, config and signup stay in NF-05. Old panel IDs resolve through the `aliases:` map above; the split kept NF-05's stamp without a re-read; the panels were re-verified at de31aaa in pass C (2026-11-24).
 
 ## NF-30.1 Direct messages — two wraps per message, and why history exists
 

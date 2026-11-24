@@ -40,7 +40,7 @@ aliases:
   NF-05.16: NF-31.3
   NF-05.17: NF-31.4
 ---
-Split from NF-05 on 2026-11-23: the retro BBS client and the client-side key and push policy (formerly NF-05.11, NF-05.12, NF-05.16 and NF-05.17). Boot, identity, transport, config and signup stay in NF-05. Old panel IDs resolve through the `aliases:` map above; the stamp is NF-05's, and the panels were not re-read.
+Split from NF-05 on 2026-11-23: the retro BBS client and the client-side key and push policy (formerly NF-05.11, NF-05.12, NF-05.16 and NF-05.17). Boot, identity, transport, config and signup stay in NF-05. Old panel IDs resolve through the `aliases:` map above; the split kept NF-05's stamp without a re-read; the panels were re-verified at de31aaa in pass C (2026-11-24).
 
 ## NF-31.1 Retro BBS client — session adoption and key custody
 
