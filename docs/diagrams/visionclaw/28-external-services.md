@@ -28,7 +28,7 @@ sources:
   - ../project/agentbox/services/agentbox-manifest/src/system_one.rs
   - ../project/crates/visionclaw-jev/src/config.rs
   - ../project/agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md
-verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
+verified_commit: {visionclaw: bc6ac309e0c9e6c415b24d98a9ba1b7fdfd050f8, agentbox: ca07b59603137ca76159634cf664a622c34ab9ec}
 ---
 
 ## For developers
@@ -389,9 +389,10 @@ sequenceDiagram
     Note over SS: DRIFT CLOSED 2026-09-13 (ab5724422): TTSProvider is now a ONE-variant<br/>enum, PocketTts. The OpenAI branch and its api.openai.com call are deleted<br/>and Kokoro is gone, so this boundary no longer reaches any paid TTS API.<br/>visionclaw-domain/src/types/speech.rs:66, default at speech_service.rs:74
     Note over SS: DRIFT: the note above is true of TTS only. STTProvider declares Whisper and OpenAI (the unimplemented TurboWhisper variant<br/>and its two warnings were deleted after af3dff3f2) and the default is Whisper, but SetSTTProvider(OpenAI) is live: ProcessAudioChunk then POSTs<br/>the audio to https://api.openai.com/v1/audio/transcriptions when settings.openai holds an API key, so a third-party speech edge exists on demand.<br/>visionclaw-domain/src/types/speech.rs:71-74, speech_service.rs:75, :689-699, :722
     Note over SS: TextToSpeechForUser, TextToSpeechSpatial, ProcessAudioChunkForUser and AgentSpatialInfo were logged no-ops with no sender and are deleted<br/>(VisionClaw cefd9d1d7 under ER-24), so SpeechCommand carries no user-scoped or spatial entry point.<br/>visionclaw-domain/src/types/speech.rs:77-87
-    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed and activation inactive, implementation_status moved none to partial<br/>in its 2026-11-02 reconciliation (source and bake exist, acceptance not inferred from the flag), agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, :21,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/agentbox.toml:2330-2335
+    Note over SS: TENSION (ADR-2151 vs manifest): the agentbox VoiceLink edge voice slot runs voice on the operator's client and reaches the container over an ssh stdio<br/>voice-paned process, never through SpeechService. ADR-2151 is decision_status proposed and activation inactive, implementation_status moved none to partial<br/>in its 2026-11-02 reconciliation (source and bake exist, acceptance not inferred from the flag), agentbox/docs/adr/ADR-2151-voicelink-edge-voice.md:5-7, :21,<br/>yet the manifest sets [voicelink] enabled = true. agentbox/agentbox.toml:2331-2336
 ```
 ## VC-28.9 consolidated external-dependency map
+> **Superseded** by VC-28.10 at bc6ac309e (frozen at 4900ec60b).
 ```mermaid
 flowchart LR
     subgraph app["visionclaw_container"]
@@ -421,7 +422,7 @@ flowchart LR
     SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
     SS -->|"STT - degraded: transcription dropped"| WHI
     SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
-    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:413-415, docker-compose.unified.yml:24<br/>RESOLVED 2026-10-30 (activation): configured and live - VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and the host recreate (close-out docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91); docs/BASELINE-architecture.md:53-55 agrees<br/> docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
+    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:413-415, docker-compose.unified.yml:24<br/>Resolved 2026-10-30 (activation): configured and live - VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and the host recreate (close-out docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91); docs/BASELINE-architecture.md:53-55 agrees<br/> docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
     JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT (an override only: Compose supplies none and the laya systemone:8097 pins are gone), else the agentbox proxy<br/>agentbox:8094, model jev-latest, BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11), else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:463-468, crates/visionclaw-jev/src/config.rs:321-371<br/>CHANGED since 010e110: Compose now defaults VISIONCLAW_JEV_ALLOW_CLOUD to 0 (owner ruling 2026-11-16, docker-compose.unified.yml:22-25, docs/adr/ADR-2148-enable-local-typed-decisions.md:114), so with BACKEND_LOCAL=0<br/>the four local-only items (memory rerank, patch rank, ingest suggest, proposal triage) refuse the proxy and take their non-judge fallback<br/>(docker-compose.unified.yml:19-21, crates/visionclaw-jev/src/config.rs:316-318, :340-341)<br/>DOC-DRIFT: configuration.md:466 still calls the proxy loopback, while compose reaches it over visionclaw_network (docs/reference/configuration.md:420-423)<br/>DOC-DRIFT: configuration.md:429 still names LOOM_JEV_ALLOW_CLOUD=1 and CODESCAPE_JEV_ALLOW_CLOUD=1, the compose comment says both are off by default (docker-compose.unified.yml:22-23)"]
     AB["agentbox System One proxy - holds the vendor key, no Authorization sent by consumers<br/>bind 0.0.0.0:8094 with network = true: private docker networks only, never published, agentbox.toml:915-916<br/>refuses any request with an Origin header or a non-JSON content type, system-one-proxy/src/server.rs:151-170<br/>CHANGED since e458b30: backend = laya (local by default, 2026-11-15 estate review), local_backend = laya, agentbox.toml:913-914<br/>local_only lists every agentbox consumer with a private route, so a later switch to a cloud vendor leaves them on laya, agentbox.toml:917-943"]
     TS["selected backend - laya (LAN) by default; a cloud vendor such as api.typesafe.ai is an explicit opt-in (agentbox.toml:914)<br/>agentbox's own consumers listed in [system_one].local_only are routed to laya or switched off, never sent to a cloud vendor (services/agentbox-manifest/src/system_one.rs:534-578)<br/>a VisionClaw item stays on a LAN model with ALLOW_CLOUD=0, JEV_LOCAL=1 and a local endpoint (docs/reference/configuration.md:425-428)"]
@@ -429,7 +430,7 @@ flowchart LR
     JEP -->|"agentbox:8094 over visionclaw_network"| AB
     AB -->|"forward to the selected backend"| TS
 
-    N1["RESOLVED ADR-2066 (2026-09-05) — the QuicTransportServer node and its<br/>unreachable XR QUIC 0-RTT client edge were removed from this map with the<br/>code itself. See VC-04.28 for the postcard wire types that survived."]
+    N1["Resolved ADR-2066 (2026-09-05) — the QuicTransportServer node and its<br/>unreachable XR QUIC 0-RTT client edge were removed from this map with the<br/>code itself. See VC-04.28 for the postcard wire types that survived."]
     SS --- N1
     N2["2026-09-13 (ab5724422): the OpenAI TTS and Kokoro TTS edges are gone with<br/>the enum variants that drove them, so every TTS edge is LAN-local.<br/>DRIFT: the STT side still has an on-demand third-party edge - SetSTTProvider(OpenAI)<br/>sends audio to api.openai.com (default stays Whisper, LAN-local).<br/>visionclaw-domain/src/types/speech.rs:66, :71-74, speech_service.rs:295, :689-699"]
     PT --- N2
@@ -439,3 +440,55 @@ flowchart LR
     class GHA,CFU fatal
     class RF,PX,SOL,PT,WHI,MCPS,JEP,AB,TS degraded
 ```
+
+
+## VC-28.10 consolidated external-dependency map — the Jev cloud flags in configuration.md now match compose
+```mermaid
+flowchart LR
+    subgraph app["visionclaw_container"]
+        RS["RAGFlowService<br/>ragflow_service.rs:102"]
+        PS["PerplexityService<br/>perplexity_service.rs:35"]
+        IG["image_gen_handler<br/>submit_image_job image_gen_handler.rs:596"]
+        AG["image_gen_handler<br/>agent_submit_image_job image_gen_handler.rs:700"]
+        GH["GitHubPRService<br/>github_pr_service.rs:21"]
+        SS["SpeechService<br/>speech_service.rs:32"]
+    end
+
+    RF["RAGFlow API<br/>env RAGFLOW_API_BASE_URL and RAGFLOW_AGENT_ID - required once RAGFLOW_API_KEY is set, no key = chat disabled with one WARN, boot continues"]
+    PX["Perplexity API<br/>settings.perplexity.api_url - no env default"]
+    CFU["ComfyUI native<br/>env COMFYUI_URL default http://comfyui:8188"]
+    SOL["Solid proxy<br/>env SOLID_INTERNAL_URL default http://127.0.0.1 port 4001, path /api/solid"]
+    GHA["api.github.com<br/>env PRIVATE_REPO_GITHUB_PAT / GITHUB_OWNER / GITHUB_REPO"]
+    PT["PocketTts<br/>settings.pocket_tts.api_url default http://pocket-tts:8000<br/>visionclaw-domain/src/config/app_settings.rs:99"]
+    WHI["Whisper STT<br/>settings.whisper.api_url default http://whisper-webui-backend:8000"]
+    MCPS["MCP swarm TCP<br/>env MCP_HOST default multi-agent-container, MCP_TCP_PORT default 9500"]
+
+    RS -->|"POST /api/v1/agents/.. - degraded: ragflow_service None, chat answers 503, no fallback"| RF
+    PS -->|"POST api_url - degraded: error surfaced to caller"| PX
+    IG -->|"POST /prompt, GET /history, GET /view - fatal for that job"| CFU
+    AG -->|"POST /prompt, GET /history, GET /view via run_comfyui_job - fatal for that job"| CFU
+    IG -->|"PUT pods/.. - degraded: pod_image_url null, image still returned"| SOL
+    GH -->|"git data + pulls API - fatal: PR/state ops fail"| GHA
+    SS -->|"TTS - degraded: audio chunk skipped, chat continues"| PT
+    SS -->|"STT - degraded: transcription dropped"| WHI
+    SS -->|"voice-command relay - degraded: spoken error reply"| MCPS
+    JV["Jev hub (opt-in)<br/>12 decision items: library default off, but the supplied Compose environment sets VISIONCLAW_JEV=1 for every item<br/>docs/reference/configuration.md:413-415, docker-compose.unified.yml:24<br/>configured and live since 2026-10-30 - VisionClaw ADR-2148 is accepted / complete / live after the agentbox rebuild and the host recreate (close-out docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91)<br/>docs/BASELINE-architecture.md:57-63 agrees and now gives VISIONCLAW_JEV_ALLOW_CLOUD default 0 (corrected in 0.4.7)<br/> docs/adr/ADR-2148-enable-local-typed-decisions.md:7"]
+    JEP["System One endpoint, first match wins:<br/>VISIONCLAW_JEV_ENDPOINT (an override only: Compose supplies none and the laya systemone:8097 pins are gone), else the agentbox proxy<br/>agentbox:8094, model jev-latest, BACKEND_LOCAL=0 (docker-compose.unified.yml:7-11), else api.typesafe.ai with TYPESAFE_API_KEY, else none<br/>docs/reference/configuration.md:469-474, crates/visionclaw-jev/src/config.rs:321-371<br/>CHANGED since 010e110: Compose now defaults VISIONCLAW_JEV_ALLOW_CLOUD to 0 (owner ruling 2026-11-16, docker-compose.unified.yml:22-25, docs/adr/ADR-2148-enable-local-typed-decisions.md:114), so with BACKEND_LOCAL=0<br/>the four local-only items (memory rerank, patch rank, ingest suggest, proposal triage) refuse the proxy and take their non-judge fallback<br/>(docker-compose.unified.yml:19-21, crates/visionclaw-jev/src/config.rs:316-318, :340-341)<br/>DOC-DRIFT: configuration.md:472 still calls the proxy loopback, while compose reaches it over visionclaw_network (docs/reference/configuration.md:420-423)<br/>configuration.md now gives LOOM_JEV_ALLOW_CLOUD=0 and CODESCAPE_JEV_ALLOW_CLOUD=0 (docs/reference/configuration.md:433-435), as compose sets them (docker-compose.unified.yml:418, :528)"]
+    AB["agentbox System One proxy - holds the vendor key, no Authorization sent by consumers<br/>bind 0.0.0.0:8094 with network = true: private docker networks only, never published, agentbox.toml:915-916<br/>refuses any request with an Origin header or a non-JSON content type, system-one-proxy/src/server.rs:151-170<br/>CHANGED since e458b30: backend = laya (local by default, 2026-11-15 estate review), local_backend = laya, agentbox.toml:913-914<br/>local_only lists every agentbox consumer with a private route, so a later switch to a cloud vendor leaves them on laya, agentbox.toml:917-943"]
+    TS["selected backend - laya (LAN) by default; a cloud vendor such as api.typesafe.ai is an explicit opt-in (agentbox.toml:914)<br/>agentbox's own consumers listed in [system_one].local_only are routed to laya or switched off, never sent to a cloud vendor (services/agentbox-manifest/src/system_one.rs:534-578)<br/>a VisionClaw local-only item runs only when the backend is declared local (BACKEND_LOCAL=1, JEV_LOCAL=1 or a LAN endpoint),<br/>ALLOW_CLOUD=1 accepts a cloud backend for it (docs/reference/configuration.md:425-433)"]
+    JV -->|"POST /v1/systemone - degraded: every fallback returns to the deterministic path, no egress when nothing is set<br/>docs/reference/configuration.md:492"| JEP
+    JEP -->|"agentbox:8094 over visionclaw_network"| AB
+    AB -->|"forward to the selected backend"| TS
+
+    N1["ADR-2066 (2026-09-05) — the QuicTransportServer node and its<br/>unreachable XR QUIC 0-RTT client edge were removed from this map with the<br/>code itself. See VC-04.28 for the postcard wire types that survived."]
+    SS --- N1
+    N2["2026-09-13 (ab5724422): the OpenAI TTS and Kokoro TTS edges are gone with<br/>the enum variants that drove them, so every TTS edge is LAN-local.<br/>DRIFT: the STT side still has an on-demand third-party edge - SetSTTProvider(OpenAI)<br/>sends audio to api.openai.com (default stays Whisper, LAN-local).<br/>visionclaw-domain/src/types/speech.rs:66, :71-74, speech_service.rs:295, :689-699"]
+    PT --- N2
+
+    classDef fatal fill:#5a1e1e,stroke:#c0392b,color:#fff
+    classDef degraded fill:#4a3a10,stroke:#d4a017,color:#fff
+    class GHA,CFU fatal
+    class RF,PX,SOL,PT,WHI,MCPS,JEP,AB,TS degraded
+```
+
+**What it shows.** Successor to the frozen VC-28.9, re-read at visionclaw bc6ac309e. The configuration reference now states the 2026-11-16 default: the four local-only items run only on a backend declared local, and loom and codescape default their cloud flags to 0 as compose does (`../project/docs/reference/configuration.md:425-435`). The loopback DOC-DRIFT stands, now at `../project/docs/reference/configuration.md:472`.

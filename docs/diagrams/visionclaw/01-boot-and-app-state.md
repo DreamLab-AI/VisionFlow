@@ -75,7 +75,7 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/Cargo.toml
   - ../project/src/adapters/mod.rs
-verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
+verified_commit: {visionclaw: bc6ac309e0c9e6c415b24d98a9ba1b7fdfd050f8}
 ---
 
 ## For developers
@@ -131,6 +131,7 @@ sequenceDiagram
 ```
 
 ## VC-01.2 main() phase 2 — service graph, CorpusSource selection and RBAC owner bootstrap
+> **Superseded** by VC-01.16 at bc6ac309e (frozen at 4900ec60b).
 ```mermaid
 sequenceDiagram
     autonumber
@@ -183,7 +184,7 @@ sequenceDiagram
     PR-->>M: EffectiveProfile logged as summary + observed_flags (src/main.rs:952-955)
 ```
 
-**Tension (VisionClaw ADR-2148 vs BASELINE):** RESOLVED, re-read at ec785afa9 — the ADR frontmatter records activation live (ADR-2148-enable-local-typed-decisions.md:7) after the 2026-10-30 host dev deployment, and docs/BASELINE-architecture.md:56-58 now says the same: live since the 2026-10-30 host recreate, dev profile, cloud path enabled. The baseline was the stale side; its own exit condition (the recreate) had been met.
+**Tension (VisionClaw ADR-2148 vs BASELINE):** resolved, re-read at ec785afa9 — the ADR frontmatter records activation live (ADR-2148-enable-local-typed-decisions.md:7) after the 2026-10-30 host dev deployment, and docs/BASELINE-architecture.md:56-58 now says the same: live since the 2026-10-30 host recreate, dev profile, cloud path enabled. The baseline was the stale side; its own exit condition (the recreate) had been met.
 
 ## VC-01.3 HttpServer worker factory and middleware stack order
 ```mermaid
@@ -299,7 +300,7 @@ sequenceDiagram
     Note over GPU: GPU actor group — GPUManagerActor only. RESOLVED ADR-2053: the standalone<br/>ShortestPathActor and ConnectedComponentsActor spawns were removed. They were never sent<br/>a SharedGPUContext (ResourceSupervisor distributes it only to the subsystem supervisors),<br/>so every /api/analytics pathfinding route addressed a GPU-blind pair.
     AS->>GPU: GPUManagerActor::new().start()
     AS->>GPU: gpu_manager.do_send(SetNodeAnalytics { node_analytics }) (src/app_state.rs:933-935), ADR-014 DL4, to ClusteringActor and AnomalyDetectionActor<br/>the SetNodeSSSP send and its node_sssp map are deleted (7a0674e79), slot 28 is encoded elsewhere, see VC-14
-    Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>main.rs:903 (init_solid_state), main.rs:910 (ADR-2106 ontology_pull::spawn_boot_pull), main.rs:916 (pay state),<br/>main.rs:1112 (solid_state app_data), main.rs:1118 (pay app_data). It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:276 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed, shared-corpus-layout) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
+    Note over GPU: DOC-DRIFT — this block carries NO #[cfg(feature = "gpu")] gate. app_state.rs itself<br/>carries no solid-pod-embed cfg gates either — the only cfg(feature) sites for that flag are in<br/>main.rs:903 (init_solid_state), main.rs:910 (ADR-2106 ontology_pull::spawn_boot_pull), main.rs:916 (pay state),<br/>main.rs:1112 (solid_state app_data), main.rs:1118 (pay app_data). It works<br/>because gpu is in the DEFAULT feature set (Cargo.toml:275 default = gpu, ontology,<br/>persistence-oxigraph, solid-pod-embed, shared-corpus-layout) while the adapter layer IS gated (src/adapters/mod.rs:19,<br/>:37) — so the actor start and its adapters are gated inconsistently. GPU internals see VC-10.
     end
     AS->>SE: settings_actor.start() → settings_addr
     par peer actors
@@ -558,3 +559,20 @@ sequenceDiagram
     Note over M,GH: rationale — deploy-jss PUTs to the in-process pod, unreachable from a hosted<br/>GitHub Actions runner (no self-hosted runner exists). Delivery is inverted — ontology-publish.yml's<br/>publish-release job attaches the five pod resources + SHA256SUMS to the rolling release<br/>ontology-latest, and the server now PULLS from it instead. The GitHub release is parked as network-expensive,<br/>the local directory is the default delivery (src/services/ontology_pull.rs:3-10). See ES-09.13 (EXTERNAL) for the release job.
 ```
 
+
+## VC-01.16 main() phase 2 — the Jev client wiring, and the baseline now agrees on activation and the cloud default
+```mermaid
+sequenceDiagram
+    autonumber
+    participant M as main<br/>src/main.rs:172
+    participant NLQ as NaturalLanguageQueryService
+    participant CFG as Item::local_only<br/>crates/visionclaw-jev/src/config.rs:155
+    participant DC as x-system-one-environment<br/>docker-compose.unified.yml:7
+
+    M->>NLQ: with_jev(jev_client), the shared typed-decision client, opt-in, library default off (src/main.rs:518-523)
+    Note over DC: every item routes through the agentbox proxy by default (docker-compose.unified.yml:7-11),<br/>VISIONCLAW_JEV defaults to 1 for dev and production (:24), VISIONCLAW_JEV_ALLOW_CLOUD to 0 (:25)
+    NLQ->>CFG: NLQ_PLAN is not a local-only item, so ALLOW_CLOUD does not gate it (crates/visionclaw-jev/src/config.rs:155-160)
+    Note over M,CFG: LIVE: VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7).<br/>docs/BASELINE-architecture.md:57-63 now agrees on both points: live since the 2026-10-30 host recreate,<br/>and VISIONCLAW_JEV_ALLOW_CLOUD defaulting to 0 since the 2026-11-16 owner ruling
+```
+
+**What it shows.** Successor to the frozen VC-01.2 for the part that changed, re-read at visionclaw bc6ac309e: the baseline no longer says activation came "with the cloud path enabled by `VISIONCLAW_JEV_ALLOW_CLOUD=1`" (corrected in its 0.4.7). The rest of phase 2 (GitHub client, CorpusSource, RBAC owner bootstrap, service construction, profile assertion) is unchanged at bc6ac309e: of the lines VC-01.2 cites, only the baseline passage moved between 4900ec60b and bc6ac309e, so VC-01.2 still describes the rest at its frozen revision.

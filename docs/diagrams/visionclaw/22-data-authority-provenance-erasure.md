@@ -339,6 +339,7 @@ sequenceDiagram
 ```
 
 ## VC-22.7 SQLite online backup (`scripts/backup-sqlite.sh`, ADR-2017)
+> **Superseded** by VC-62.1 at bc6ac309e (frozen at 4900ec60b).
 
 ```mermaid
 sequenceDiagram
@@ -482,6 +483,7 @@ sequenceDiagram
 ```
 
 ## VC-22.11 SQLite membership contract vs KPI/enrichment sole-source risk
+> **Superseded** by VC-62.2 at bc6ac309e (frozen at 4900ec60b).
 
 ```mermaid
 flowchart TD
@@ -491,9 +493,9 @@ flowchart TD
     Verify --> Manifest["MANIFEST.txt sha256 per db<br/>scripts/backup-sqlite.sh:252-264"]
     Opt -.-> Missing["missing_optional logged, count still gt 0 required<br/>scripts/backup-sqlite.sh:248-249"]
 
-    DriftNote["RESOLVED ADR-2069: the required/optional membership contract is ratified as the design and DATA-authority-erasure.md describes it - a missing REQUIRED_DBS member (settings/enrichment/kpi/shares, backup-sqlite.sh:75) aborts the run and publishes no manifest (:243-246), a missing OPTIONAL_DBS member (liveness, :76) is recorded (:226-228), logged and the run continues (:248). DRIFT: the doc says the Oxigraph backup tool and its checkpoint task are on an unmerged branch, not merged to main (DATA-authority-erasure.md:109-113), but at the pin the visionclaw-backup crate is a workspace member (Cargo.toml:21) and main.rs spawns the checkpoint task at boot when a directory is set (main.rs:755-759, ontology_checkpoint.rs:89-95), which compose sets (docker-compose.unified.yml:27-28), see VC-22.7"]
+    DriftNote["Resolved ADR-2069: the required/optional membership contract is ratified as the design and DATA-authority-erasure.md describes it - a missing REQUIRED_DBS member (settings/enrichment/kpi/shares, backup-sqlite.sh:75) aborts the run and publishes no manifest (:243-246), a missing OPTIONAL_DBS member (liveness, :76) is recorded (:226-228), logged and the run continues (:248). DRIFT: the doc says the Oxigraph backup tool and its checkpoint task are on an unmerged branch, not merged to main (DATA-authority-erasure.md:109-113), but at the pin the visionclaw-backup crate is a workspace member (Cargo.toml:21) and main.rs spawns the checkpoint task at boot when a directory is set (main.rs:755-759, ontology_checkpoint.rs:89-95), which compose sets (docker-compose.unified.yml:27-28), see VC-22.7"]
     Req -.-> DriftNote
-    Verify -.-> NoSchema["DEBT: RESOLVED at visionclaw 46edc196 — shares.sqlite3 now has an expected_tables_for arm,<br/>so its restore check runs against shared_graphs and schema_migrations<br/>scripts/backup-sqlite.sh:97-106, :102, :114"]
+    Verify -.-> NoSchema["DEBT: resolved at visionclaw 46edc196 — shares.sqlite3 now has an expected_tables_for arm,<br/>so its restore check runs against shared_graphs and schema_migrations<br/>scripts/backup-sqlite.sh:97-106, :102, :114"]
 ```
 
 ## VC-22.12 Visible subgraph and hidden page-name scrub (ADR-060 M1)

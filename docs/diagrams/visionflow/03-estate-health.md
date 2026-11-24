@@ -24,7 +24,7 @@ sources:
   - tests/gates/run-all.sh
   - ./README.md
   - docs/jev-option.md
-verified_commit: 3ae784ed0b547b562e1f94d017996f8ad197f5cb
+verified_commit: 2e5c96d51ef0484d94c49492d0cff996365d7e3b
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
@@ -170,7 +170,7 @@ stateDiagram-v2
     end note
 ```
 
-**Invariant:** the HEAD rule cannot hide a real failure — a red run on the tip commit still reads red, and that is pinned by the gate suite rather than by prose (`tests/gates/estate-health-ci.test.mjs:27-28`, wired at `tests/gates/run-all.sh:25`).
+**Invariant:** the HEAD rule cannot hide a real failure — a red run on the tip commit still reads red, and that is pinned by the gate suite rather than by prose (`tests/gates/estate-health-ci.test.mjs:27-28`, wired at `tests/gates/run-all.sh:26`).
 
 **Debt (one page of runs):** since judgement call 8 the collector reads one unfiltered page of 100 runs across every branch and filters client-side (`scripts/estate-health.mjs:641`, `scripts/estate-health.mjs:646`); a repository whose pull-request and feature-branch runs fill that page pushes its default-branch runs off it, and the row then reads none rather than its real state.
 
@@ -192,7 +192,7 @@ flowchart TB
     R2 --> HOLE
     TRAP["TRAP recorded in the workflow itself: a maintainer's full-scope<br/>local PAT reads visionGraph WITHOUT the fallback, so a readable<br/>row in a locally produced snapshot is NOT evidence that the CI<br/>path works — estate-health.yml:92"]:::bad
     HOLE --> TRAP
-    LIVE["Confirmed at this commit: summary.unreadable is 2 (visionGraph and visiontouch-rs, each HTTP 404 with both tokens tried)<br/>and summary.repos is 21 — estate-health.json:16, estate-health.json:10, estate-health.json:672 and estate-health.json:847"]:::bad
+    LIVE["Confirmed at this commit: summary.unreadable is 2 (visionGraph and visiontouch-rs, each HTTP 404 with both tokens tried)<br/>and summary.repos is 21 — estate-health.json:16, estate-health.json:10, estate-health.json:651 and estate-health.json:826"]:::bad
     HOLE --> LIVE
 ```
 
@@ -290,6 +290,7 @@ sequenceDiagram
 ```
 
 ## VF-03.11 Dated snapshot, 22 November 2026 — 16 of 21 green, 1 red, 1 none, 1 exempt by design, 2 unreadable
+> **Superseded** by VF-03.12 at 2e5c96d (frozen at 3ae784e).
 ```mermaid
 flowchart TB
     classDef red fill:#f7dede,stroke:#a33333,color:#111
@@ -317,7 +318,37 @@ flowchart TB
 
 **Snapshot boundary:** VF-03.11 is the committed 22 November 09:58 UTC sample at this topic's declared revision; it replaces the 15 November sample this panel showed at its previous stamp, which read 17 green and 0 red. Later collector runs can change the website without changing this dated panel. The collector records conclusions rather than their causes, so the panel names the failing workflow but not why it failed; trends require comparing committed snapshots. The verdict is RED, and the two unreadable rows and VisionClaw's `none` remain unresolved beside it (estate-health.json:14-16).
 
-**Debt (registry roster vs canon) — RESOLVED 2026-10-03, re-opened and RESOLVED again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`scripts/estate-health/roster.json:76-83`, estate register ER-3); the rewritten README no longer states a crate count (`./README.md:31`). The repository map still describes sidestr-rs as "seven published AGPL crates" (`docs/architecture/repository-map.md:18`), one behind the roster's eight (**Drift**).
+## VF-03.12 Dated snapshot, 23 November 2026 — 16 of 21 green, 1 red, 1 none, 1 exempt, 2 unreadable, and the exemption leaving the roster
+```mermaid
+flowchart TB
+    classDef red fill:#f7dede,stroke:#a33333,color:#111
+    classDef green fill:#e6f0dc,stroke:#4a7a2a,color:#111
+    classDef amb fill:#f9f0d5,stroke:#8a7020,color:#111
+
+    SNAP["schema visionflow.estate-health/1, generated 2026-11-23T10:57Z<br/>collected by the collector run at revision 1b7fe1e<br/>estate-health.json:2, estate-health.json:3 and estate-health.json:5"]
+
+    SNAP --> SUM["summary — 21 repos: 16 green, 1 red, 0 amber,<br/>1 none, 1 exempt, 2 unreadable, 10 open PRs,<br/>6 of 6 surfaces reachable<br/>estate-health.json:10 through estate-health.json:19"]
+
+    SUM --> R4["RED — solid-pod-rs: its CI workflow's latest run concluded failure<br/>while the ADR ledger and Release passed, HEAD 52aa126<br/>estate-health.json:248, estate-health.json:255 and estate-health.json:265-266"]:::red
+    SUM --> NF["nostr-rust-forum, red on 22 November, now reads GREEN<br/>estate-health.json:304"]:::green
+    SUM --> KG["knowledgeGraph declares ci_by_design and reads GREEN, estate-health.json:466: a red<br/>verdict on HEAD is never exempted, only a none is —<br/>estate-health.mjs:112 and estate-health.mjs:591"]:::green
+    SUM --> A1["AMBER — none this snapshot: summary.amber is 0<br/>estate-health.json:13"]:::amb
+    SUM --> N1["NONE — VisionClaw (no qualifying run on HEAD 4900ec6; its latest runs are on older commits and were red), so its older verdict is reported none<br/>estate-health.json:102 and estate-health.json:143 — estate-health.mjs:474"]:::amb
+    SUM --> E2["EXEMPT — WasmVOWL, still by design in this snapshot<br/>estate-health.json:620 and estate-health.json:628"]:::amb
+    E2 --> E3["the roster row no longer declares ci_by_design (roster.json:16),<br/>so the exemption rule (estate-health.mjs:591-593) stops applying<br/>at the next collection, see ES-11.6"]:::amb
+    SUM --> U1["UNREADABLE — jjohare/visionGraph and visiontouch-rs, the known holes<br/>see VF-03.5 — estate-health.json:639, estate-health.json:651, estate-health.json:814 and estate-health.json:826"]:::amb
+    SUM --> G1["GREEN — VisionFlow itself, agentbox, nostr-rust-forum,<br/>dreamlab-ai-website, loom, knowledgeGraph, sidestr-rs,<br/>ontomark, ontomark-obsidian, vowl-wasm, prose-sanitiser, diagram-ir,<br/>dream-engine, codescape, sealmap and visioncraft"]:::green
+
+    VERD["The offline check returns ESTATE-HEALTH-RED on this snapshot, fresh or not:<br/>one red repository sets the verdict, and RED beats STALE.<br/>Unreadable rows print AMBER but do not change the verdict;<br/>none and exempt rows do not change it either.<br/>estate-health.mjs:1072-1086, estate-health.mjs:1112-1115"]:::red
+    SUM --> VERD
+
+    INV["INVARIANT: the collector reports GitHub's own conclusion for the<br/>latest run per workflow and asserts nothing about whether that<br/>conclusion is correct<br/>ADR-2008-estate-health-collected-by-ci-read-by-the-dream-cycle.md:104"]
+    VERD -.-> INV
+```
+
+**Snapshot boundary:** successor to the frozen VF-03.11, the committed 23 November 10:57 UTC sample at VisionFlow 2e5c96d. It was collected before VisionFlow PR #44 removed WasmVOWL's exemption, so it still reads WasmVOWL exempt; the red moved from nostr-rust-forum to solid-pod-rs, and the collector names the failing workflow, not its cause.
+
+**Debt (registry roster vs canon) — resolved 2026-10-03, re-opened and resolved again 2026-10-18:** the 10-03 dream ACCEPT (PR #13, merged as `c1e1498`) brought the roster to the seven sidestr crates canon then named; `webledgers-teller` was published later and went unprobed until `26df6c9` added it, with canon updated to eight in the same commit (`scripts/estate-health/roster.json:76-83`, estate register ER-3); the rewritten README no longer states a crate count (`./README.md:31`). The repository map still describes sidestr-rs as "seven published AGPL crates" (`docs/architecture/repository-map.md:18`), one behind the roster's eight (**Drift**).
 
 **Drift (2026-10-15, dream-engine extraction):** the roster row for `dream-engine` (`provenance: imported`, a fork of ruvnet/dream-machine) is stamped before the extraction. The slug now names the new Rust repository and the fork is renamed dream-machine and archived (checked 2026-10-16). The row has not been changed, because the release manifest and its gate assert two imported rows, see DE-01.
 
