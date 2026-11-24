@@ -18,7 +18,7 @@ sources:
   - ../project/agentbox/agentbox.toml
   - ../project/agentbox/management-api/lib/uris.js
   - ../project/agentbox/management-api/lib/sidestr-spend-key.js
-verified_commit: 59b1aca1cc3541b767872ecbc161c89e65d6ebca
+verified_commit: 1ea5494a1a9eca5e8da62a3f7db7354970b1c0f2
 ---
 
 ## For developers
@@ -111,7 +111,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    participant CI as manifest-validate.yml<br/>.github/workflows/manifest-validate.yml:171
+    participant CI as manifest-validate.yml<br/>.github/workflows/manifest-validate.yml:172
     participant T as sidechain-genesis.test.sh<br/>tests/config/sidechain-genesis.test.sh:58
     participant DOC as config/sidechain/*/chain.json
     participant DAT as blocks.dat under SIDESTR_STATE_ROOT<br/>tests/config/sidechain-genesis.test.sh:29
@@ -134,7 +134,7 @@ sequenceDiagram
         DAT-->>T: prev is all zeros, header time equals genesisTime (:125-126)
         DAT-->>T: bit 31 clear on a stock-header chain (:123), set on a<br/>BLAKE2b v2 one (:118)
     else absent in CI
-        T->>T: skip, the block file is not in the repository<br/>.github/workflows/manifest-validate.yml:169-170
+        T->>T: skip, the block file is not in the repository<br/>.github/workflows/manifest-validate.yml:170-171
     end
     T-->>CI: exit non-zero if any case failed (:137, :141)
 ```
@@ -170,6 +170,8 @@ flowchart TB
 **Invariant:** the block file is reproducible from the document plus the key while the chain is at genesis, which is why the repository can hold the document alone and still let anyone rebuild block 0 (`../project/agentbox/config/sidechain/README.md:26`).
 
 ## AB-32.5 What P1 delivered, and what it did not
+
+> **Superseded** by AB-32.6 at 1ea5494 (frozen at 59b1aca).
 
 ```mermaid
 flowchart TB
@@ -209,3 +211,21 @@ flowchart TB
 **Debt:** the specified `[sidechain]` gate, with its catalogue entry, apply class and supervised program set (`../project/agentbox/docs/BASELINE-container.md:399`, `../project/agentbox/docs/BASELINE-container.md:439-446`), is still not expressible: what landed is an interim block of eight supervision keys and a per-chain table, and the specified keys (header profile, signer and bridge children) wait on a schema change (`../project/agentbox/schema/agentbox.toml.schema.json:4069`). See AB-05.13 for where it would appear in the gate catalogue.
 
 **Open:** PRD-024's question 9 is answered — the first seal is `tbtc4` with stock headers, sealed 2026-09-22 (`../project/agentbox/docs/proposals/sovereign-settlement.md:486-491`) — but questions 8, 13, 14 and 15 remain, question 19 (the next chain's parent, beside `txbt4`) was added on 2026-09-30 (`../project/agentbox/docs/proposals/sovereign-settlement.md:527`), and each changes what gets built (`../project/agentbox/docs/proposals/sovereign-settlement.md:495`).
+
+## AB-32.6 The txbt4 table's comment, README pointer and setting now agree
+
+```mermaid
+flowchart TB
+    CMT["manifest comment above the table: on since 2026-10-03, enabled bakes the producer,<br/>with the mirror and faucet autostart, false removes them on the next rebuild<br/>../project/agentbox/agentbox.toml:2042-2044"]
+    SET["[sidechain.dreamlab-txbt4] enabled = true, live 2026-10-03<br/>../project/agentbox/agentbox.toml:2046"]
+    PAR["[sidechain].enabled = true dominates producers, mirrors, faucets and poker citizens<br/>../project/agentbox/agentbox.toml:2030"]
+    RD["README table-status sentence names the setting by key, not by line number<br/>../project/agentbox/config/sidechain/README.md:188"]
+    ADR["ADR-2103 comment-drift check at 469e553 records the pointer change<br/>../project/agentbox/docs/adr/ADR-2103-parent-chain-and-header-profile-are-configuration-behind-the-p21-gate.md:666-668"]
+    PAR --> SET
+    CMT -.- SET
+    RD -.- SET
+    ADR -.- RD
+```
+
+- **What it shows:** the frozen AB-32.5 recorded one stale statement, the manifest comment "Off until the lead starts it" above a table that ships `enabled = true`. Agentbox 469e553 (PR #52) rewrote that comment and replaced the README's stale `agentbox.toml:2044` pointer with the key name; the rest of AB-32.5 (what P1 delivered and what it did not) is unchanged at this stamp.
+- **Why it is this way:** comment and doc text only, line-count neutral; a key name cannot go stale when lines above it move.

@@ -22,6 +22,8 @@ sources:
   - ../project/agentbox/management-api/adapters/beads/placeholder.js
   - ../project/agentbox/management-api/adapters/index.js
   - ../project/agentbox/mcp/servers/lib/typed-spawn.js
+  - ../project/agentbox/mcp/servers/lib/typed-spawn.test.js
+  - ../project/agentbox/docs/archive/prd/PRD-016-context-compression-caching.md
   - ../project/agentbox/mcp/servers/substrate-tools.js
   - ../project/agentbox/mcp/ruvnet-brain/server.js
   - ../project/agentbox/config/hooks/ruvnet-brain-ground.cjs
@@ -473,5 +475,5 @@ sequenceDiagram
 ```
 
 - **What it shows:** the shipped empty default no longer becomes `:memory:`, so `spawn_ready` sees the children that `spawn_child` created in an earlier call and `spawn_complete` can find the bead. The fix is the whole of `resolveDbPath` (`../project/agentbox/mcp/servers/lib/typed-spawn.js:32-34`).
-- **Why it is this way:** commit 1d26ebe took the first of the two closures the frozen AB-26.7 named, defaulting inside `loadDeps`, and left `mcp.json` passing an empty string. The contract is asserted by `../project/agentbox/mcp/servers/lib/typed-spawn.test.js:5-10`.
+- **Why it is this way:** commit 1d26ebe took the first of the two closures the frozen AB-26.7 named, defaulting inside `loadDeps`, and left `mcp.json` passing an empty string. The contract is asserted by `../project/agentbox/mcp/servers/lib/typed-spawn.test.js:6-10`.
 - **Invariant:** a test or caller that wants an in-memory database must pass `:memory:` explicitly (`../project/agentbox/mcp/servers/lib/typed-spawn.js:27-28`). Read at the stamp only: no spawn call was made.

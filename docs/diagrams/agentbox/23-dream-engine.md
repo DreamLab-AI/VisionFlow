@@ -92,7 +92,7 @@ sources:
   - ../dream-engine/crates/dream-cli/src/lib.rs
   - ../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md
   - ../dream-engine/docs/adr/ADR-DE-007-a-night-is-identified-by-its-directory.md
-verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, dream-engine: 881075377625a9e20e69e9137f679506e93f4b68}
+verified_commit: {agentbox: 1ea5494a1a9eca5e8da62a3f7db7354970b1c0f2, dream-engine: f438e031fbb5792274fb5f0dd73075ff771c0123}
 ---
 Split 2026-11-23: AB-23.13 to AB-23.24 moved to [AB-44](44-dream-adapter-selection-decisions-and-delivery-limits.md) as AB-44.1 to AB-44.12. The old IDs resolve through the aliases declared there.
 
@@ -100,7 +100,7 @@ Repair follow-up, 2026-11-03: [AB-41.3](41-process-governance-and-dream-repairs.
 
 This topic draws the adapter and the boundary after the 2026-10-15 extraction (agentbox ADR-2141). The judgement and the loop mechanism moved to the permissive repository DreamLab-AI/dream-engine, mapped in DE-01 and in its own corpus at `../dream-engine/docs/diagrams/README.md`, which is not duplicated here. AB-23.9 onward are adapter-owned and re-cited at the new revision.
 
-State at this stamp: the adapter pins `dream-core =0.4.1` and `dream-gate =0.3.0` from the registry (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`), and the extraction is live: ADR-2141 is `accepted`, `complete`, `live`, with the operator's rebuild activated on 2026-10-16 and later releases adopted since (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-8`). Three adapter-owned changes since the first stamp are drawn here: source supply as plumbing (AB-44.9, ADR-2143), the opt-in Jev triage before the candidate build (AB-44.10, AB-23-S1-01) and the formatter step inside the core's candidate run (AB-23.4, ADR-DE-009). The crates.io versions are recorded in DE-01.
+State at this stamp: the adapter pins `dream-core =0.5.0` (adopted in agentbox e31fe2f, PR #53) and `dream-gate =0.3.0` from the registry (`../project/agentbox/services/dream-engine/Cargo.toml:26-27`), and the extraction is live: ADR-2141 is `accepted`, `complete`, `live`, with the operator's rebuild activated on 2026-10-16 and later releases adopted since (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:6-8`). Three adapter-owned changes since the first stamp are drawn here: source supply as plumbing (AB-44.9, ADR-2143), the opt-in Jev triage before the candidate build (AB-44.10, AB-23-S1-01) and the formatter step inside the core's candidate run (AB-23.4, ADR-DE-009). The crates.io versions are recorded in DE-01.
 
 ## AB-23.1 Repo-night phases and early exits
 
@@ -131,7 +131,7 @@ flowchart TB
     GATE --> PERSIST{"Persisted journal write succeeds?<br/>engine.rs:1805"}
     PERSIST -->|no| PFAIL["BLOCKED-ENV persistence error<br/>engine.rs:1807"]
     PERSIST -->|yes| EFFECT["Draft branch handling and ledger tail<br/>engine.rs:1828"]
-    EFFECT --> COMPLETE["Best-effort Complete<br/>engine.rs:2031"]
+    EFFECT --> COMPLETE["Best-effort Complete<br/>engine.rs:2057"]
 ```
 
 This is the control-flow overview; phase names record progress, not proof that every named action ran. Config loading precedes the lock, admission precedes the finished-night check, and several intermediate phase writes ignore errors (`../project/agentbox/services/dream-engine/src/engine.rs:1029,1192,1473,1617,1696`). AB-23.7 covers recovery in detail.
@@ -157,7 +157,7 @@ flowchart TB
     READY -->|no| HAND["Persist HANDOFF before checking finished state<br/>engine.rs:690-694"]
     READY -->|yes| DONE{"finished_night?<br/>engine.rs:736"}
     DONE -->|yes| OLD["Return stored result<br/>engine.rs:750"]
-    DONE -->|no| CYCLE["Run experiment and delivery; see AB-23.4 to AB-23.7<br/>engine.rs:1179<br/>engine.rs:1869"]
+    DONE -->|no| CYCLE["Run experiment and delivery; see AB-23.4 to AB-23.7<br/>engine.rs:1179<br/>engine.rs:1876"]
     HAND --> RECORD["Roster mode records returned results or failures; locked repos skipped<br/>engine.rs:302,315"]
     OLD --> RECORD
     CYCLE --> RECORD
@@ -169,6 +169,8 @@ flowchart TB
 **Limits.** The window controls start time, not a night deadline. Pause is checked only at roster entry, not during a night or targeted execution. Readiness can append HANDOFF to an already finished night; see the 1 November controls audit.
 
 ## AB-23.3 Module map and the licence boundary
+
+> **Superseded** by AB-23.25 at 1ea5494 (frozen at 59b1aca).
 
 ```mermaid
 flowchart TB
@@ -257,6 +259,8 @@ The baseline revision is passed into the candidate worktree, which protects agai
 The formatter runs locally before relocation. A successful worktree build does not establish the identity of a remote extracted tree or protect the operator's filesystem from subprocess effects. The [candidate](../../estate-review/2026-11-01-dream-candidate-and-evidence.md) and [annexe](../../estate-review/2026-11-01-dream-annexe-and-receipts.md) probes qualify those guarantees. Full ADR-2114 dispositions are in the [execution review](../../estate-review/2026-11-01-dream-execution-and-triage.md).
 
 ## AB-23.6 Persistence and the external merge decision
+
+> **Superseded** by AB-23.26 at 1ea5494 (frozen at 59b1aca).
 
 ```mermaid
 flowchart TB
@@ -430,3 +434,35 @@ This topic describes the extraction as source at the stamped revisions. ADR-2141
 **Resolved:** the earlier follow-on that `ontomark/dream.config.json` (`"adrConvention": "ADR-OM-NNN"`) would not load under the stricter `dream-gate` validation is closed: the legacy free-form template is accepted and rendered with its prefix from `dream-gate` 0.1.1 (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:72`).
 
 **Tension (activation records):** ADR-2141 says the image running the adapter was rebuilt and activated (`../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:8`), while ADR-2081 still records `activation_status: staged` for the annexe-depth and receipt corrections that the same engine source carries (`../project/agentbox/docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md:7`); its review_trigger names the first nightly run on the rebuilt image as the receipt that moves it to live (`../project/agentbox/docs/adr/ADR-2081-annexe-depth-law-and-honest-evaluator-receipts.md:13`); AB-23.11 to AB-44.2 describe source behaviour and claim no live receipt.
+
+## AB-23.25 The registry pins after the dream-core 0.5.0 adoption
+
+```mermaid
+flowchart TB
+    AD["Agentbox adapter, AGPL-3.0-only<br/>services/dream-engine/Cargo.toml:8"]
+    AD --> PIN["Exact registry dependencies: core 0.5.0 and gate 0.3.0, one dream-gate copy<br/>services/dream-engine/Cargo.toml:26-27"]
+    PIN --> CORE["dream-core 0.5.0: DraftPr gains head_sha, automerge pinned to it<br/>../dream-engine/crates/dream-core/src/seams.rs:351-355"]
+    AD --> POLICY["Written no-publication policy, no publish=false field<br/>services/dream-engine/Cargo.toml:4"]
+    CORE -.-> DR["DRIFT: ADR-2141's activation and 0.3.0 re-verification records are historical;<br/>they do not establish that the running image carries 0.5.0<br/>ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md:84"]
+```
+
+**What it shows.** The frozen AB-23.3 drew the adapter on `dream-core =0.4.1`. Agentbox e31fe2f (PR #53, 2026-11-23) moved it to `=0.5.0`, the release that made the automerge head pin a breaking change (DE-01), and kept `dream-gate =0.3.0`, the gate release 0.5.0 needs. The module map, licence boundary and missing publication guard are otherwise as AB-23.3 draws them. **Why it is this way.** The two pins must name the same dream-gate release, or two copies link and their types do not unify (`../project/agentbox/services/dream-engine/Cargo.toml:24-25`).
+
+## AB-23.26 Draft publication now carries the reviewed branch tip
+
+```mermaid
+flowchart TB
+    CHOOSE["accepted candidate, persistence enabled<br/>engine.rs:1828"]
+    TIP["branch_tip: rev-parse the verified branch, a lowercase hex commit<br/>engine.rs:1873, engine.rs:2232"]
+    PUB["publish_draft with DraftPr head_sha set to that tip<br/>engine.rs:1876, engine.rs:1882"]
+    NOPUB["tip unreadable: nothing is pushed, PrOutcome without URL<br/>engine.rs:1900"]
+    LOST["no URL: the lost-PR alert fires<br/>engine.rs:1912"]
+    GH["GhForge.publish_draft pushes and runs gh pr create; it does not read head_sha<br/>../dream-engine/crates/dream-core/src/seams.rs:433"]
+    AM["automerge_args refuses an empty or non-hex head_sha, pins --match-head-commit<br/>../dream-engine/crates/dream-core/src/seams.rs:506-521"]
+    CHOOSE --> TIP
+    TIP -->|ok| PUB --> GH
+    TIP -->|error| NOPUB --> LOST
+    PUB -.->|"only on the automerge path, which this adapter does not call"| AM
+```
+
+**What it shows.** The frozen AB-23.6 recorded that the adapter built `DraftPr` without `head_sha`. Since e31fe2f it reads the tip of the branch being pushed and passes it; a tip it cannot read publishes nothing and raises the lost-PR alert. **Open (publication identity, narrowed):** the hash now travels with the request, but the adapter still calls only `publish_draft`, which ignores it, so the pinned automerge is never exercised in the estate; a successful create still returns Some even for empty stdout (`../dream-engine/crates/dream-core/src/seams.rs:566`).
