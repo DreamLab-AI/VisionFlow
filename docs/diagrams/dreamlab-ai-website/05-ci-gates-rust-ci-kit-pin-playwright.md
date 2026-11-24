@@ -27,7 +27,7 @@ sources:
   - ../dreamlab-ai-website/scripts/__tests__/kit-ref-sites.test.mjs
   - ../dreamlab-ai-website/CLAUDE.md
   - ../dreamlab-ai-website/docs/adr/ADR-2004-kit-pin-version-and-sha-lockstep.md
-verified_commit: 389a644c23e9f5ed0b571242f3e8e5418aae0a7c
+verified_commit: 5dc4c644517ff36219b7fe6cc1a70f20dc6a8d83
 ---
 
 ## DW-05.1 `ci.yml` — the ten-job PR/push gate and its aggregator
@@ -153,6 +153,8 @@ flowchart TB
 - **Why it is this way:** a missing key degrades a Worker silently at request time, so ADR-2005's fail-closed rule puts the presence check before `wrangler deploy`. The check reads names only (`workers-deploy.yml:296`), never values. **Drift:** the header comment of `set-worker-secrets.yml:3-10` predates the System One job (`set-worker-secrets.yml:146-157`), and the required-secret check for the auth worker covers two of the four names it lists (`workers-deploy.yml:320`).
 
 ## DW-05.10 The kit pin after the 2026-11-23 repin
+> **Superseded** by DW-05.11 at 5dc4c64 (frozen at 389a644).
+
 ```mermaid
 flowchart TB
     SITES["KIT_REF is 8a0ca418b9f1 at the three pin sites<br/>.github/workflows/deploy.yml:131<br/>.github/workflows/workers-deploy.yml:45<br/>.github/workflows/rust-ci.yml:20"]
@@ -171,3 +173,28 @@ flowchart TB
 ```
 - **What it shows:** the repin of 2026-11-23 moved the workflows and the record together (`docs/architecture/kit-compatibility-record.md:40` is its dated paragraph). The commit is kit `main` four commits after `v1.0.0-beta.21-rc.3`, and no file under the four library crate directories differs between the beta.20 release commit `d423833` and `8a0ca41` (checked with `git diff` in the kit repository), so the exact crate pins did not move.
 - **Why it is this way:** ADR-2004 keeps the version pin and the SHA pin in lockstep and gates the three workflow sites plus the record (`scripts/lib/pin-parity.mjs:194-225`). The 2026-10-30 note that a pin update "is not a deployment receipt" still stands (`docs/architecture/kit-compatibility-record.md:64-70`). **Drift:** the two prose records of the pin are outside the gate.
+
+## DW-05.11 The kit pin after the 2026-11-24 repin to de31aaa
+```mermaid
+flowchart TB
+    SITES["KIT_REF is de31aaa6e6c6 at the three pin sites<br/>.github/workflows/deploy.yml:131<br/>.github/workflows/workers-deploy.yml:45<br/>.github/workflows/rust-ci.yml:20"]
+    REC["CANONICAL_KIT_SHA in the compatibility record is the same commit<br/>docs/architecture/kit-compatibility-record.md:30"]
+    VER["CANONICAL_KIT_VERSION stays 1.0.0-beta.20<br/>docs/architecture/kit-compatibility-record.md:31"]
+    CHK["checkKitPins: three sites identical, then equal to the record<br/>scripts/lib/pin-parity.mjs:207<br/>scripts/lib/pin-parity.mjs:223"]
+    SWEEP["every workflow that defines a KIT_REF must agree and be 40-hex<br/>scripts/__tests__/kit-ref-sites.test.mjs:28"]
+    ROW["row text: main at de31aaa, kit 95 grant paging plus kit 102 actor tag,<br/>before that c8b8c4e then 8a0ca41 - the row is not compared<br/>docs/architecture/kit-compatibility-record.md:26"]
+    PARA["c8b8c4e has a dated paragraph with a rollback<br/>docs/architecture/kit-compatibility-record.md:40"]
+    NOPARA["DRIFT: de31aaa has no dated paragraph and no rollback line,<br/>unlike c8b8c4e, 8a0ca41 and fd31193 before it<br/>docs/architecture/kit-compatibility-record.md:40-42"]
+    SITES --> CHK
+    REC --> CHK
+    SITES --> SWEEP
+    REC --> VER
+    CHK -.-> ROW
+    ROW --> PARA
+    ROW -.-> NOPARA
+    DOCS["DRIFT: BASELINE-architecture and ADR-2004 still name fd31193, outside the gate, see DW-06.12<br/>docs/BASELINE-architecture.md:118<br/>docs/adr/ADR-2004-kit-pin-version-and-sha-lockstep.md:134"]
+    CHK -.-> DOCS
+```
+- **What it shows:** website PR #101 (`5dc4c64`) moved the three workflow sites and the record together from `c8b8c4e` (pinned at `39d7043f`) to kit `de31aaa`, the forum client's grant-backlog paging (kit #95) plus the kind-38000 actor tag (kit #102). The row says library crates are unchanged at 1.0.0-beta.20 (`docs/architecture/kit-compatibility-record.md:26`).
+- **Tension:** unlike the earlier repins, `git diff d423833 de31aaa` in the kit repository is no longer empty under the library crates: `nostr-bbs-core` gains `MAX_CREATED_AT_DRIFT_SECS` and the kanban actor tag at the same manifest version, so the crates.io beta.20 the overlay links and the core the workers and client build from kit source now differ in source (see DW-05.10 for the empty-diff reading at `8a0ca41`).
+- **Why it is this way:** ADR-2004 gates only the three workflow sites and `CANONICAL_KIT_SHA` (`scripts/lib/pin-parity.mjs:194-225`), so the missing dated paragraph and the stale prose records pass `pin-parity`; a pin update is still not a deployment receipt (`docs/architecture/kit-compatibility-record.md:72`).

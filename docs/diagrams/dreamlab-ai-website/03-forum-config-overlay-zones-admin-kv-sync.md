@@ -32,7 +32,7 @@ sources:
   - ../dreamlab-ai-website/docs/adr/ADR-2002-split-hosting-pages-workers.md
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/pod_browser.rs
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
-verified_commit: {dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5, nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
+verified_commit: {dreamlab-ai-website: 5dc4c644517ff36219b7fe6cc1a70f20dc6a8d83, nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
 ---
 
 ## DW-03.1 The four-zone model plus the encryption master gate
@@ -165,6 +165,8 @@ sequenceDiagram
 - This is the second half of the ADR-2005 mitigation: enumerating seven mirrors is only safe if the sweep also proves nothing ELSE governed exists unchecked — a future worker `[vars]` entry reusing one of the six `MIRROR_BEARING_KEYS` fails CI until it is added to `MIRRORS`.
 
 ## DW-03.8 KV placeholder and required-secret fail-closed gates
+> **Superseded** by DW-03.13 at 5dc4c64 (frozen at e255b2b).
+
 ```mermaid
 flowchart TB
     KVID["ADMIN_KV id = REPLACE_WITH_NEW_ADMIN_KV_ID<br/>shipped in auth-worker + pod-worker wrangler.toml"] --> SCAN["collect_placeholder_ids()<br/>deploy_config.rs:151-179<br/>walks every TOML table/array"]
@@ -265,3 +267,19 @@ flowchart TB
 - DIVERGENCE: the tier is advertised but unreachable; ADR-2002 records the missing DNS record as observed on 2026-11-22 (not re-checked here) and the owner has parked it (`ADR-2002-split-hosting-pages-workers.md:130-146`).
 - **Open (closed):** ADR-2002's second remedy now says the card is not controlled by `[native_pod] enabled` but by the `NATIVE_POD_URL` build variable, so clear that secret and set `enabled = false` as well (`ADR-2002-split-hosting-pages-workers.md:156-163`). The kit agrees at `4a73a7a`: the card's only gate is the build variable (`pod_browser.rs:128-131,997-999`) and the auth worker reads its own secrets (`auth-worker.wrangler.toml:93-98`). The ADR still marks the remedy untested.
 - **Debt:** none of the three copies is in the `config-mirrors.mjs` set; the auth-worker comment is the only record that its secret equals `base_url` (`auth-worker.wrangler.toml:89-91`).
+
+## DW-03.13 KV placeholder and required-secret gates, with the credential check covering all three System One consumers
+```mermaid
+flowchart TB
+    KVID["ADMIN_KV id = REPLACE_WITH_NEW_ADMIN_KV_ID<br/>shipped in auth-worker + pod-worker wrangler.toml"] --> SCAN["collect_placeholder_ids()<br/>deploy_config.rs:151-179<br/>walks every TOML table/array"]
+    SCAN --> DETECT["validate_deploy_dir(deploy_dir)<br/>deploy_config.rs:192-215"]
+    DETECT -->|placeholder present| FAIL1["DeployConfigError::UnresolvedPlaceholder<br/>unit test EXPECTS >= 2 (auth + pod) to remain<br/>deploy_config.rs:271-296"]
+    SECRETS["REQUIRED_AUTH_SECRETS: PRF_SERVER_SECRET, ADMIN_PUBKEYS,<br/>NATIVE_POD_ADMIN_KEY, NATIVE_POD_URL<br/>deploy_config.rs:73-78"] --> CHECK["validate_required_secrets(configured)<br/>deploy_config.rs:232-253<br/>called only from this crate's unit tests"]
+    CHECK -->|missing| FAIL2["DeployConfigError::MissingSecret"]
+    DEPLOYSTEP["workers-deploy.yml 'Validate required auth-worker secrets are set'<br/>bash: PRF_SERVER_SECRET, ADMIN_PUBKEYS required, NATIVE_POD_* warn only<br/>workers-deploy.yml:302-338, fails the deploy job"]
+    SECRETS -.->|"Tension: four required here, two at deploy"| DEPLOYSTEP
+    SUBQ["TYPESAFE_API_KEY: job set-system-one-secrets runs after set-secrets and set-push-secret (Cloudflare 409 on concurrent writes, retried up to five times) and pushes the GH secret to dreamlab-search-api, dreamlab-nostr-relay and dreamlab-auth-api, failing when it is empty<br/>.github/workflows/set-worker-secrets.yml:146-184"] --> SUBQCHK["workers-deploy.yml 'Validate public System One credential', now search, relay AND auth worker: fails the deploy when the Worker secret name is absent<br/>.github/workflows/workers-deploy.yml:288-298"]
+    OPTIN["OPEN: the overlay is configured to opt in JEV_TRIAGE, JEV_SEARCH_RERANK and JEV_RATIONALE_CHECK, with a 5-minute relay cron for the triage sweep, deployed by the Cloudflare Workers run 41028875471 (success, 2026-10-30, kit 9c36b60) whose credential check then covered search and relay only - no later run receipt was read in this pass; all three reach TypeSafe jev-latest directly, and the auth worker's rationale check is cloud by default and private only when JEV_RATIONALE_CHECK_LOCAL_ONLY=1<br/>forum-config/deploy/SYSTEM-ONE.md:3-5, forum-config/deploy/relay-worker.wrangler.toml:16, forum-config/deploy/search-worker.wrangler.toml:33, forum-config/deploy/auth-worker.wrangler.toml:61-66, forum-config/deploy/relay-worker.wrangler.toml:99-100"]
+```
+- The deploy-time `TYPESAFE_API_KEY` presence check now runs for the auth worker as well as search and relay (`.github/workflows/workers-deploy.yml:289`), closing the gap DW-03.8 recorded; it checks the secret name only, never its value.
+- The Rust validator tension is unchanged: `validate_required_secrets` and `validate_deploy_dir` still have no workflow caller (`deploy_config.rs:232-253`, `deploy_config.rs:192-215`).
