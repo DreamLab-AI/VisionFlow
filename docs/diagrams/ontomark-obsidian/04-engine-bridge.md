@@ -13,7 +13,10 @@ sources:
   - ../ontomark-obsidian/src/worker-core.ts
   - ../ontomark-obsidian/src/api.ts
   - ../ontomark-obsidian/src/main.ts
-verified_commit: {ontomark-obsidian: 64bdc5bf6309fca94bf0437b52c1484618470ed0}
+  - ../ontomark-obsidian/src/layout-engine.ts
+  - ../ontomark-obsidian/src/graph-layout.ts
+  - ../ontomark-obsidian/test/layout-params.test.ts
+verified_commit: {ontomark-obsidian: e1f2e4c85fccb4587f96c07e4fca79014d5a7103}
 ---
 
 ## OO-04.1 Two protocol layers and what counts as a mutation
@@ -84,7 +87,7 @@ flowchart TD
     FAILD["failed: onFailed once, every later request rejects engine_failed<br/>client.ts:305,306,429"]
     SPAWN["spawn: new epoch, transfer a fresh copy of the wasm bytes<br/>client.ts:375,377,387,388"]
     LOADM["load replays the mirror at the current generation, posted back to back with init<br/>client.ts:365,366,367,370,371"]
-    NOTI["onRestart Notice: engine restarted<br/>client.ts:310<br/>main.ts:288,289"]
+    NOTI["onRestart Notice: engine restarted<br/>client.ts:310<br/>main.ts:296,297"]
     TOUT --> RS
     FAT --> RS
     REF --> RS
@@ -93,7 +96,7 @@ flowchart TD
     CAP -->|yes| FAILD
     CAP -->|no| SPAWN --> LOADM
     SPAWN --> NOTI
-    DEBT["DEBT: createApi passes no onFailed, so entering the failed state shows nothing until the next request's engine_failed Notice<br/>main.ts:284,285,286,287,288<br/>client.ts:72"]
+    DEBT["DEBT: createApi passes no onFailed, so entering the failed state shows nothing until the next request's engine_failed Notice<br/>main.ts:292,293,294,295,296<br/>client.ts:72"]
     FAILD --- DEBT
     INV["INVARIANT: a page that traps the engine every time cannot cause an endless respawn loop<br/>client.ts:292,293,294"]
     CAP --- INV
@@ -127,3 +130,26 @@ sequenceDiagram
 ```
 
 **What it shows.** Classification never blocks the worker for its whole run: each step yields, so an edit queued behind it advances the generation and the next step answers stale. No SharedArrayBuffer is needed (`worker-core.ts:3,4,5,6,7`).
+
+## OO-04.5 The second WebAssembly bridge: the layout module and its version
+
+```mermaid
+flowchart TD
+    IMP["named glue imports only, version among them<br/>layout-engine.ts:15,16"]
+    MOD["vowlModule: NggExplorer, encodeNgg1, ngg1Constants, version<br/>layout-engine.ts:21"]
+    CMP["loadVowlEngine compiles the embedded bytes once, a failure is not cached<br/>layout-engine.ts:26,28,29"]
+    INIT["initSync on the compiled module<br/>layout-engine.ts:33"]
+    VE["vowlEngine over vowlModule returns a VowlLayoutEngine<br/>layout-engine.ts:18,34"]
+    CTRL["GraphLayoutController hands it to createLayout with params<br/>graph-layout.ts:118,126,128"]
+    IMP --> MOD --> CMP --> INIT --> VE --> CTRL
+    CHG["CHANGED at e55b378, plugin 0.6.0: version joined the module object;<br/>before it vowlEngine got three exports and no version"]
+    MOD --- CHG
+    INV["INVARIANT: version must travel with the simulation, or ontomark-graph treats the bundle<br/>as one without the 0.4.0 keys and ignores collision and component gravity<br/>layout-engine.ts:12,13,14"]
+    MOD --- INV
+    TST["test loads the real 0.4.0 module through loadVowlEngine and expects all four keys supported<br/>layout-params.test.ts:22,57,61"]
+    VE --- TST
+    EXT["EXTERNAL: the version gate itself lives in ontomark-graph, see OM-14.2"]
+    VE --- EXT
+```
+
+**What it shows.** The layout module is a separate bridge from the engine worker: compiled on the main thread, and its `version` export is what unlocks the vowl-wasm 0.4.0 parameters.

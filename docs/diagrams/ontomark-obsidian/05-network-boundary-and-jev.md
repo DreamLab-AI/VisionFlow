@@ -18,7 +18,7 @@ sources:
   - ../ontomark-obsidian/src/main.ts
   - ../ontomark-obsidian/README.md
   - ../ontomark-obsidian/docs/adr/ADR-OBS-003-ingest-action-and-offline-contract.md
-verified_commit: {ontomark-obsidian: 64bdc5bf6309fca94bf0437b52c1484618470ed0}
+verified_commit: {ontomark-obsidian: e1f2e4c85fccb4587f96c07e4fca79014d5a7103}
 ---
 
 ## OO-05.1 endpointProblem: one policy, checked at entry and at use
@@ -46,8 +46,8 @@ flowchart TD
     HTTP -->|yes| REFUSE
     HTTP -->|no| OK
     HTTP --- LOOP
-    U1["settings field validation<br/>settings.ts:234,236"]
-    U2["extract facts refuses with a Notice<br/>main.ts:458,460"]
+    U1["settings field validation<br/>settings.ts:317,319"]
+    U2["extract facts refuses with a Notice<br/>main.ts:466,468"]
     U3["Jev: unusable URL is no-endpoint, http-only refusal is insecure-endpoint<br/>jev.ts:91,93"]
     U1 --> IN
     U2 --> IN
@@ -100,7 +100,7 @@ flowchart TD
     ASK["jevAsk: flag, endpoint, POST, every question answered with its own type<br/>jev.ts:82,89,91,93,110,111,112"]
     QS["question sets fact-support, query-template, edit-intent<br/>jev.ts:21,22,23,24"]
     subgraph FACTS["Extract facts verifier"]
-        F1["judge passed only when Jev is enabled<br/>main.ts:491,492"]
+        F1["judge passed only when Jev is enabled<br/>main.ts:499,500"]
         F2["verifyFacts: one Noul per quoted fact<br/>jev.ts:177,185,189"]
     end
     subgraph TPL["Query panel ask row"]
@@ -110,9 +110,9 @@ flowchart TD
         T4["fills the textarea and dataset, user presses Run<br/>query-view.ts:115,117"]
     end
     subgraph EDIT["Propose frontmatter edit from a sentence"]
-        E1["parents: mentioned entities, not properties, unique note name<br/>main.ts:527,529,530"]
-        E2["pickEdit: make class, individual, property or add parent<br/>main.ts:532<br/>jev.ts:355"]
-        E3["proposal by the same API as the menu, then the diff<br/>main.ts:538,539,540,541,542"]
+        E1["parents: mentioned entities, not properties, unique note name<br/>main.ts:535,537,538"]
+        E2["pickEdit: make class, individual, property or add parent<br/>main.ts:540<br/>jev.ts:355"]
+        E3["proposal by the same API as the menu, then the diff<br/>main.ts:546,547,548,549,550"]
     end
     F1 --> F2 --> ASK
     T1 --> T2 --> ASK
@@ -163,7 +163,7 @@ flowchart TD
     MONO -->|no| NW --> OUT
     INV["INVARIANT: never fall back to the plain patch once Jev rejected a fact<br/>jev-ingest.ts:200,201"]
     NW --- INV
-    DRIFT["DOC-DRIFT: ADR-OBS-003 still records implementation none in this plugin, yet the ingest command and this verifier ship<br/>ADR-OBS-003-ingest-action-and-offline-contract.md:6,19<br/>main.ts:558"]
+    DRIFT["DOC-DRIFT: ADR-OBS-003 still records implementation none in this plugin, yet the ingest command and this verifier ship<br/>ADR-OBS-003-ingest-action-and-offline-contract.md:6,19<br/>main.ts:566"]
     J --- DRIFT
 ```
 
