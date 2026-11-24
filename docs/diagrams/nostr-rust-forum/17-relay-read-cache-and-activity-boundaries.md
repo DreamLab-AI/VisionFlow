@@ -14,7 +14,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
-verified_commit: {nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
+verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
 ---
 
 ## For developers
@@ -29,17 +29,17 @@ The optimisation saves repeated successful lookups. Privacy, activity credit and
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2271
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2272
     A["Resolve viewer from session key"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2338
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2339
     B["Device-owner memo: 60 seconds<br/>including None"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:46
     C["Admin cache: 30 seconds"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2325
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2326
     D["Cohorts plus admin flag: 60 seconds<br/>including empty and false"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2311
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2312
     E["Zone memo: 60 seconds<br/>only positive channel bindings"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2316
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2317
     F["Unbound channel: query again next event<br/>zone cardinality is per channel, not viewer"]
     A --> B --> C --> D
     D --> E --> F
@@ -51,15 +51,15 @@ Native wrapper tests: one bound channel costs one lookup across 50 calls; an unb
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2697
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2698
     A["Channel ID from kind 40, 41 or 42"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2715
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2716
     B["Read cached binding or query channel_zones"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2717
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2718
     C["Some zone: apply member and visibility rules"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/trust.rs:584
     D["Absent row OR database/bind/query failure: None"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2737
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2738
     E["None skips this zone gate<br/>event reaches Deliver if other gates pass"]
     A --> B
     B --> C
@@ -74,7 +74,7 @@ Source-only failure finding: distinguish unavailable from unbound. A whole-datab
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1961
     A["History: every returned event goes to authoriser"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2719
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2720
     B["Kind 41 in hidden zone: withhold from non-member"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/broadcast.rs:77
     C["Live needs_gate includes 40 and 42<br/>plus calendar and kanban; omits 41"]
@@ -103,7 +103,7 @@ flowchart TB
     D["No: retain count in memory<br/>no deadline timer in this ledger"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/read_cache.rs:162
     E["Yes: remove count and advance last_flush"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2610
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2611
     F["Attempt read increment, last-active update<br/>then promotion check"]
     A --> B --> C
     C -->|no| D

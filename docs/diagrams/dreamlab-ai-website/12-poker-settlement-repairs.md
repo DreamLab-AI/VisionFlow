@@ -36,6 +36,7 @@ This is the successor to DW-10.1 to DW-10.4, which stay frozen at the revisions 
 The house no longer promises the same chips twice: each hand held against the house is set aside from its bankroll and its daily limit when the hand is accepted. A restart resumes a hand only if it proves itself, and a member's browser pays only what the verified hand and the member's own table choice support. The payment-claim timestamp can still be renewed by a malformed transaction id.
 
 ## DW-12.1 The house seat and the website build the same kit commit
+> **Superseded** by DW-13.1 at 5dc4c64 (frozen at 389a644).
 
 ```mermaid
 flowchart TB
@@ -100,6 +101,7 @@ flowchart TB
 **Why it is this way:** ADR-2009 funds the house from treasury, so its worst loss in a hand is the buy-in. **Debt:** the claim-timestamp weakness of DW-10.2 is unchanged at this revision by source reading; no probe was run.
 
 ## DW-12.3 Hands, the book and payouts are saved before anything leaves
+> **Superseded** by DW-13.2 at de31aaa (frozen at 389a644).
 
 ```mermaid
 flowchart TB

@@ -76,7 +76,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md
   - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
   - ../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md
-verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
+verified_commit: de31aaa6e6c6b672cc310a2659cf33fd4887602c
 ---
 Split 2026-11-23: NF-05.9, NF-05.10, NF-05.13 to NF-05.15 and NF-05.18 to NF-05.20 moved to [NF-30](30-client-messaging-search-notifications-and-sync.md) as NF-30.1 to NF-30.8; NF-05.11, NF-05.12, NF-05.16 and NF-05.17 moved to [NF-31](31-retro-bbs-client-zone-encryption-and-web-push.md) as NF-31.1 to NF-31.4. The old IDs resolve through the aliases declared there.
 
@@ -103,8 +103,8 @@ sequenceDiagram
     A->>A: RelayConnection::new nostr-bbs-forum-client/src/app.rs:448, provide_channel_store<br/>nostr-bbs-forum-client/src/app.rs:450, zone_crypto::store::provide_zone_key_store<br/>nostr-bbs-forum-client/src/app.rs:453
 
     Note over A: wallet::provide_wallet creates one store per configured compiled-in chain (ADR-2015 amended by ADR-2021),<br/>inert unless SIDESTR_WALLET is on - nostr-bbs-forum-client/src/app.rs:337-340, wallet/mod.rs:58<br/>wallet/mod.rs:239
-    Note over A: INVARIANT ADR-090 - FORUM_BASE is applied in exactly TWO places: the const consumed by Router base= at<br/>nostr-bbs-forum-client/src/app.rs:44 and :929
-    Note over A: and base_href() for every link at nostr-bbs-forum-client/src/app.rs:53, used e.g. at :936. A third application<br/>re-introduces the double-prefix / deep-route-404 bug class.
+    Note over A: INVARIANT ADR-090 - FORUM_BASE is applied in exactly TWO places: the const consumed by Router base= at<br/>nostr-bbs-forum-client/src/app.rs:44 and :932
+    Note over A: and base_href() for every link at nostr-bbs-forum-client/src/app.rs:53, used e.g. at :939. A third application<br/>re-introduces the double-prefix / deep-route-404 bug class.
     Note over M: main.rs:55-57 re-read the same option_env! for the service-worker SCOPE - a deliberate, documented mirror of<br/>app::FORUM_BASE, not a third application of the prefix
     Note over A: current_app_path strips the prefix back off a browser path so the router sees an unprefixed route<br/>nostr-bbs-forum-client/src/app.rs:82
 ```
@@ -117,35 +117,35 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     subgraph pubroutes["Public"]
-        R1["/ HomeOrForums nostr-bbs-forum-client/src/app.rs:947"]
-        R2["/about nostr-bbs-forum-client/src/app.rs:948 | /login nostr-bbs-forum-client/src/app.rs:949 | /signup nostr-bbs-forum-client/src/app.rs:954"]
-        R3["/connect magic link - must NOT be auth-gated nostr-bbs-forum-client/src/app.rs:953"]
-        R4["/glossary nostr-bbs-forum-client/src/app.rs:958 | /go/:event_id MessageJumpPage nostr-bbs-forum-client/src/app.rs:960 | /join/:code nostr-bbs-forum-client/src/app.rs:965"]
+        R1["/ HomeOrForums nostr-bbs-forum-client/src/app.rs:950"]
+        R2["/about nostr-bbs-forum-client/src/app.rs:951 | /login nostr-bbs-forum-client/src/app.rs:952 | /signup nostr-bbs-forum-client/src/app.rs:957"]
+        R3["/connect magic link - must NOT be auth-gated nostr-bbs-forum-client/src/app.rs:956"]
+        R4["/glossary nostr-bbs-forum-client/src/app.rs:961 | /go/:event_id MessageJumpPage nostr-bbs-forum-client/src/app.rs:963 | /join/:code nostr-bbs-forum-client/src/app.rs:968"]
     end
     subgraph authed["Auth-gated"]
-        R5["/setup nostr-bbs-forum-client/src/app.rs:967 | /forums nostr-bbs-forum-client/src/app.rs:981 | /settings nostr-bbs-forum-client/src/app.rs:991"]
-        R6["/chat/:channel_id nostr-bbs-forum-client/src/app.rs:978 | /dm nostr-bbs-forum-client/src/app.rs:979 | /dm/:pubkey nostr-bbs-forum-client/src/app.rs:980"]
-        R7["/forums/:category/board nostr-bbs-forum-client/src/app.rs:986 | /:section nostr-bbs-forum-client/src/app.rs:987 | /:topic nostr-bbs-forum-client/src/app.rs:988"]
-        R8["/events nostr-bbs-forum-client/src/app.rs:989 | /profile/:pubkey nostr-bbs-forum-client/src/app.rs:990 | /pod nostr-bbs-forum-client/src/app.rs:1000"]
-        R14["/wallet AuthGatedWallet - member wallets, ADR-2015 nostr-bbs-forum-client/src/app.rs:1001"]
+        R5["/setup nostr-bbs-forum-client/src/app.rs:970 | /forums nostr-bbs-forum-client/src/app.rs:984 | /settings nostr-bbs-forum-client/src/app.rs:994"]
+        R6["/chat/:channel_id nostr-bbs-forum-client/src/app.rs:981 | /dm nostr-bbs-forum-client/src/app.rs:982 | /dm/:pubkey nostr-bbs-forum-client/src/app.rs:983"]
+        R7["/forums/:category/board nostr-bbs-forum-client/src/app.rs:989 | /:section nostr-bbs-forum-client/src/app.rs:990 | /:topic nostr-bbs-forum-client/src/app.rs:991"]
+        R8["/events nostr-bbs-forum-client/src/app.rs:992 | /profile/:pubkey nostr-bbs-forum-client/src/app.rs:993 | /pod nostr-bbs-forum-client/src/app.rs:1003"]
+        R14["/wallet AuthGatedWallet - member wallets, ADR-2015 nostr-bbs-forum-client/src/app.rs:1004"]
     end
     subgraph gov["Governance"]
-        R9["/governance member read-only nostr-bbs-forum-client/src/app.rs:998"]
-        R10["/governance/admin admin write nostr-bbs-forum-client/src/app.rs:999"]
-        R11["/admin - its own internal gate nostr-bbs-forum-client/src/app.rs:992"]
+        R9["/governance member read-only nostr-bbs-forum-client/src/app.rs:1001"]
+        R10["/governance/admin admin write nostr-bbs-forum-client/src/app.rs:1002"]
+        R11["/admin - its own internal gate nostr-bbs-forum-client/src/app.rs:995"]
     end
     subgraph zonealias["Zone-slug aliases, declared LAST"]
-        R12["/:category nostr-bbs-forum-client/src/app.rs:1020 | /:category/board nostr-bbs-forum-client/src/app.rs:1022"]
-        R13["/:category/:section nostr-bbs-forum-client/src/app.rs:1023 | /:category/:section/:topic nostr-bbs-forum-client/src/app.rs:1024"]
+        R12["/:category nostr-bbs-forum-client/src/app.rs:1023 | /:category/board nostr-bbs-forum-client/src/app.rs:1025"]
+        R13["/:category/:section nostr-bbs-forum-client/src/app.rs:1026 | /:category/:section/:topic nostr-bbs-forum-client/src/app.rs:1027"]
     end
 
-    ROUTER["Router base=FORUM_BASE nostr-bbs-forum-client/src/app.rs:929"] --> pubroutes & authed & gov & zonealias
+    ROUTER["Router base=FORUM_BASE nostr-bbs-forum-client/src/app.rs:932"] --> pubroutes & authed & gov & zonealias
 
-    N1["/chat with no channel redirects to /forums - a legacy path kept alive nostr-bbs-forum-client/src/app.rs:977"]
+    N1["/chat with no channel redirects to /forums - a legacy path kept alive nostr-bbs-forum-client/src/app.rs:980"]
     N2["The zone-slug aliases are declared last so the static routes out-score them; a slug is only valid<br/>if it resolves in the live ZONE_CONFIG nostr-bbs-forum-client/src/pages/category.rs:103"]
     N3["The member and admin governance views are separate ROUTES bound to separate components -<br/>see NF-06.10"]
     N4["/go/:event_id resolves a bare event id to its topic and lands the reader on it - see NF-30.5 for<br/>the deep-link walk and NF-05.6 for the tombstone/zone-decrypt gate it shares with normal ingest"]
-    N5["DEBT: three auth gates are written out by hand - AuthGatedChannel nostr-bbs-forum-client/src/app.rs:1471, AuthGatedDmList nostr-bbs-forum-client/src/app.rs:1498,<br/>AuthGatedDmChat nostr-bbs-forum-client/src/app.rs:1525 - each the same body as the auth_gated! macro nostr-bbs-forum-client/src/app.rs:1566-1594 that the other<br/>thirteen gated pages use nostr-bbs-forum-client/src/app.rs:1596-1608"]
+    N5["DEBT: three auth gates are written out by hand - AuthGatedChannel nostr-bbs-forum-client/src/app.rs:1474, AuthGatedDmList nostr-bbs-forum-client/src/app.rs:1501,<br/>AuthGatedDmChat nostr-bbs-forum-client/src/app.rs:1528 - each the same body as the auth_gated! macro nostr-bbs-forum-client/src/app.rs:1569-1597 that the other<br/>thirteen gated pages use nostr-bbs-forum-client/src/app.rs:1599-1611"]
 ```
 
 ## NF-05.3 Passkey identity — register, log in, derive
@@ -271,10 +271,10 @@ flowchart TB
     EVS --> UNREAD
 
     N1["INVARIANT ADR-091: post counts are NEVER stored as an independent field - a mutable counter drifts<br/>against deletions and replaceable events channels.rs:68"]
-    N2["admits_message is the single admission predicate for the broad sync, ensure_subscribed and the deep-link replay<br/>channels.rs:267 channels.rs:720 channels.rs:737. insert_message is the only path that ADDS to channel_messages.<br/>The other mutations only remove or rewrite: apply_deletion folds a kind-5 per deleter channels.rs:194 tombstones.rs:166,<br/>remove_message for the reader's own delete channels.rs:243, the empty-EOSE reset channels.rs:478, and redecrypt,<br/>which re-admits a restored original zone_crypto/store.rs:502"]
+    N2["admits_message is the single admission predicate for the broad sync, ensure_subscribed and the deep-link replay<br/>channels.rs:267 channels.rs:720 channels.rs:737. insert_message is the only path that ADDS to channel_messages.<br/>The other mutations only remove or rewrite: apply_deletion folds a kind-5 per deleter channels.rs:194 tombstones.rs:166,<br/>remove_message for the reader's own delete channels.rs:243, the empty-EOSE reset channels.rs:478, and redecrypt,<br/>which re-admits a restored original zone_crypto/store.rs:592"]
     N3["The same discipline is applied to notifications - unread is derived, not incremented<br/>notifications.rs:271. init_sync opens NO subscription of its own,<br/>and is idempotent behind a synced flag notifications.rs:483"]
     N4["OPEN O25 / KF-27: the client cannot identify TL3 moderators tombstones.rs:19-21, and the isAdmin it asks for<br/>signer_admin.rs:108 is the whitelist row's is_admin alone whitelist.rs:135 whitelist.rs:180, while the relay's own<br/>admin test also honours static ADMIN_PUBKEYS auth.rs:181. O13 / KF-17, relay half in NF-10.14, not re-read<br/>here: an ordinary post honours every deleter tombstones.rs:7-10, so a claim the relay accepts on an id it never stored hides it"]
-    N5["Kit #81: the sync filters are split so kind-5s cannot crowd out channels or other zones - channels 40 and 41,<br/>deletions, reactions and one kind-42 filter per zone plus a catch-all, each with an explicit limit 1000<br/>channels.rs:1006 channels.rs:1021 channels.rs:1042 channels.rs:963. The broad message sync starts only once the<br/>channel list has an authenticated answer or its deadline passed nostr-bbs-forum-client/src/app.rs:903 lookup.rs:260,<br/>because start_msg_sync builds its per-zone filters from the channels known at that instant and the pre-AUTH answer<br/>omits Hidden-zone channels nostr-bbs-forum-client/src/app.rs:887-892; the deadline is armed at relay connect nostr-bbs-forum-client/src/app.rs:896-897"]
+    N5["Kit #81: the sync filters are split so kind-5s cannot crowd out channels or other zones - channels 40 and 41,<br/>deletions, reactions and one kind-42 filter per zone plus a catch-all, each with an explicit limit 1000<br/>channels.rs:1006 channels.rs:1021 channels.rs:1042 channels.rs:963. The broad message sync starts only once the<br/>channel list has an authenticated answer or its deadline passed nostr-bbs-forum-client/src/app.rs:906 lookup.rs:260,<br/>because start_msg_sync builds its per-zone filters from the channels known at that instant and the pre-AUTH answer<br/>omits Hidden-zone channels nostr-bbs-forum-client/src/app.rs:890-895; the deadline is armed at relay connect nostr-bbs-forum-client/src/app.rs:899-900"]
     N6["DEBT, two kind-42 subscriptions write one store: the broad start_msg_sync channels.rs:560 and the per-channel<br/>ensure_subscribed channels.rs:693 both pass admits_message and insert_message, which dedups by id channels.rs:807-809.<br/>The broad one is per-zone #e filters plus a catch-all with no #e message_sync_filters channels.rs:1042 channels.rs:1076,<br/>so a deep-linked channel's history can arrive twice - overlapping authority and redundant relay traffic, not a count error"]
 ```
 

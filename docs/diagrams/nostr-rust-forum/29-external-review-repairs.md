@@ -19,7 +19,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/acl.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
 ---
 
 ## For developers
@@ -67,7 +67,7 @@ flowchart TB
     D["Pod administration also uses RELAY_DB"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:263
     E["Invite cohorts union in one SQL update"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:734
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-auth-worker/src/invites.rs:712
     F["Revoke resolves unique invitation id or code"]
     A --> B
     C --> D

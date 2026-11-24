@@ -40,7 +40,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-config/src/schema.rs
   - ../nostr-rust-forum/benchmarks/js-vs-wasm/package.json
   - ../nostr-rust-forum/docs/security/advisory-exceptions.md
-verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
+verified_commit: de31aaa6e6c6b672cc310a2659cf33fd4887602c
 ---
 
 ## NF-09.1 The CI gate graph
@@ -68,7 +68,7 @@ flowchart TB
     N3["The wasm32 job installs libc6-dev-i386 so the secp256k1-sys cross-compile succeeds<br/>.github/workflows/ci.yml:185 - which is why it can check the WHOLE workspace, not the three crates<br/>workspace.metadata.ci.wasm-check-packages names nostr-rust-forum/Cargo.toml:72. See NF-01.2."]
     N4["ci-pass iterates every job result and fails the aggregate unless all succeeded<br/>.github/workflows/ci.yml:329"]
     N6["The drift job needs no Rust toolchain and checks out agentbox read-only into _agentbox so the JS derivation is pinned to the real call sites<br/>.github/workflows/ci.yml:281-284. DRIFT: the comment says it runs only when its scripts or fixtures change<br/>.github/workflows/ci.yml:272-273, but the job has no if: and the path filters are workflow-wide and include every .rs file<br/>.github/workflows/ci.yml:26 .github/workflows/ci.yml:275-278, so it runs on every CI run, still outside ci-pass"]
-    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:322-324. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
+    N5["INVARIANT: no toolchain pin, by owner decision 2026-10-02 R8 - the forum floats on stable rust-toolchain.toml:2<br/>under -D warnings so every release is taken the day it ships BASELINE-architecture.md:340-342. Recovery when a new<br/>lint fires on code we do not own: a scoped per-item allow(clippy::lint) naming the cause, as rustc 1.99 needed on<br/>every async_trait trait - nostr-bbs-mesh/src/transport.rs:236 transport.rs:249 nostr-bbs-setup-skill/src/lib.rs:71<br/>nostr-bbs-relay-worker/src/mesh.rs:141 - never a crate-wide allow, never a pin"]
     CLIP -.- N5
     DG -.- N6
 ```

@@ -5,7 +5,7 @@ area: nostr-rust-forum
 governing:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/docs/IDENTITY-keys-and-trust.md
-adrs: [ADR-2023]
+adrs: [ADR-2023, ADR-2034]
 sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/relay/receipt.rs
@@ -30,10 +30,13 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/relay.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/section.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/grant_backlog.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/grant_paging.rs
+  - ../nostr-rust-forum/docs/security/known-findings.md
+  - ../nostr-rust-forum/docs/adr/ADR-2034-absence-is-reported-only-after-an-authenticated-answer.md
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/category.rs
   - ../nostr-rust-forum/docs/adr/ADR-2027-nip17-overlay-for-nostr-chat-interop.md
   - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
-verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
+verified_commit: de31aaa6e6c6b672cc310a2659cf33fd4887602c
 aliases:
   NF-05.9: NF-30.1
   NF-05.10: NF-30.2
@@ -44,7 +47,7 @@ aliases:
   NF-05.19: NF-30.7
   NF-05.20: NF-30.8
 ---
-Split from NF-05 on 2026-11-23: the client's messaging and relay-facing behaviour (formerly NF-05.9, NF-05.10, NF-05.13 to NF-05.15 and NF-05.18 to NF-05.20). Boot, identity, transport, config and signup stay in NF-05. Old panel IDs resolve through the `aliases:` map above; the stamp is NF-05's, and the panels were not re-read.
+Split from NF-05 on 2026-11-23: the client's messaging and relay-facing behaviour (formerly NF-05.9, NF-05.10, NF-05.13 to NF-05.15 and NF-05.18 to NF-05.20). Boot, identity, transport, config and signup stay in NF-05. Old panel IDs resolve through the `aliases:` map above; the split kept NF-05's stamp without a re-read; the panels were re-verified at de31aaa in pass C (2026-11-24).
 
 ## NF-30.1 Direct messages — two wraps per message, and why history exists
 
@@ -70,7 +73,7 @@ sequenceDiagram
     B->>B: a failure is surfaced through state.error, not swallowed dm/mod.rs:1249-1257
 
     Note over A: INVARIANT a single wrap is write-only - encrypted to the recipient, authored by a throwaway key, p-tagged to the recipient alone, so the sender can neither decrypt nor find it, and sent history kept vanishing dm/mod.rs:626-630
-    Note over B: ADR-2016: a zone-key grant rides the SAME gift-wrap transport (kind 1059) as a DM. Core refuses the grant's rumor kind before unwrap can succeed, so dispatch never needs a kind check of its own - dm/mod.rs:1231-1235, zone_crypto/mod.rs:94
+    Note over B: ADR-2016: a zone-key grant rides the SAME gift-wrap transport (kind 1059) as a DM. Core refuses the grant's rumor kind before unwrap can succeed, so dispatch never needs a kind check of its own - dm/mod.rs:1231-1235, zone_crypto/mod.rs:100
     Note over B: The gift-wrap half CANNOT be narrowed to one partner relay-side, so it fetches the whole wrap inbox and selects the conversation locally after unwrapping - the price NIP-59 sender anonymity charges dm/mod.rs:965-969
     Note over B: The realtime window is widened by GIFT_WRAP_LOOKBACK_SECS because NIP-59 randomises the outer created_at into the PAST - a since equals now subscription would skip a message sent this second dm/mod.rs:997 dm/mod.rs:976-984
     Note over B: Tier 0 (ADR-2023): a layout-level incoming watcher subscribes to the account's own gift-wrap inbox, unwraps each wrap not yet announced and raises a DM notification, because the per-page DMStore only subscribes while a DM screen is open dm/mod.rs:1116 dm/mod.rs:1144
@@ -244,15 +247,15 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-    LOAD["Per-scope localStorage record: since marker, sealed and held tombstones<br/>deletion_sync.rs:614 deletion_sync.rs:166"]
+    LOAD["Per-scope localStorage record: since marker, sealed and held tombstones<br/>deletion_sync.rs:627 deletion_sync.rs:166"]
     REQ["kind-5 filter with since = marker, limit 1000, beside the channel filters<br/>channels.rs:974 channels.rs:525 channels.rs:526"]
-    OBS["Each kind-5: observe for the marker, then apply_deletion per deleter<br/>channels.rs:385 channels.rs:388 deletion_sync.rs:508"]
-    EOSE["Channel EOSE: on_main_eose decides<br/>channels.rs:511 deletion_sync.rs:570"]
+    OBS["Each kind-5: observe for the marker, then apply_deletion per deleter<br/>channels.rs:385 channels.rs:388 deletion_sync.rs:521"]
+    EOSE["Channel EOSE: on_main_eose decides<br/>channels.rs:511 deletion_sync.rs:583"]
     PAGE["Marked sync filled the page: fetch until = oldest delivered, inclusive<br/>deletion_sync.rs:402 channels.rs:987"]
     NEXT["Each page: Done, Next or GiveUp, at most 20 pages<br/>deletion_sync.rs:424 deletion_sync.rs:123"]
     DONE["Settled: marker = min(newest delivered, now) minus 14 days, never backwards<br/>deletion_sync.rs:266 deletion_sync.rs:119"]
     GIVE["GiveUp: old marker stays<br/>OPEN O23 / KF-25: no resume cursor, the next session re-fetches the same pages<br/>deletion_sync.rs:30-34"]
-    SAVE["persist the record<br/>deletion_sync.rs:628"]
+    SAVE["persist the record<br/>deletion_sync.rs:641"]
 
     LOAD --> REQ --> OBS --> EOSE
     EOSE -->|full marked page| PAGE --> NEXT
@@ -268,6 +271,7 @@ flowchart TB
 ```
 
 ## NF-30.8 Page lookup states: loading, keys loading, found, not found, timed out (kit #91, kit #98)
+> **Superseded** by NF-30.9 at de31aaa (frozen at 4a73a7a).
 
 ```mermaid
 flowchart TB
@@ -301,3 +305,40 @@ flowchart TB
 ```
 
 **What it shows.** Kit #91 made a deep-linked page wait for the subscription that would carry the topic; kit #98 (fd31193) adds the member's zone-key backlog as an input, so an encrypted zone shows "Fetching your keys" rather than "Topic Not Found" until the grant backlog settles or stalls.
+
+## NF-30.9 Page lookup states after the grant backlog pages (kit #91, #98, #95)
+
+```mermaid
+flowchart TB
+    URL(["deep link /forums/zone/section/topic"])
+    GATED["zone_is_gated: a non-public zone needs an authenticated receipt<br/>lookup.rs:234 lookup.rs:63"]
+    SEC{"thread page: channel found, or channel_receipt settles?<br/>thread.rs:661-665, the zone page applies<br/>the same rule to its sections category.rs:148"}
+    TOP{"topic root found among the channel's kind-42 by id?<br/>thread.rs:487 thread.rs:504"}
+    HIST["history receipt from ensure_subscribed<br/>channels.rs:761 thread.rs:670"]
+    KEYS["key_state_memo: encrypted zone and a zone-key store, phase from key_phase_for<br/>thread.rs:645-656 lookup.rs:195 zone_crypto/store.rs:255"]
+    BACK["GrantBacklog: settled once every grant scope paged to its end, no wrap is in flight or left to retry, and no scope gave up; latched<br/>stalled after 20 s without progress, 120 s from the later of the sync start and the last scope delivery, or at once after a give-up<br/>grant_backlog.rs:324-333 grant_backlog.rs:40 grant_backlog.rs:49 grant_backlog.rs:339-353"]
+    DEC["Lookup.decide_with_keys: presence, then relay answer, then keys, 15 s deadline re-armed per target<br/>lookup.rs:134-151 lookup.rs:38 thread.rs:639 thread.rs:668"]
+    LOADING(["Loading topic, or Fetching your keys for this zone<br/>thread.rs:1199-1203"])
+    NF(["Topic Not Found<br/>thread.rs:1208"])
+    TO(["Topic Unavailable: no relay answer, or keys too slow<br/>thread.rs:1212 thread.rs:1215-1217"])
+    FOUND(["render the topic"])
+
+    URL --> GATED --> SEC
+    SEC -->|found| TOP
+    TOP --> DEC
+    HIST --> DEC
+    BACK --> KEYS --> DEC
+    DEC -->|found| FOUND
+    DEC -->|answered, keys settled or not needed| NF
+    DEC -->|no answer by the deadline, or keys stalled| TO
+    DEC -->|no answer yet, or keys pending or progressing| LOADING
+
+    KEYWAIT["Since kit #98 = fd31193: an answered relay no longer means Not Found while keys arrive lookup.rs:146-149.<br/>Why keys matter: a sealed original sits under its envelope id until a key opens it zone_crypto/store.rs:539-541,<br/>and redecrypt restores it in place when a key lands zone_crypto/store.rs:576-578. The section page applies the same rule to its topic list<br/>section.rs:318 section.rs:334 section.rs:575-579 section.rs:603-606. KF-23 reads Closed in the table docs/security/known-findings.md:91."]
+    PAGED["Kit PR #95: each grant page still asks for at most 1000 wraps, newest first, shared with DMs zone_crypto/store.rs:1637-1643 channels.rs:963,<br/>but every scope now pages to its end, page 0 plus at most 50 grant_paging.rs:108 (NF-27.8). A grant left to retry keeps the backlog open<br/>grant_backlog.rs:333, so the page shows the keys copy, never Not Found. A member who holds no key settles too lookup.rs:161-163,<br/>so a sealed-original topic they cannot open is Not Found once keys settle lookup.rs:147."]
+    LIMITS["OPEN KF-31 a failed relay query reads as empty, KF-32 the 51,000-wrap bound, KF-33 junk wraps sharing one timestamp<br/>docs/security/known-findings.md:108-110 - each ends in the keys-timed-out copy, never Not Found"]
+    KEYWAIT -.-> DEC
+    PAGED -.-> NF
+    LIMITS -.-> TO
+```
+
+**What it shows.** The decision is unchanged since kit #98 (`../nostr-rust-forum/crates/nostr-bbs-forum-client/src/utils/lookup.rs:134-151`); kit PR #95 changed what it waits on, so the backlog is complete past the row cap and a retryable wrap holds it (`../nostr-rust-forum/docs/adr/ADR-2034-absence-is-reported-only-after-an-authenticated-answer.md:75-80`). Live, 2026-11-24, after the website repinned to de31aaa: a fresh device on a direct Family topic link showed "Fetching your keys" at 4.5 to 5.4 s and the decrypted topic at 11.7 to 13.0 s over three runs, never "Topic Not Found" (9.2 s and 28.4 s on 2026-11-22); an operator observation, not a code citation.

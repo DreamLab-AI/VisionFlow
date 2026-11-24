@@ -20,7 +20,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/dreamlab.toml
   - ../dreamlab-ai-website/forum-config/src/workers.rs
   - ../dreamlab-ai-website/src/App.tsx
-verified_commit: e255b2b113ee47d58a0c872c6b4702afc62a46e5
+verified_commit: 5dc4c644517ff36219b7fe6cc1a70f20dc6a8d83
 ---
 
 ## DW-01.1 Repo composition — thin operator overlay, not a protocol owner
@@ -65,6 +65,7 @@ flowchart TB
 - The branded custom domains for those Workers (`relay./api./pods./search./preview.dreamlab-ai.com`) are the documented end-state but are **not provisioned in DNS** — the client instead talks to raw `*.workers.dev` hosts baked into the build env (`deploy.yml:49-61`; verified 2026-06-09 `ERR_NAME_NOT_RESOLVED`, not re-checked as of 2026-08-31) — shipping the branded domains baked in previously severed every client API call (BASELINE-architecture.md:91-97).
 
 ## DW-01.5 The pin rule — one kit SHA at four sites, one crate version beside it
+> **Superseded** by DW-01.9 at 5dc4c64 (frozen at e255b2b).
 ```mermaid
 flowchart TB
     RULE["dual-pin rule, four sites move together<br/>CLAUDE.md:246-257"]
@@ -77,7 +78,7 @@ flowchart TB
     subgraph VERT["Library track: the crates forum-config links"]
         E["four exact = pins, no git rev<br/>forum-config/Cargo.toml:50-53"] --- VER["1.0.0-beta.20 from crates.io<br/>Cargo.lock:959-962 registry source + checksum"]
         F["CANONICAL_KIT_VERSION<br/>kit-compatibility-record.md:31"] --- VER
-        G["RESOLVED lines x4<br/>kit-compatibility-record.md:86-89"] --- VER
+        G["Resolved lines x4<br/>kit-compatibility-record.md:86-89"] --- VER
     end
     RULE --> SHAT
     RULE -.->|"crates move only when the kit publishes<br/>CLAUDE.md:259-263"| VERT
@@ -142,3 +143,26 @@ flowchart LR
 ```
 - `visionclaw-server` is a governance publisher pubkey shared with the forum's primary admin pubkey — see DW-03/DW-04 for the identity implications and IDENTITY-zones.md. The `[governance].agent_pubkeys` list this repo authors is at `forum-config/dreamlab.toml:264,275-277`; the ecosystem statement itself is at `CLAUDE.md:17`.
 - DIVERGENCE: the native pod tier is a third plane beside the two ADR-2002 decides. `[native_pod] enabled = true` points at `pods-native.dreamlab-ai.com` (`dreamlab.toml:253-258`), which had no DNS record when ADR-2002's open item was written on 2026-11-22 (NXDOMAIN, not re-checked here), so the Pod Browser's mesh card cannot reach it; the item is parked by the owner (`ADR-2002-split-hosting-pages-workers.md:130-146`, `BASELINE-architecture.md:156-161`). Both now record that the card is gated by the `NATIVE_POD_URL` build secret, not by `enabled` (`ADR-2002-split-hosting-pages-workers.md:156-163`, `BASELINE-architecture.md:159-161`); the overlay side is DW-03.12.
+
+## DW-01.9 The pin rule at 5dc4c64 — kit de31aaa at all four sites, crates still beta.20
+```mermaid
+flowchart TB
+    RULE["dual-pin rule, four sites move together<br/>CLAUDE.md:246-257"]
+    subgraph SHAT["SHA track: the kit source the clients and workers build from"]
+        A["1. KIT_REF<br/>.github/workflows/deploy.yml:131"] --- SHA["de31aaa6e6c6b672cc310a2659cf33fd4887602c<br/>kit main at de31aaa, website PR #101<br/>kit-compatibility-record.md:26"]
+        B["2. KIT_REF<br/>.github/workflows/workers-deploy.yml:45"] --- SHA
+        C["3. KIT_REF<br/>.github/workflows/rust-ci.yml:20"] --- SHA
+        D["4. CANONICAL_KIT_SHA<br/>kit-compatibility-record.md:30"] --- SHA
+    end
+    subgraph VERT["Library track: the crates forum-config links"]
+        E["four exact = pins, no git rev<br/>forum-config/Cargo.toml:50-53"] --- VER["1.0.0-beta.20 from crates.io<br/>Cargo.lock:959-962 registry source + checksum"]
+        F["CANONICAL_KIT_VERSION<br/>kit-compatibility-record.md:31"] --- VER
+        G["the four resolved-crate checksum lines<br/>kit-compatibility-record.md:90-93"] --- VER
+    end
+    RULE --> SHAT
+    RULE -.->|"crates move only when the kit publishes<br/>CLAUDE.md:259-263"| VERT
+    SHA -.->|"runs ahead of the published crates by design<br/>BASELINE-architecture.md:117-125"| VER
+    SHA -.- DRIFT["DOC-DRIFT: the BASELINE snapshot still records KIT_REF fd31193,<br/>BASELINE-architecture.md:117-118, no gate reads it, see DW-06.12"]
+```
+- **What it shows:** successor to the frozen DW-01.5. Website PR #101 (`5dc4c64`) moved the three `KIT_REF`s and `CANONICAL_KIT_SHA` together to kit `de31aaa` (`.github/workflows/deploy.yml:131`, `kit-compatibility-record.md:30`); the crate track is unchanged at `=1.0.0-beta.20`. The pin gate itself is drawn in DW-05.11.
+- **Drift (reopened):** the governing doc's pin snapshot still records `KIT_REF = fd31193…` (`BASELINE-architecture.md:117-118`), so the "closed" drift recorded under DW-01.5 holds only at its frozen revision; the register entry is DW-06.12 (D9).

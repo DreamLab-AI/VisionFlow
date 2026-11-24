@@ -287,6 +287,7 @@ flowchart TD
 ```
 
 ## AB-05.13 The gate families added since 2026-09-06: System One, compaction, permissions, instructions, cred-sync, resources
+> **Superseded** by AB-49.1 at ca07b59 (frozen at 59b1aca).
 ```mermaid
 flowchart TB
     TOML["agentbox.toml"]
@@ -332,7 +333,7 @@ flowchart TB
     C9 --> B9["flake.nix bakes program:sidestr-producer, -mirror, -faucet<br/>see AB-01.1 and AB-02.6"]
     C8 --> B8["[program:claude-cred-sync] polls container ~/.claude/.credentials.json<br/>against host-claude bind every 2s, later expiresAt wins<br/>flake.nix:3535-3547, services/agentbox-manifest/src/cred_sync.rs"]
 
-    C5 --> DIV["RESOLVED - the manifest now declares voice on, apply-class sidecar,<br/>so a running console no longer reports state off, agentbox.toml:2319"]
+    C5 --> DIV["Resolved - the manifest now declares voice on, apply-class sidecar,<br/>so a running console no longer reports state off, agentbox.toml:2319"]
     F10 --> C10["catalogue junkiejarvis, layer surface, gate sovereign_mesh.junkiejarvis,<br/>apply_class boot - system-manifest.js:80-82;<br/>server.js:1490-1491 and the forum-suggestions tenant<br/>both call junkiejarvisEnabled(manifest)"]
     C4 --> REB["INVARIANT - mcp-hub is rebuild-class because its supervisor<br/>program is composed into the image, so flipping the gate and<br/>restarting does not add it, system-manifest.js:445-447"]
 ```
@@ -483,6 +484,7 @@ flowchart TB
 **Source and activation boundary:** the comment above `role_isolation` says the identity port and the custody migration (W2-W4) are not in the image yet, so role programs fail closed under the flag (`../project/agentbox/agentbox.toml:2608-2614`). At this revision the flake declares `[program:serve-identity]` (`../project/agentbox/flake.nix:3063`) and the W2 capture and scrub run before `exec supervisord` (`../project/agentbox/config/entrypoint-unified.sh:460`, `../project/agentbox/config/entrypoint-unified.sh:1298`). The comment also adds a new condition the old text did not have: until the W3b consumer cutover lands, JunkieJarvis, the mirror hook and dream-engine cannot sign under the flag. The advice to leave the flag off until the rehearsal passes still holds. The source paths exist; their presence does not establish a fresh image or custody rehearsal.
 
 ## AB-05.17 Gate families added in October 2026: floor, voicelink, activity sink, forge, Blender sidecar-first, Loom sync, Isaac Sim
+> **Superseded** by AB-49.2 at ca07b59 (frozen at 59b1aca).
 ```mermaid
 flowchart TB
     TOML["agentbox.toml"]
