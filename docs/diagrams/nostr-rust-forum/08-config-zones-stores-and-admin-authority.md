@@ -63,7 +63,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-search-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/auth.rs
   - ../nostr-rust-forum/crates/nostr-bbs-rate-limit/src/replay.rs
-verified_commit: 8a0ca418b9f129b219431880d9fa5a81603428fc
+verified_commit: de31aaa6e6c6b672cc310a2659cf33fd4887602c
 ---
 
 ## NF-08.1 forum.toml — the single source of access truth and its projection

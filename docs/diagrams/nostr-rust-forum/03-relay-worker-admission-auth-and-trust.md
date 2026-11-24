@@ -51,6 +51,7 @@ flowchart TB
 ```
 
 ## NF-03.2 NIP-42 AUTH — the verdict table
+> **Superseded** by NF-32.8 at de31aaa (frozen at 4a73a7a).
 
 ```mermaid
 sequenceDiagram
@@ -73,10 +74,10 @@ sequenceDiagram
     DO->>DO: mark session authed and persist it, then OK true nip_handlers.rs:2152 nip_handlers.rs:2156
 
     Note over EV: A MISSING session challenge can never match, so it rejects - there is no unchallenged path nip42.rs:212-217
-    Note over EV: RESOLVED since 6064622 - the relay-tag check no longer fails OPEN. A blank RELAY_URL leaves the allowed set empty and every AUTH is refused, because a request-derived identity would let an attacker's Host poison the binding nip42.rs:220-227. The set is built by allowed_relay_urls nip42.rs:252
+    Note over EV: Resolved since 6064622 - the relay-tag check no longer fails OPEN. A blank RELAY_URL leaves the allowed set empty and every AUTH is refused, because a request-derived identity would let an attacker's Host poison the binding nip42.rs:220-227. The set is built by allowed_relay_urls nip42.rs:252
     Note over DO: DEBT the template still ships RELAY_URL and RELAY_URL_ALIASES blank nostr-bbs-relay-worker/wrangler.toml:49 wrangler.toml:53, so an unconfigured nip42 deployment refuses every AUTH and therefore every write. handle_auth logs a console error on each AUTH while it is blank nip_handlers.rs:2137 nip42.rs:284. The kit records it as open finding KF-29 at 4a73a7a - see NF-10.11
     Note over DO: DOC-DRIFT the runtime message lags the template and SETUP - the console error handle_auth emits still says only that every authenticated write is REFUSED nip42.rs:288, and the call-site comment says the same nip_handlers.rs:2135-2137, though the empty set refuses every AUTH and so every protected-kind read as well nip42.rs:226
-    Note over EV: RESOLVED at 4a73a7a - the evaluate_auth_event doc comment now says the caller builds the set from RELAY_URL and RELAY_URL_ALIASES only, never from the request host nip42.rs:187-193, and the helper comment says its one caller is the per-AUTH log, nothing at startup or in NIP-11 nip42.rs:274-277 nip_handlers.rs:2137
+    Note over EV: Resolved at 4a73a7a - the evaluate_auth_event doc comment now says the caller builds the set from RELAY_URL and RELAY_URL_ALIASES only, never from the request host nip42.rs:187-193, and the helper comment says its one caller is the per-AUTH log, nothing at startup or in NIP-11 nip42.rs:274-277 nip_handlers.rs:2137
     Note over EV: canonical_relay_url absorbs scheme, case and a trailing slash but keeps host identity nip42.rs:163, asserted nip42.rs:432-443
 ```
 
@@ -355,6 +356,7 @@ sequenceDiagram
 **Tension (ADR-2010 vs code):** ADR-2010 records `decision_status: proposed`, `implementation_status: partial`, `activation_status: staged` (`../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md:5-7`), yet `handle_event` runs all three receipt-bearing projections (appeal, supersession, first-order response) unconditionally after every stored governance event (`nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1667`, `nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1687`, `nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1700`).
 
 ## NF-03.11 Structural validation limits and the subscription cap
+> **Superseded** by NF-32.9 at de31aaa (frozen at 4a73a7a).
 
 ```mermaid
 flowchart LR

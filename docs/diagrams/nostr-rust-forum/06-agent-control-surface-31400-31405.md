@@ -35,7 +35,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2010-durable-governance-outcome-receipts.md
   - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
   - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
-verified_commit: {nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af, dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5}
+verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c, dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5}
 ---
 
 ## NF-06.1 The six kinds and their publishers
@@ -62,7 +62,7 @@ classDiagram
     ACSKinds --> TypedPayloads
     ACSKinds --> RegisteredAgent
 
-    note for ACSKinds "This repo OWNS the 31400-31405 schema for the estate. Every kind constant is re-exported at crate level so no consumer need hardcode a number nostr-bbs-core/src/lib.rs:155. DEBT: the forum client still does - the board declares its own 31402 and 31403 nostr-bbs-forum-client/src/pages/board.rs:46-47 and the app subscribes with a literal list nostr-bbs-forum-client/src/app.rs:861"
+    note for ACSKinds "This repo OWNS the 31400-31405 schema for the estate. Every kind constant is re-exported at crate level so no consumer need hardcode a number nostr-bbs-core/src/lib.rs:155. DEBT: the forum client still does - the board declares its own 31402 and 31403 nostr-bbs-forum-client/src/pages/board.rs:46-47 and the app subscribes with a literal list nostr-bbs-forum-client/src/app.rs:864"
     note for TypedPayloads "DOC-DRIFT: the README table (README.md:111-116) and this module's own doc table (nostr-bbs-core/src/governance.rs:9-16) name six types, but only THREE have a Rust struct - PanelDefinition, ActionRequest and ActionResponse. PanelState, PanelUpdate and PanelRetired exist as kind constants and doc rows only."
     note for RegisteredAgent "INVARIANT: only kinds 31400, 31401, 31402, 31404 and 31405 are agent-published. 31403 is the HUMAN half - see NF-06.3"
 ```
@@ -98,16 +98,16 @@ sequenceDiagram
 
     AG->>R: kind 31400 PanelDefinition
     R->>REG: is_registered_agent gate nip_handlers.rs:1357
-    R-->>FC: subscription on 31400-31405 nostr-bbs-forum-client/src/app.rs:861
+    R-->>FC: subscription on 31400-31405 nostr-bbs-forum-client/src/app.rs:864
     AG->>R: kind 31402 ActionRequest
-    R->>R: project_action_request into broker_cases nip_handlers.rs:3903
-    FC->>FC: ingest_event into the panel registry nostr-bbs-forum-client/src/app.rs:867
+    R->>R: project_action_request into broker_cases nip_handlers.rs:3904
+    FC->>FC: ingest_event into the panel registry nostr-bbs-forum-client/src/app.rs:870
     FC-->>HU: render the decision card
     HU->>FC: approve / reject on the decision card
     FC->>R: kind 31403 ActionResponse nostr-bbs-forum-client/src/pages/governance.rs:917
     R->>R: admin-or-delegated-reviewer gate nip_handlers.rs:1384 via response_admission nip_handlers.rs:307
     R->>R: correlate reads the request id, falling back to the first unmarked e tag nostr-bbs-relay-worker/src/relay_do/receipts.rs:130
-    R->>R: project_action_response nip_handlers.rs:4112
+    R->>R: project_action_response nip_handlers.rs:4113
     R-->>AG: subscription on 31403
 
     Note over R: INVARIANT P1-6+FR6.2: a Decision is a PRIVILEGED act, not a generic member action - kind 31403 from a non-admin, non-delegated-reviewer is blocked outright nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1374-1387
@@ -142,10 +142,10 @@ flowchart TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Open: 31402 ActionRequest projected<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3903
+    [*] --> Open: 31402 ActionRequest projected<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3904
     Open --> Decided: 31403 routed through the DecisionOrchestrator<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:596-597
-    Decided --> Superseded: 31403 carrying a supersedes e-tag<br/>project_supersession nip_handlers.rs:4512
-    Decided --> Reopened: appeal-marked 31402 from the requester<br/>project_appeal nip_handlers.rs:4609, reopen nostr-bbs-core/src/governance.rs:1969-1976
+    Decided --> Superseded: 31403 carrying a supersedes e-tag<br/>project_supersession nip_handlers.rs:4513
+    Decided --> Reopened: appeal-marked 31402 from the requester<br/>project_appeal nip_handlers.rs:4610, reopen nostr-bbs-core/src/governance.rs:1969-1976
     Superseded --> Reopened: appeal-marked 31402<br/>nostr-bbs-core/src/governance.rs:1975
     Reopened --> Decided: a fresh authorised 31403<br/>projection admits open, under_review or reopened nostr-bbs-relay-worker/src/relay_do/receipts.rs:188
     Decided --> [*]
@@ -277,9 +277,9 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    RESP["Stored 31403 first-order response, relay OK still means storage<br/>project_action_response nip_handlers.rs:4112"]
-    SUP["Stored superseding 31403<br/>project_supersession nip_handlers.rs:4512"]
-    APP["Stored appeal-marked 31402<br/>project_appeal nip_handlers.rs:4609"]
+    RESP["Stored 31403 first-order response, relay OK still means storage<br/>project_action_response nip_handlers.rs:4113"]
+    SUP["Stored superseding 31403<br/>project_supersession nip_handlers.rs:4513"]
+    APP["Stored appeal-marked 31402<br/>project_appeal nip_handlers.rs:4610"]
     COMMIT["one Commit enum carries the three plans: Response, Supersession, Appeal<br/>nostr-bbs-relay-worker/src/relay_do/receipts.rs:308"]
     CORR["correlate builds the receipt identity from the signed event<br/>receipts::correlate receipts.rs:115"]
     MATCH["apply_with_receipt refuses a plan whose event, case, signer and outcome do not match the correlation: Uncorrelated<br/>receipts.rs:452"]
@@ -309,7 +309,7 @@ flowchart TB
     TIER["effective_tier - total and pure over four inputs<br/>nostr-bbs-core/src/governance.rs:564"]
     DECL["the agent's own risk_tier is TELEMETRY from here on - it can raise<br/>the tier and never lower it below the properties' floor<br/>nostr-bbs-core/src/governance.rs:557-558"]
     DEF["an entirely unlabelled request folds to the relay's advertised<br/>ESCALATION_DEFAULT_TIER nostr-bbs-core/src/governance.rs:574,<br/>nostr-bbs-relay-worker/wrangler.toml:63"]
-    STORE["stored on broker_cases.effective_tier at projection<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3958,<br/>read back nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3995"]
+    STORE["stored on broker_cases.effective_tier at projection<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3959,<br/>read back nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3996"]
 
     PANEL --> MERGE
     REQUEST --> MERGE
@@ -337,8 +337,8 @@ sequenceDiagram
 
     H->>R: signed kind 31403
     R->>R: extract the case id from the d tag nip_handlers.rs:1375
-    R->>D1: is_reviewer nip_handlers.rs:4007
-    R->>D1: is_delegated_for_case nip_handlers.rs:4031
+    R->>D1: is_reviewer nip_handlers.rs:4008
+    R->>D1: is_delegated_for_case nip_handlers.rs:4032
     R->>AD: is_admin, is_reviewer, delegated for THIS case
     AD-->>R: Admit, BlockedNotAuthorised or BlockedNotDelegated nip_handlers.rs:313 nip_handlers.rs:316 nip_handlers.rs:321
     R->>D1: case_effective_tier nip_handlers.rs:1398
@@ -451,6 +451,7 @@ flowchart TB
 ```
 
 ## NF-06.18 The M4 probe suite and what live activation does not establish
+> **Superseded** by NF-32.13 at 5dc4c64.
 
 ```mermaid
 flowchart TB
@@ -470,9 +471,9 @@ flowchart TB
 
     N1["OPEN: the requesting agent holds the admin flag, and the relay tells a human from a system by the<br/>31403's own decided_by - so the boundary is as strong as the admin list; not exercised live, on purpose<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:201"]
     N2["OPEN: no human has yet decided a high-tier case; the owner's first such 31403 at projection-committed<br/>is what closes ADR-2010 docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157"]
-    N3["RESOLVED 13cbe6c: ADR-2010 now records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
+    N3["Resolved 13cbe6c: ADR-2010 now records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
     N4["Probe cases persist as open broker_cases rows after withdrawal, identifiable by subject_kind m4-probe<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:204"]
-    N5["RESOLVED at dreamlab 4935b6c, pin since advanced to fd31193: the kit record then pinned 9c36b60 and now pins fd31193 in its SHA column and CANONICAL_KIT_SHA (branch column main at fd31193, tag v1.0.0-beta.21-rc.3);<br/>the 9c36b60 paragraph still describes the env-driven Jev local-only switches that pin brought<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :62"]
+    N5["Resolved at dreamlab 4935b6c, pin since advanced to fd31193: the kit record then pinned 9c36b60 and now pins fd31193 in its SHA column and CANONICAL_KIT_SHA (branch column main at fd31193, tag v1.0.0-beta.21-rc.3);<br/>the 9c36b60 paragraph still describes the env-driven Jev local-only switches that pin brought<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :62"]
 ```
 
 ## NF-06.19 The Jev rationale check — an opt-in advisory beside the decision card
@@ -503,9 +504,9 @@ flowchart TB
 flowchart TB
     CANON["canonical_json_string writes every object's keys sorted by UTF-16 code unit, arrays in order, no whitespace<br/>nostr-bbs-core/src/governance.rs:1185, sort nostr-bbs-core/src/governance.rs:1198 - the JCS key order, not full JCS"]
     FIELDS["ActionRequest.fields is serialised through it nostr-bbs-core/src/governance.rs:1231 via serialize_canonical<br/>nostr-bbs-core/src/governance.rs:1219; typed structs keep declaration order"]
-    USERS["free-form content built the same way: kanban approval request nostr-bbs-core/src/kanban.rs:651, agent intent<br/>nostr-bbs-core/src/kanban.rs:817, panel action 31403 nostr-bbs-forum-client/src/pages/governance.rs:513,<br/>governance view nostr-bbs-forum-client/src/utils/governance_view.rs:87, probe nostr-bbs-governance-probe/src/lib.rs:263 nostr-bbs-governance-probe/src/lib.rs:286"]
+    USERS["free-form content built the same way: kanban approval request nostr-bbs-core/src/kanban.rs:651, agent intent<br/>nostr-bbs-core/src/kanban.rs:820, panel action 31403 nostr-bbs-forum-client/src/pages/governance.rs:513,<br/>governance view nostr-bbs-forum-client/src/utils/governance_view.rs:87, probe nostr-bbs-governance-probe/src/lib.rs:263 nostr-bbs-governance-probe/src/lib.rs:286"]
     RANK["priority_rank maps the 31402 priority label critical, high, medium, low to 100, 75, 50, 25<br/>nostr-bbs-core/src/governance.rs:212, ranks nostr-bbs-core/src/governance.rs:186; a legacy integer is capped at 100<br/>nostr-bbs-core/src/governance.rs:216; absent or unknown is 50 nostr-bbs-core/src/governance.rs:217"]
-    STORE["project_action_request stores that rank in broker_cases.priority<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3917-3918"]
+    STORE["project_action_request stores that rank in broker_cases.priority<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3918-3919"]
 
     CANON --> FIELDS --> USERS
     RANK --> STORE

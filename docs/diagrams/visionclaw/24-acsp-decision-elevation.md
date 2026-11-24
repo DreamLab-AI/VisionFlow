@@ -41,7 +41,7 @@ sources:
   - ../project/src/app_state.rs
   - ../project/src/services/ontology_mutation_service.rs
   - ../project/src/services/voice_intent_client.rs
-verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca}
+verified_commit: {visionclaw: bc6ac309e0c9e6c415b24d98a9ba1b7fdfd050f8, agentbox: ca07b59603137ca76159634cf664a622c34ab9ec}
 ---
 
 ## For developers
@@ -385,7 +385,7 @@ flowchart TB
     VF -->|4 walk EVERY mark not tip only - each output key x of P_i recomputed,<br/>each mark spends its predecessor, each confirmed - reordered states derive<br/>different keys so the walk refuses| BT
     CH -->|3-gate registry| VF
     TL -->|capability gate| VF
-    Note1["Note: this is the ADR-124/128 web-ledger contract<br/>layer (legacy numbering, not in the 20xx governing<br/>pack) - the deploy/verify ritual for gitmark.json /<br/>blocktrails.json payment contracts. It is NOT part of<br/>the ACSP proposal/case state machine (VC-24.1-24.6;<br/>there is no VC-24.7);<br/>included here only because the brief names it as a<br/>governance-adjacent entry point under src/"]
+    Note1["Note: this is the ADR-124/128 web-ledger contract<br/>layer (legacy numbering, not in the 20xx governing<br/>pack) - the deploy/verify ritual for gitmark.json /<br/>blocktrails.json payment contracts. It is NOT part of<br/>the ACSP proposal/case state machine (VC-24.1-24.6;<br/>panel number seven is unused);<br/>included here only because the brief names it as a<br/>governance-adjacent entry point under src/"]
 ```
 
 ## VC-24.11 ACSP decision-projection client — app_state.rs boot + relay connect
@@ -435,6 +435,7 @@ flowchart TB
 ```
 
 ## VC-24.13 GET /api/broker/inbox — opt-in Jev proposal triage (VC-24-S1-01)
+> **Superseded** by VC-24.14 at bc6ac309e (frozen at 4900ec60b).
 
 ```mermaid
 sequenceDiagram
@@ -457,6 +458,35 @@ sequenceDiagram
     end
     H-->>BR: 200 {cases, total} - total is the unfiltered proposal count<br/>broker_inbox_handler.rs:218, :235
     Note over JV,H: INVARIANT: Jev annotates and orders only - it never approves, rejects or promotes, and the decide route (VC-24.3), signed decisions and receipts are untouched.<br/>crates/visionclaw-jev/src/proposal_triage.rs:8-10
-    Note over TR,JV: CHANGED 2026-11-16 (routing, owner ruling): ALLOW_CLOUD now defaults to 0<br/>(docker-compose.unified.yml:25, docs/adr/ADR-2148-enable-local-typed-decisions.md:114)<br/>and BACKEND_LOCAL stays 0 (docker-compose.unified.yml:11), so PROPOSAL_TRIAGE, local-only in code<br/>(Item::local_only crates/visionclaw-jev/src/config.rs:155-160), is not declared local<br/>(config.rs:316-318) and resolves no endpoint (refusal :340-342). By default the inbox<br/>takes the plain projection and the private proposal text does not leave.<br/>The agentbox proxy backend is now laya, local (agentbox.toml:914), but VisionClaw is not told so.<br/>DRIFT: docs/reference/configuration.md:424-428 still describes ALLOW_CLOUD=1<br/>as the shared route for the local-only items.<br/>RESOLVED 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live<br/>(docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate<br/>both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91).<br/>docs/BASELINE-architecture.md:56-58 agrees, live since the host recreate,<br/>but it too still names ALLOW_CLOUD=1 as the cloud path
+    Note over TR,JV: CHANGED 2026-11-16 (routing, owner ruling): ALLOW_CLOUD now defaults to 0<br/>(docker-compose.unified.yml:25, docs/adr/ADR-2148-enable-local-typed-decisions.md:114)<br/>and BACKEND_LOCAL stays 0 (docker-compose.unified.yml:11), so PROPOSAL_TRIAGE, local-only in code<br/>(Item::local_only crates/visionclaw-jev/src/config.rs:155-160), is not declared local<br/>(config.rs:316-318) and resolves no endpoint (refusal :340-342). By default the inbox<br/>takes the plain projection and the private proposal text does not leave.<br/>The agentbox proxy backend is now laya, local (agentbox.toml:914), but VisionClaw is not told so.<br/>DRIFT: docs/reference/configuration.md:424-428 still describes ALLOW_CLOUD=1<br/>as the shared route for the local-only items.<br/>Resolved 2026-10-30 (activation): VisionClaw ADR-2148 is accepted / complete / live<br/>(docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate<br/>both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91).<br/>docs/BASELINE-architecture.md:56-58 agrees, live since the host recreate,<br/>but it too still names ALLOW_CLOUD=1 as the cloud path
     Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:816-823, handlers/broker_inbox_handler.rs:201
 ```
+
+
+## VC-24.14 GET /api/broker/inbox — opt-in Jev proposal triage, the docs now state the local-only default
+```mermaid
+sequenceDiagram
+    autonumber
+    participant BR as agentbox broker-bridge
+    participant H as inbox<br/>handlers/broker_inbox_handler.rs:228
+    participant ST as store::all projection over SqliteEnrichmentRepository<br/>handlers/enrichment_proposals_handler.rs:820
+    participant TR as assemble_inbox<br/>handlers/broker_inbox_handler.rs:197
+    participant JV as visionclaw_jev proposal_triage<br/>broker_inbox_handler.rs:44
+
+    BR->>H: GET /api/broker/inbox - scope wrapped in RequireAuth::power_user, service credential accepted<br/>broker_inbox_handler.rs:259-263
+    H->>ST: store::all - up to 500 proposals via repo.list, the bridge filters category and status itself<br/>broker_inbox_handler.rs:229 handlers/enrichment_proposals_handler.rs:820-831
+    H->>TR: assemble_inbox(proposals, jev_triage())<br/>broker_inbox_handler.rs:230
+    alt Jev unconfigured, item off or no endpoint - library default off, Compose sets VISIONCLAW_JEV=1 at docker-compose.unified.yml:24 (jev_triage resolves to None once via OnceLock)
+        TR-->>H: plain projection, same cases, same order, no jev key<br/>broker_inbox_handler.rs:151-172, :202-205
+    else triage state present
+        TR->>JV: triage_queue over facts for pending or claimed cases only<br/>broker_inbox_handler.rs:174-177, :206-208
+        JV-->>TR: ordered proposals plus per-case annotation, a fallback leaves the case unannotated
+        TR-->>H: cases ordered by triage priority within the slots annotated cases already occupy<br/>broker_inbox_handler.rs:193-196, :209-217
+    end
+    H-->>BR: 200 {cases, total} - total is the unfiltered proposal count<br/>broker_inbox_handler.rs:218, :235
+    Note over JV,H: INVARIANT: Jev annotates and orders only - it never approves, rejects or promotes, and the decide route (VC-24.3), signed decisions and receipts are untouched.<br/>crates/visionclaw-jev/src/proposal_triage.rs:8-10
+    Note over TR,JV: CHANGED 2026-11-16 (routing, owner ruling): ALLOW_CLOUD now defaults to 0<br/>(docker-compose.unified.yml:25, docs/adr/ADR-2148-enable-local-typed-decisions.md:114)<br/>and BACKEND_LOCAL stays 0 (docker-compose.unified.yml:11), so PROPOSAL_TRIAGE, local-only in code<br/>(Item::local_only crates/visionclaw-jev/src/config.rs:155-160), is not declared local<br/>(config.rs:316-318) and resolves no endpoint (refusal :340-342). By default the inbox<br/>takes the plain projection and the private proposal text does not leave.<br/>The agentbox proxy backend is now laya, local (agentbox.toml:914), but VisionClaw is not told so.<br/>docs/reference/configuration.md:425-433 now says the same: the local-only items take the proxy<br/>only on a backend declared local, ALLOW_CLOUD=1 being the explicit cloud opt-in.<br/>VisionClaw ADR-2148 is accepted / complete / live<br/>(docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7), the agentbox rebuild and the host recreate<br/>both happened (docs/adr/ADR-2148-enable-local-typed-decisions.md:81-91).<br/>docs/BASELINE-architecture.md:57-63 agrees, live since the host recreate,<br/>and now gives ALLOW_CLOUD default 0
+    Note over H,ST: DEBT: total is proposals.len() after store::all, which is capped at ALL_LIMIT 500 rows newest-updated first, so total is not the table size once more than 500 proposals exist<br/>handlers/enrichment_proposals_handler.rs:816-823, handlers/broker_inbox_handler.rs:201
+```
+
+**What it shows.** Successor to the frozen VC-24.13, re-read at visionclaw bc6ac309e. Both drifts it recorded are closed by VisionClaw PR #50: the configuration reference (`../project/docs/reference/configuration.md:425-433`) and the baseline (`../project/docs/BASELINE-architecture.md:57-63`) now say that ALLOW_CLOUD defaults to 0, so by default proposal triage takes the plain projection. The route, the projection and the triage path are unchanged.

@@ -16,7 +16,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/tip_button.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/thread_view.rs
-verified_commit: {nostr-rust-forum: 6064622dbb1a7cc1ba2d072109f9e3e8a96157df}
+verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
 ---
 
 ## For developers
@@ -123,11 +123,11 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:189
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:190
     A["House key priority: chain map<br/>then profile then DREAM scalar"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:265
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/poker/mod.rs:266
     B["Asset and house key create a table<br/>bound to that chain wallet"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-poker-citizen/src/chain.rs:176
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-poker-citizen/src/chain.rs:177
     C["House verifies producer document equality<br/>and replays the compiled pin"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/components/poker_schedule.rs:160
     D["Calendar event adds the chain tag<br/>events link to its table fragment"]

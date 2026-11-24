@@ -29,7 +29,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/ascii_img.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/wrangler.toml
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs
-verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
+verified_commit: de31aaa6e6c6b672cc310a2659cf33fd4887602c
 ---
 
 ## NF-07.1 search-worker — routes and gates
@@ -234,7 +234,7 @@ classDiagram
 
     note for RateLimit "Each worker calls check_rate_limit with its OWN<br/>KV binding and its own budget - auth 20/60s on<br/>SESSIONS nostr-bbs-auth-worker/src/lib.rs:176, search<br/>100/60s on SEARCH_CONFIG nostr-bbs-search-worker/src/lib.rs:929,<br/>preview 30/60s on RATE_LIMIT nostr-bbs-preview-worker/src/lib.rs:519"
     note for Replay "INVARIANT one shared replay database - the search<br/>worker binds REPLAY_DB nostr-bbs-search-worker/src/auth.rs:31<br/>and delegates to the shared verifier<br/>nostr-bbs-search-worker/src/auth.rs:40 exactly as the auth<br/>worker does. See NF-02.5 and NF-08.4"
-    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:200-203. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
+    note for Ascii "The image feature pulls PURE-Rust decoders only,<br/>default-features off, so the wasm32 build stays<br/>lean nostr-rust-forum/Cargo.toml:202-205. The BBS client never converts<br/>client-side - it fetches a pre-rendered fragment<br/>from the preview worker nostr-bbs-bbs-client/src/ascii_img.rs:203"
 ```
 
 ## NF-07.9 The opt-in Jev rerank — on in the shipped manifest, can only permute what search already shows

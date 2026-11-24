@@ -33,7 +33,7 @@ sources:
   - ../dreamlab-ai-website/forum-config/README.md
   - ../dreamlab-ai-website/docs/adr/ADR-2002-split-hosting-pages-workers.md
   - ../nostr-rust-forum/docs/adr/ADR-2016-end-to-end-encrypted-zones.md
-verified_commit: {dreamlab-ai-website: 389a644c23e9f5ed0b571242f3e8e5418aae0a7c, nostr-rust-forum: 8a0ca418b9f129b219431880d9fa5a81603428fc}
+verified_commit: {dreamlab-ai-website: 5dc4c644517ff36219b7fe6cc1a70f20dc6a8d83, nostr-rust-forum: 8a0ca418b9f129b219431880d9fa5a81603428fc}
 ---
 
 ## DW-06.1 Pre-build content pipeline — two generators, run before every dev/build
@@ -169,9 +169,11 @@ flowchart TB
 ```
 - The earlier nine-bullet README feature list this diagram once classified is gone with the README rewrite; the register is seeded only with README claims that cite a concrete in-repo `file:line` (web push in the operator overlay, declared recipients and an inbox-watch path), so uncited README claims report `unclassified` by design (`docs/claims-register.json:2`).
 - **Tension (closed):** the README no longer says "no register file"; it now says the source-grounded register ships in this repository, that its evidence paths are checked in the test suite, and that the checker runs at the end of `postbuild` (`../dreamlab-ai-website/README.md:125`). `docs/claims-register.json` carries two claims and three feature notes, each now with an `evidence` path (`docs/claims-register.json:3-40`), and `checkClaims` still skips Jev only when no feature notes exist (`scripts/lib/claims.mjs:98-101`).
-- **Drift (closed):** `../dreamlab-ai-website/README.md:65` no longer states a kit SHA (it had said `8a5cf81…` while the pins moved on); it now names `KIT_REF` and defers the current value to `CANONICAL_KIT_SHA`, which the pin sites carry as `8a0ca418b9f129b219431880d9fa5a81603428fc` (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:45`). The README stays correct across repins because it names no SHA; the documents that do name one are DW-06.11 D9.
+- **Drift (closed):** `../dreamlab-ai-website/README.md:65` no longer states a kit SHA (it had said `8a5cf81…` while the pins moved on); it now names `KIT_REF` and defers the current value to `CANONICAL_KIT_SHA`, which the pin sites carry as `de31aaa6e6c6b672cc310a2659cf33fd4887602c` at this stamp (`.github/workflows/rust-ci.yml:20`, `.github/workflows/workers-deploy.yml:45`). The README stays correct across repins because it names no SHA; the documents that do name one are DW-06.12 D9.
 
 ## DW-06.11 Known divergences / DOC-DRIFT register after the 2026-11-23 repin (D9-D16)
+> **Superseded** by DW-06.12 at 5dc4c64 (frozen at 389a644).
+
 ```mermaid
 flowchart TB
     D9["DRIFT, reopened by the 2026-11-23 repin: BASELINE-architecture.md:118 still records KIT_REF fd31193,<br/>the three pin sites and CANONICAL_KIT_SHA carry 8a0ca41, deploy.yml:131<br/>docs/architecture/kit-compatibility-record.md:30, and no gate reads the document, see DW-05.10"]
@@ -185,3 +187,18 @@ flowchart TB
 ```
 - D9 and D11 are findings from this diagram-authoring pass, not pre-existing entries in either governing doc's own Known-divergences section — both are consequences of the governing docs' own `verified_commit` lagging this repo (`BASELINE-architecture.md:6` declares `e02c95d0`, `IDENTITY-zones.md:6` declares `d852f61`) and the estate-closeout note's own explicit 2026-09-04 dating.
 - D12/D13/D14 are Wave 2 findings, closing the material gaps the estate audit (`reports/audit-web.md`) identified for this area (D12 reopened at the 2026-10-30 repin and closed by `faf572d8`); D15 is a Wave 3 finding — see DW-06.6 and DW-06.11 for the full evidence. **Drift (corrected):** I7 and D15 once said ADR-2016 was never written; it is the kit's ADR (`ADR-2016-end-to-end-encrypted-zones.md:1-4`), which this repo's config cites across the repository boundary.
+
+## DW-06.12 Known divergences / DOC-DRIFT register after the 2026-11-24 repin (D9-D16)
+```mermaid
+flowchart TB
+    D9["DRIFT, unchanged by the 2026-11-24 repin: BASELINE-architecture.md:118 still records KIT_REF fd31193,<br/>the three pin sites and CANONICAL_KIT_SHA carry de31aaa, deploy.yml:131<br/>docs/architecture/kit-compatibility-record.md:30, and no gate reads the document, see DW-05.11"]
+    D10["branding.rs dead code: dreamlab_zone_names() keeps a superseded<br/>3-zone naming, branding.rs:40-42; branding values now match<br/>dreamlab.toml, see DW-03.1"]
+    D11["BASELINE-architecture.md estate-closeout note predates the 2026-09-05 gate fix<br/>see DW-05.3"]
+    D12["Closed 2026-11-22: dreamlab-ai-website/README.md:65 names no kit SHA,<br/>it points at KIT_REF and CANONICAL_KIT_SHA — see DW-06.10"]
+    D13["Closed 2026-10-07: root-level seed scripts with a hardcoded key<br/>deleted by 3baf2fa4, historical — see DW-07.2"]
+    D14["embeddings/ tooling targets RuVector Postgres + all-MiniLM-L6-v2,<br/>unrelated to the search worker; the README claim was removed — see DW-07.4"]
+    D15["IDENTITY-zones.md I7 breached: zone2/zone4 now encrypted=true too<br/>(dreamlab.toml:123,148), master gate [encryption].enabled added<br/>(dreamlab.toml:33-37) citing kit ADR-2016; DW-03.1 records the<br/>breach, the governing doc is still unrevised<br/>see DW-06.6 I7"]
+    D16["BASELINE divergence: native pod tier advertised but unreachable,<br/>its host has no DNS record, card gated by the NATIVE_POD_URL secret,<br/>BASELINE-architecture.md:156-161<br/>open item ADR-2002-split-hosting-pages-workers.md:130, see DW-03.12"]
+```
+- Only D9 moved: the 2026-11-24 repin to kit `de31aaa` (website `5dc4c64`) changed the pin sites and the record again (`.github/workflows/deploy.yml:131`, `docs/architecture/kit-compatibility-record.md:30`) and left the BASELINE paragraph at `fd31193` (`docs/BASELINE-architecture.md:118`), so the prose record is now three pins behind.
+- D10 to D16 were re-read at `5dc4c64`; none of their cited files changed since `389a644`, so each holds as drawn in DW-06.11.

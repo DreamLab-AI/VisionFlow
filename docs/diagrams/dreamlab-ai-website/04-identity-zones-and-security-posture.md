@@ -23,7 +23,7 @@ sources:
   - ../dreamlab-ai-website/docs/adr/ADR-2002-split-hosting-pages-workers.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/agent_disclosure.rs
-verified_commit: {dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5, nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
+verified_commit: {dreamlab-ai-website: 5dc4c644517ff36219b7fe6cc1a70f20dc6a8d83, nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
 ---
 
 ## DW-04.1 Identity is raw-hex Schnorr, not a DID document
@@ -95,8 +95,8 @@ flowchart TB
     A["Write-auth mode gate, then gift-wrap admission<br/>configured ingress or whitelisted recipient"]
     %% Source: ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:282
     A --> B["Operator docs flag spam risk<br/>IP and structural limits, client validation"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2951-2957
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3381
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2952-2958
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3382
     A --> C["Member kind-5 refused unless every target is theirs<br/>recipient path for a wrap only with RECIPIENT_KEYS_ENABLED,<br/>unset in this deployment"]
     %% Source: ../dreamlab-ai-website/docs/security/SECURITY_OVERVIEW.md:284
     A --> D["Docs flag model-cost abuse<br/>client throttling and operator kill switch"]
@@ -104,7 +104,7 @@ flowchart TB
     %% Source: ../dreamlab-ai-website/forum-config/deploy/SYSTEM-ONE.md:13
     A --> E["Overlay enables advisory TypeSafe calls<br/>rationale local-only restriction is opt-in"]
 ```
-- Since kit #94 (in `KIT_REF` `fd31193`; the pinned `4a73a7a` differs from it only in comments and docs) a member's kind-5 is refused whole unless every target is their own stored event, a wrap addressed to one of their recipient keys, or an id they already deleted; sealed originals are moderator-only (`nip_handlers.rs:2951-2957`). The wrap branch needs `recipient_keys_enabled()`, the exact string `"true"` in `RECIPIENT_KEYS_ENABLED` (`nip_handlers.rs:3381,2389-2391`), which neither `relay-worker.wrangler.toml` nor any workflow here sets, so in this deployment a wrap's recipient still cannot delete it.
+- Since kit #94 (included in the pinned `KIT_REF` `de31aaa`, `../dreamlab-ai-website/.github/workflows/deploy.yml:131`) a member's kind-5 is refused whole unless every target is their own stored event, a wrap addressed to one of their recipient keys, or an id they already deleted; sealed originals are moderator-only (`nip_handlers.rs:2952-2958`). The wrap branch needs `recipient_keys_enabled()`, the exact string `"true"` in `RECIPIENT_KEYS_ENABLED` (`nip_handlers.rs:3382,2390-2392`), which neither `relay-worker.wrangler.toml` nor any workflow here sets, so in this deployment a wrap's recipient still cannot delete it.
 - Admission is mode-dependent: the consumed kit checks session authentication before recipient admission, requiring AUTH in `nip42` mode; configured ingress or a whitelist row can admit the recipient. The operator document's unconditional no-AUTH/whitelist-only wording is stale. The prior panel recorded successful Worker deploy run `41028875471` on 30 October, with credential checks for search and relay but no auth-secret receipt. That observation remains historical; this pass reads configuration and does not redeploy or recheck Worker secrets.
 - Federation posture: single relay today; kind 1059 is already in `dreamlab.toml [mesh].federated_kinds` (see DW-03), so this surface is "federation-ready by construction" though the mesh transport itself is designed, not shipped.
 

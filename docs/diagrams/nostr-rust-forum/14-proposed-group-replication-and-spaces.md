@@ -9,7 +9,7 @@ sources:
   - ../nostr-rust-forum/docs/BASELINE-architecture.md
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/mesh.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/mod.rs
-verified_commit: {nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
+verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
 ---
 
 ## For developers
@@ -24,11 +24,11 @@ The intended benefit is one membership decision governing a shared space across 
 
 ```mermaid
 flowchart TD
-    COHORT["PROPOSED: zone cohort authors membership<br/>BASELINE-architecture.md:375,376"] --> PROJECT["PROPOSED: route changes and project cohort<br/>BASELINE-architecture.md:376,377"]
-    STREAM["PROPOSED: standalone home admission stream<br/>BASELINE-architecture.md:378"] --> SIGN["PROPOSED: home signs 39002<br/>BASELINE-architecture.md:379"]
+    COHORT["PROPOSED: zone cohort authors membership<br/>BASELINE-architecture.md:393,394"] --> PROJECT["PROPOSED: route changes and project cohort<br/>BASELINE-architecture.md:394,395"]
+    STREAM["PROPOSED: standalone home admission stream<br/>BASELINE-architecture.md:396"] --> SIGN["PROPOSED: home signs 39002<br/>BASELINE-architecture.md:397"]
     PROJECT --> SIGN
-    LAG["PROPOSED: projection lag denies access<br/>BASELINE-architecture.md:377"] --> STOP["PROPOSED: stop signing stale projection<br/>BASELINE-architecture.md:396,397"]
-    BRIDGE["PROPOSED: bridge reads under scoped grant<br/>separate from membership<br/>BASELINE-architecture.md:380"]
+    LAG["PROPOSED: projection lag denies access<br/>BASELINE-architecture.md:395"] --> STOP["PROPOSED: stop signing stale projection<br/>BASELINE-architecture.md:414,415"]
+    BRIDGE["PROPOSED: bridge reads under scoped grant<br/>separate from membership<br/>BASELINE-architecture.md:398"]
     SIGN --> BRIDGE
 ```
 
@@ -38,10 +38,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    PIN["PROPOSED: operator-pinned home key<br/>BASELINE-architecture.md:383,384"] --> COPY["PROPOSED: store signed state verbatim<br/>BASELINE-architecture.md:387"]
-    COPY --> ORDER["PROPOSED: revision order and per-kind watermark<br/>BASELINE-architecture.md:387,388"]
-    ORDER --> FRESH["PROPOSED: lease freshness and 10-second rechecks<br/>BASELINE-architecture.md:390,391"]
-    FRESH --> DENY["PROPOSED: stale means deny and close sessions<br/>BASELINE-architecture.md:390,392"]
+    PIN["PROPOSED: operator-pinned home key<br/>BASELINE-architecture.md:401,402"] --> COPY["PROPOSED: store signed state verbatim<br/>BASELINE-architecture.md:405"]
+    COPY --> ORDER["PROPOSED: revision order and per-kind watermark<br/>BASELINE-architecture.md:405,406"]
+    ORDER --> FRESH["PROPOSED: lease freshness and 10-second rechecks<br/>BASELINE-architecture.md:408,409"]
+    FRESH --> DENY["PROPOSED: stale means deny and close sessions<br/>BASELINE-architecture.md:408,410"]
     GAP["CURRENT: outbound connector remains a trait<br/>mesh.rs:143"]
     ALARM["CURRENT: alarm clears idle state<br/>relay_do/mod.rs:387,389,390"]
 ```
@@ -52,10 +52,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    META["PROPOSED: home-signed 39000 descriptor<br/>BASELINE-architecture.md:408"] --> REFS["PROPOSED: closed content-reference set<br/>BASELINE-architecture.md:409,410"]
-    REFS --> PLACE["PROPOSED: consumer applies local placement<br/>BASELINE-architecture.md:411"]
-    CLAIM["PROPOSED: 30078 claim by member<br/>home key in namespace<br/>BASELINE-architecture.md:413,414"] --> DISPLAY["PROPOSED: advisory display state only<br/>BASELINE-architecture.md:413"]
-    VOICE["PROPOSED and DEFERRED: 30312 media publisher<br/>BASELINE-architecture.md:457"] --> URL["PROPOSED: configured SFU URL must match<br/>BASELINE-architecture.md:412"]
+    META["PROPOSED: home-signed 39000 descriptor<br/>BASELINE-architecture.md:426"] --> REFS["PROPOSED: closed content-reference set<br/>BASELINE-architecture.md:427,428"]
+    REFS --> PLACE["PROPOSED: consumer applies local placement<br/>BASELINE-architecture.md:429"]
+    CLAIM["PROPOSED: 30078 claim by member<br/>home key in namespace<br/>BASELINE-architecture.md:431,432"] --> DISPLAY["PROPOSED: advisory display state only<br/>BASELINE-architecture.md:431"]
+    VOICE["PROPOSED and DEFERRED: 30312 media publisher<br/>BASELINE-architecture.md:475"] --> URL["PROPOSED: configured SFU URL must match<br/>BASELINE-architecture.md:430"]
 ```
 
 **What it shows.** Layout, advisory claims and the deferred call publisher serve different purposes. **Why it is this way.** None supplies membership authority. The audit's encoded-dot example requires canonical path validation before the eventual descriptor fetcher is accepted.

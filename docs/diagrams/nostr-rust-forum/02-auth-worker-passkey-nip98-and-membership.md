@@ -37,7 +37,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/migrations/0013_recipient_keys_proof.sql
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/moderation.rs
-verified_commit: 8a0ca418b9f129b219431880d9fa5a81603428fc
+verified_commit: de31aaa6e6c6b672cc310a2659cf33fd4887602c
 ---
 
 ## NF-02.1 Request entry — bootstrap, rate limit, body pre-read, dispatch

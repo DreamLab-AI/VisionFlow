@@ -21,7 +21,7 @@ sources:
   - ../dreamlab-ai-website/scripts/check-claims.mjs
   - ../dreamlab-ai-website/.github/workflows/deploy.yml
   - ../dreamlab-ai-website/docs/archive/adr/043-ai-search-visibility-aeo.md
-verified_commit: e255b2b113ee47d58a0c872c6b4702afc62a46e5
+verified_commit: 5dc4c644517ff36219b7fe6cc1a70f20dc6a8d83
 ---
 
 ## DW-02.1 Route table — lazy-loaded, code-split
@@ -53,14 +53,14 @@ flowchart TB
 flowchart TB
     DEV["npm run dev<br/>package.json:22"] --> PRE1["pre-step: generate-workshop-list.mjs<br/>+ generate-testimonials.mjs<br/>package.json:21 predev"]
     BUILD["npm run build<br/>package.json:24"] --> PRE1B["package.json:23 prebuild, same pre-step"]
-    PRE1B --> VITE["Vite 5.4, SWC plugin, production build"]
+    PRE1B --> VITE["Vite ^6.4.6 package.json:120, SWC plugin vite.config.ts:2, production build<br/>DRIFT: CLAUDE.md:37 still says Vite 5.4"]
     VITE --> POST["package.json:32 postbuild, four scripts in series"]
     POST --> PRER["prerender.mjs: render each route to dist/route/index.html,<br/>redirect stubs, sitemap.xml, workshops/llms.txt<br/>scripts/prerender.mjs:143-158"]
     PRER --> LLMS["generate-llms-full.mjs: dist/llms-full.txt<br/>from the prerendered HTML<br/>scripts/generate-llms-full.mjs:2-4"]
     LLMS --> DISC["check-discovery.mjs: asserts canonical, schema,<br/>sitemap and no __BUILD_DATE__ token<br/>scripts/check-discovery.mjs:32"]
     DISC --> CLM["check-claims.mjs: advisory README claim check, always exits 0,<br/>appended to postbuild by 07cf8642<br/>scripts/check-claims.mjs:2-3"]
     LINT["npm run lint<br/>package.json:26"] --> ESLINT["ESLint 9 flat config<br/>eslint.config.js, ignores dist/"]
-    TEST["npm run test<br/>package.json:28"] --> VITEST["Vitest + Testing Library, jsdom<br/>src/**/__tests__"]
+    TEST["npm run test<br/>package.json:28"] --> VITEST["Vitest ^5.1.1 package.json:121 + Testing Library, jsdom<br/>src/**/__tests__"]
     RUSTT["cd forum-config && cargo test"] --> RUSTOVERLAY["operator-overlay tests:<br/>config parsing, branding, deploy manifests"]
 ```
 - The postbuild step is new since the freshness plugin left vite.config.ts: `prerender.mjs` reads the built `dist/index.html` as its template (scripts/prerender.mjs:51) and renders every route through Vite's SSR loader (scripts/prerender.mjs:62), so the deploy ships static HTML per route; `deploy.yml` now triggers on all of `scripts/**` (`.github/workflows/deploy.yml:27`) because of it.

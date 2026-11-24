@@ -69,12 +69,12 @@ sources:
   - ../project/src/utils/binary_protocol.rs
   - ../project/crates/visionclaw-protocol/Cargo.toml
   - ../project/docs/XR-client.md
-verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4}
+verified_commit: {visionclaw: bc6ac309e0c9e6c415b24d98a9ba1b7fdfd050f8, agentbox: ca07b59603137ca76159634cf664a622c34ab9ec, codescape: e3b76f63e801c6a8460110b93e88a0b420e9b0b4}
 ---
 
 ## For developers
 
-Consumer scope checked on 16 November 2026: VisionClaw main `d2780e26f870ce21fa92bccb29fa47f001015b16` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check. Re-checked on 21 November 2026: `git ls-tree HEAD codescape` at VisionClaw main `13a1e84a7` still names `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`, the same revision as this stamp's `codescape` key, so the stamp matches the submodule pin. Re-checked on 23 November 2026: `git ls-tree` at VisionClaw `4900ec60bc1ba9075343fe848c62e64434126c7e` still names `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`, so the `codescape` key stays at the submodule pin although standalone Codescape is at `a9c407af4fc556b8b054be8858601ed3bdf37ff7`; only the VisionClaw and agentbox keys moved. The other Codescape revisions this topic names are not pins: `13e056d` is an earlier stamp and an earlier standalone `main` (VC-39.7), and `58108c0` is not named here.
+Consumer scope checked on 16 November 2026: VisionClaw main `d2780e26f870ce21fa92bccb29fa47f001015b16` still pins Codescape gitlink `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`. This topic retains that producer revision; the standalone Codescape area describes newer source. No deployment was requalified by this pin check. Re-checked on 21 November 2026: `git ls-tree HEAD codescape` at VisionClaw main `13a1e84a7` still names `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`, the same revision as this stamp's `codescape` key, so the stamp matches the submodule pin. Re-checked on 23 November 2026: `git ls-tree` at VisionClaw `4900ec60bc1ba9075343fe848c62e64434126c7e` still names `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`, so the `codescape` key stays at the submodule pin although standalone Codescape is at `a9c407af4fc556b8b054be8858601ed3bdf37ff7`; only the VisionClaw and agentbox keys moved. The other Codescape revisions this topic names are not pins: `13e056d` is an earlier stamp and an earlier standalone `main` (VC-39.7), and `58108c0` is not named here. Re-checked on 24 November 2026: `git ls-tree` at VisionClaw `bc6ac309e0c9e6c415b24d98a9ba1b7fdfd050f8` still names `e3b76f63e801c6a8460110b93e88a0b420e9b0b4`; the VisionClaw and agentbox keys moved to `bc6ac309e` and `ca07b59`.
 
 Codescape is a separate section: a near-real-time 3D view of a codebase that humans and agents share by voice, with its own Cargo workspace, its own compose service and tested dependency-isolation checks (ADR-2143). It reuses the frozen V3/V5 position wire and is intended to exclude corpus access, RuVector access and signing keys; the [runtime-boundary assessment](../../estate-review/2026-11-01-codescape-runtime-boundary.md) separates verified mount and port metadata from the still-open filesystem and network guarantees. Every Codescape citation here is at `e3b76f6`, the submodule commit VisionClaw `d2780e2` records; standalone `main` is ahead (see VC-43 and VC-45). The agentbox hook is on agentbox `main` (ADR-2146, activity-sink.cjs:5). VC-39.8 lists what Codescape still copies from VisionClaw by hand, and what holds each copy in step.
 
@@ -349,6 +349,7 @@ flowchart TB
 **What it shows.** A sibling container on the compose network that sends the same headers as nginx is treated exactly as trust off, because trust needs both the switch and a matching peer; only the last forwarded-for hop is believed, since the leftmost entries are client-supplied. **Why it is this way.** ADR-2143 A4.4 (ADR-2143-codescape-section-separate-workspace-and-port.md:205-213); the duplicate isolation headers are hidden because two copies parse as `unsafe-none` and defeat cross-origin isolation (nginx.dev.conf:92-93).
 
 ## VC-39.7 Register: tensions, debt, drift and open questions at codescape e3b76f6
+> **Superseded** by VC-39.9 at bc6ac309e (frozen at 4900ec60b).
 
 ```mermaid
 flowchart TB
@@ -384,7 +385,7 @@ flowchart TB
         E1["BLOCKER for crates.io: graphicle is a git dependency and crates.io refuses git dependencies, so codescape-ingest cannot be published until graphicle is<br/>codescape/Cargo.toml:53"]
         E2["OPEN: the last A5 step is unticked, Decision 1, Decision 7 and I2 are not yet amended and the governing docs are not updated, so the ADR text still describes crates/codescape and the build-compiled PTX<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:282"]
         E3["DONE: licence split, visionclaw-wire extracted, PTX from CODESCAPE_PTX_DIR, submodule mounted, I10 enforced, three crates published at 0.1.0<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:274-281"]
-        E4["RESOLVED: the activity-sink hook is on agentbox main, now ADR-2146<br/>activity-sink.cjs:5"]
+        E4["Resolved: the activity-sink hook is on agentbox main, now ADR-2146<br/>activity-sink.cjs:5"]
         E1 --- E2 --- E3 --- E4
     end
     subgraph DR["DOC-DRIFT: ADR-2143 text"]
@@ -436,3 +437,53 @@ flowchart TB
 **Open (risk):** VisionClaw uses `visionclaw-wire` by path (`visionclaw-protocol/Cargo.toml:18`), so an in-tree edit without a version bump would change VisionClaw's view of the "frozen" wire while Codescape keeps resolving the published 0.1.0 (`codescape/Cargo.toml:48`).
 **Open (risk):** With only `XR_BACKEND_WS` set to port 4000, the headset's Codescape connection dials a path the Rust backend never routes (`xr-client/scripts/graph_scene.gd:2978`; `nginx.dev.conf:74`), so the LAN route is port 3001 unless port 4100 is published (`docker-compose.unified.yml:664`).
 **Debt (loose end):** The submodule pin lags standalone Codescape: at `e3b76f6` ADR-0001 still reads `activation_status: inactive` (`ADR-0001-extraction-from-visionclaw.md:6`), while standalone `13e056d` records activation as live (so does standalone `main` `8401ff8` on 2026-11-21, at line 7 of its `docs/adr/ADR-0001-extraction-from-visionclaw.md`) and `d2c3c3b` carries the presence and provenance fixes VC-43 and VC-45 depend on.
+
+
+## VC-39.9 Register at codescape e3b76f6, re-read at visionclaw bc6ac309e — the baseline's Jev cloud text now matches compose
+```mermaid
+flowchart TB
+    subgraph SEC["OPEN: auth"]
+        direction TB
+        R1["OPEN until P6: the main port runs OpenAccess, reported honestly as auth open, while<br/>port 3001 /codescape/ is LAN-published in dev by owner decision<br/>codescape-server/src/auth.rs:120-124 codescape-server/src/routes/mod.rs:71 nginx.dev.conf:63-65"]
+        R2["OPEN: /ws/presence shim accepts the Schnorr signature unverified, the claimed DID is only a label,<br/>bounds 64 members per room, 256 rooms<br/>codescape-server/src/xr_presence.rs:20-23 codescape-server/src/xr_presence.rs:65-67"]
+        R3["TENSION: I8a egress allowlist and no-/vault are REJECTED as invariants, compose non-publication<br/>is not an egress boundary, open until P2 ships an egress test<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:82 ADR-2143-codescape-section-separate-workspace-and-port.md:144"]
+        R1 --- R2 --- R3
+    end
+    subgraph JEVG["OPEN: Jev option and estate scene"]
+        direction TB
+        J1["TENSION: enabled in compose with the threshold left empty, so it defaults to 1.0, which accepts a valid offered command at confidence exactly 1.0;<br/>README states wiring and fallback tests only, no measured uplift; VisionClaw ADR-2148 is accepted / complete / live (docs/adr/ADR-2148-enable-local-typed-decisions.md:5-7)<br/>codescape-server/src/voice/jev.rs:166-171 codescape-server/src/voice/jev.rs:349-354 docker-compose.unified.yml:527 docker-compose.unified.yml:530-531 codescape/README.md:296<br/>CHANGED: the 2026-11-16 owner ruling set CODESCAPE_JEV_ALLOW_CLOUD to default 0 (docker-compose.unified.yml:528, docs/adr/ADR-2148-enable-local-typed-decisions.md:114),<br/>so under the compose defaults no utterance leaves (VC-39.2). The VisionClaw baseline now says the same, VISIONCLAW_JEV_ALLOW_CLOUD defaults to 0,<br/>docs/BASELINE-architecture.md:57-63"]
+        J2["DEBT: the estate mounts default to an absolute host volume path, overridable only by CODESCAPE_ESTATE_ROOT<br/>docker-compose.unified.yml:587"]
+        J1 --- J2
+    end
+    subgraph PERF["DEBT: scale targets"]
+        direction TB
+        P1["MISSED: GPU step at 100k nodes 7.8 ms against 5 ms, kernels only 1.7 ms<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:133"]
+        P2["MISSED: cold settle at 100k 13.7 s on GPU against 10 s, CPU 56.6 s, cause host-side work per step<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:134-136"]
+        P3["OPEN: I7a GPU-vs-CPU conformance is an opt-in ignored test, not an invariant, required at P2<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:80 ADR-2143-codescape-section-separate-workspace-and-port.md:140-143"]
+        P1 --- P2 --- P3
+    end
+    subgraph XRG["OPEN: XR"]
+        direction TB
+        X1["OPEN: empty agent hover label in the headset, actor ids carry AGENT_FLAG but the headset<br/>names agents from its label table, else a demo role, else agent N<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 xr-client/scripts/graph_scene.gd:4193-4203"]
+        X2["P4 records partly landed XR support, including the registered /ws/presence shim<br/>A4.5 describes its handshake<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:114 codescape-server/src/routes/mod.rs:454 ADR-2143-codescape-section-separate-workspace-and-port.md:217-218"]
+        X3["OPEN: /wss ignores nodePin, nodeUnpin and nodeDrag and there is no physics write, so the headset greys<br/>those controls (see VC-40.1); whether Codescape should honour drag and pin is undecided"]
+        X1 --- X2 --- X3
+    end
+    subgraph EXT["OPEN: A5 extraction to DreamLab-AI/codescape, done in code, last step open"]
+        direction TB
+        E1["BLOCKER for crates.io: graphicle is a git dependency and crates.io refuses git dependencies, so codescape-ingest cannot be published until graphicle is<br/>codescape/Cargo.toml:53"]
+        E2["OPEN: the last A5 step is unticked, Decision 1, Decision 7 and I2 are not yet amended and the governing docs are not updated, so the ADR text still describes crates/codescape and the build-compiled PTX<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:282"]
+        E3["DONE: licence split, visionclaw-wire extracted, PTX from CODESCAPE_PTX_DIR, submodule mounted, I10 enforced, three crates published at 0.1.0<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:274-281"]
+        E4["DONE: the activity-sink hook is on agentbox main, ADR-2146<br/>activity-sink.cjs:5"]
+        E1 --- E2 --- E3 --- E4
+    end
+    subgraph DR["DOC-DRIFT: ADR-2143 text"]
+        direction TB
+        D1["A2 item 6 now says crates/codescape was untracked only at the time of A2 and has since been committed, then moved to the submodule<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:167"]
+        D2["client import allowlist is wider than decision 8 states<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:149"]
+        D3["I7 accepts a hand-authored manifest saying provenance=compiled, I3 and I4 are helper-level tests<br/>ADR-2143-codescape-section-separate-workspace-and-port.md:153-154"]
+        D1 --- D2 --- D3
+    end
+```
+
+**What it shows.** Successor to the frozen VC-39.7, re-read at visionclaw bc6ac309e and agentbox ca07b59; the codescape gitlink is still `e3b76f63e`, so every codescape anchor is unchanged. The DRIFT in J1 is closed: VisionClaw PR #50 changed the baseline to say that `VISIONCLAW_JEV_ALLOW_CLOUD` defaults to 0 (`../project/docs/BASELINE-architecture.md:57-63`), as the compose defaults already did. Every other entry stands as recorded.

@@ -198,6 +198,7 @@ flowchart TB
 `classify_member_target` reads the sealed flag before the tombstone flag (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3056-3057`), and the member refusal says the purge does not yet record original authors (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2962-2964`). A moderator's removal is fail-open (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3403-3405`), and envelopes go one by one, tombstone then delete (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3452-3463`).
 
 ## NF-26.8 Open items on sealed-original deletion
+> **Superseded** by NF-32.11 at de31aaa (frozen at 4a73a7a).
 
 ```mermaid
 flowchart TB
@@ -216,9 +217,9 @@ flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:184
     O25C["The relay also honours static ADMIN_PUBKEYS admins<br/>auth.rs:184-189, which the client never sees as admin"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:14
-    DRIFT1["RESOLVED at nostr-rust-forum 4a73a7a: the comment now says<br/>since #94 the relay refuses such a kind 5 unless admin or TL3"]
+    DRIFT1["Resolved at nostr-rust-forum 4a73a7a: the comment now says<br/>since #94 the relay refuses such a kind 5 unless admin or TL3"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:18
-    DRIFT2["RESOLVED at nostr-rust-forum 4a73a7a: comments now name<br/>tombstones::fold_deletion, also relay_do/nip_handlers.rs:2941"]
+    DRIFT2["Resolved at nostr-rust-forum 4a73a7a: comments now name<br/>tombstones::fold_deletion, also relay_do/nip_handlers.rs:2941"]
     %% Source: ../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md:262
     DRIFT3["DOC-DRIFT: ADR-2017 still records both comments as saying fold_deletions<br/>and left alone, citing nip_handlers.rs:2942; the code moved on at 4a73a7a"]
     O19 --> O19B --> DEAD

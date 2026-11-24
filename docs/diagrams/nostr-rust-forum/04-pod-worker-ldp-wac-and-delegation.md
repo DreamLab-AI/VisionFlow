@@ -269,6 +269,7 @@ sequenceDiagram
 ```
 
 ## NF-04.10 The three wasm32-unreachable Phase-1 surfaces
+> **Superseded** by NF-32.10 at de31aaa (frozen at 4a73a7a).
 
 ```mermaid
 flowchart TB
@@ -287,7 +288,7 @@ flowchart TB
     N2["DIVERGENCE: the related WAC Turtle serializer bare-path IRI quirk (legacy ADR-088) has ZERO live<br/>impact because this worker writes JSON-LD ACLs and never round-trips Turtle docs/BASELINE-architecture.md:106-109 - see NF-04.4"]
     N3["The kit groups the three upstream features under ONE forum-facing alias so an operator flips a single<br/>switch rather than three docs/consumer-surface-map.md:52"]
     N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
-    N5["RESOLVED parked stubs: the key_provisioning and nip05_endpoint shims are deleted, recorded at nostr-bbs-pod-worker/src/lib.rs:37-40;<br/>mod export is the one staging shim left nostr-bbs-pod-worker/src/lib.rs:41, gated nostr-bbs-pod-worker/src/export.rs:17.<br/>DRIFT: the feature comment still names the deleted stub modules nostr-bbs-pod-worker/Cargo.toml:20-21"]
+    N5["Resolved parked stubs: the key_provisioning and nip05_endpoint shims are deleted, recorded at nostr-bbs-pod-worker/src/lib.rs:37-40;<br/>mod export is the one staging shim left nostr-bbs-pod-worker/src/lib.rs:41, gated nostr-bbs-pod-worker/src/export.rs:17.<br/>DRIFT: the feature comment still names the deleted stub modules nostr-bbs-pod-worker/Cargo.toml:20-21"]
 ```
 
 **Tension (ADR-2012 vs Cargo.toml):** ADR-2012 decision 4 speaks of "the exact pin" at line 155 of the root manifest, bumped in lockstep with the host, while the workspace dependency is now a caret range, `0.5.0-alpha.24`, recorded as an owner decision to stop an exact pin forcing a core republish on every solid-pod-rs release (`../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80`, `../nostr-rust-forum/Cargo.toml:184-188`). The pod-worker now also enables the `did` feature on `nostr-bbs-core` (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:29`).
