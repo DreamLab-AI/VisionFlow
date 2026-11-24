@@ -12,7 +12,10 @@ sources:
   - ../dream-engine/crates/dream-core/src/automerge.rs
   - ../dream-engine/crates/dream-core/src/persist.rs
   - ../dream-engine/crates/dream-gate/src/receipts.rs
-verified_commit: 881075377625a9e20e69e9137f679506e93f4b68
+  - ../dream-engine/crates/dream-core/Cargo.toml
+  - ../project/agentbox/services/dream-engine/Cargo.toml
+  - ../project/agentbox/services/dream-engine/src/engine.rs
+verified_commit: {dream-engine: f438e031fbb5792274fb5f0dd73075ff771c0123, agentbox: 1ea5494a1a9eca5e8da62a3f7db7354970b1c0f2}
 ---
 
 ## For developers
@@ -61,6 +64,8 @@ flowchart TB
 
 ## DE-04.3 Identity checks are narrower than a verified remote change
 
+> **Superseded** by DE-04.4 at f438e03 (frozen at 8810753).
+
 ```mermaid
 flowchart TB
     REQUEST["DraftPr names checkout, slug, branch<br/>and caller-supplied head_sha<br/>seams.rs:341<br/>seams.rs:355"] --> PUSH["Push branch to origin<br/>seams.rs:434"]
@@ -77,3 +82,19 @@ flowchart TB
 **Tension (6b45ad4, partial fix for audit DE-F2):** `GhForge` now passes `--match-head-commit` with the caller's `head_sha` and refuses an empty or non-hex value (`seams.rs:401-403`, `seams.rs:506-508`, `seams.rs:521`), so a push that moves the PR head away from that hash cancels the merge. The audit counts this as only one part of DE-F2. Still open: `head_sha` is a caller-supplied string (`seams.rs:352-355`) that nothing ties to the evaluated commit, origin, target and PR identity are not compared, and the returned PR head and merge outcome are not recorded (DE-04.3). The fix is not live in the estate either: the agentbox adapter pins `dream-core =0.4.1` and publishes only through `publish_draft` with a `DraftPr` that has no `head_sha`, so no consumer sends a pinned head (DE-01, Tension: source vs pinned version). The audit predates 6b45ad4.
 
 **Drift (draft after enable failure):** Published's error-field documentation says the PR stays a draft (`persist.rs:278`), but successful ready followed by failed merge does not restore draft status.
+
+## DE-04.4 The head pin reaches the estate: 0.5.0 published and adopted
+
+```mermaid
+flowchart TB
+    REL["dream-core 0.5.0 carries head_sha<br/>../dream-engine/crates/dream-core/Cargo.toml:3<br/>seams.rs:355"] --> PIN["Adapter pins dream-core =0.5.0 and dream-gate =0.3.0<br/>../project/agentbox/services/dream-engine/Cargo.toml:26-27"]
+    PIN --> TIP{"branch_tip: git rev-parse --verify refs/heads/branch, a 40 or 64 hex commit<br/>../project/agentbox/services/dream-engine/src/engine.rs:2232"}
+    TIP -->|"tip read"| DRAFT["publish_draft with DraftPr.head_sha set to that tip<br/>../project/agentbox/services/dream-engine/src/engine.rs:1876<br/>../project/agentbox/services/dream-engine/src/engine.rs:1882"]
+    TIP -->|"unreadable"| NOPUB["nothing published, git.rev-parse journalled as failed, lost-PR alert<br/>../project/agentbox/services/dream-engine/src/engine.rs:1895"]
+    DRAFT --> NOMERGE["publish_draft pushes and opens a draft only, it never reads head_sha<br/>seams.rs:433"]
+    NOMERGE -.-> OPEN["OPEN: the merge pin seams.rs:521 is still unused by the estate adapter"]
+```
+
+**What it shows.** The frozen DE-04.3 Tension said no consumer sent a pinned head because the adapter pinned 0.4.1 and its `DraftPr` had no `head_sha`. At agentbox `1ea5494` the adapter pins 0.5.0 and sets `head_sha` to the pushed branch tip, not the candidate tree hash, and publishes nothing when that tip cannot be read.
+
+**Why it is this way.** dream-engine `f438e03` released the break as 0.5.0 and agentbox `e31fe2f85` (PR 53) adopted it the same day. The still-open parts of DE-F2 in DE-04.3 stand. The tip is read from the local branch, origin and PR identity are still not compared, and the adapter still calls only `publish_draft`, so the pinned merge path is not exercised in the estate.

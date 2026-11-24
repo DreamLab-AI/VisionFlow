@@ -63,10 +63,13 @@ sources:
   - docs/engineering/README.md
   - docs/engineering/ADR-004-harness-engineering-framework.md
   - docs/engineering/ADR-005-mandate-at-grant-governance.md
-verified_commit: 3ae784ed0b547b562e1f94d017996f8ad197f5cb
+verified_commit: dae9ac06e01e0cc49fb4a880d889946352063bee
 ---
 
 ## VF-01.2 Document taxonomy — which class a file belongs to, and who owns its truth
+
+> **Superseded** by VF-01.16 at dae9ac0 (frozen at 3ae784e).
+
 ```mermaid
 flowchart LR
     classDef norm fill:#dfeeda,stroke:#3f7a2f,color:#111
@@ -351,7 +354,7 @@ flowchart TB
     INV["INVARIANT: BASELINE-visionflow.md:6 pins the document's own<br/>verified_commit; each dated subsection instead carries the commit<br/>at which ITS facts were last checked (ADR-2008 subsection: pending<br/>vs c205575, BASELINE-visionflow.md:208; ADR-2010/2011 subsection:<br/>03db671, BASELINE-visionflow.md:234) — per the change process<br/>(BASELINE-visionflow.md:349-354) this is intended per-section staging,<br/>not undetected drift, provided every subsection is re-recorded when its<br/>own facts change"]:::settled
 ```
 
-**Drift (BASELINE subsections lag the ledger):** the INVARIANT above holds only if every subsection is re-recorded when its own facts change, and at this stamp four have not been. BASELINE gives ADR-2010 as partial/staged and ADR-2011 as none/inactive (`docs/BASELINE-visionflow.md:229-233`), while both records read complete/staged (`docs/adr/README.md:42-43`). It calls ADR-2014 to ADR-2016 proposed, unimplemented and inactive (`docs/BASELINE-visionflow.md:368`), while the index shows ADR-2014 and ADR-2016 accepted/partial/staged and ADR-2015 accepted/none/inactive (`docs/adr/README.md:46-48`). It says ADR-2018 and ADR-2019 are both inactive (`docs/BASELINE-visionflow.md:391`), while ADR-2019 is live (`docs/adr/README.md:51`). It still describes ADR-2007 as a staged proposal (`docs/BASELINE-visionflow.md:447-456`), while the record is accepted/complete/live (`docs/adr/README.md:39`).
+**Drift (BASELINE subsections lag the ledger):** the INVARIANT above holds only if every subsection is re-recorded when its own facts change, and at this stamp four have not been. BASELINE gives ADR-2010 as partial/staged and ADR-2011 as none/inactive (`docs/BASELINE-visionflow.md:229-233`), while both records read complete/staged (`docs/adr/README.md:42-43`). It calls ADR-2014 to ADR-2016 proposed, unimplemented and inactive (`docs/BASELINE-visionflow.md:368`), while the index shows ADR-2014 and ADR-2016 accepted/partial/staged and ADR-2015 accepted/none/inactive (`docs/adr/README.md:46-48`). It says ADR-2018 and ADR-2019 are both inactive (`docs/BASELINE-visionflow.md:391`), while ADR-2019 is live (`docs/adr/README.md:51`). It still describes ADR-2007 as a staged proposal (`docs/BASELINE-visionflow.md:450-459`), while the record is accepted/complete/live (`docs/adr/README.md:39`).
 
 ## VF-01.13 The augmentation conditions enter canon — a rubric, a graded table and a gate
 ```mermaid
@@ -437,6 +440,9 @@ flowchart TB
 The roster probes eight published sidestr-rs crates since `26df6c9` (see VF-03.1, estate register ER-3). The site's sidestr-rs tile no longer states a crate count (`website/static/index.html:1215-1218`), and neither does the README (`./README.md:31`), and BASELINE and ADR-2012 keep seven as the count at the 2026-10-01 parity release they record (`docs/BASELINE-visionflow.md:146`, `docs/adr/ADR-2012-sidestr-settlement-is-ecosystem-canon.md:118`).
 
 ## VF-01.15 ADR-2013 sovereign corpus — four disagreeing doors become one vault, one parser, one gate
+
+> **Superseded** by VF-01.16 at dae9ac0 (frozen at 3ae784e).
+
 ```mermaid
 flowchart TB
     classDef before fill:#f7dede,stroke:#a33333,color:#111
@@ -484,3 +490,22 @@ flowchart TB
 - ADR-2007 is now complete as well (`docs/adr/README.md:39`).
 - ADR-2021 landed proposed and is now rejected / none / inactive by the owner's 2026-11-16 ruling (`docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:5-7`, `docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:19`). **Drift:** BASELINE's own section still calls it proposed and names its business roadmap the roadmap of record (`docs/BASELINE-visionflow.md:393-402`).
 - The ledger now holds ADR-2024, which separates source attribution, compilation, derivation, human review and governance admission, and binds new human certification stamps to the reviewed content; it is accepted / complete / staged and amends ADR-2023 (`docs/adr/README.md:56`, `docs/adr/ADR-2024-provenance-and-certification-freshness.md:5-9`). BASELINE records it in its own section, with release, consumer adoption and runtime activation left to separate evidence (`docs/BASELINE-visionflow.md:404-416`).
+
+## VF-01.16 ADR-2021 reads rejected in every governing door
+```mermaid
+flowchart TB
+    ADR["ADR-2021: rejected / none / inactive<br/>docs/adr/ADR-2021-closed-loop-agent-operations-and-18-month-roadmap.md:5-7<br/>ledger row docs/adr/README.md:53"]
+    BASE["BASELINE section retitled Rejected, roadmap not adopted, kept as the record of the proposal<br/>docs/BASELINE-visionflow.md:393, docs/BASELINE-visionflow.md:398-405"]
+    ROAD["roadmap.md entry: rejected, owner ruling 2026-11-16<br/>docs/roadmap.md:3"]
+    IDX["docs/README.md row: not adopted, rejected 2026-11-16<br/>docs/README.md:29"]
+    BIZ["the business roadmap carries its own superseded banner<br/>roadmap-2026-11-to-2028-04.md:3"]
+    ADR --> BASE
+    ADR --> ROAD
+    ADR --> IDX
+    ADR --> BIZ
+    KEEP["DRIFT, unchanged: roadmap.md still names ADR-2007 as owner of estate-wide sequencing<br/>docs/roadmap.md:11"]
+    ROAD -.- KEEP
+```
+
+- **What it shows:** the frozen VF-01.2 and VF-01.15 recorded that roadmap.md, docs/README.md and BASELINE still called ADR-2021 proposed. Since PR #43 (72b18a2, c50670a) all four doors say rejected; BASELINE adds that closed-loop work on the estate itself was not ruled on (`docs/BASELINE-visionflow.md:403-404`).
+- **Why it is this way:** the owner's 2026-11-16 ruling; the governing docs caught up on 2026-11-23. The rest of VF-01.2 and VF-01.15 holds at this stamp, including the ADR-2007 sequencing drift.

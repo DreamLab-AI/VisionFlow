@@ -69,7 +69,7 @@ sources:
   - ../project/src/services/mcp_relay_manager.rs
   - ../project/src/actors/physics_orchestrator_actor.rs
   - ../project/src/utils/auth.rs
-verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
+verified_commit: {visionclaw: c6cc081d5ae2c4501d847fded65b5b91576dd721}
 ---
 
 ## For developers
@@ -613,15 +613,15 @@ flowchart TB
     RM --> EXP
     BK["backup-sqlite.sh REQUIRED_DBS includes shares.sqlite3<br/>scripts/backup-sqlite.sh:75"] --> SC
     FILES["share files under data/shared, named in record.file_path"] -.-x BK
-    N1["OPEN: a share with no expiry is kept until its creator deletes it,<br/>and no per-user erasure path reaches shares<br/>docs/DATA-authority-erasure.md:128-136"]
+    N1["OPEN: a share with no expiry is kept until its creator deletes it,<br/>and no per-user erasure path reaches shares<br/>docs/DATA-authority-erasure.md:138-146"]
     SC --- N1
 ```
 
 **What it shows.** The share store's lifecycle: opened once, swept for expired rows at start-up, shared by every worker, and backed up as a database but not as files. **Why it is this way.** The per-worker `HashMap` lost a share on the next worker and on restart; one SQLite store with single-statement claims and deletes fixes both (cx-server lane, 2026-11-06).
 
-**Open (risk):** `scripts/backup-sqlite.sh` backs up `shares.sqlite3` (`scripts/backup-sqlite.sh:75`) but not the share files the rows point at, so a restore yields rows whose `GET /shared/{id}` answers 500 at the file read (`src/handlers/graph_export_handler.rs:284`); and per-user erasure does not reach a share its creator made (`docs/DATA-authority-erasure.md:134-136`).
+**Open (risk):** `scripts/backup-sqlite.sh` backs up `shares.sqlite3` (`scripts/backup-sqlite.sh:75`) but not the share files the rows point at, so a restore yields rows whose `GET /shared/{id}` answers 500 at the file read (`src/handlers/graph_export_handler.rs:284`); and per-user erasure does not reach a share its creator made (`docs/DATA-authority-erasure.md:144-146`).
 
-**Drift:** `docs/DATA-authority-erasure.md:125` places the store's opening at lines 475-482 of `app_state.rs`, but at this commit line 475 closes the KPI store opening (begun at `src/app_state.rs:470`) and the share store is opened at `src/app_state.rs:476-483`, and `docs/DATA-authority-erasure.md:129` says only the recorded creator may delete, whereas a power user may delete a creator-less legacy share (`src/handlers/graph_export_handler.rs:320`).
+**Drift:** `docs/DATA-authority-erasure.md:135` places the store's opening at lines 475-482 of `app_state.rs`, but at this commit line 475 closes the KPI store opening (begun at `src/app_state.rs:470`) and the share store is opened at `src/app_state.rs:476-483`, and `docs/DATA-authority-erasure.md:139` says only the recorded creator may delete, whereas a power user may delete a creator-less legacy share (`src/handlers/graph_export_handler.rs:320`).
 
 ## VC-04.12 `layout` scope — mode/radial/zones/reset; the mode is the stored physics.layoutMode (ADR-2140)
 ```mermaid

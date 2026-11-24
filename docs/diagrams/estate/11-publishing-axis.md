@@ -23,7 +23,12 @@ sources:
   - ../project/src/services/ontology_pull.rs
   - ../project/docs/adr/ADR-2147-inferences-carry-a-re-checkable-certificate-and-proposals-carry-a-consequence-delta.md
   - ../dreamlab-ai-website/forum-config/Cargo.toml
-verified_commit: {dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5, knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb, visiongraph: 08390b1fc7f7c509eae477b933731ee33d152480, vowl-wasm: f04ff27209a0350e926d5a8a183fe0eb8c416604}
+  - ../WasmVOWL/modern/package.json
+  - ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts
+  - ../WasmVOWL/.github/workflows/ci.yml
+  - ../ontomark/packages/graph/package.json
+  - website/static/data/estate-health.json
+verified_commit: {dreamlab-ai-website: e255b2b113ee47d58a0c872c6b4702afc62a46e5, knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visionclaw: c6cc081d5ae2c4501d847fded65b5b91576dd721, visionflow: dae9ac06e01e0cc49fb4a880d889946352063bee, visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454, vowl-wasm: 0779174612a3942b15331356422f58bf8379912b, wasmvowl: 2bb54b3ee2dc3a7eda34b60d9f08fdb0fb535aab, ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4}
 ---
 ## ES-11.1 The publishing axis — six cross-repo edges, each previously drawn from one side only
 ```mermaid
@@ -39,11 +44,11 @@ flowchart TB
     end
     subgraph CONSUME["Consumption"]
         POD["VisionClaw embedded pod<br/>ontology_pull.rs:346. see ES-08.11"]
-        EXPL["EXTERNAL: two VOWL explorers<br/>see KG-04, VG-03"]
+        EXPL["EXTERNAL: one live VOWL explorer in visionGraph and the WasmVOWL demo,<br/>knowledgeGraph's copy retired 2026-11-23. see ES-11.3, VG-03, WV-01"]
         LOOM["Ontology Loom grounding<br/>see ES-06.1"]
     end
     subgraph PINS["Version pins that can drift"]
-        VW["EXTERNAL: vowl-wasm 0.2.3<br/>vowl-wasm/Cargo.toml:5. see VW-01"]
+        VW["EXTERNAL: vowl-wasm 0.4.0, 0.2.3 at the earlier stamp<br/>vowl-wasm/Cargo.toml:5. see VW-01"]
         NF["EXTERNAL: nostr-rust-forum kit<br/>see NF-01"]
         DW["EXTERNAL: dreamlab-ai-website<br/>KIT_REF rust-ci.yml:20. see DW-01"]
     end
@@ -104,26 +109,31 @@ sequenceDiagram
     Note over KG: knowledgeGraph/CNAME:1 is narrativegoldmine.com - the same<br/>domain publish.yml:398 writes, so the CNAME exists on both<br/>sides of the deploy. see KG-01
 ```
 
-## ES-11.3 Edge 12 - two VOWL explorers, two divergent bundle pins
+## ES-11.3 Edge 12 - VOWL explorer bundle pins, divergent until 2026-11-23
 ```mermaid
 flowchart LR
-    CRATE["EXTERNAL: vowl-wasm<br/>version 0.2.3, vowl-wasm/Cargo.toml:5<br/>see VW-01"]
+    CRATE["EXTERNAL: vowl-wasm<br/>version 0.4.0, vowl-wasm/Cargo.toml:5<br/>see VW-01"]
 
-    subgraph KGE["EXTERNAL: knowledgeGraph explorer - see KG-04"]
-        KGP["@dreamlab-ai/vowl-wasm pinned to a<br/>RELEASE TARBALL URL for v0.1.1<br/>explorer/modern/package.json:20"]
+    subgraph KGE["EXTERNAL: knowledgeGraph explorer copy - see KG-04"]
+        KGP["@dreamlab-ai/vowl-wasm pinned to the v0.1.1 release tarball<br/>at knowledgeGraph 7815bbc, explorer/modern/package.json:20<br/>retired from main on 2026-11-23 (d77a41c): nothing built or deployed it"]
     end
-    subgraph VGE["EXTERNAL: visionGraph WasmVOWL - see VG-03"]
-        VGP["@dreamlab-ai/vowl-wasm pinned to a<br/>RELEASE TARBALL URL for v0.2.3<br/>WasmVOWL/modern/package.json:25"]
+    subgraph VGE["EXTERNAL: visionGraph WasmVOWL, the live explorer - see VG-03"]
+        VGP["@dreamlab-ai/vowl-wasm pinned to the v0.4.0 release tarball<br/>publishing-tools/WasmVOWL/modern/package.json:25<br/>ontomark-graph 0.2.0 tarball, publishing-tools/WasmVOWL/modern/package.json:24"]
     end
+    subgraph WVE["EXTERNAL: WasmVOWL demo repository - see WV-01"]
+        WVP["@dreamlab-ai/vowl-wasm 0.4.0 from npm, ontomark-graph 0.4.0 tarball<br/>../WasmVOWL/modern/package.json:19-20, NggExplorer through the ontomark-graph driver<br/>useWasmSimulation.ts:4-6"]
+    end
+    OMG["EXTERNAL: ontomark-graph package version 0.4.0<br/>packages/graph/package.json:3. see OM-00"]
 
-    CRATE -->|"published as a GitHub release asset"| KGP
-    CRATE -->|"published as a GitHub release asset"| VGP
+    CRATE -->|"GitHub release asset"| VGP
+    CRATE -->|"npm"| WVP
+    OMG --> WVP
 
-    D1["DOC-DRIFT - the two consumers are a MINOR version apart, though<br/>both now fetch a release tarball over HTTPS. knowledgeGraph<br/>stays on the frozen v0.1.1 tarball; visionGraph moved to v0.2.3.<br/>A vowl-wasm release therefore reaches one explorer and not the<br/>other. The only version-named check is visionGraph's own<br/>0.2.3 notice file, publish.yml:500, not a comparison of the two."]
-    D2["DIVERGENCE - the roster carries BOTH vowl-wasm and WasmVOWL<br/>as separate first-party repositories (roster.json:16,18), and<br/>registers @dreamlab-ai/vowl-wasm on npm alongside the<br/>crates.io crate (roster.json:63,88). Neither explorer resolves<br/>from the npm copy at this revision, both pin release tarballs<br/>of the same bundle; the crate is what estate health<br/>actually measures. see VF-03.1"]
+    D1["DIVERGENCE - both live consumers now take vowl-wasm 0.4.0 and its NggExplorer,<br/>the earlier v0.1.1 against v0.2.3 split is gone with the retired copy.<br/>They still differ on ontomark-graph, 0.2.0 in visionGraph against 0.4.0 in WasmVOWL,<br/>and visionGraph's notices step checks its own two versions only, publish.yml:500-501"]
+    D2["DIVERGENCE - the roster carries BOTH vowl-wasm and WasmVOWL<br/>as separate first-party repositories (roster.json:16,18) and<br/>registers @dreamlab-ai/vowl-wasm on npm beside the crate<br/>(roster.json:63,88). The WasmVOWL demo now resolves the npm copy,<br/>visionGraph still pins the release tarball. see VF-03.1"]
 
-    KGP --> D1
     VGP --> D1
+    WVP --> D1
     CRATE --> D2
 ```
 
@@ -142,7 +152,7 @@ sequenceDiagram
     alt any of the five disagrees
         GUARD--xCI: "::error::Kit pin drift detected" kit-pin-guard.yml:29
     end
-    Note over NF,GUARD: INVARIANT - the website consumes the forum kit TWO ways:<br/>the client and workers are built from a source clone at the<br/>KIT_REF SHA, while the four library crates come from crates.io<br/>at exact versions, forum-config/Cargo.toml:45-49. Correctness<br/>therefore depends on five files<br/>agreeing. CORRECTED - kit-pin-guard.yml is not the only check: the<br/>same pin-parity.mjs also runs as the pin-check job in ci.yml,<br/>ci.yml:215,225, and as the nightly dream evaluator.
+    Note over NF,GUARD: INVARIANT - the website consumes the forum kit TWO ways:<br/>the client and workers are built from a source clone at the<br/>KIT_REF SHA, while the four library crates come from crates.io<br/>at exact versions, forum-config/Cargo.toml:45-49. Correctness<br/>therefore depends on five files<br/>agreeing. CORRECTED - kit-pin-guard.yml is not the only check: the<br/>same pin-parity.mjs also runs as the pin-check job in ci.yml,<br/>dreamlab-ai-website/.github/workflows/ci.yml:215,225, and as the nightly dream evaluator.
     Note over NF: EXTERNAL - this diagram asserts only what the WEBSITE's<br/>workflows state about the kit. The kit's own contract is<br/>NF's to describe. see NF-01 and DW-02
 ```
 
@@ -178,9 +188,25 @@ flowchart TB
     D1["DIVERGENCE - drift-counter does NOT walk the roster. It pins ONE<br/>sibling, agentbox, at a literal SHA (drift-counter.yml:61) so<br/>that moving the count source is a reviewed two-line diff rather<br/>than a silent change. The two gates therefore disagree about<br/>what the estate is."]
     D2["DIVERGENCE - ES-01.1 draws SIX repositories, the count<br/>agentbox's ecosystem doc uses. That is the VisionClaw checkout's<br/>own neighbourhood, not the estate: it omits knowledgeGraph,<br/>visionGraph, vowl-wasm and the other roster rows.<br/>ES-01.1 now states its scope explicitly. see VF-08"]
 
-    EXEMPT["2026-10 (ea85a3c) - a repository may declare ci_by_design, a<br/>reason string, and then reads exempt rather than none when it<br/>has no verdict on HEAD: knowledgeGraph is a publish target and<br/>WasmVOWL a frozen shell, roster.json:12,16. A red or amber verdict<br/>on HEAD is never exempted, estate-health.mjs:107-112 and :590-594."]
+    EXEMPT["2026-10 (ea85a3c) - a repository may declare ci_by_design, a<br/>reason string, and then reads exempt rather than none when it<br/>has no verdict on HEAD: knowledgeGraph is a publish target, roster.json:12.<br/>WasmVOWL was exempt as a frozen shell until 5da3567 removed it, roster.json:16, see ES-11.6.<br/>A red or amber verdict on HEAD is never exempted, estate-health.mjs:107-112 and :590-594."]
     EH --> EXEMPT
     ROSTER --> INV
     DC --> D1
     ROSTER --> D2
 ```
+
+## ES-11.6 WasmVOWL leaves the exemption: the roster now expects its CI
+```mermaid
+flowchart TB
+    ROW["roster row for WasmVOWL, no ci_by_design since 5da3567 (PR #44)<br/>roster.json:16"]
+    RULE["exempt only when the row declares ci_by_design, otherwise none or the real verdict<br/>estate-health.mjs:591-593"]
+    CI["WasmVOWL CI on master: lint, type-check, test and build in modern/,<br/>plus root build-surface guards, ../WasmVOWL/.github/workflows/ci.yml:8-12, :22-45, :47-56"]
+    SNAP["the committed snapshot, collected 2026-11-23 10:57 UTC before the change,<br/>still reads WasmVOWL exempt, estate-health.json:3, estate-health.json:620 and estate-health.json:628"]
+    ROW --> RULE --> CI
+    RULE -.-> SNAP
+    AREAS["VF-03.1 also called loom and ontomark-obsidian arealess:<br/>both have areas since 2026-11-23, see LM-01, OO-01 and ES-11.5"]
+    ROW -.- AREAS
+```
+
+- **What it shows:** successor to VF-03.1 and ES-90.3. WasmVOWL is no longer a frozen shell: it runs CI on master (wasmvowl 2bb54b3) and the roster has dropped its exemption, so the next nightly snapshot reports its real verdict; the committed one predates the change.
+- **Why it is this way:** WasmVOWL PR #2 added the workflow and PR #3 moved the demo onto NggExplorer through ontomark-graph 0.4.0 (ES-11.3); VisionFlow PR #44 then removed the exemption.
