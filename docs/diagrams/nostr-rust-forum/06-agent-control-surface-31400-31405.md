@@ -451,6 +451,7 @@ flowchart TB
 ```
 
 ## NF-06.18 The M4 probe suite and what live activation does not establish
+> **Superseded** by NF-32.13 at 5dc4c64.
 
 ```mermaid
 flowchart TB
@@ -470,9 +471,9 @@ flowchart TB
 
     N1["OPEN: the requesting agent holds the admin flag, and the relay tells a human from a system by the<br/>31403's own decided_by - so the boundary is as strong as the admin list; not exercised live, on purpose<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:201"]
     N2["OPEN: no human has yet decided a high-tier case; the owner's first such 31403 at projection-committed<br/>is what closes ADR-2010 docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157"]
-    N3["RESOLVED 13cbe6c: ADR-2010 now records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
+    N3["Resolved 13cbe6c: ADR-2010 now records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
     N4["Probe cases persist as open broker_cases rows after withdrawal, identifiable by subject_kind m4-probe<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:204"]
-    N5["RESOLVED at dreamlab 4935b6c, pin since advanced to fd31193: the kit record then pinned 9c36b60 and now pins fd31193 in its SHA column and CANONICAL_KIT_SHA (branch column main at fd31193, tag v1.0.0-beta.21-rc.3);<br/>the 9c36b60 paragraph still describes the env-driven Jev local-only switches that pin brought<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :62"]
+    N5["Resolved at dreamlab 4935b6c, pin since advanced to fd31193: the kit record then pinned 9c36b60 and now pins fd31193 in its SHA column and CANONICAL_KIT_SHA (branch column main at fd31193, tag v1.0.0-beta.21-rc.3);<br/>the 9c36b60 paragraph still describes the env-driven Jev local-only switches that pin brought<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :62"]
 ```
 
 ## NF-06.19 The Jev rationale check — an opt-in advisory beside the decision card

@@ -115,12 +115,21 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2034-absence-is-reported-only-after-an-authenticated-answer.md
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/pages/board.rs
-verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
+  - ../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md
+  - ../nostr-rust-forum/crates/nostr-bbs-governance-probe/src/lib.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-governance-probe/src/main.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/src/export.rs
+  - ../nostr-rust-forum/crates/nostr-bbs-pod-worker/tests/wac_proptests.rs
+  - ../nostr-rust-forum/docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md
+  - ../nostr-rust-forum/docs/adr/ADR-2012-d1-ledger-becomes-a-chain-view.md
+verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c, dreamlab-ai-website: 5dc4c644517ff36219b7fe6cc1a70f20dc6a8d83}
+aliases:
+  NF-32.6: NF-32.8
 ---
 
 ## For developers
 
-Pass C over kit commits 4a06539 to de31aaa. NF-10 is the register, already at the fifteen-panel cap, so its superseded panels NF-10.4, NF-10.11, NF-10.15 and NF-10.16 get their successors here (NF-32.1, NF-32.2, NF-32.4, NF-32.5), and the new grant-paging findings KF-31 to KF-35 are drawn in NF-32.3 (`../nostr-rust-forum/docs/security/known-findings.md:77-78`). Five markers sit in panels on `resolved-ratchet.json`, which cannot be frozen, and no longer hold at de31aaa: NF-03.2 (the nip42 console message), NF-04.10 N5 (the pod-worker feature comment), NF-26.8 DRIFT3 (the ADR-2017 note), NF-10.6 DD9 (BASELINE's verdict anchor, now one line stale) and DW-01.5 (the website kit pin). Those topics keep their old stamps, NF-10 included (its four superseded panels are frozen at that stamp); NF-32.1 and NF-32.6 record the current text. NF-32.7 draws the kanban agent intent's new `actor` tag under the proposed ADR-2035.
+Pass C over kit commits 4a06539 to de31aaa. NF-10 is the register, already at the fifteen-panel cap, so its superseded panels NF-10.4, NF-10.11, NF-10.15 and NF-10.16 get their successors here (NF-32.1, NF-32.2, NF-32.4, NF-32.5), and the new grant-paging findings KF-31 to KF-35 are drawn in NF-32.3 (`../nostr-rust-forum/docs/security/known-findings.md:77-78`). The panels that were held on `resolved-ratchet.json` are now frozen at their own stamps, with successors here re-derived at de31aaa: NF-03.2 and NF-03.11 (NF-32.8, NF-32.9), NF-04.10 (NF-32.10), NF-26.8 (NF-32.11), NF-10.6 (NF-32.12) and NF-06.18 (NF-32.13, which reads the website at 5dc4c64); DW-01.5's successor is DW-01.9. NF-32.6, which held their current text while they could not be frozen, is folded into those successors (alias to NF-32.8). Their topics keep their old stamps, NF-10 included. NF-32.7 draws the kanban agent intent's new `actor` tag under the proposed ADR-2035.
 
 ## For the business
 
@@ -135,7 +144,7 @@ flowchart TB
     O7["O7 NIP05_USERNAME_HOST hardcoded - NOW SHARED, no longer a settings-local constant. settings.rs:35 aliases the onboarding<br/>modal constant nostr-bbs-forum-client/src/pages/settings.rs:35, which bakes NOSTR_BBS_NIP05_DOMAIN at build time and falls back to example.test<br/>nostr-bbs-forum-client/src/components/onboarding_modal.rs:59; settings.rs:343 uses it. A display fallback only. See NF-05.7."]
     O9["O9 the relay does NOT implement MeshTransport - VisionFlow keeps this reading against the retired kit register, which said it did.<br/>The one MeshTransport impl is the mesh crate's generic RelayTransport nostr-bbs-mesh/src/transport.rs:527, and the only MeshSocket<br/>is the mock nostr-bbs-mesh/src/mock.rs:249. The relay declares the dependency nostr-bbs-relay-worker/Cargo.toml:27 but imports only<br/>MeshConfig, MeshError and PeerManager nostr-bbs-relay-worker/src/mesh.rs:52-54, leaves the outbound PeerConnector a trait with no impl<br/>nostr-bbs-relay-worker/src/mesh.rs:143, and nothing outside mesh.rs uses the module beyond mod mesh nostr-bbs-relay-worker/src/lib.rs:25.<br/>DOC-DRIFT: the module doc and the manifest comment describe a wired transport nostr-bbs-relay-worker/src/mesh.rs:5 nostr-bbs-relay-worker/Cargo.toml:25-26. See NF-09.8."]
     O10["O10 wasm_bridge has no JS consumers - REFINED. The one in-repo JS consumer of its exports nostr-bbs-core/src/wasm_bridge.rs:228<br/>is the benchmark, which imports @dreamlab/nostr-core-wasm benchmarks/js-vs-wasm/bench.mjs:39 while its package.json<br/>declares @nostr-bbs/nostr-core-wasm at the absent crates/nostr-core/pkg benchmarks/js-vs-wasm/package.json:12, so it cannot<br/>resolve. The upstream-vector suite returns early and passes when fixtures are absent<br/>(nostr-bbs-core/tests/upstream_vectors/all_fixtures.rs:18) and no workflow runs sync-fixtures.sh. DRIFT: the loader doc says<br/>such tests are ignore-attributed nostr-bbs-core/tests/upstream_vectors/mod.rs:11, and none is. See NF-09.3 and NF-09.7."]
-    O10b["O10 pod-worker deferral shims - DELETED: key_provisioning.rs and nip05_endpoint.rs are gone and the removal is recorded at<br/>nostr-bbs-pod-worker/src/lib.rs:37-40; only mod export remains nostr-bbs-pod-worker/src/lib.rs:41, behind solid-pod-rs-phase1<br/>nostr-bbs-pod-worker/Cargo.toml:25. Kit PR #100: the feature comment now says export.rs is the only module it gates and the other two<br/>shims were removed at closeout nostr-bbs-pod-worker/Cargo.toml:20-22, and the consumer surface map lists only export.rs with a dated note<br/>docs/consumer-surface-map.md:46-50. NF-04.10, on the ratchet, keeps its 4a73a7a reading."]
+    O10b["O10 pod-worker deferral shims - DELETED, and kit #100 fixed the feature comment: see NF-32.10,<br/>the successor to NF-04.10. Only mod export remains nostr-bbs-pod-worker/src/lib.rs:41"]
     O11c["O11 broker_decisions is write-only - CORRECTED. A read endpoint exists:<br/>GET /api/governance/decisions with pagination and a case filter,<br/>nostr-bbs-auth-worker/src/governance_api.rs:619. See NF-06.9."]
 ```
 
@@ -234,30 +243,6 @@ flowchart TB
     R6 --> R7 --> R8 --> R9
 ```
 
-## NF-32.6 Drift kit #99 and #100 closed where the ratchet blocks a freeze
-
-```mermaid
-flowchart TB
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs:288
-    A["nip42 console error now says RELAY_URL and RELAY_URL_ALIASES are unset, every NIP-42 AUTH is refused,<br/>no client can authenticate, every write and protected-kind read refused"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2135
-    B["call-site comment says the same, nip_handlers.rs:2136-2137,<br/>matching KF-29 docs/security/known-findings.md:106 - NF-03.2 keeps its 4a73a7a reading"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:44
-    C["MAX_TIMESTAMP_DRIFT now reads core's MAX_CREATED_AT_DRIFT_SECS<br/>nostr-bbs-core/src/event.rs:28 - NF-03.11 keeps its literal seven days"]
-    %% Source: ../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md:265
-    D["ADR-2017 now carries a dated note that kit #99 corrected both comments<br/>ADR-2017-sealed-original-history-migration.md:265-267 - NF-26.8 DRIFT3 keeps its 4a73a7a reading"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:18
-    E["both comments name tombstones fold_deletion<br/>nip_handlers.rs:2942"]
-    %% Source: ../nostr-rust-forum/docs/BASELINE-architecture.md:165
-    F["DRIFT: BASELINE places gift_wrap_recipient_verdict at line 2352;<br/>since the comment at nip_handlers.rs:2135 grew, the fn is at nip_handlers.rs:2353"]
-    A --> B
-    C
-    D --> E
-    F
-```
-
-**Drift:** the governing doc's verdict anchor is one line stale at de31aaa (`../nostr-rust-forum/docs/BASELINE-architecture.md:163-165`); NF-10.6 DD9, on the ratchet, still reads it as matching, true at 4a73a7a.
-
 ## NF-32.7 The kind-38000 agent intent names its agent (ADR-2035, proposed)
 
 ```mermaid
@@ -283,3 +268,153 @@ flowchart TB
 ```
 
 **What it shows.** Kit PR #102 (`3e66d40`): before it, a consumer that fell back to the `a` coordinate read the card's own d-tag as the actor (`../nostr-rust-forum/docs/adr/ADR-2035-kanban-agent-columns-close-the-dispatch-loop-through-a-governed-case.md:23`). **Open:** the relay still holds no approval-column check, and ADR-2035 depends on the unmerged ADR-2024 (`../nostr-rust-forum/docs/adr/ADR-2035-kanban-agent-columns-close-the-dispatch-loop-through-a-governed-case.md:27`, `:47`).
+
+## NF-32.8 NIP-42 AUTH verdict table at de31aaa - the console error now says every AUTH is refused
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Client socket
+    participant DO as NostrRelayDO, handle_auth<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2124
+    participant EV as evaluate_auth_event<br/>nostr-bbs-relay-worker/src/relay_do/nip42.rs:197
+
+    DO-->>C: AUTH challenge at connect (per-session, unpredictable) - see NF-11.2
+    C->>DO: ["AUTH", kind-22242 event]
+    DO->>DO: allowed set = RELAY_URL plus RELAY_URL_ALIASES, canonicalised, explicit config only nip_handlers.rs:2131
+    DO->>EV: event, expected_challenge, allowed_relay_urls, now, max_skew nip_handlers.rs:2141
+    EV->>EV: kind must be 22242 nip42.rs:204
+    EV->>EV: verify_event_strict - id + Schnorr nip42.rs:208
+    EV->>EV: challenge tag must equal THIS session's issued value nip42.rs:214
+    EV->>EV: empty allowed set REJECTS - invalid: relay url unconfigured nip42.rs:226
+    EV->>EV: relay tag must match one allowed URL, canonicalised nip42.rs:229
+    EV->>EV: created_at within +/- 600 s nip42.rs:239 nip42.rs:35
+    EV-->>DO: AuthVerdict::Ok(pubkey) nip42.rs:243
+    DO->>DO: mark session authed and persist it, then OK true nip_handlers.rs:2153 nip_handlers.rs:2157
+
+    Note over EV: A MISSING session challenge can never match, so it rejects - there is no unchallenged path nip42.rs:212-217
+    Note over EV: Since 6064622 the relay-tag check no longer fails OPEN. A blank RELAY_URL leaves the allowed set empty and every AUTH is refused, because a request-derived identity would let an attacker's Host poison the binding nip42.rs:220-227. The set is built by allowed_relay_urls nip42.rs:252
+    Note over DO: DEBT the template still ships RELAY_URL and RELAY_URL_ALIASES blank nostr-bbs-relay-worker/wrangler.toml:49 nostr-bbs-relay-worker/wrangler.toml:53, so an unconfigured nip42 deployment refuses every AUTH and therefore every write. handle_auth logs a console error on each AUTH while it is blank nip_handlers.rs:2138 nip42.rs:284. The kit records it as open finding KF-29, docs/security/known-findings.md:106
+    Note over DO: Kit #100 - the console error now says RELAY_URL and RELAY_URL_ALIASES are unset, so every NIP-42 AUTH is REFUSED, no client can authenticate and every write and protected-kind read is refused nip42.rs:288. The call-site comment says the same nip_handlers.rs:2135-2137, matching the empty-set rejection nip42.rs:226
+    Note over EV: Since 4a73a7a the evaluate_auth_event doc comment says the caller builds the set from RELAY_URL and RELAY_URL_ALIASES only, never from the request host nip42.rs:187-193, and the helper comment says its one caller is the per-AUTH log, nothing at startup or in NIP-11 nip42.rs:274-277 nip_handlers.rs:2138
+    Note over EV: canonical_relay_url absorbs scheme, case and a trailing slash but keeps host identity nip42.rs:163, asserted nip42.rs:432-443
+```
+
+**What it shows.** Successor to the frozen NF-03.2. Kit #100 rewrote the console error and its call-site comment, so the DOC-DRIFT is closed (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs:288`); the call grew one line, so the handler anchors after it sit one lower. KF-29, the blank template, stays open.
+
+## NF-32.9 Structural validation limits at de31aaa - the drift cap comes from core
+```mermaid
+flowchart LR
+    V["validate_event<br/>nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1728"]
+    L1["id 64, pubkey 64, sig 128 hex chars<br/>nip_handlers.rs:1729"]
+    L2["content cap - registration kinds 0 and 9024 get 8 KiB<br/>nip_handlers.rs:1733 nip_handlers.rs:1739 nip_handlers.rs:41"]
+    L3["max 2000 tags nip_handlers.rs:1743 nip_handlers.rs:42"]
+    L4["max 1024 bytes per tag value nip_handlers.rs:1748 nip_handlers.rs:43"]
+    L5["created_at drift cap 7 days, now read from core: MAX_TIMESTAMP_DRIFT is nostr_bbs_core::event::MAX_CREATED_AT_DRIFT_SECS<br/>nip_handlers.rs:44, nostr-bbs-core/src/event.rs:28; sealed originals exempt from the PAST bound only (ADR-2017) nip_handlers.rs:1754 nip_handlers.rs:1794"]
+    L6["max 20 subscriptions per socket, decided by subscription_cap_reached on REQ<br/>nip_handlers.rs:45 nip_handlers.rs:52-53 nip_handlers.rs:1862"]
+    L7["#91: a REQ reusing an id the session holds is a REPLACEMENT and is never refused - an AUTH replay<br/>re-sends every held id, and at a full session it used to be refused wholesale nip_handlers.rs:47-51"]
+
+    V --> L1 & L2 & L3 & L4 & L5
+    V -.-> L6 --> L7
+
+    N1["OPEN (NF-10 O20, KF-22): the cap is read and the borrow released at nip_handlers.rs:1862, the subscription<br/>is inserted only at nip_handlers.rs:1929-1931, after the D1 awaits at nip_handlers.rs:1907 and nip_handlers.rs:1908.<br/>Two REQs with different ids on one session can both pass, so the cap is a resource bound, not a security boundary"]
+```
+
+**What it shows.** Successor to the frozen NF-03.11: the seven-day drift limit is no longer a relay-local literal but core's constant (`../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:44`, `../nostr-rust-forum/crates/nostr-bbs-core/src/event.rs:28`), the value unchanged. The subscription-cap race (O20, KF-22) is unchanged.
+
+## NF-32.10 The three wasm32-unreachable Phase-1 surfaces at de31aaa - the feature comment now matches the deleted shims
+```mermaid
+flowchart TB
+    FEAT["solid-pod-rs-phase1 feature<br/>nostr-bbs-pod-worker/Cargo.toml:25"]
+    F1["solid-pod-rs/provision-keys nostr-bbs-pod-worker/Cargo.toml:26"]
+    F2["solid-pod-rs/nip05-endpoint nostr-bbs-pod-worker/Cargo.toml:27"]
+    F3["solid-pod-rs/export-jsonld nostr-bbs-pod-worker/Cargo.toml:28"]
+    EXPORT["export.rs is a bare re-export of solid_pod_rs::export<br/>nostr-bbs-pod-worker/src/export.rs:19"]
+    STATE["Off by default: the workspace dep enables only the core feature<br/>nostr-rust-forum/Cargo.toml:188, pulled bare by the worker nostr-bbs-pod-worker/Cargo.toml:59<br/>the trio is opt-in only nostr-bbs-pod-worker/Cargo.toml:25"]
+
+    FEAT --> F1 & F2 & F3
+    FEAT -.-> EXPORT
+    STATE --> FEAT
+
+    N1["DIVERGENCE BASELINE-architecture: these three surfaces remain STRUCTURALLY unreachable from wasm32<br/>CF Workers. Legacy ADR-087 (portable cores) is deferred, so ADR-086's pod-federation fallback is<br/>degenerate - the pod returns the same data D1 already holds. Latent risk, not scheduled work<br/>docs/BASELINE-architecture.md:103-106"]
+    N2["DIVERGENCE: the related WAC Turtle serializer bare-path IRI quirk (legacy ADR-088) has ZERO live<br/>impact because this worker writes JSON-LD ACLs and never round-trips Turtle docs/BASELINE-architecture.md:106-109 - see NF-04.4"]
+    N3["The kit groups the three upstream features under ONE forum-facing alias so an operator flips a single<br/>switch rather than three docs/consumer-surface-map.md:54"]
+    N4["Property tests cover the WAC document handling this whole topic rests on<br/>nostr-bbs-pod-worker/tests/wac_proptests.rs:1"]
+    N5["Parked stubs: the key_provisioning and nip05_endpoint shims are deleted, recorded at nostr-bbs-pod-worker/src/lib.rs:37-40;<br/>mod export is the one staging shim left nostr-bbs-pod-worker/src/lib.rs:41, gated nostr-bbs-pod-worker/src/export.rs:17.<br/>Kit #100: the feature comment now says export.rs is the only module it gates and the other two shims were removed<br/>at closeout nostr-bbs-pod-worker/Cargo.toml:20-22, and that provision-keys and export-jsonld enable tokio-runtime,<br/>so the alias builds natively only, not for wasm32 nostr-bbs-pod-worker/Cargo.toml:23-24;<br/>the consumer surface map lists only export.rs with a dated note docs/consumer-surface-map.md:46-50"]
+    STATE -.- TEN["TENSION ADR-2012 vs Cargo.toml: decision 4 speaks of the exact pin, bumped in lockstep with the host,<br/>ADR-2012-d1-ledger-becomes-a-chain-view.md:76-80, while the workspace dependency is a caret range<br/>at 0.5.0-alpha.24 by owner decision, nostr-rust-forum/Cargo.toml:184-188"]
+```
+
+**What it shows.** Successor to the frozen NF-04.10: kit #100 closed the N5 drift; the feature comment names `export.rs` as the only gated module and says the alias builds natively only (`../nostr-rust-forum/crates/nostr-bbs-pod-worker/Cargo.toml:20-24`). The comment grew three lines, so the feature anchors sit three lower.
+
+## NF-32.11 Open items on sealed-original deletion at de31aaa - ADR-2017 carries the dated note
+```mermaid
+flowchart TB
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2966
+    O19["OPEN NF-10 O19, KF-19: an author cannot delete their own migrated post<br/>the member gate refuses every sealed original"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/lib.rs:870
+    O19B["The purge's row-author tombstone exists<br/>but the classifier reads the sealed flag first"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:123
+    DEAD["For a new kind 5 the client's author branch is reachable<br/>only when the author is also admin or TL3"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:3399
+    O18["DEBT NF-10 O18, KF-18: a migrator who lost admin leaves<br/>envelopes, any current admin's envelope is removable"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:19
+    O25["OPEN NF-10 O25, KF-27: the client cannot identify TL3<br/>moderators, so on a restored sealed original<br/>their deletions hide nothing client-side"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/whitelist.rs:180
+    O25B["check-whitelist isAdmin reads whitelist.is_admin only<br/>whitelist.rs:135"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/auth.rs:184
+    O25C["The relay also honours static ADMIN_PUBKEYS admins<br/>auth.rs:184-189, which the client never sees as admin"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/tombstones.rs:14
+    DRIFT1["Since nostr-rust-forum 4a73a7a the comment says<br/>since #94 the relay refuses such a kind 5 unless admin or TL3"]
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/admin_events.rs:18
+    DRIFT2["Since nostr-rust-forum 4a73a7a both comments name<br/>tombstones::fold_deletion, also relay_do/nip_handlers.rs:2942"]
+    %% Source: ../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md:265
+    DRIFT3["Kit #100: ADR-2017 now carries a dated note that kit #99 corrected both comments<br/>ADR-2017-sealed-original-history-migration.md:265-267, its line numbers as of 4a73a7a"]
+    O19 --> O19B --> DEAD
+    O25 --> O25B --> O25C
+    O18
+    DRIFT1
+    DRIFT2 --> DRIFT3
+```
+
+**What it shows.** Successor to the frozen NF-26.8: DRIFT3 is closed by ADR-2017's dated note (`../nostr-rust-forum/docs/adr/ADR-2017-sealed-original-history-migration.md:265-267`). The note cites `nip_handlers.rs:2941` as checked at 4a73a7a; at de31aaa the comment sits at `nip_handlers.rs:2942`, which is the note's own stated revision boundary, not a fresh drift.
+
+## NF-32.12 Doc-drift register DD1 to DD10 at de31aaa - BASELINE's verdict anchor is one line stale
+```mermaid
+flowchart TB
+    DD1["CLOSED by the README rewrite: the Known-gaps row calling NIP-42 AUTH scaffolded with auth_required false is gone<br/>(the README at this stamp carries no scaffolded or planned rows nostr-rust-forum/README.md:60). The code is unchanged: nip42 is the DEFAULT nip42.rs:134,<br/>the template ships AUTH_MODE nip42 nostr-bbs-relay-worker/wrangler.toml:39, and every EVENT passes the gate first nip_handlers.rs:1142.<br/>See NF-03.3."]
+    DD2["CLOSED by the README rewrite: the row saying nostr-bbs-mesh is NOT a dependency of the relay-worker is gone and the README<br/>now draws mesh as a dotted configured-routing edge nostr-rust-forum/README.md:60. nostr-bbs-relay-worker/Cargo.toml:27 declares the dependency. See NF-09.8."]
+    DD3["nostr-bbs-relay-worker/wrangler.toml:18 asserts there is no ADMIN_PUBKEYS reader in src/.<br/>nostr-bbs-relay-worker/src/auth.rs:185 reads it, and so does nostr-bbs-auth-worker/src/admin.rs:63.<br/>Only nostr-bbs-search-worker/wrangler.toml:41 declares the var. See NF-08.7."]
+    DD4["nostr-rust-forum/Cargo.toml:72 workspace.metadata.ci.wasm-check-packages names three crates (config, preview-worker, jev) and is read by NOTHING -<br/>the wasm job checks the whole workspace .github/workflows/ci.yml:188. Inert metadata. See NF-01.2."]
+    DD5["nostr-bbs-upstream-canary/src/lib.rs:10 names a five-NIP build matrix but only three smokes exist<br/>nostr-bbs-upstream-canary/src/lib.rs:35 nostr-bbs-upstream-canary/src/lib.rs:56 nostr-bbs-upstream-canary/src/lib.rs:89 - nip04, nip59 and nip98 are unexercised. The same doc calls the crate<br/>nostr-upstream-canary nostr-bbs-upstream-canary/src/lib.rs:14 while the package is nostr-bbs-upstream-canary. See NF-01.5."]
+    DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:1008. See NF-07.1."]
+    DD7["CLOSED in part: KIND_GOVERNANCE_AUDIT_LOG, which was numerically the SAME kind as KIND_PANEL_RETIRED, is deleted and a regression test<br/>keeps the six kinds pairwise distinct nostr-bbs-core/src/governance.rs:2222, KIND_PANEL_RETIRED stays nostr-bbs-core/src/governance.rs:32.<br/>Still open: only three of the six documented ACS types have Rust structs nostr-bbs-core/src/governance.rs:102 nostr-bbs-core/src/governance.rs:1227 nostr-bbs-core/src/governance.rs:1257.<br/>See NF-06.1 and NF-06.2."]
+    DD8["docs/consumer-surface-map.md:21 lists the git panel as calling /.well-known/apps; the client fetches<br/>/apps/manifest.json nostr-bbs-forum-client/src/components/git_panel.rs:893 and no .well-known path exists in that crate. See NF-30.2."]
+    DD9["DOC-DRIFT, one line: the governing doc's gift-wrap paragraph cites the recipient gate at nip_handlers.rs lines 1175 to 1185,<br/>gift_wrap_recipient at line 160 and the verdict at line 2352 docs/BASELINE-architecture.md:163-165. The first two still hold<br/>nip_handlers.rs:160 nip_handlers.rs:1175-1185, but the call-site comment at nip_handlers.rs:2135-2137 grew a line,<br/>so gift_wrap_recipient_verdict is at nip_handlers.rs:2353. See NF-10.1 I5."]
+    DD10["Since 4a73a7a the client tombstone doc says that since the member gate the relay refuses a kind-5 naming a<br/>restored sealed original unless the signer is an admin or TL3+, and that kind-5s stored before the gate can still name one<br/>nostr-bbs-forum-client/src/stores/tombstones.rs:11-15, matching nip_handlers.rs:2966 nip_handlers.rs:3057. See NF-10.15."]
+```
+
+**What it shows.** Successor to the frozen NF-10.6. DD9 no longer holds as matching: BASELINE still places `gift_wrap_recipient_verdict` at line 2352 (`../nostr-rust-forum/docs/BASELINE-architecture.md:163-165`), the function is at `../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:2353`. The other entries are unchanged at de31aaa.
+
+## NF-32.13 The M4 probe suite at de31aaa, with the website kit pin at 5dc4c64
+```mermaid
+flowchart TB
+    SUITE["nostr-bbs-governance-probe - the ADR-2011 M4 suite: pure verdicts in the library,<br/>sockets in the binary nostr-bbs-governance-probe/src/lib.rs:1-8"]
+    OWN["probes live on their own panel and never need the owner's key<br/>nostr-bbs-governance-probe/src/lib.rs:12-19, PANEL_D nostr-bbs-governance-probe/src/lib.rs:58"]
+    TABLE["P01 to P11 - NIP-11 posture, routes, effective_tier stamped high, probe tag blinding,<br/>rationale refusal, system decider refusal, withdrawal nostr-bbs-governance-probe/src/lib.rs:23-35"]
+    NOTRUN["NotRun never counts as a pass nostr-bbs-governance-probe/src/lib.rs:43-45"]
+    BIN["the binary reads the signing key from a named variable and never prints it<br/>nostr-bbs-governance-probe/src/main.rs:10-11"]
+    LIVE["ADR-2011 activation live: run 20261002t132144z passed 11 of 11 on the edge<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:193"]
+    REC["ADR-2010 activation staged on the same run - the refusal path is live, the commit path is not<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:7, docs/adr/ADR-2010-durable-governance-outcome-receipts.md:153"]
+    PIN["the kit pin is now de31aaa (website PR #101), a descendant of fd31193, 9c36b60, 8a5cf81 and ebcfaa2 and so of the correlation fix a5b809e<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:30"]
+
+    SUITE --> OWN --> TABLE --> NOTRUN
+    SUITE --> BIN
+    TABLE --> LIVE --> REC
+    PIN --> REC
+
+    N1["OPEN: the requesting agent holds the admin flag, and the relay tells a human from a system by the<br/>31403's own decided_by - so the boundary is as strong as the admin list; not exercised live, on purpose<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:201"]
+    N2["OPEN: no human has yet decided a high-tier case; the owner's first such 31403 at projection-committed<br/>is what closes ADR-2010 docs/adr/ADR-2010-durable-governance-outcome-receipts.md:157"]
+    N3["Since 13cbe6c ADR-2010 records the correlation fix as on the edge, pinned through 341c5d2<br/>docs/adr/ADR-2010-durable-governance-outcome-receipts.md:155"]
+    N4["Probe cases persist as open broker_cases rows after withdrawal, identifiable by subject_kind m4-probe<br/>docs/adr/ADR-2011-operator-task-properties-set-the-escalation-boundary.md:204"]
+    N5["The kit record pins de31aaa in its SHA column and CANONICAL_KIT_SHA (branch column main at de31aaa, no tag);<br/>the 9c36b60 paragraph still describes the env-driven Jev local-only switches that pin brought; see DW-05.11<br/>../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26, :66"]
+```
+
+**What it shows.** Successor to the frozen NF-06.18: the website pins kit de31aaa (`../dreamlab-ai-website/docs/architecture/kit-compatibility-record.md:26`, `kit-compatibility-record.md:30`), still a descendant of the correlation fix a5b809e. NF-06 keeps its website key at e255b2b because the frozen NF-06.18 is its only website citation and a frozen panel pins only the forum repository.

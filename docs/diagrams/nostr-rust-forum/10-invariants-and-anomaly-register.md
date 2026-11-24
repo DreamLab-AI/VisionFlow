@@ -185,6 +185,7 @@ flowchart TB
 **Drift:** the upstream-vector loader says missing-fixture tests are ignore-attributed (`../nostr-rust-forum/crates/nostr-bbs-core/tests/upstream_vectors/mod.rs:11`); they return early and pass (O10).
 
 ## NF-10.6 New doc-drift found in this pass
+> **Superseded** by NF-32.12 at de31aaa (frozen at 4a73a7a).
 
 ```mermaid
 flowchart TB
@@ -196,8 +197,8 @@ flowchart TB
     DD6["The search-worker cron runs every five minutes and reindexes NOTHING - the handler body is a<br/>load_store warm touch nostr-bbs-search-worker/src/lib.rs:1008. See NF-07.1."]
     DD7["CLOSED in part: KIND_GOVERNANCE_AUDIT_LOG, which was numerically the SAME kind as KIND_PANEL_RETIRED, is deleted and a regression test<br/>keeps the six kinds pairwise distinct nostr-bbs-core/src/governance.rs:2222, KIND_PANEL_RETIRED stays nostr-bbs-core/src/governance.rs:32.<br/>Still open: only three of the six documented ACS types have Rust structs nostr-bbs-core/src/governance.rs:102 nostr-bbs-core/src/governance.rs:1227 nostr-bbs-core/src/governance.rs:1257.<br/>See NF-06.1 and NF-06.2."]
     DD8["docs/consumer-surface-map.md:21 lists the git panel as calling /.well-known/apps; the client fetches<br/>/apps/manifest.json nostr-bbs-forum-client/src/components/git_panel.rs:893 and no .well-known path exists in that crate. See NF-30.2."]
-    DD9["RESOLVED at 4a73a7a: the governing doc's gift-wrap paragraph now cites the recipient gate at nip_handlers.rs lines 1175 to 1185,<br/>gift_wrap_recipient at line 160 and the verdict at line 2352 docs/BASELINE-architecture.md:163-165, which is where the code has them<br/>nip_handlers.rs:160 nip_handlers.rs:1175-1185 nip_handlers.rs:2352. See NF-10.1 I5."]
-    DD10["RESOLVED at 4a73a7a: the client tombstone doc now says that since the member gate the relay refuses a kind-5 naming a<br/>restored sealed original unless the signer is an admin or TL3+, and that kind-5s stored before the gate can still name one<br/>nostr-bbs-forum-client/src/stores/tombstones.rs:11-15, matching nip_handlers.rs:2965 nip_handlers.rs:3056. See NF-10.15."]
+    DD9["Resolved at 4a73a7a: the governing doc's gift-wrap paragraph now cites the recipient gate at nip_handlers.rs lines 1175 to 1185,<br/>gift_wrap_recipient at line 160 and the verdict at line 2352 docs/BASELINE-architecture.md:163-165, which is where the code has them<br/>nip_handlers.rs:160 nip_handlers.rs:1175-1185 nip_handlers.rs:2352. See NF-10.1 I5."]
+    DD10["Resolved at 4a73a7a: the client tombstone doc now says that since the member gate the relay refuses a kind-5 naming a<br/>restored sealed original unless the signer is an admin or TL3+, and that kind-5s stored before the gate can still name one<br/>nostr-bbs-forum-client/src/stores/tombstones.rs:11-15, matching nip_handlers.rs:2965 nip_handlers.rs:3056. See NF-10.15."]
 ```
 
 ## NF-10.7 Deployment-shaped divergences
