@@ -11,7 +11,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/build/generation.rs
   - ../ontomark/crates/ontomark-compile/src/build/redact.rs
   - ../ontomark/crates/ontomark-compile/src/build/page_api.rs
-verified_commit: {ontomark: fbe30244c6842879297883b571965f5bc1ce0441}
+verified_commit: {ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4}
 ---
 
 ## For developers

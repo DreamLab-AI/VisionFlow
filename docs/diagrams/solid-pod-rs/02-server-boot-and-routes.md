@@ -428,7 +428,7 @@ flowchart TD
 
 **Debt:** the shipped `account delete` builds a fresh `InMemoryUserStore` inside `dispatch` (`solid-pod-rs-server/src/cli/mod.rs:380`), so it can never find a real user and always reports "no such user". Its help text promises removal of pods and the WebID profile as well (`solid-pod-rs-server/src/cli/mod.rs:105`), but nothing on that path touches either.
 
-**Debt:** `quota reconcile` is compiled only with the `quota` feature (`solid-pod-rs-server/src/cli/mod.rs:190`). The empty default build ships a fallback that returns a rebuild error (`solid-pod-rs-server/src/cli/mod.rs:250`).
+**Debt:** `quota reconcile` is compiled only with the `quota` feature (`solid-pod-rs-server/src/cli/mod.rs:190`). The empty default build ships a fallback that returns a rebuild error (`solid-pod-rs-server/src/cli/mod.rs:246`).
 
 ## SP-02.14 account delete removes the real pod and leaves a tombstone
 

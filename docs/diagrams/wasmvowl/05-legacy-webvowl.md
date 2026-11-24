@@ -38,7 +38,9 @@ sources:
   - ../WasmVOWL/modern/src/types/graph.ts
   - ../WasmVOWL/modern/src/stores/useGraphStore.ts
   - ../WasmVOWL/modern/src/components/UI/TopMenuBar.tsx
-verified_commit: {wasmvowl: af25086a605482c8234580ccd1062cf506e0b181}
+  - ../WasmVOWL/modern/src/components/Canvas/Nodes/ClassNode.tsx
+  - ../WasmVOWL/modern/src/lib/owl2vowl.ts
+verified_commit: {wasmvowl: 2bb54b3ee2dc3a7eda34b60d9f08fdb0fb535aab}
 ---
 
 ## WV-05.1 Two bundles, two globals, one boot call
@@ -89,7 +91,7 @@ sequenceDiagram
     P-->>G: nodes and properties, kept as unfilteredData, graph.js:1527-1530
     G->>G: run every filter module over a clone, graph.js:1644-1647
     U->>F: force.start, then redrawContent, graph.js:1315-1316
-    Note over P: The attribute merge here is what the modern loader skips, see WV-03.1
+    Note over P: CHANGED at 2bb54b3: the modern normaliser now does this attribute merge, see WV-03.1
 ```
 
 ## WV-05.4 Notation and export coverage, legacy against modern
@@ -102,12 +104,13 @@ flowchart TB
         LE["export menu: Turtle, SVG, JSON, TeX<br/>exportMenu.js:50,213,761,803"]
     end
     subgraph M["modern"]
-        MN["NodeType union has four values, types/graph.ts:5<br/>the loader only creates type class, useGraphStore.ts:191"]
-        MP["edges are objectProperty or datatypeProperty only<br/>useGraphStore.ts:211"]
-        ME["export: SVG and PNG<br/>TopMenuBar.tsx:21,52"]
+        MN["NodeType union has four values, types/graph.ts:5<br/>the normaliser makes class, datatype or literal, owl2vowl.ts:258-267"]
+        MP["five edge kinds incl. subclass, disjoint and set operator<br/>types/graph.ts:6, owl2vowl.ts:177-191"]
+        MF["VOWL fills for datatype, literal, Thing and external classes<br/>ClassNode.tsx:34-40"]
+        ME["export: SVG and PNG<br/>TopMenuBar.tsx:32,63"]
     end
     L --> M
-    GAP["DEBT: set operators, restrictions, equivalence, disjointness and external<br/>colouring have no modern counterpart, so the modern view is not VOWL-complete"]
+    GAP["DEBT: restrictions and property characteristics draw as plain object-property edges,<br/>owl2vowl.ts:184-190, equivalent classes stay separate nodes, owl2vowl.ts:44-45,<br/>so the modern view is still not VOWL-complete.<br/>CHANGED at 2bb54b3: set operators, disjointness and external colouring now have a counterpart"]
     M --- GAP
 ```
 

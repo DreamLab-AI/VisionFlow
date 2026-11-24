@@ -19,7 +19,7 @@ sources:
   - ../ontomark/crates/rdfs-certificate/src/lib.rs
   - ../ontomark/crates/rdfs-certificate/tests/oo_cert.rs
   - ../ontomark/docs/adr/ADR-OM-009-every-published-closure-carries-a-derivation-certificate.md
-verified_commit: {ontomark: fbe30244c6842879297883b571965f5bc1ce0441}
+verified_commit: {ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4}
 ---
 
 **Repair note — 2026-11-03:** the external-certificate write counterexample in OM-10.2 is repaired in source and is stated, with its acceptance boundary, in the [scoped successor verification](13-certificate-transaction-and-identity-repairs.md). The remaining counterexamples below are unchanged at the declared revision.

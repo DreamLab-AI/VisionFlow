@@ -25,12 +25,12 @@ sources:
   - ../ontomark-obsidian/src/ingest-run.ts
   - ../ontomark-obsidian/src/endpoint.ts
   - ../ontomark-obsidian/src/jev-ingest.ts
-verified_commit: {ontomark-obsidian: 64bdc5bf6309fca94bf0437b52c1484618470ed0}
+verified_commit: {ontomark-obsidian: e1f2e4c85fccb4587f96c07e4fca79014d5a7103}
 ---
 
 ## For developers
 
-The Obsidian plugin is a separate engine consumer with its own repository revision. These panels describe plugin 0.5.0 and engine v0.9.0, adopted at 64bdc5b from ontomark source f9ba200 (`engine.json:3,6`); its new `review_binding` export is not called by the plugin. The 14 November source refresh reconciles per-block query channels, stable subscriptions, ingest cancellation and persisted-write reporting. Historical probe receipts remain bound to their original revisions. The [refresh audit](../../estate-review/2026-11-01-obsidian-refresh.md) binds five whole-ADR assessments, current engine execution and bounded lifecycle probes. The ADR ledger's metadata migration is not a revalidation of implementation or activation.
+The Obsidian plugin is a separate engine consumer with its own repository revision. These panels describe plugin 0.6.0 (e1f2e4c; it adds Graph layout settings over vowl-wasm 0.4.0, see OO-03.3 and OO-04.5) and engine v0.9.0, adopted at 64bdc5b from ontomark source f9ba200 (`engine.json:3,6`); its new `review_binding` export is not called by the plugin. The 14 November source refresh reconciles per-block query channels, stable subscriptions, ingest cancellation and persisted-write reporting. Historical probe receipts remain bound to their original revisions. The [refresh audit](../../estate-review/2026-11-01-obsidian-refresh.md) binds five whole-ADR assessments, current engine execution and bounded lifecycle probes. The ADR ledger's metadata migration is not a revalidation of implementation or activation.
 
 ## For the business
 
@@ -43,7 +43,7 @@ flowchart TD
     P["Engine archive and source pins<br/>engine.json:3,5,6"] --> H["Download and check SHA-256<br/>build-wasm.mjs:17,21"]
     H --> R["Check source receipt on release path<br/>build-wasm.mjs:44,45"]
     R --> W["Inline worker and WASM into main.js<br/>esbuild.config.mjs:11,32,46"]
-    G["Versioned shared graph dependency<br/>package.json:25"] --> W
+    G["Versioned shared graph dependency, ontomark-graph 0.4.0 since e1f2e4c<br/>package.json:25"] --> W
     W --> T["Build, unit, WASM, bundle and offline gates<br/>release.yml:14"]
     T --> A["Attest three runtime files<br/>release.yml:15,18"]
     A --> F["Publish main.js, manifest.json, styles.css<br/>release.yml:24"]
@@ -57,12 +57,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    C["Top-level folders plus native ignore filters<br/>excludes.ts:57,65"] --> L["Filter initial Markdown listing<br/>main.ts:267"]
-    C --> E["Create and modify wait, then filter<br/>main.ts:381,385,386"]
-    E --> I["Update current captured API<br/>main.ts:383,387"]
-    C --> N{"Renamed target excluded?<br/>main.ts:403,409"}
-    N -->|yes| DEL["Delete old path<br/>main.ts:409"]
-    N -->|no| O["Rename or index target<br/>main.ts:411; api.ts:139"]
+    C["Top-level folders plus native ignore filters<br/>excludes.ts:57,65"] --> L["Filter initial Markdown listing<br/>main.ts:275"]
+    C --> E["Create and modify wait, then filter<br/>main.ts:389,393,394"]
+    E --> I["Update current captured API<br/>main.ts:391,395"]
+    C --> N{"Renamed target excluded?<br/>main.ts:411,417"}
+    N -->|yes| DEL["Delete old path<br/>main.ts:417"]
+    N -->|no| O["Rename or index target<br/>main.ts:419; api.ts:139"]
     S["Settings save reloads native filters<br/>main.ts:167,169"] --> RE["Dispose API and create a new one<br/>main.ts:180,181,182"]
     RE --> L
     RE --> Q["Blocks subscribe through the stable plugin relay<br/>sparql-block.ts:54"]
@@ -97,7 +97,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    CMD["Always-registered command checks endpoint and key<br/>main.ts:454-466,558"] --> PLAN["Capture one API and plan the request<br/>main.ts:482-487; ingest-run.ts:29"]
+    CMD["Always-registered command checks endpoint and key<br/>main.ts:462-474,566"] --> PLAN["Capture one API and plan the request<br/>main.ts:490-495; ingest-run.ts:29"]
     PLAN --> NET["Chunk loop: abort check and ten-minute deadline<br/>ingest-transport.ts:154-168"]
     NET --> WAIT["Timeout races host request; no abort handle<br/>ingest-transport.ts:90-105,180"]
     WAIT --> ACCEPT["Accept and optional Jev judgement<br/>abort checked after each await<br/>ingest-run.ts:31-39"]

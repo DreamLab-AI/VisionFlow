@@ -25,7 +25,7 @@ sources:
   - ../vowl-wasm/src/layout/simulation.rs
   - ../vowl-wasm/README.md
   - ../vowl-wasm/docs/adr/ADR-001-shared-ontology-rendering-contract.md
-verified_commit: f04ff27209a0350e926d5a8a183fe0eb8c416604
+verified_commit: 0779174612a3942b15331356422f58bf8379912b
 ---
 
 ## VW-01.1 Top-level module tree
@@ -50,18 +50,18 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph Always["always compiled, default = []"]
-        CORE["OWL/JSON parsing, graph model,<br/>force layout, pinning, statistics<br/>Cargo.toml:58-61"]
+        CORE["OWL/JSON parsing, graph model,<br/>force layout, pinning, statistics<br/>Cargo.toml:72-75"]
     end
-    NGG1F["ngg1<br/>Cargo.toml:67 dep:ontomark-ngg1 at Cargo.toml:46"] --> NGGMOD["src/ngg1.rs re-export + NggExplorer<br/>bindings/explorer.rs:56 + NggGraph, decodeNgg1, encodeNgg1<br/>bindings/ngg.rs:17-18"]
-    INTF["interaction<br/>Cargo.toml:71"] --> INTMOD["interaction module<br/>+ checkNodeClick binding"]
-    DBGF["debug-serde<br/>Cargo.toml:76"] --> DBGMOD["WebVowl.getGraphData()<br/>bindings/mod.rs:178"]
-    PARF["parallel<br/>Cargo.toml:80 dep:rayon, native only"] --> PARMOD["enables rayon dependency;<br/>current source has no parallel loading implementation"]
-    SIMDF["simd<br/>Cargo.toml:84, needs simd128 target-feature"] --> SIMDMOD["layout/simd.rs SIMD128 kernels"]
+    NGG1F["ngg1<br/>Cargo.toml:81 dep:ontomark-ngg1 at Cargo.toml:60"] --> NGGMOD["src/ngg1.rs re-export + NggExplorer<br/>bindings/explorer.rs:56 + NggGraph, decodeNgg1, encodeNgg1<br/>bindings/ngg.rs:17-18"]
+    INTF["interaction<br/>Cargo.toml:85"] --> INTMOD["interaction module<br/>+ checkNodeClick binding"]
+    DBGF["debug-serde<br/>Cargo.toml:90"] --> DBGMOD["WebVowl.getGraphData()<br/>bindings/mod.rs:187"]
+    PARF["parallel<br/>Cargo.toml:94 dep:rayon, native only"] --> PARMOD["enables rayon dependency;<br/>current source has no parallel loading implementation"]
+    SIMDF["simd<br/>Cargo.toml:98, needs simd128 target-feature"] --> SIMDMOD["layout/simd.rs SIMD128 kernels"]
     NGG1F -. "not in bundle alone" .-> BUNDLE
     INTF --> BUNDLE["published npm bundle<br/>README.md:207 --features ngg1,interaction"]
 ```
-- `default = []` (Cargo.toml:61) disables named optional features. The `parallel` feature currently adds rayon but no source call uses it; the manifest comment describes an absent loading implementation. Optional dependency selection alone is not parallel execution.
-- The `markdown-ontology` feature and its `regex` dependency no longer exist: the manifest has no `regex` and no such feature (Cargo.toml:26-46, Cargo.toml:57-84), and the README records the removal, with Markdown parsing left to `ontomark-parse` (README.md:210-211). The NGG1 codec is `ontomark-ngg1` 0.1.0 from crates.io, optional behind `ngg1` (Cargo.toml:45-46).
+- `default = []` (Cargo.toml:75) disables named optional features. The `parallel` feature currently adds rayon but no source call uses it; the manifest comment describes an absent loading implementation. Optional dependency selection alone is not parallel execution.
+- The `markdown-ontology` feature and its `regex` dependency no longer exist: the manifest has no `regex` and no such feature (Cargo.toml:40-60, Cargo.toml:71-98), and the README records the removal, with Markdown parsing left to `ontomark-parse` (README.md:210-211). The NGG1 codec is `ontomark-ngg1` 0.1.0 from crates.io, optional behind `ngg1` (Cargo.toml:59-60).
 
 ## VW-01.5 `init()` and `version()` — module entry, called once by wasm-bindgen
 ```mermaid
@@ -85,7 +85,7 @@ flowchart TB
     JSON["serde_json::Error<br/>From conversion: src/error.rs:49"] --> ERR
     ERR --> JS["JsValue containing rendered error text<br/>From conversion: src/error.rs:43"]
 ```
-- Fallible `WebVowl` operations such as `loadOntology` return `std::result::Result<T, JsValue>` (e.g. `load_ontology` src/bindings/mod.rs:56) — the crate's typed `VowlError` never crosses the boundary, only its rendered message. Getters, booleans and setters also have non-Result signatures (src/bindings/mod.rs:123-154).
+- Fallible `WebVowl` operations such as `loadOntology` return `std::result::Result<T, JsValue>` (e.g. `load_ontology` src/bindings/mod.rs:62) — the crate's typed `VowlError` never crosses the boundary, only its rendered message. Getters, booleans and setters also have non-Result signatures (src/bindings/mod.rs:132-163).
 
 ## VW-01.7 Two entry points: `WebVowl` vs `NggExplorer`
 ```mermaid
@@ -94,7 +94,8 @@ flowchart TB
     NG --> LOAD["loadCsr: NGG1 parse<br/>tick: CsrSimulation"]
     NG --> ARR["loadArrays: validate plain positions and edges,<br/>then replace the simulation graph<br/>src/bindings/explorer.rs:110-124"]
     NG --> PTR["positionsPtr and positionsLen<br/>direct view over wasm.memory.buffer"]
-    NG --> TUNE["setTheta, pinNode, unpinNode, reheat<br/>src/bindings/explorer.rs:192-215"]
+    NG --> TUNE["setTheta, pinNode, unpinNode, reheat<br/>src/bindings/explorer.rs:216-239"]
+    NG --> PARAM["setParam by key; 0.4.0 adds the off-by-default<br/>collide and componentGravity keys, see VW-03.11<br/>src/bindings/explorer.rs:189-210"]
     MAIN["JS main-thread consumer"] --> WV["WebVowl, always available<br/>src/bindings/mod.rs:27"]
     WV --> JSON["loadOntology: parser and builder<br/>tick/run/init: ForceSimulation"]
     WV --> STATE["Typed positions, metadata,<br/>pinning, filtering, statistics<br/>getGraphData needs debug-serde"]
@@ -102,12 +103,12 @@ flowchart TB
     OWNED --> ENCODE["encodeNgg1<br/>src/bindings/ngg.rs:182"]
     OWNED --> CONST["ngg1Constants<br/>src/bindings/ngg.rs:240"]
 ```
-- The pointer-view path avoids copying positions at that boundary (src/bindings/explorer.rs:157-170). This is not an allocation-free engine: ticks allocate force buffers and tree storage (src/layout/csr_sim.rs:386-387, src/layout/csr_sim.rs:186-187); `writePositionsInto` also uses allocating generated glue. Separate owned codec functions are not explorer methods.
+- The pointer-view path avoids copying positions at that boundary (src/bindings/explorer.rs:157-170). This is not an allocation-free engine: ticks allocate force buffers and tree storage (src/layout/csr_sim.rs:481-482, src/layout/csr_sim.rs:232-233); `writePositionsInto` also uses allocating generated glue. Separate owned codec functions are not explorer methods.
 
 ## VW-01.8 `DebugFlags` — opt-in console tracing
 ```mermaid
 flowchart TB
-    SIM["ForceSimulation<br/>enable_debug and set_debug_flags<br/>src/layout/simulation.rs:50-55"] --> FLAGS["DebugFlags<br/>log_positions, log_forces, log_velocities<br/>new: src/debug.rs:33<br/>enable_all: src/debug.rs:47"]
+    SIM["ForceSimulation<br/>enable_debug and set_debug_flags<br/>src/layout/simulation.rs:60-65"] --> FLAGS["DebugFlags<br/>log_positions, log_forces, log_velocities<br/>new: src/debug.rs:33<br/>enable_all: src/debug.rs:47"]
     FLAGS --> LOG["should_log(iteration)<br/>iteration modulo log_interval<br/>zero interval panics<br/>src/debug.rs:58-59"]
 ```
 - WASM builds log via `web_sys::console` only under `#[cfg(target_arch = "wasm32")]` (src/debug.rs:71); non-wasm32 logging helpers are no-ops (src/debug.rs:171-183). The public Rust `log_interval` is unchecked: zero panics in `should_log` (src/debug.rs:58-59).

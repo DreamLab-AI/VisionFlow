@@ -15,7 +15,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
   - ../ontomark/crates/ontomark-compile/src/build/generation.rs
   - ../ontomark/crates/ontomark-compile/src/build/publish.rs
-verified_commit: {visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, ontomark: fbe30244c6842879297883b571965f5bc1ce0441}
+verified_commit: {visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454, visionclaw: d2780e26f870ce21fa92bccb29fa47f001015b16, ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4}
 ---
 
 ## For developers

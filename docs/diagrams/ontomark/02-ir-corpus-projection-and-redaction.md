@@ -26,7 +26,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/examples/shacl_export.rs
   - ../ontomark/crates/ontomark-compile/tests/jsonld_matches_turtle.rs
   - ../ontomark/crates/ontomark-compile/tests/publish_gate.rs
-verified_commit: fbe30244c6842879297883b571965f5bc1ce0441
+verified_commit: 8222170c5243f58f1f9a93ac800660dfe0197ac4
 ---
 
 ## OM-02.1 Corpus::build — Vault to ClassRecord, every field's source and every resolver

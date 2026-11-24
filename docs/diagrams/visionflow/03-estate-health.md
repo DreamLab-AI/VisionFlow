@@ -28,6 +28,9 @@ verified_commit: 3ae784ed0b547b562e1f94d017996f8ad197f5cb
 ---
 
 ## VF-03.1 The roster — the only place the estate is enumerated
+
+> **Superseded** by ES-11.6 at dae9ac0 (frozen at 3ae784e).
+
 ```mermaid
 flowchart LR
     classDef fp fill:#e6f0dc,stroke:#4a7a2a,color:#111

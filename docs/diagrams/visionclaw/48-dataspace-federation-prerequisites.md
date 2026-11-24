@@ -17,7 +17,7 @@ sources:
   - ../project/xr-client/scripts/backend_connection.gd
   - ../project/src/services/corpus_history.rs
   - ../project/src/actors/agent_demo_director.rs
-verified_commit: {visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e}
+verified_commit: {visionclaw: c6cc081d5ae2c4501d847fded65b5b91576dd721}
 ---
 
 ## For developers
@@ -63,13 +63,13 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    OWN["PROPOSED: authored link is primary local data<br/>DATA-authority-erasure.md:184"] --> RENEW["Seven-day lease means re-announce, not discard local authorship<br/>DATA-authority-erasure.md:184,188"]
-    FOREIGN["PROPOSED: received link or viewer state is disposable<br/>DATA-authority-erasure.md:185"] --> RETRACT["Authoritative retraction removes display and tombstones links<br/>DATA-authority-erasure.md:187,188"]
-    RETRACT --> PURGE["Purge by earlier of receipt plus 24 hours or lease expiry<br/>DATA-authority-erasure.md:188"]
-    FOREIGN --> EXPIRE["Offline received references expire after seven days<br/>tombstones survive eight days<br/>DATA-authority-erasure.md:188"]
+    OWN["PROPOSED: authored link is primary local data<br/>DATA-authority-erasure.md:194"] --> RENEW["Seven-day lease means re-announce, not discard local authorship<br/>DATA-authority-erasure.md:194,198"]
+    FOREIGN["PROPOSED: received link or viewer state is disposable<br/>DATA-authority-erasure.md:195"] --> RETRACT["Authoritative retraction removes display and tombstones links<br/>DATA-authority-erasure.md:197,198"]
+    RETRACT --> PURGE["Purge by earlier of receipt plus 24 hours or lease expiry<br/>DATA-authority-erasure.md:198"]
+    FOREIGN --> EXPIRE["Offline received references expire after seven days<br/>tombstones survive eight days<br/>DATA-authority-erasure.md:198"]
 ```
 
 **What it shows.** The design has distinct ownership and expiry rules; the current resolver has no 410/tombstone implementation. **Why it is this way.** A received reference is reconstructible, while an authored assertion is primary data. This diagram records the proposal without asserting that its deadlines run today.
-**Open (risk):** graph shares are a durable copy of the creator's view, private nodes included, and no per-user erasure path reaches them (`DATA-authority-erasure.md:119-120`, `DATA-authority-erasure.md:134-136`). A federated render-only rule that forbids durable copies (`DATA-authority-erasure.md:187`) would need shares carved out or covered.
+**Open (risk):** graph shares are a durable copy of the creator's view, private nodes included, and no per-user erasure path reaches them (`DATA-authority-erasure.md:129-130`, `DATA-authority-erasure.md:144-146`). A federated render-only rule that forbids durable copies (`DATA-authority-erasure.md:197`) would need shares carved out or covered.
 
 **Transport boundary, 14 November source review:** `connect_graph` accepts `ws://` only; this build has no TLS backend and refuses `wss://` (`xr-client/rust/src/transport.rs:108-123`). Signing the upgrade establishes the configured identity carrier, not encrypted transport or a completed federation contract. VC-44.4 describes the separate byte-progress and reconnect behaviour.

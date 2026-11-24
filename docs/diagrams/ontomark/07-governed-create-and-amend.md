@@ -11,7 +11,7 @@ sources:
   - ../ontomark/crates/ontomark-compile/src/write/create.rs
   - ../ontomark/crates/ontomark-compile/src/write/apply.rs
   - ../ontomark/crates/ontomark-compile/src/write/proposal.rs
-verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, ontomark: f5cca7d16e56fca95c38fab5e46a3ef0fac065a2}
+verified_commit: {agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4}
 ---
 
 ## For developers

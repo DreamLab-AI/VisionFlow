@@ -33,7 +33,7 @@ sources:
   - ../loom/crates/loom-vector-ruvector/src/artifact.rs
   - ../project/agentbox/docs/adr/ADR-2136-pin-the-shared-ontology-toolchain.md
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: f5cca7d16e56fca95c38fab5e46a3ef0fac065a2, loom: 355946dd2deacfdef21171d53eafd025887e447e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
+verified_commit: {ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4, loom: 355946dd2deacfdef21171d53eafd025887e447e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 
 ## OM-06.1 build --scope public|machine — the surface, the refusals and where run_with forks

@@ -24,7 +24,7 @@ sources:
   - ../ontomark-obsidian/README.md
   - ../ontomark-obsidian/docs/adr/README.md
   - ../ontomark-obsidian/docs/evidence/provenance-engine-0.9.0.md
-verified_commit: {ontomark-obsidian: 64bdc5bf6309fca94bf0437b52c1484618470ed0}
+verified_commit: {ontomark-obsidian: e1f2e4c85fccb4587f96c07e4fca79014d5a7103}
 ---
 
 ## OO-06.1 npm run build: pinned engine in, three runtime files out
@@ -115,6 +115,7 @@ flowchart TD
         C2["build, unit, wasm, bundle check<br/>ci.yml:12"]
         C3["offline test<br/>ci.yml:13"]
         L1["adr-ledger job: fetch the agentbox checker at a pinned commit, verify its SHA-256, then check-index<br/>ci.yml:14,25<br/>adr-ledger.sh:19,20,29,30,34"]
+        L2["CHANGED at e1f2e4c: checker pin moved from agentbox 8bd4314 to 1ea5494, with its SHA-256<br/>adr-ledger.sh:18,19,20"]
     end
     subgraph REL["Plugin release on a tag that starts with a digit"]
         R0["write contents, OIDC and attestations<br/>release.yml:2,3"]
@@ -124,10 +125,11 @@ flowchart TD
         R4["gh release create with the three files and generated notes<br/>release.yml:24"]
     end
     C1 --> C2 --> C3
+    L1 --- L2
     R0 --> R1 --> R2 --> R3 --> R4
     OPEN1["OPEN: only manifest.json is compared with the tag, package.json and versions.json are not checked<br/>release.yml:12"]
     R1 --- OPEN1
-    DRIFT1["DOC-DRIFT: README working status says engine.json pins v0.8.1 source cf4c12d7, engine.json pins v0.9.0 source f9ba200b<br/>ontomark-obsidian/README.md:148<br/>engine.json:3,6"]
+    DRIFT1["CHANGED at e1f2e4c: README working status now names manifest 0.6.0 and the pinned engine v0.9.0 source f9ba200b,<br/>so the earlier v0.8.1 doc drift is gone<br/>ontomark-obsidian/README.md:148<br/>engine.json:3,6<br/>manifest.json:4"]
     R4 --- DRIFT1
     DRIFT2["DOC-DRIFT: ledger lists ADR-OBS-001 implementation none and 002, 003 proposed, none, inactive, while the graph view and ingest ship<br/>adr/README.md:9,10,11"]
     L1 --- DRIFT2

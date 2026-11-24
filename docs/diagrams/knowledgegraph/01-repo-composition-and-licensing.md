@@ -12,7 +12,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/README.md
   - ../knowledgeGraph/archive/github-workflows/build.yml
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8}
+verified_commit: {knowledgegraph: 22c9bb8f54eafbc68faa3c0f2186bbae40364a93, visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454}
 ---
 
 ## For developers
@@ -55,9 +55,9 @@ flowchart TB
 flowchart TB
     SCOPE["LICENSING.md governs scope conflicts<br/>LICENSING.md:3"]
     AGPL["AGPL-3.0-or-later declaration<br/>pipeline/, root .github/, static/, docs/,<br/>examples/ and named root prose<br/>LICENSING.md:22"]
-    MIT["MIT declaration for explorer/<br/>LICENSING.md:28<br/>WebVOWL attribution retained<br/>NOTICE:25"]
-    DATA["ODbL-1.0 declaration<br/>ontology/ and dist/<br/>LICENSING.md:29"]
-    GAP["DRIFT: committed table names old paths<br/>Archived pages and pipeline are now under archive/<br/>The archive notice does not restate grants"]
+    MIT["MIT declaration for explorer/<br/>CHANGED at d77a41c: row marks it removed, last at 7815bbc<br/>LICENSING.md:28<br/>new MIT row for the moved hero and FORMAT-NGG1.md<br/>LICENSING.md:29<br/>WebVOWL attribution retained<br/>NOTICE:27-29"]
+    DATA["ODbL-1.0 declaration<br/>ontology/ and dist/<br/>LICENSING.md:30-31"]
+    GAP["DRIFT: committed table still names old paths<br/>a prose paragraph maps them to archive/, LICENSING.md:16<br/>The archive notice does not restate grants"]
     %% knowledgeGraph/archive/logseq-era-2026-09-22/README.md:1
     OFFER["COMMERCIAL.md records alternative terms<br/>and an interim issue-tracker enquiry route<br/>COMMERCIAL.md:3,14"]
     SCOPE --> AGPL

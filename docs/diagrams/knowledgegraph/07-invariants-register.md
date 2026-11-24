@@ -15,8 +15,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/manifest.py
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pipeline/release_gate.py
   - ../knowledgeGraph/scripts/adr-ledger.sh
-  - ../knowledgeGraph/explorer/modern/package.json
-  - ../knowledgeGraph/explorer/modern/src/workers/positionTransport.ts
+  - ../knowledgeGraph/README.md
   - ../knowledgeGraph/.github/workflows/adr-ledger.yml
   - ../knowledgeGraph/docs/adr/.ledger.json
   - ../knowledgeGraph/docs/adr/PREAMBLE.md
@@ -24,7 +23,7 @@ sources:
   - ../knowledgeGraph/archive/logseq-era-2026-09-22/pages/ADR-012.md
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/quartz/scripts/check-urls.sh
-verified_commit: {knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8}
+verified_commit: {knowledgegraph: 22c9bb8f54eafbc68faa3c0f2186bbae40364a93, visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454}
 ---
 
 ## For developers
@@ -49,6 +48,9 @@ flowchart TB
     %% PROV source: BASELINE-narrativegoldmine.md:197-198,213-215
     SCOPE["INVARIANT: these are scoped historical obligations<br/>The Logseq source and pipeline are archived<br/>logseq-era-2026-09-22/README.md:1-4"]
     PUB --> SHAPE --> IDENT --> PROV --> SCOPE
+    %% Source: BASELINE-narrativegoldmine.md:13-16
+    BSRC["DOC-DRIFT: the baseline still lists explorer/rust-wasm/src/ngg1.rs<br/>and explorer/modern paths as sources, removed at d77a41c<br/>only its FORMAT-NGG1.md entry was repointed to docs/reference/"]
+    SHAPE --- BSRC
 ```
 
 **What it shows:** All eleven baseline obligations remain visible, with explicit historical scope. The diagram does not claim current enforcement of every obligation by the replacement publisher.
@@ -77,9 +79,9 @@ flowchart TB
 
 **Why it is this way:** The successor has a different assembly path. Retirement neither proves that all previous obligations transferred nor makes their unresolved acceptance conditions moot.
 
-**Resolved (ADR-2002 publication, 2026-11-14):** knowledgeGraph PR 5 publishes the retained explorer reconciliation and buffer repair on main. ADR-2002 records 26 passing worker tests, including the repeated two-buffer transfer regression and its failing original-source control (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:20-32`). The pool accepts returned wrappers through outstanding-count accounting (`../knowledgeGraph/explorer/modern/src/workers/positionTransport.ts:82-88`); [KG-08](08-transfer-pool-repair.md) explains the repair.
+**Changed (retained explorer lifecycle, 2026-11-23):** knowledgeGraph PR 6 removed `explorer/` and its vowl-wasm v0.1.1 pin from main (`../knowledgeGraph/README.md:95`); the November buffer repair stays recorded in ADR-2002 and [KG-08](08-transfer-pool-repair.md) at `4809ea9`.
 
-**Open (retained explorer lifecycle):** the vowl-wasm v0.1.1 dependency remains (`../knowledgeGraph/explorer/modern/package.json:20`). Retirement or a tested consumer upgrade still needs an explicit decision (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:32`). Publication of the buffer repair does not establish a deployed browsing journey.
+**Tension (ADR-2002 vs README):** ADR-2002 still asks for retirement or a tested upgrade to be chosen explicitly (`../knowledgeGraph/docs/adr/ADR-2002-corpus-is-the-ontology.md:32`); the retirement was made by PR and README note, with no ADR entry recording it.
 
 ## KG-07.3 Historical gaps and continuing decision tensions
 
@@ -111,7 +113,7 @@ flowchart TB
     CONTENT["ADR-008 and ADR-012 are frozen corpus pages<br/>Their labels do not confer decision authority"]
     %% knowledgeGraph/scripts/adr-ledger.sh:19-22
     %% knowledgeGraph/scripts/adr-ledger.sh:29-31
-    CHECK["The validator is no longer vendored<br/>adr-ledger.sh fetches agentbox's checker at a pinned commit<br/>and refuses it unless a pinned sha256 matches"]
+    CHECK["The validator is no longer vendored<br/>adr-ledger.sh fetches agentbox's checker at a pinned commit<br/>and refuses it unless a pinned sha256 matches<br/>CHANGED at 22c9bb8: pin moved to agentbox 1ea5494"]
     %% knowledgeGraph/docs/adr/.ledger.json:2-3
     GRAPH["DEBT: RESOLVED at knowledgeGraph 5294e88b — the vendored copy, which warned only on supersession problems, is deleted<br/>the rules now come from the pinned agentbox checker, which this repository does not hold"]
     %% knowledgeGraph/scripts/adr-ledger.sh:34

@@ -1,6 +1,6 @@
 ---
 id: VG-06
-title: Publishing explorer — shared renderer, corpus adapters and retained-copy drift
+title: Publishing explorer — shared renderer, corpus adapters, layout settings and the retired copy
 area: visiongraph
 governing:
   - ../visionGraph/docs/PUBLICATION-contract.md
@@ -23,15 +23,17 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/build/runtimeNotices.ts
   - ../visionGraph/.github/workflows/publish.yml
   - ../visionGraph/docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md
-  - ../knowledgeGraph/explorer/modern/package.json
-  - ../knowledgeGraph/explorer/modern/src/site/mesh.ts
-  - ../knowledgeGraph/explorer/modern/src/types/scope.ts
-verified_commit: {visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e}
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/protocol.ts
+  - ../visionGraph/publishing-tools/WasmVOWL/modern/src/pages/GraphPage.tsx
+  - ../knowledgeGraph/README.md
+  - ../knowledgeGraph/LICENSING.md
+verified_commit: {visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454, knowledgegraph: 22c9bb8f54eafbc68faa3c0f2186bbae40364a93}
 ---
 
 ## For developers
 
-The configured publisher builds this host, whose renderer and codec come from pinned releases. Read the adapters and content path separately from the retained knowledgeGraph copy; their dependency and domain contracts differ (both position pools now count transfers).
+The configured publisher builds this host, whose renderer and codec come from pinned releases. Since knowledgeGraph retired its stale explorer/ copy (PR 6, 2026-11-23) this is the only explorer source in the estate; the duplication this topic was named for is gone.
 
 ## For the business
 
@@ -47,11 +49,12 @@ flowchart TB
     A --> B["Copy built shell/assets into www<br/>preserve authoritative machine trees"]
     %% Source: ../visionGraph/.github/workflows/publish.yml:544
     B --> C["Deploy assembled site to<br/>knowledgeGraph gh-pages"]
-    %% Source: ../knowledgeGraph/explorer/modern/package.json:20
-    D["Retained knowledgeGraph/explorer<br/>vowl-wasm 0.1.1 and React Three Fiber"]
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24
-    A --> E["Configured host uses shared graph 0.2.0<br/>and vowl-wasm 0.2.3"]
-    D -.->|"different source and package contracts"| E
+    %% Source: ../knowledgeGraph/README.md:95
+    %% Source: ../knowledgeGraph/LICENSING.md:28-29
+    D["CHANGED at knowledgeGraph d77a41c (PR 6):<br/>explorer/ copy on vowl-wasm 0.1.1 removed from main<br/>last present at 7815bbc, FORMAT-NGG1.md and hero moved out"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24-25
+    A --> E["Configured host uses shared graph 0.2.0<br/>and vowl-wasm 0.4.0<br/>CHANGED at 7808310: was vowl-wasm 0.2.3"]
+    D -.->|"only explorer source left"| A
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/Dockerfile:6
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/Dockerfile:13
     F["Legacy Dockerfile downloads WebVOWL WAR<br/>Tomcat path is separate from this publisher"]
@@ -62,7 +65,7 @@ flowchart TB
 ```
 
 **What it shows:** The workflow selects a concrete source tree and distribution repository. It does not identify the revision currently served by the public site.
-**Why it is this way:** ADR-VG-007 keeps the site host and deployment here while extracting reusable graph software. The retained sibling is assessed separately in KG-04. The runner pin and early browser install follow a failed run recorded in ADR-VG-007 (`docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md:173-180`).
+**Why it is this way:** ADR-VG-007 keeps the site host and deployment here while extracting reusable graph software. KG-04 records the sibling's retirement. The runner pin and early browser install follow a failed run recorded in ADR-VG-007 (`docs/adr/ADR-VG-007-shared-ontology-workspace-and-profile.md:188-195`).
 
 ## VG-06.2 Shared renderer and codec, with host-owned interaction
 
@@ -72,17 +75,18 @@ flowchart TB
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/lib/nggGraph.ts:49
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/lib/nggGraph.ts:94
     A["Released Rust/WASM validates NGG1<br/>adapter copies metadata and frees graph"]
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:52
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:55
     A --> B["Host maps scope nodes, colours and edges<br/>into shared GraphData"]
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:121
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:126
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:124
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:139
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:134
     B --> C["mountGraph and setGraph<br/>same-generation filters preserve viewport<br/>destroy view on unmount"]
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:103
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:116
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:106
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:119-121
     C --> D["Selection and activation update host store<br/>drag mutates scope positions<br/>simulated tiers pin and unpin nodes"]
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:44
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:148
-    E["Domain and focus may simulate<br/>finite bounded snapshots update view"] --> C
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:47
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:161
+    E["Any scope with a worker buffer simulates<br/>finite bounded snapshots update view<br/>CHANGED at 2cf4a52: overview included, see VG-06.7"] --> C
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/positionTransport.ts:82
     E --> F["Transfer pool counts in-flight ownership<br/>does not require returned object identity"]
 ```
@@ -98,13 +102,13 @@ flowchart TB
     A["Historical capability table<br/>Python pipeline, 7444 pages<br/>six domains and July measurements"]
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/CAPABILITIES.md:50
     A --> B["Historical claim: focus does not simulate"]
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:44
-    B -.-> C["DRIFT: current host simulates<br/>domain and focus scopes"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:47
+    B -.-> C["DRIFT: current host simulates every scope<br/>with a worker buffer, overview included"]
     %% Source: ../visionGraph/.github/workflows/publish.yml:48
     %% Source: ../visionGraph/.github/workflows/publish.yml:175
     D["Current publisher uses ontomark v0.9.0<br/>all-vault public build"]
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:8
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/package.json:24-25
     D --> E["npm installs released graph and WASM<br/>local Rust builds runtime-notices tool"]
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/build/runtimeNotices.ts:12
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/build/runtimeNotices.ts:22
@@ -123,10 +127,9 @@ flowchart TB
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/mesh.ts:15
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/mesh.ts:22
     A["Publishing host: nine MESH_REPOS<br/>Loom and sidestr-rs included"]
-    %% Source: ../knowledgeGraph/explorer/modern/src/site/mesh.ts:15
-    %% Source: ../knowledgeGraph/explorer/modern/src/site/mesh.ts:38
-    B["Retained sibling: seven MESH_REPOS<br/>separate LOOM export"]
-    A -.->|"different link tables"| B
+    %% Source: ../knowledgeGraph/README.md:95
+    B["CHANGED at knowledgeGraph d77a41c:<br/>the sibling's seven-entry link table<br/>left main with explorer/"]
+    A -.->|"one link table now"| B
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx:64
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/router.tsx:135
     C["Publishing router uses Vite BASE_URL<br/>trimmed to browser-router basename"]
@@ -147,15 +150,15 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts:75
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts:77-87
     A["Publishing host: nine ordered domain slugs<br/>index is NGG1 domain ID"]
     %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/site/domains.ts:60
     A --> B["Descriptor table derives IDs, labels<br/>icons and tints from that order"]
-    %% Source: ../knowledgeGraph/explorer/modern/src/types/scope.ts:73
-    C["Retained sibling: six ordered slugs<br/>same first six IDs"]
-    C -.->|"three extra domains"| A
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/stores/scopeStore.ts:512
-    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts:153
+    %% Source: ../knowledgeGraph/README.md:95
+    C["Removed sibling held six slugs, same first six IDs<br/>no second domain table on main now"]
+    C -.->|"retired d77a41c"| A
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/stores/scopeStore.ts:522
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/types/scope.ts:154
     D["Overview builder copies supplied arrays<br/>assertScope enforces count ceilings"]
     D --> E["DEBT: count ceilings do not establish<br/>finite integer counts, array lengths<br/>or valid overview edge endpoints"]
 ```
@@ -187,3 +190,29 @@ flowchart TB
 
 **What it shows:** The current host removes the external raw-GitHub fallback and adds gzip support, but still conflates some outages with missing content and retains successful responses indefinitely.
 **Why it is this way:** These are current consumer boundaries reproduced with injected responses. They do not establish a live-site outage or override the separate publication identity findings.
+
+## VG-06.7 Explorer layout settings and the settling overview
+
+```mermaid
+flowchart TB
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/protocol.ts:125-130
+    L["EXPLORER_LAYOUT: collideRadius 21, collideStrength 0.7<br/>collideIterations 3, componentGravity 0.1<br/>CHANGED at 7808310: vowl-wasm 0.4.0 keys"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:166
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:170
+    L --> W["Worker holds sticky params, seeded from EXPLORER_LAYOUT<br/>applyLayoutParams pushes each via setParam"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:290-291
+    W --> R["Re-applied after every loadCsr<br/>so each scope gets the same layout"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/workers/physics.worker.ts:320
+    W --> S["A later setParam updates the sticky map<br/>reheat is one-shot and never stored"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/stores/scopeStore.ts:560
+    O["CHANGED at 2cf4a52 (PR 5): buildOverviewScope mints<br/>an NGG1 worker buffer from overview.json<br/>baked positions are only the warm-start seed"] --> R
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:164-165
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/components/Canvas/GraphCanvas.tsx:126-129
+    R --> C["CHANGED at be8f9de (PR 5): overview camera fits every frame<br/>until wheel, pointerdown or keydown in that generation<br/>other tiers fit on the first frame only"]
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/modern/src/pages/GraphPage.tsx:5
+    %% Source: ../visionGraph/publishing-tools/WasmVOWL/CAPABILITIES.md:22
+    C --- N["GraphPage route comment now reads overview T0 worker-settled<br/>DOC-DRIFT: CAPABILITIES.md still says the worker drives domain scopes"]
+```
+
+**What it shows:** every tier, the overview included, now settles in the worker under one sticky set of vowl-wasm 0.4.0 collision and component-gravity settings; the overview camera follows the contraction until the user takes the view.
+**Why it is this way:** ADR-VG-007's 2026-11-23 notes record that the baked overview fitted to a laptop viewport overlapped its hub discs; radius 21 matches ontomark-graph's largest 12 px disc (`protocol.ts:113-124`).

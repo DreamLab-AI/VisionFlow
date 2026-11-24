@@ -6,7 +6,7 @@ governing: []
 adrs: [ADR-VG-002]
 sources:
   - ../visionGraph/.github/workflows/publish.yml
-verified_commit: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8
+verified_commit: dbc50f2f1075cab9fe108d4dcf917c4917d6f454
 ---
 
 ## For developers

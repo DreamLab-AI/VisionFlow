@@ -15,7 +15,7 @@ sources:
   - ../visionGraph/publishing-tools/WasmVOWL/modern/src/api/fetchArtefact.ts
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
   - docs/adr/ADR-2013-sovereign-corpus-is-ecosystem-canon.md
-verified_commit: {knowledgegraph: 5294e88b6602a63b5afe96c79f2779d00274a05e, visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, ontomark: fbe30244c6842879297883b571965f5bc1ce0441, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
+verified_commit: {knowledgegraph: 22c9bb8f54eafbc68faa3c0f2186bbae40364a93, visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454, ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4, visionflow: a4a6c20c34c0e298bc4a6725e71e58e00685f64c}
 ---
 
 ## For developers
@@ -67,7 +67,7 @@ flowchart TB
     MIRROR["Producer emits page-id names and unambiguous title aliases<br/>mod.rs:976-1053"]
     FETCH["Publishing viewer tries gzip then raw<br/>checks magic bytes and inflates in browser<br/>fetchArtefact.ts:22-38"]
     OLD -.-> TRIG --> BUILD --> MIRROR --> FETCH
-    DRIFT["DRIFT: old build guide still names the retired root workflow<br/>build-and-gates.md:3<br/>Canon still names VisionClaw crates/vault as sole compiler<br/>Canon ADR-2013, decision 3"]
+    DRIFT["DRIFT: old build guide still names the retired root workflow<br/>build-and-gates.md:3<br/>and its explorer/ gates and fixture twin, removed at d77a41c<br/>build-and-gates.md:66-68,98<br/>Canon still names VisionClaw crates/vault as sole compiler<br/>Canon ADR-2013, decision 3"]
     %% DRIFT source: ADR-2013-sovereign-corpus-is-ecosystem-canon.md:52-58
     OLD -.-> DRIFT
     GAP["DEBT: a working-only edit is outside this push filter<br/>publish.yml:24-30<br/>Manual or matching-path runs can still include it"]

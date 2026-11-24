@@ -33,7 +33,8 @@ sources:
   - ../THG-world-record-attempt/src/vfx_pipeline/blender_client.py
   - ../THG-world-record-attempt/tests/test_vfx_pipeline.py
   - ../THG-world-record-attempt/reports/world-record-report.tex
-verified_commit: {thg-world-record-attempt: e79525441acff60a4e3ca4a0c1111535a39cc1e9}
+  - ../THG-world-record-attempt/.gitignore
+verified_commit: {thg-world-record-attempt: 27262fa0e91f2b0d78c94b3b3fe248c7c53dba1c}
 ---
 
 ## TH-01.1 What the repository holds, and which files run
@@ -45,7 +46,7 @@ flowchart TB
         SC["scene clean and direct composites<br/>clean_scenes.py:165<br/>generate_composites.py:156"]
         RF["Gemini riffs and local Flux 2 riffs<br/>_generate_riffs.py:127<br/>_generate_expanded_riffs.py:104<br/>_generate_flux2_riffs.py:273"]
         RP["mannequin repose, three batch scripts<br/>batch1_repose.py:160<br/>repose_batch2.py:101<br/>batch3_repose.py:73"]
-        VE["Veo branded films and a separate poller<br/>generate_veo_branded.py:395<br/>poll-veo-operations.py:20"]
+        VE["Veo branded films and a separate poller<br/>generate_veo_branded.py:395<br/>poll-veo-operations.py:22"]
     end
     subgraph VFX["VFX object-tracking package, the only importable code"]
         direction TB
@@ -75,6 +76,8 @@ flowchart TB
 **What it shows.** Two unrelated programmes share the tree: the February 2026 campaign scripts and the March 2026 VFX tracking package; everything else is records.
 
 ## TH-01.2 External services and how each is reached
+
+> **Superseded** by TH-01.4 at 27262fa (frozen at e795254).
 
 ```mermaid
 flowchart LR
@@ -127,3 +130,21 @@ flowchart TB
 ```
 
 **What it shows.** Nothing builds, tests or publishes automatically; the committed PDF and media are the release.
+
+## TH-01.4 Every Google call now takes its key from the environment
+
+```mermaid
+flowchart LR
+    ENV["GOOGLE_API_KEY, else GOOGLE_GEMINI_API_KEY, from the environment"]
+    GEM["Gemini image callers<br/>generate_composites.py:8"]
+    VEO["Veo submitter<br/>generate_veo_branded.py:30"]
+    POLL["Veo poller, exits with a message when neither is set<br/>poll-veo-operations.py:5-7"]
+    IGN[".env and .env.* ignored, .env.example kept<br/>.gitignore:23-25"]
+    ENV --> GEM
+    ENV --> VEO
+    ENV --> POLL
+    ENV -.-> IGN
+```
+
+- **What it shows:** the frozen TH-01.2 recorded a literal key committed in the poller. Since 27262fa the poller reads the same environment variables as the Veo submitter, so the PRD's environment-only rule now holds for every script (`campaign-generator-v3.md:75`).
+- **Why it is this way:** PR #1 (27262fa). The literal stays in the history before that commit; its message records the key as already invalid, and the operator tested it invalid on 2026-11-23.

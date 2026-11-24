@@ -19,7 +19,7 @@ sources:
   - ../project/agentbox/scripts/hp-loom-reconcile.sh
   - ../loom/crates/loom-facade/src/lib.rs
   - ../loom/crates/loom-facade/src/bundle.rs
-verified_commit: {knowledgegraph: 7815bbcb9f8ab04c2e76f5f8c5c32c69a9dbc56c, visiongraph: 08390b1fc7f7c509eae477b933731ee33d152480, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, loom: 355946dd2deacfdef21171d53eafd025887e447e}
+verified_commit: {knowledgegraph: 22c9bb8f54eafbc68faa3c0f2186bbae40364a93, visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, loom: 355946dd2deacfdef21171d53eafd025887e447e}
 ---
 
 ## For developers
