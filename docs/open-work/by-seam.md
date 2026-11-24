@@ -33,7 +33,7 @@ The shape of governance events (kinds 31400 to 31405): panel definitions, propos
 
 Between: nostr-rust-forum, agentbox, visionclaw.
 
-6 live, 3 unverified, 0 closed.
+5 live, 3 unverified, 1 closed.
 
 ### Live
 
@@ -43,7 +43,6 @@ Between: nostr-rust-forum, agentbox, visionclaw.
 | FORUM-PRIORITY-TAG | The forum relay parses the proposal priority tag as a number, so every label becomes 50, while the forum client and core crate use labels | nostr-rust-forum | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting forum release and deploy | 2026-11-20 |
 | GOV-CONTENT-KEY-ORDER | Governance event content built from free-form JSON (for example a proposal's `fields`) is serialised in a key order that depends on whether serde_json's preserve_order feature is unified into the build, so the same event can get a different id in different builds | nostr-rust-forum, visionclaw, agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting forum release and deploy | 2026-11-20 |
 | GOV-KEY-ORDER-ADOPTION | VisionClaw and agentbox have not adopted the governance content key-order rule: agentbox has JSON.stringify sites to sort and must re-copy the contract; VisionClaw needs a new nostr-bbs-core release and pin bump | visionclaw, agentbox, nostr-rust-forum | engineering | open | 2026-11-20 |
-| AB-INTENT-ACTOR-FROM-CARD-DTAG | agentbox intent dispatch: a forum kanban 38000 intent carries no actor tag, so resolveActorRef takes the card's own d-tag as the actor | agentbox, nostr-rust-forum | engineering | open | 2026-11-23 |
 | FORUM-ADR-2035-KANBAN-AGENT-COLUMNS (also ADR-2035 (nostr-rust-forum)) | forum ADR-2035 (proposed): kanban agent columns dispatch to a registered agent, and the result returns as a governed 31402 case | nostr-rust-forum, agentbox | owner-decision | open | 2026-11-23 |
 
 ### Recorded as open, not re-checked
