@@ -12,7 +12,7 @@ sources:
   - ../ontomark/crates/ontomark-source/src/ledger.rs
   - ../ontomark/crates/ontomark-ingest/src/accept.rs
   - ../ontomark/crates/ontomark-jev/src/config.rs
-verified_commit: {ontomark: 6159bb6089753105ef839fd4aac46c1598a64bd2}
+verified_commit: {ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4}
 ---
 
 ## For developers

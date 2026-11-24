@@ -1,6 +1,6 @@
 ---
 id: WV-02
-title: Modern explorer runtime - load, store, scene and controls
+title: Modern explorer runtime - load, store, scene, camera and controls
 area: wasmvowl
 governing:
   - ../WasmVOWL/CLAUDE.md
@@ -20,8 +20,13 @@ sources:
   - ../WasmVOWL/modern/src/stores/useUIStore.ts
   - ../WasmVOWL/modern/src/hooks/useWasmSimulation.ts
   - ../WasmVOWL/modern/src/utils/export.ts
+  - ../WasmVOWL/modern/src/types/ui.ts
+  - ../WasmVOWL/modern/src/components/Canvas/Camera/CameraController.tsx
+  - ../WasmVOWL/modern/src/components/Canvas/Camera/LabelDeclutter.tsx
+  - ../WasmVOWL/modern/src/lib/labelDeclutter.ts
+  - ../WasmVOWL/modern/src/lib/labelCandidates.ts
   - ../WasmVOWL/docs/adr/ADR-001-explorer-consumer-contract-closeout.md
-verified_commit: {wasmvowl: af25086a605482c8234580ccd1062cf506e0b181}
+verified_commit: {wasmvowl: 2bb54b3ee2dc3a7eda34b60d9f08fdb0fb535aab}
 ---
 
 ## WV-02.1 Loading a file or a bundled sample into the graph store
@@ -30,47 +35,48 @@ verified_commit: {wasmvowl: af25086a605482c8234580ccd1062cf506e0b181}
 sequenceDiagram
     autonumber
     actor U as User
-    participant FDZ as loadFile<br/>FileDropZone.tsx:53
-    participant PO as parseOntology<br/>FileDropZone.tsx:27
-    participant GS as loadOntology<br/>useGraphStore.ts:180
-    participant UI as addNotification<br/>useUIStore.ts:78
+    participant FDZ as loadFile<br/>FileDropZone.tsx:57
+    participant IN as ingest<br/>FileDropZone.tsx:29
+    participant GS as loadOntology<br/>useGraphStore.ts:216
+    participant UI as addNotification<br/>useUIStore.ts:100
     participant APP as App<br/>App.tsx:14
-    U->>FDZ: drop or pick a file, FileDropZone.tsx:117-135
-    FDZ->>FDZ: reject unless the name ends in .json, FileDropZone.tsx:59-60
-    FDZ->>FDZ: file.text then JSON.parse, FileDropZone.tsx:64-65
-    FDZ->>PO: raw object
-    PO-->>FDZ: OntologyData, or null when there is no class array, FileDropZone.tsx:30-31
-    FDZ->>GS: loadOntology(ontology), FileDropZone.tsx:74
-    FDZ->>UI: success toast with class and property counts, FileDropZone.tsx:77-81
-    FDZ->>APP: onFileLoaded sets hasData, App.tsx:19-21
-    Note over U,FDZ: Samples take the same path from fetch of /ontologies/name, FileDropZone.tsx:140-157<br/>three buttons, foaf, sioc and minimal, FileDropZone.tsx:230-248
-    Note over FDZ,APP: Errors surface as an inline message and an error toast, FileDropZone.tsx:84-92
+    U->>FDZ: drop or pick a file, FileDropZone.tsx:107-125
+    FDZ->>FDZ: reject unless the name ends in .json, FileDropZone.tsx:63-64
+    FDZ->>FDZ: file.text then JSON.parse, FileDropZone.tsx:68-69
+    FDZ->>IN: parsed document
+    IN->>IN: normaliseOwl2Vowl, throws on a malformed document, FileDropZone.tsx:30
+    IN->>GS: loadOntology(normalised), FileDropZone.tsx:31
+    IN->>UI: zero nodes is a warning and no load, FileDropZone.tsx:35-42<br/>else node and edge counts, a warning when records were dropped, FileDropZone.tsx:44-50
+    FDZ->>APP: onFileLoaded sets hasData, FileDropZone.tsx:71-72, App.tsx:19-21
+    Note over U,FDZ: Samples take the same ingest path from fetch of /ontologies/name, FileDropZone.tsx:135-142<br/>three buttons, foaf, sioc and minimal, FileDropZone.tsx:208-228
+    Note over IN,APP: CHANGED at 2bb54b3: the normaliser replaced the class-array check, see WV-03.1<br/>errors still surface inline and as an error toast, FileDropZone.tsx:74-82
 ```
 
-Input formats and the mapping inside `loadOntology` are WV-03.1 and WV-03.2.
+Input formats, the normaliser and the layout mapping are WV-03.1 and WV-03.2.
 
 ## WV-02.2 The two stores and who reads them
 
 ```mermaid
 flowchart TB
     subgraph GSB["useGraphStore - zustand plus immer"]
-        MS["enableMapSet before the store is created<br/>useGraphStore.ts:16"]
-        ST["nodes, edges Maps, filteredNodes, filteredEdges Sets<br/>useGraphStore.ts:20-23"]
-        HELP["recomputeFilters and recomputeStatistics edit the caller draft<br/>useGraphStore.ts:78,133"]
-        UPD["updateNodePosition writes one node position<br/>useGraphStore.ts:260-265"]
+        MS["enableMapSet before the store is created<br/>useGraphStore.ts:17"]
+        ST["nodes, edges Maps, filteredNodes, filteredEdges Sets<br/>useGraphStore.ts:21-24"]
+        GV["ontology and graphVersion, bumped by loadOntology and clear only<br/>useGraphStore.ts:41,45,283,303"]
+        HELP["recomputeFilters and recomputeStatistics edit the caller draft<br/>useGraphStore.ts:94,150"]
+        UPD["updateNodePositions writes a whole frame in one set, z = 0<br/>useGraphStore.ts:331-339"]
     end
     subgraph USB["useUIStore - plain zustand"]
-        SET["settings defaults<br/>useUIStore.ts:31-44"]
-        VP["viewport zoom, rotation, target, mode<br/>useUIStore.ts:55-60"]
+        SET["settings defaults, layout from defaultLayout<br/>useUIStore.ts:50-64"]
+        CR["cameraRequest queued by zoomCamera and fitCamera<br/>useUIStore.ts:142-152"]
     end
-    MS --> ST --> HELP --> UPD
+    MS --> ST --> GV --> HELP --> UPD
     UPD --> SET
-    SET --> VP
-    N1["INVARIANT: helpers are plain functions so a nested action cannot run on stale state<br/>comment at useGraphStore.ts:72-76"]
-    N2["INVARIANT: activeFilters is empty whenever loadOntology runs.<br/>loadOntology neither resets nor re-applies filters, useGraphStore.ts:182-185,<br/>but its only caller, the drop zone, renders only at nodeCount 0, App.tsx:23,35-36.<br/>Filters start empty, useGraphStore.ts:176, and New file runs clear,<br/>TopMenuBar.tsx:16, which empties them, useGraphStore.ts:238"]
-    N3["DEBT: gravity, friction, maxFPS, lodEnabled, highContrast, reducedMotion<br/>are declared but nothing under src/components or src/hooks reads them<br/>useUIStore.ts:38-43"]
+    SET --> CR
+    N1["INVARIANT: helpers are plain functions so a nested action cannot run on stale state<br/>comment at useGraphStore.ts:84-93"]
+    N2["CHANGED at 2bb54b3: loadOntology now re-applies activeFilters to the new graph,<br/>useGraphStore.ts:286, and clear empties them, useGraphStore.ts:300"]
+    N3["DEBT: maxFPS, lodEnabled, highContrast, reducedMotion are declared<br/>but nothing outside the store reads them, useUIStore.ts:60-63.<br/>gravity and friction are gone, see WV-03.3"]
     HELP --- N1
-    ST --- N2
+    GV --- N2
     SET --- N3
 ```
 
@@ -78,15 +84,16 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    GC["GraphCanvas: Canvas, PerspectiveCamera, OrbitControls<br/>GraphCanvas.tsx:16-44"] --> MODE["camera at 0,0,500 in 2d, 0,300,500 in 3d, rotate only in 3d<br/>GraphCanvas.tsx:27,37"]
-    GC --> GSC["GraphScene runs useWasmSimulation inside the canvas<br/>GraphScene.tsx:13, see WV-03.3"]
-    GSC --> VIS["visible = nodes and edges whose id is in the filtered Sets<br/>GraphScene.tsx:16-22"]
-    VIS --> PE["PropertyEdge per edge, drawn first<br/>GraphScene.tsx:27-29"]
-    VIS --> CN["ClassNode per node<br/>GraphScene.tsx:32-34"]
-    CN --> CNL["radius sqrt(instances) times 2 plus 20, times nodeScale<br/>ClassNode.tsx:27-33<br/>lerp 0.1 toward the store position every frame, ClassNode.tsx:62-71"]
-    PE --> PEL["straight line between store positions<br/>PropertyEdge.tsx:27-34<br/>colour and dash by edge type, PropertyEdge.tsx:39-69"]
-    N1["DEBT: PropertyEdge styles subclass and disjoint edges, PropertyEdge.tsx:43-50,<br/>but the store only ever creates objectProperty or datatypeProperty, useGraphStore.ts:211"]
-    N2["DEBT: the hook writes z = 0 for every node, useWasmSimulation.ts:154,<br/>so 3d mode tilts the camera over a flat layout"]
+    GC["GraphCanvas selects only the view mode<br/>GraphCanvas.tsx:14"] --> MODE["initial camera at 0,0,500 in 2d, 0,300,500 in 3d, far 200000<br/>GraphCanvas.tsx:16-19,32-38<br/>OrbitControls makeDefault, distance 50 to 50000, rotate only in 3d, GraphCanvas.tsx:42-48"]
+    GC --> GSC["GraphScene runs useWasmSimulation, see WV-03.3<br/>GraphScene.tsx:15<br/>mounts CameraController and LabelDeclutter, GraphScene.tsx:28-29, see WV-02.5"]
+    GSC --> VIS["visible = nodes and edges whose id is in the filtered Sets<br/>GraphScene.tsx:18-24"]
+    VIS --> PE["PropertyEdge per edge, drawn first<br/>GraphScene.tsx:32-34"]
+    VIS --> CN["ClassNode per node<br/>GraphScene.tsx:37-39"]
+    CN --> CNL["VOWL fills by kind, ClassNode.tsx:34-40<br/>lerp 0.1 toward the store position every frame, ClassNode.tsx:67-75"]
+    PE --> PEL["colour, width and dash by edge type, PropertyEdge.tsx:42-74"]
+    GSC --> OV["Laying out overlay while isRunning, no percentage<br/>GraphScene.tsx:42-63"]
+    N1["CHANGED at 2bb54b3: subclass, disjoint and set-operator edges now exist,<br/>the normaliser emits them, see WV-03.1, so their styles are live, PropertyEdge.tsx:46,52,69"]
+    N2["DEBT: every position is written with z = 0, useGraphStore.ts:336,<br/>so 3d mode tilts the camera over a flat layout"]
     PEL --- N1
     MODE --- N2
 ```
@@ -95,19 +102,38 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    TMB["TopMenuBar<br/>TopMenuBar.tsx:10-12"] --> NEW["New file: confirm then clear, App falls back to the drop zone<br/>TopMenuBar.tsx:14-16, App.tsx:23"]
-    TMB --> ZOOM["zoom in, out, reset write viewport.zoom, rotation, target<br/>TopMenuBar.tsx:84-95"]
-    TMB --> EXP["SVG and PNG export of all nodes and edges, 1920 by 1080<br/>TopMenuBar.tsx:29-33,60-65"]
+    TMB["TopMenuBar, marked data-canvas-overlay<br/>TopMenuBar.tsx:13,95"] --> NEW["New: confirm then clear, App falls back to the drop zone<br/>TopMenuBar.tsx:18-19, App.tsx:23"]
+    TMB --> ZOOM["zoom out and in queue a 1.25x cameraRequest, Fit and reset queue a fit<br/>TopMenuBar.tsx:11,89-92,154-161"]
+    TMB --> EXP["SVG and PNG export of all nodes and edges<br/>TopMenuBar.tsx:32-35,63-66"]
     EXP --> EXF["exportSVG builds markup from store positions, export.ts:10<br/>exportPNG draws on an off-screen canvas, export.ts:100,120<br/>download through an object URL, export.ts:246-254"]
-    TMB --> VM["toggleViewMode and showLabels<br/>TopMenuBar.tsx:165,176"]
-    SB["Sidebar tabs details, filters, statistics<br/>Sidebar.tsx:33-46"] --> FIL["three fixed filters: classes only, degree 2 or more, object properties<br/>Sidebar.tsx:163,173,183"]
-    CLK["ClassNode click toggles selectNode, ClassNode.tsx:43-46<br/>selectNode sets selectedNode, clears selectedEdge, useGraphStore.ts:286"] --> DET["details tab shows id, type, label, IRI, instances, edge counts<br/>of the selected node, Sidebar.tsx:26,54-96"]
+    TMB --> VM["toggleViewMode and showLabels<br/>TopMenuBar.tsx:168,179"]
+    SB["Sidebar, data-canvas-overlay, tabs details, filters, statistics<br/>Sidebar.tsx:29,33-46"] --> FIL["three fixed filters: classes only, degree 2 or more, object properties<br/>Sidebar.tsx:163,173,183"]
+    CLK["ClassNode click toggles selectNode, ClassNode.tsx:48-50<br/>selectNode sets selectedNode, clears selectedEdge, useGraphStore.ts:360"] --> DET["details tab shows the selected node<br/>Sidebar.tsx:26,54-96"]
     SB --> DET
-    HOV["pointer over and out call hoverNode, ClassNode.tsx:48-58<br/>hoverNode sets hoveredNode, useGraphStore.ts:288"] --> D4["DEBT: nothing under src reads hoveredNode, the node colour comes from<br/>ClassNode local hovered state, ClassNode.tsx:19,36-40.<br/>selectEdge and hoverEdge have no caller under src, useGraphStore.ts:287,289"]
+    HOV["pointer over and out call hoverNode, ClassNode.tsx:55-62"] --> D4["CHANGED at 2bb54b3: hoveredNode now pins a label in the declutter pass,<br/>labelCandidates.ts:53. DEBT: selectEdge and hoverEdge still have no caller<br/>under src, useGraphStore.ts:361,363"]
     CLK --- HOV
-    ZOOM --> D1["DEBT: GraphCanvas reads only viewport.mode, GraphCanvas.tsx:11-12,<br/>so the zoom and reset buttons change state that nothing renders"]
+    ZOOM --> D1["CHANGED at 2bb54b3: the zoom buttons move the camera, see WV-02.5,<br/>they used to write a viewport.zoom nothing read"]
     EXF --> D2["DEBT: export ignores the active filters and draws hidden nodes too"]
-    FIL --> D3["DOC-DRIFT: CLAUDE.md:90 says LOD for performance, no LOD code in src"]
+    FIL --> D3["DOC-DRIFT: CLAUDE.md:90 says LOD for performance, lodEnabled is unread"]
 ```
 
-No control writes `linkDistance` or `chargeStrength` (`TopMenuBar.tsx:176` is the only `updateSettings` call), so the hook's settings effect only ever sees the defaults (`useUIStore.ts:36-37`).
+`updateLayout` (`useUIStore.ts:159-161`) has no caller in the UI: the layout parameters change only from code or the `?debug` handle (WV-03.3), and `TopMenuBar.tsx:179` is still the only `updateSettings` call.
+
+## WV-02.5 Camera following, menu zoom and label declutter
+
+```mermaid
+flowchart TB
+    LOAD["new graphVersion: queue a fit from the default angle, start following<br/>CameraController.tsx:65-69"] --> FOL["while followed and running: re-fit every 300 ms<br/>CameraController.tsx:44,109-112"]
+    FOL --> SETL["isRunning falls: one last fit, stop following<br/>CameraController.tsx:87-93"]
+    USER["drag or wheel fires the controls start event: stop following<br/>CameraController.tsx:72-79"] --> FOL
+    REQ["menu cameraRequest, a zoom also stops following<br/>CameraController.tsx:96-105"] --> FIT
+    SETL --> FIT["fit: bounds of discs and label boxes, inside the canvas<br/>not covered by data-canvas-overlay elements<br/>CameraController.tsx:35-38,129-139"]
+    REQ --> ZM["zoom: move along the view direction, clamped by zoomedDistance<br/>CameraController.tsx:121-126"]
+    FIT --> FAR["far plane and orbit limit grow past the camera distance<br/>CameraController.tsx:155-163"]
+    ZM --> FAR
+    LD["LabelDeclutter: at most every 250 ms, only when nodes, selection or zoom changed<br/>LabelDeclutter.tsx:18,40-54"] --> RULE["hide edge labels under 8 px and minor labels under 7 px,<br/>then any label overlapping a more important one<br/>labelDeclutter.ts:41-44,81-89"]
+    RULE --> PIN["selected and hovered nodes stay labelled<br/>labelCandidates.ts:53, ClassNode.tsx:113"]
+    FAR --> LD
+```
+
+The camera and declutter landed in WasmVOWL PR #2 (`ab9122e`); the decision record's own account is its "Camera, labels and CI" section (`ADR-001-explorer-consumer-contract-closeout.md:139-152`).

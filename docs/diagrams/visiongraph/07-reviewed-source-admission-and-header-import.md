@@ -14,7 +14,7 @@ sources:
   - ../visionGraph/scripts/space-corpus/Cargo.toml
   - ../visionGraph/scripts/space-corpus/src/main.rs
 adrs: [ADR-VG-005, ADR-VG-006]
-verified_commit: d8277151a1404b456b5c7206187f7e4b50f25be1
+verified_commit: dbc50f2f1075cab9fe108d4dcf917c4917d6f454
 ---
 
 ## For developers

@@ -21,7 +21,7 @@ sources:
   - ../WasmVOWL/modern/src/App.tsx
   - ../WasmVOWL/legacy/src/index.html
   - ../WasmVOWL/legacy/webpack.config.js
-verified_commit: {wasmvowl: af25086a605482c8234580ccd1062cf506e0b181}
+verified_commit: {wasmvowl: 2bb54b3ee2dc3a7eda34b60d9f08fdb0fb535aab}
 ---
 
 ## WV-01.1 Three code bodies under one root, and the engine outside it
@@ -31,7 +31,7 @@ flowchart TB
     ROOT["root package.json, name webvowl 1.1.7, private<br/>WasmVOWL/package.json:2-3,50"]
     subgraph MOD["modern/ - the React explorer"]
         MPKG["package wasmvowl 2.0.0, private<br/>modern/package.json:2-4"]
-        MDEP["React 19, R3F 9, drei 10, three, zustand, immer<br/>modern/package.json:20-26"]
+        MDEP["React 19, R3F 9, drei 10, three, zustand, immer<br/>modern/package.json:21-27"]
     end
     subgraph LEG["legacy/ - upstream WebVOWL on d3 v3, kept for reference"]
         LWP["two webpack entries, webvowl and webvowl.app<br/>legacy/webpack.config.js:8-11"]
@@ -39,7 +39,7 @@ flowchart TB
     subgraph ORPH["tests/ - orphaned legacy suite"]
         TR["not runnable, it targets a root src/ that no longer exists<br/>tests/README.md:3-7"]
     end
-    ENG["@dreamlab-ai/vowl-wasm, v0.1.1 GitHub release tarball<br/>modern/package.json:19<br/>EXTERNAL: the engine itself, see VW-01.1"]
+    ENG["@dreamlab-ai/vowl-wasm 0.4.0 exact from npm, driven through<br/>@dreamlab-ai/ontomark-graph 0.4.0, modern/package.json:19-20<br/>CHANGED at 2bb54b3: was the v0.1.1 tarball. EXTERNAL: the engine, see VW-01.1"]
     ROOT -->|"npm test"| MPKG
     ROOT -->|"package, release, test:legacy, webserver"| LWP
     MPKG --> MDEP
@@ -81,7 +81,7 @@ flowchart TB
     S4["modern/README.md:1-3 Vite React template text"]
     A1["ADR-001 axes: decision proposed, implementation partial, activation inactive<br/>ADR-001-explorer-consumer-contract-closeout.md:5-7<br/>owner role unassigned :8"]
     A2["Prior native test counts describe the removed local engine, not the installed archive<br/>ADR-001-explorer-consumer-contract-closeout.md:39"]
-    A3["Standalone demo held, readiness and performance not re-certified<br/>WasmVOWL/README.md:66, CLAUDE.md:107"]
+    A3["Standalone demo held, readiness and performance not re-certified<br/>WasmVOWL/README.md:83, CLAUDE.md:107"]
     S1 --> D1["DOC-DRIFT: no production claim survives the ADR, the README or CLAUDE.md"]
     A1 --> D1
     A3 --> D1

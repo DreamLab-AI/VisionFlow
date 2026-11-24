@@ -20,20 +20,20 @@ sources:
   - ../ontomark-obsidian/package.json
   - ../ontomark-obsidian/docs/desktop-acceptance.md
   - ../ontomark-obsidian/docs/adr/ADR-OBS-001-shared-graph.md
-verified_commit: {ontomark-obsidian: 64bdc5bf6309fca94bf0437b52c1484618470ed0}
+verified_commit: {ontomark-obsidian: e1f2e4c85fccb4587f96c07e4fca79014d5a7103}
 ---
 
 ## OO-02.1 Command palette and ribbon: eleven commands, one gated
 
 ```mermaid
 flowchart TD
-    REG["registerCommands<br/>main.ts:547"]
-    JEV["jev-propose-edit, listed only while Jev is enabled<br/>main.ts:550,552,553"]
-    EXT["extract-facts, always listed, checks endpoint and key on run<br/>main.ts:558,454,463"]
-    OPEN["open-graph, open-panel, open-query<br/>main.ts:559,560,561"]
-    CLS["classify-now, reindex<br/>main.ts:562,563"]
-    KIND["make-class, make-individual, make-property<br/>main.ts:564,566,571"]
-    PAR["add-parent through AddParentModal, brackets stripped<br/>main.ts:576,584,48"]
+    REG["registerCommands<br/>main.ts:555"]
+    JEV["jev-propose-edit, listed only while Jev is enabled<br/>main.ts:558,560,561"]
+    EXT["extract-facts, always listed, checks endpoint and key on run<br/>main.ts:566,462,471"]
+    OPEN["open-graph, open-panel, open-query<br/>main.ts:567,568,569"]
+    CLS["classify-now, reindex<br/>main.ts:570,571"]
+    KIND["make-class, make-individual, make-property<br/>main.ts:572,574,579"]
+    PAR["add-parent through AddParentModal, brackets stripped<br/>main.ts:584,592,48"]
     RIB["ribbon icon opens the graph view<br/>main.ts:132,133"]
     REG --> JEV
     REG --> EXT
@@ -41,10 +41,10 @@ flowchart TD
     REG --> CLS
     REG --> KIND
     REG --> PAR
-    OV["openView reuses an existing leaf, else the right sidebar<br/>main.ts:252,254,256,258"]
+    OV["openView reuses an existing leaf, else the right sidebar<br/>main.ts:260,262,264,266"]
     OPEN --> OV
     RIB --> OV
-    SK["setActiveKind proposes a type change<br/>main.ts:417,424"]
+    SK["setActiveKind proposes a type change<br/>main.ts:425,432"]
     KIND --> SK
     NOTE1["see OO-05.3 for the Jev edit path and OM-09.4 for extract-facts"]
     JEV --- NOTE1
@@ -58,12 +58,12 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant P as OntomarkPlugin<br/>main.ts:417
+    participant P as OntomarkPlugin<br/>main.ts:425
     participant A as OntomarkApi<br/>api.ts:250
     participant C as OntomarkClient<br/>client.ts:195
     participant M as DiffModal<br/>diff-modal.ts:68
     participant V as Obsidian vault
-    P->>A: proposeSetType or proposeAddParent (main.ts:424,586)
+    P->>A: proposeSetType or proposeAddParent (main.ts:432,594)
     A->>C: frontmatter digest and index keys, in parallel (api.ts:251,237)
     A->>A: add-parent picks the instance or subclass key and dedupes the link (api.ts:240,245)
     A->>C: proposePatch at the frontmatter digest (api.ts:252,246)
@@ -75,7 +75,7 @@ sequenceDiagram
     V-->>A: source_changed or write error becomes refused (api.ts:272,273,275)
     A->>C: upsert the new text, failure still applied (api.ts:286,287,288)
     A-->>P: applied, no_op, declined or refused
-    P->>P: announce each outcome in a Notice (main.ts:429,431,434,437,440)
+    P->>P: announce each outcome in a Notice (main.ts:437,439,442,445,448)
 ```
 
 **What it shows.** The engine plans the patch; the host alone writes, and only if the file still holds the planned text. A persisted write is `applied` even if the engine update after it fails (`api.ts:277,278,279`).
@@ -90,10 +90,10 @@ flowchart TD
     QV["QueryView: run sequence, query on channel query-view, row limit from settings<br/>query-view.ts:127,130,136"]
     QVC["not_classified triggers classify then one retry<br/>query-view.ts:138,142"]
     QVQ["quiet or overtaken errors keep what is shown<br/>query-view.ts:150"]
-    GV["GraphView: request counter, index on channel graph-view<br/>graph-view.ts:62,65,66"]
-    GVH["hierarchyGraph with the include-inferred toggle<br/>graph-view.ts:67,42"]
-    GVO["open note looks the IRI up on channel graph-open-note<br/>graph-view.ts:86"]
-    GVL["entity list capped at 100 buttons<br/>graph-view.ts:88,89"]
+    GV["GraphView: request counter, index on channel graph-view<br/>graph-view.ts:68,71,72"]
+    GVH["hierarchyGraph with the include-inferred toggle<br/>graph-view.ts:73,44"]
+    GVO["open note looks the IRI up on channel graph-open-note<br/>graph-view.ts:92"]
+    GVL["entity list capped at 100 buttons<br/>graph-view.ts:94,95"]
     EV --> EVK
     EV --> EVW
     QV --> QVC
@@ -117,28 +117,36 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    MOUNT["first refresh mounts the shared renderer then binds the controller<br/>graph-view.ts:73,75"]
-    BIND["bind starts loading the engine once<br/>graph-layout.ts:42,47,48,51"]
-    LOAD["loadVowlEngine compiles the embedded bytes, a failed compile is not cached<br/>layout-engine.ts:19,21,22,26,27"]
-    READY["engineReady creates the layout driver<br/>graph-layout.ts:98"]
-    DROP["view closed while loading: dispose the engine<br/>graph-layout.ts:101"]
-    POS["onPositions sets renderer positions and fits until the reader interacts<br/>graph-layout.ts:108,112,72"]
-    SHOW["later refreshes call show: renderer setGraph, then layout setGraph<br/>graph-view.ts:71<br/>graph-layout.ts:63,66,129"]
-    DRAG["drag pins and unpins nodes in the layout<br/>graph-layout.ts:76,78,84"]
-    FAIL["fail once: destroy the layout, warn, status says layout unavailable<br/>graph-layout.ts:135,136,141,142,28"]
-    MOUNT --> BIND --> LOAD
-    LOAD -->|"resolved, graph-layout.ts:98"| READY
-    LOAD -->|"rejected, graph-layout.ts:135"| FAIL
+    MOUNT["first refresh mounts the shared renderer then binds the controller<br/>graph-view.ts:79,81"]
+    PARAMS["CHANGED at e1f2e4c, 0.6.0: the controller is built with the Graph layout settings as params<br/>graph-view.ts:49,54<br/>graph-layout.ts:43,44"]
+    BIND["bind starts loading the engine once<br/>graph-layout.ts:48,53,54,57"]
+    LOAD["loadVowlEngine compiles the embedded bytes, a failed compile is not cached<br/>layout-engine.ts:26,28,29,33,34"]
+    READY["engineReady creates the layout driver with params and onIgnoredParams<br/>graph-layout.ts:118,126,128,129"]
+    DROP["view closed while loading: dispose the engine<br/>graph-layout.ts:121"]
+    POS["onPositions sets renderer positions and fits until the reader interacts<br/>graph-layout.ts:130,134,78"]
+    SHOW["later refreshes call show: renderer setGraph, then layout setGraph<br/>graph-view.ts:77<br/>graph-layout.ts:69,72,151"]
+    DRAG["drag pins and unpins nodes in the layout<br/>graph-layout.ts:82,84,90"]
+    LIVE["CHANGED at e1f2e4c: a settings save reaches setLayoutParams, merged and passed to the running layout<br/>graph-view.ts:65<br/>graph-layout.ts:94,96,98,100"]
+    IGN["ignored keys only warn, the engine keeps its default<br/>graph-layout.ts:101,169,170"]
+    FAIL["fail once: destroy the layout, warn, status says layout unavailable<br/>graph-layout.ts:157,158,163,164,30"]
+    MOUNT --> PARAMS --> BIND --> LOAD
+    LOAD -->|"resolved, graph-layout.ts:118"| READY
+    LOAD -->|"rejected, graph-layout.ts:157"| FAIL
     READY --> POS
     READY --> DROP
     SHOW --> POS
     DRAG --> POS
-    SHOW -->|"setGraph throws, graph-layout.ts:129"| FAIL
-    INV["INVARIANT: every graph change goes through show, so renderer and layout hold the same graph and node order<br/>graph-layout.ts:63,66"]
+    LIVE --> POS
+    LIVE --> IGN
+    SHOW -->|"setGraph throws, graph-layout.ts:151"| FAIL
+    LIVE -->|"setParams throws, graph-layout.ts:102,103"| FAIL
+    INV["INVARIANT: every graph change goes through show, so renderer and layout hold the same graph and node order<br/>graph-layout.ts:69,72"]
     SHOW --- INV
-    DRIFT["DOC-DRIFT: the 30 October acceptance note says the plugin runs no layout engine, superseded by the 14 November section, which is not yet run in installed Obsidian<br/>desktop-acceptance.md:25,78"]
+    INV2["INVARIANT: params set before the engine arrives are kept and start the first layout<br/>graph-layout.ts:96,98,128"]
+    LIVE --- INV2
+    DRIFT["DOC-DRIFT: the 30 October acceptance note says the plugin runs no layout engine, superseded by the 14 November section<br/>and the 23 November 0.4.0 update, neither yet run in installed Obsidian<br/>desktop-acceptance.md:25,78,84"]
     LOAD --- DRIFT
-    EXT["EXTERNAL: renderer and layout driver come from ontomark-graph 0.3.0, the simulation from vowl-wasm 0.2.3<br/>package.json:25,26"]
+    EXT["EXTERNAL: renderer and layout driver come from ontomark-graph 0.4.0, the simulation from vowl-wasm 0.4.0,<br/>CHANGED at e1f2e4c from 0.3.0 and 0.2.3<br/>package.json:25,26"]
     MOUNT --- EXT
 ```
 

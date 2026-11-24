@@ -36,7 +36,7 @@ sources:
   - ../ontomark/crates/whelk-el/src/lib.rs
   - ../ontomark/crates/whelk-el/src/reasoner.rs
   - docs/engineering/sovereign-corpus-contracts.md
-verified_commit: {ontomark: f5cca7d16e56fca95c38fab5e46a3ef0fac065a2, visiongraph: 08390b1fc7f7c509eae477b933731ee33d152480, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
+verified_commit: {ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4, visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454, visionclaw: 4900ec60bc1ba9075343fe848c62e64434126c7e, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 
 Restamped at ontomark 4b9d15d on 2026-11-02. The `ingest` verb is now in the command tree (`ontomark-cli/src/main.rs:140-143`) and is shown in OM-05.1; its pipeline is mapped in [OM-08](08-external-source-ingest.md).
