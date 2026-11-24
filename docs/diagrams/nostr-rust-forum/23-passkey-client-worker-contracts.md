@@ -16,7 +16,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/auth/nip98.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/passkey.rs
   - ../nostr-rust-forum/crates/nostr-bbs-core/src/keys.rs
-verified_commit: {nostr-rust-forum: 4a0653973aa08d771ace41a76871ecc433aeaee7}
+verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
 ---
 
 ## For developers

@@ -13,7 +13,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/nip42.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/filter.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/relay_do/storage.rs
-verified_commit: {nostr-rust-forum: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af}
+verified_commit: {nostr-rust-forum: de31aaa6e6c6b672cc310a2659cf33fd4887602c}
 ---
 
 ## For developers
@@ -43,7 +43,7 @@ flowchart TD
     REQ["Query matching stored events<br/>nip_handlers.rs:1939"] --> EACH["Authorise each event before delivery<br/>nip_handlers.rs:1961,1963"]
     EACH --> PROTECTED["Protected-kind predicate, inbox keys only widen 1059<br/>nip42.rs:99,107"]
     PROTECTED --> ZONE["Channel-zone extraction handles 40, 41, 42<br/>filter.rs:337,339,340,341"]
-    ZONE --> DELIVER["No matching gate ends in Deliver<br/>nip_handlers.rs:2737"]
+    ZONE --> DELIVER["No matching gate ends in Deliver<br/>nip_handlers.rs:2738"]
 ```
 
 **What it shows.** Anonymous group kinds pass the tested pure predicates; correspondence remains protected. **Why it is this way.** Current gates cover other protocols. The proposed on-to-off rollback must preserve protection for any private group data stored after activation.

@@ -33,7 +33,7 @@ sources:
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/screens.rs
   - ../nostr-rust-forum/crates/nostr-bbs-bbs-client/src/theme.rs
   - ../nostr-rust-forum/docs/adr/ADR-2023-content-free-web-push-for-pwa-alerts.md
-verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
+verified_commit: de31aaa6e6c6b672cc310a2659cf33fd4887602c
 aliases:
   NF-05.11: NF-31.1
   NF-05.12: NF-31.2
@@ -108,19 +108,19 @@ flowchart TB
 flowchart TB
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:798
     G["Gate on, relay authenticated and this identity's keys loaded<br/>start member grant sync once per sign-in"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:756
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/mod.rs:762
     V["Verify wrap and seal, unwrap private rumor<br/>admin authority and key-pair validation"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:852
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1313
     K["Persist as this identity's row<br/>a different key for the slot is refused, see NF-27.6"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1304
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1825
     W["Resolve channel zone before writing<br/>unknown mapping passes plaintext through"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1308
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:1829
     E["Mapped encrypted zone uses the send key: highest held,<br/>never one pending delivery, no key means refuse and retain draft"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:580
     T["Incoming event passes tombstone check<br/>then decrypt or keep placeholder"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/stores/channels.rs:622
     I["Check restored original ID against tombstones<br/>insert with ID deduplication"]
-    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:501
+    %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/zone_crypto/store.rs:591
     R["Later key arrival reopens cached events<br/>ReadCache applies deletion predicate and deduplication"]
     %% Source: ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/app.rs:799
     O["Gate off stops grant sync<br/>already held keys can still decrypt"]

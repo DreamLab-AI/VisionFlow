@@ -54,7 +54,7 @@ sources:
   - ../nostr-rust-forum/docs/adr/ADR-2028-zones-adopt-nip171-key-plane.md
   - ../nostr-rust-forum/crates/nostr-bbs-forum-client/src/dm/requests.rs
   - ../nostr-rust-forum/crates/nostr-bbs-relay-worker/src/zone_groups.rs
-verified_commit: 4a73a7a94bfb4d92fea03f04926cccd38c14e9af
+verified_commit: de31aaa6e6c6b672cc310a2659cf33fd4887602c
 ---
 
 ## NF-12.1 Module map — what the workers and clients all link
@@ -99,7 +99,7 @@ flowchart LR
     N1["INVARIANT ADR-2002: this layer is what the upstream nostr absorption would REPLACE. Nothing here has<br/>been deleted - the canary gates that, see NF-01.5"]
     N2["wasm_bridge is compiled ONLY for wasm32 nostr-bbs-core/src/lib.rs:57 and exports NIP-44, subkey<br/>derivation and Schnorr signing to JS - nostr-bbs-core/src/wasm_bridge.rs:20 wasm_bridge.rs:88<br/>wasm_bridge.rs:228. ANOMALY O10 re-verified: no production JS consumer - the only importer in this repo is<br/>the js-vs-wasm benchmark, through the @dreamlab/nostr-core-wasm package benchmarks/js-vs-wasm/bench.mjs:32-39"]
     N3["did wraps solid_pod_rs::did_nostr_types rather than re-encoding nostr-bbs-core/src/did.rs:27 and<br/>re-exports its full-key encoder did.rs:30 - EXTERNAL: the encoder of record is the solid-pod-rs<br/>area (SP-*), see NF-02.2 and ES-04"]
-    N8["INVARIANT: the default build is MIT OR Apache-2.0 end to end; enabling the did feature pulls solid-pod-rs,<br/>which is AGPL-3.0-only, so a build with it on is AGPL as a whole nostr-bbs-core/Cargo.toml:6,<br/>nostr-bbs-core/Cargo.toml:23-28. The pod-worker enables it nostr-bbs-pod-worker/Cargo.toml:29"]
+    N8["INVARIANT: the default build is MIT OR Apache-2.0 end to end; enabling the did feature pulls solid-pod-rs,<br/>which is AGPL-3.0-only, so a build with it on is AGPL as a whole nostr-bbs-core/Cargo.toml:6,<br/>nostr-bbs-core/Cargo.toml:23-28. The pod-worker enables it nostr-bbs-pod-worker/Cargo.toml:32"]
     N7["did:nostr parity model, did-nostr#145: decoding accepts both fe70102 and fe70103 Multikey<br/>prefixes and returns the same x-only key nostr-bbs-core/src/did.rs:109; read as a point a Multikey<br/>keeps its own parity did.rs:121, while a bare identifier denotes the even-y lift did.rs:74.<br/>Every forum route renders from the D1 identifier, so it only ever emits fe70102 did.rs:15"]
     N4["feature_gate is why the two workers cannot disagree on what DEVICE_KEYS_ENABLED means - each reads its<br/>OWN binding nostr-bbs-core/src/feature_gate.rs:42 but shares the PARSE rule<br/>nostr-bbs-core/src/feature_gate.rs:64, so ADR-2004's lockstep requirement holds by construction rather<br/>than by review - see NF-02.7 and NF-08.8"]
     N5["boot_profile's BOOTPROFILE_MODE nostr-bbs-core/src/boot_profile.rs:41 and is_pwa_boot<br/>nostr-bbs-core/src/boot_profile.rs:97 gate the BBS client's zone-bound one-shot PWA boot - see NF-31.1"]
@@ -112,26 +112,26 @@ flowchart LR
 sequenceDiagram
     autonumber
     participant A as Author
-    participant U as UnsignedEvent<br/>nostr-bbs-core/src/event.rs:62
-    participant ID as compute_event_id<br/>nostr-bbs-core/src/event.rs:78
-    participant S as sign_event<br/>nostr-bbs-core/src/event.rs:122
+    participant U as UnsignedEvent<br/>nostr-bbs-core/src/event.rs:77
+    participant ID as compute_event_id<br/>nostr-bbs-core/src/event.rs:93
+    participant S as sign_event<br/>nostr-bbs-core/src/event.rs:137
     participant R as Relay
-    participant V as verify_event_strict<br/>nostr-bbs-core/src/event.rs:205
+    participant V as verify_event_strict<br/>nostr-bbs-core/src/event.rs:220
 
     A->>U: kind, tags, content, created_at
     U->>ID: canonical serialisation
-    ID->>ID: SHA-256 nostr-bbs-core/src/event.rs:88
+    ID->>ID: SHA-256 nostr-bbs-core/src/event.rs:103
     ID-->>S: 32-byte id
-    S->>S: BIP-340 Schnorr sign nostr-bbs-core/src/event.rs:141
-    S-->>R: NostrEvent nostr-bbs-core/src/event.rs:50
+    S->>S: BIP-340 Schnorr sign nostr-bbs-core/src/event.rs:156
+    S-->>R: NostrEvent nostr-bbs-core/src/event.rs:65
     R->>V: on admission
-    V->>V: rebuild the id and compare, then Schnorr verify nostr-bbs-core/src/event.rs:210 nostr-bbs-core/src/event.rs:241
+    V->>V: rebuild the id and compare, then Schnorr verify nostr-bbs-core/src/event.rs:225 nostr-bbs-core/src/event.rs:256
 
-    Note over V: The single verification the WHOLE estate leans on - verify_event is a thin wrapper over it nostr-bbs-core/src/event.rs:197-198. The relay calls it before any side effect nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1117 (NF-03.4 step 4)
+    Note over V: The single verification the WHOLE estate leans on - verify_event is a thin wrapper over it nostr-bbs-core/src/event.rs:212-213. The relay calls it before any side effect nostr-bbs-relay-worker/src/relay_do/nip_handlers.rs:1117 (NF-03.4 step 4)
     Note over V: NIP-42 AUTH calls it nostr-bbs-relay-worker/src/relay_do/nip42.rs:208 (NF-03.2), and the forum client re-runs it on every inbound event rather than trusting the relay nostr-bbs-forum-client/src/relay.rs:1342 (NF-05.5)
     Note over V: Since 7df61ae an AUTH whose relay tag cannot be checked,<br/>because neither RELAY_URL nor RELAY_URL_ALIASES is set,<br/>is REFUSED, never skipped nostr-bbs-relay-worker/src/relay_do/nip42.rs:226-228.<br/>RESOLVED at 4a73a7a: the evaluate_auth_event doc comment now<br/>says the caller builds the set from those vars only, never<br/>from the request host nostr-bbs-relay-worker/src/relay_do/nip42.rs:190-193
-    Note over S: sign_event_deterministic nostr-bbs-core/src/event.rs:160 exists for test vectors
-    Note over S: sign_event_upstream nostr-bbs-core/src/event.rs:319 is the absorption seam onto the upstream nostr crate
+    Note over S: sign_event_deterministic nostr-bbs-core/src/event.rs:175 exists for test vectors
+    Note over S: sign_event_upstream nostr-bbs-core/src/event.rs:334 is the absorption seam onto the upstream nostr crate
     Note over U: The Signer trait nostr-bbs-core/src/signer.rs:78 lets a NIP-07 extension, a passkey key or a pasted nsec share one call site - see NF-05.4
 ```
 
