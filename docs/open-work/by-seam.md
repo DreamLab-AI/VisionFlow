@@ -33,7 +33,7 @@ The shape of governance events (kinds 31400 to 31405): panel definitions, propos
 
 Between: nostr-rust-forum, agentbox, visionclaw.
 
-5 live, 3 unverified, 1 closed.
+6 live, 4 unverified, 1 closed.
 
 ### Live
 
@@ -44,6 +44,7 @@ Between: nostr-rust-forum, agentbox, visionclaw.
 | GOV-CONTENT-KEY-ORDER | Governance event content built from free-form JSON (for example a proposal's `fields`) is serialised in a key order that depends on whether serde_json's preserve_order feature is unified into the build, so the same event can get a different id in different builds | nostr-rust-forum, visionclaw, agentbox | engineering | fixed on an unmerged branch: merged to local main 2026-11-20, awaiting forum release and deploy | 2026-11-20 |
 | GOV-KEY-ORDER-ADOPTION | VisionClaw and agentbox have not adopted the governance content key-order rule: agentbox has JSON.stringify sites to sort and must re-copy the contract; VisionClaw needs a new nostr-bbs-core release and pin bump | visionclaw, agentbox, nostr-rust-forum | engineering | open | 2026-11-20 |
 | FORUM-ADR-2035-KANBAN-AGENT-COLUMNS (also ADR-2035 (nostr-rust-forum)) | forum ADR-2035 (proposed): kanban agent columns dispatch to a registered agent, and the result returns as a governed 31402 case | nostr-rust-forum, agentbox | owner-decision | open | 2026-11-23 |
+| FORUM-KANBAN-DECISION-NEVER-PROJECTS (also KF-37 (nostr-rust-forum)) | forum: kanban 31403 decisions carry a random d, so they never join their 31402 case; every kanban case stays open, no broker_decisions row, receipts stop at projection-failed | nostr-rust-forum | engineering | open | 2026-11-24 |
 
 ### Recorded as open, not re-checked
 
@@ -52,6 +53,7 @@ Between: nostr-rust-forum, agentbox, visionclaw.
 | CONTRACTS-F6 (also CONTRACTS-F7, CONTRACTS-F17, CONTRACTS-F20, CONTRACTS-F21, CONTRACTS-F22) | Kind 31402 priority is a label on every producer and an integer on the relay | nostr-rust-forum, agentbox, visionclaw | finding | 2026-11-03 |
 | ABM-08 | Besides `vault propose`, two hand-built producers emit ontology 31402s with no content digest | agentbox | duplicate | 2026-11-01 |
 | FWP-11 | The relay governance schema lives in both migration 0002 and `ensure_schema`, and has already drifted (`superseded_by`) | nostr-rust-forum, dreamlab-ai-website | duplicate | 2026-11-01 |
+| FORUM-KANBAN-CARD-ZONE-UNBOUND | forum relay: a 30302 card without a zone tag skips the zone write gate, and a card's zone is not tied to its board's zone | nostr-rust-forum | finding | 2026-11-24 |
 
 <a id="agent-control-api"></a>
 

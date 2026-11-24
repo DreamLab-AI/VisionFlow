@@ -17,8 +17,8 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 120 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
-| Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
+| Live | 121 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Unverified | 194 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
 | Closed | 150 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
@@ -63,7 +63,7 @@ Items are filed by **seam**: the contract between components that would have to 
 | Seam | Between | Live | Unverified |
 |---|---|---|---|
 | [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 6 | 0 |
-| [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 5 | 3 |
+| [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 6 | 4 |
 | [Agent control and activity](by-seam.md#agent-control-api) | agentbox, visionclaw | 1 | 11 |
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 11 | 12 |
 | [Keys and secrets](by-seam.md#key-custody) | agentbox, nostr-rust-forum, dreamlab-ai-website, visionclaw | 6 | 8 |
@@ -85,7 +85,7 @@ An item that touches two components is counted under both.
 |---|---|---|---|
 | visionclaw | 13 | 16 | 75 |
 | agentbox | 22 | 16 | 72 |
-| nostr-rust-forum | 16 | 6 | 28 |
+| nostr-rust-forum | 17 | 6 | 29 |
 | dreamlab-ai-website | 3 | 2 | 8 |
 | solid-pod-rs | 25 | 1 | 31 |
 | sidestr-rs | 2 | 1 | 11 |
@@ -106,7 +106,7 @@ An item that touches two components is counted under both.
 |---|---|
 | Waiting on an owner decision | 17 |
 | Waiting on an owner act | 7 |
-| Ordinary engineering: can start now | 64 |
+| Ordinary engineering: can start now | 65 |
 | Needs a live deployment | 20 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
