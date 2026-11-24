@@ -12,7 +12,7 @@ A change to shared knowledge is applied only when it cites a decision signed by 
 
 Between: nostr-rust-forum, agentbox, visionclaw.
 
-5 live, 0 unverified, 1 closed.
+6 live, 0 unverified, 1 closed.
 
 ### Live
 
@@ -23,6 +23,7 @@ Between: nostr-rust-forum, agentbox, visionclaw.
 | N-2 | Forum `vault propose` apply path | nostr-rust-forum, visionclaw | engineering | open | 2026-11-15 |
 | FORUM-KANBAN-APPROVAL-COL-CLIENT-ONLY | forum kanban: the approval-column gate is enforced only by the forum client; the relay admits a card version naming an approval column with no approved move | nostr-rust-forum | engineering | open | 2026-11-23 |
 | WEB-ADR-2012-FIRST-AGENT-BOARD (also ADR-2012 (dreamlab-ai-website)) | dreamlab ADR-2012 (proposed): first agent board is ontology review, activated only after the admin key split, ADR-2024 enforce, both forum findings closed, a probe agent and a named reviewer | dreamlab-ai-website, nostr-rust-forum | owner-decision | open | 2026-11-23 |
+| FORUM-ADR-2024-UNMERGED (also ADR-2024 (nostr-rust-forum)) | forum ADR-2024 (panel binding, warn/enforce rollout) is proposed on an unmerged branch with no PR, yet forum ADR-2035, dreamlab ADR-2012 and KF-12 depend on it running at enforce | nostr-rust-forum, dreamlab-ai-website | owner-decision | open | 2026-11-24 |
 
 <a id="governance-events"></a>
 
@@ -356,7 +357,7 @@ What one repository assumes about another's version: crate pins, submodule gitli
 
 Between: estate.
 
-4 live, 15 unverified, 5 closed.
+5 live, 15 unverified, 5 closed.
 
 ### Live
 
@@ -366,6 +367,7 @@ Between: estate.
 | COV-A-F1 | Agentbox builds diagram-ir v0.1.0, not the audited 15cba16 | agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
 | SOLID-POD-RS-RELEASE-PIN | solid-pod-rs fixes on main (AW1-03, SP-ACL-REVIEW-03, SP-ACL-REVIEW-04) are not in the commit agentbox pins; needs a release and a pin bump | solid-pod-rs, agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
 | PROSE-DIAGRAM-RELEASE-PINS | prose-sanitiser and diagram-ir fixes need release tags and agentbox Nix pin bumps before an image rebuild picks them up | agentbox | deployment | fixed on an unmerged branch | 2026-11-22 |
+| KIT-RELEASE-FOR-AGENT-COLUMNS | Kit release (nostr-bbs-* 1.0.0-beta.21, solid-pod-rs alpha.26) and dreamlab KIT_REF + forum-config move once the ADR-2035 blocker fixes merge; VisionClaw nostr-bbs-core beta.19 -> beta.21 in the same pass | estate | engineering | open | 2026-11-24 |
 
 ### Recorded as open, not re-checked
 
@@ -418,7 +420,7 @@ Between: dream-engine, agentbox, visionflow.
 
 The item concerns one component's own behaviour and no contract with another. Fixing it changes nothing a neighbour depends on.
 
-51 live, 102 unverified, 87 closed.
+52 live, 102 unverified, 87 closed.
 
 ### visionclaw
 
@@ -552,6 +554,7 @@ Recorded as open, not re-checked:
 | Id | Item | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|
 | DW-KIT-SHA-STALE-IN-DOCS | dreamlab-ai-website: BASELINE-architecture.md:118 and ADR-2004 still name kit fd31193; no gate reads them (DW-06.11 reopens D9) | dreamlab-ai-website | engineering | open | 2026-11-23 |
+| WORKFLOW-REVIEWER-INCENTIVES | Owner decision: how DreamLab credits reviewers of agent output, and where time freed by agents goes | dreamlab-ai-website, nostr-rust-forum | owner-decision | open | 2026-11-24 |
 
 Recorded as open, not re-checked:
 

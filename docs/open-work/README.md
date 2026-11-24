@@ -17,14 +17,14 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | State | Items | Meaning |
 |---|---|---|
-| Live | 118 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
+| Live | 121 | Open, or fixed on a branch that is not merged, as established by a check on the date shown |
 | Unverified | 193 | Recorded as open in an older list and not re-checked since. Not known to be open |
 | Parked | 23 | Deliberately set aside with a re-open trigger |
 | Closed | 149 | Fixed, overtaken, or found not to be a defect. Kept so the id still resolves |
 
-## Waiting on the owner (22)
+## Waiting on the owner (24)
 
-### Waiting on an owner decision (15)
+### Waiting on an owner decision (17)
 
 | Id | Item | Seam | Components | Blocked by | State | Checked |
 |---|---|---|---|---|---|---|
@@ -43,6 +43,8 @@ Items are filed by **seam**: the contract between components that would have to 
 | SP-ADR-2012-WORK-RECORDS (also ADR-2012 (solid-pod-rs)) | solid-pod-rs ADR-2012 (proposed): PromptVersion, RunRecord and EvalCase as typed pod resources with provenance marks (work-records feature) | pod-api | solid-pod-rs | owner-decision | open | 2026-11-23 |
 | WEB-ADR-2012-FIRST-AGENT-BOARD (also ADR-2012 (dreamlab-ai-website)) | dreamlab ADR-2012 (proposed): first agent board is ontology review, activated only after the admin key split, ADR-2024 enforce, both forum findings closed, a probe agent and a named reviewer | decision-attribution | dreamlab-ai-website, nostr-rust-forum | owner-decision | open | 2026-11-23 |
 | WORK-RECORDS-HOME | Owner decision: do typed business records (projects, people, teams, customers) live as pod JSON-LD or as Nostr addressable kinds? | pod-api | solid-pod-rs, nostr-rust-forum | owner-decision | open | 2026-11-23 |
+| FORUM-ADR-2024-UNMERGED (also ADR-2024 (nostr-rust-forum)) | forum ADR-2024 (panel binding, warn/enforce rollout) is proposed on an unmerged branch with no PR, yet forum ADR-2035, dreamlab ADR-2012 and KF-12 depend on it running at enforce | decision-attribution | nostr-rust-forum, dreamlab-ai-website | owner-decision | open | 2026-11-24 |
+| WORKFLOW-REVIEWER-INCENTIVES | Owner decision: how DreamLab credits reviewers of agent output, and where time freed by agents goes | none | dreamlab-ai-website, nostr-rust-forum | owner-decision | open | 2026-11-24 |
 
 ### Waiting on an owner act (7)
 
@@ -60,7 +62,7 @@ Items are filed by **seam**: the contract between components that would have to 
 
 | Seam | Between | Live | Unverified |
 |---|---|---|---|
-| [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 5 | 0 |
+| [Who decided](by-seam.md#decision-attribution) | nostr-rust-forum, agentbox, visionclaw | 6 | 0 |
 | [Governance events](by-seam.md#governance-events) | nostr-rust-forum, agentbox, visionclaw | 6 | 3 |
 | [Agent control and activity](by-seam.md#agent-control-api) | agentbox, visionclaw | 1 | 11 |
 | [Identity checks](by-seam.md#identity) | nostr-rust-forum, solid-pod-rs, agentbox, visionclaw, dreamlab-ai-website | 11 | 12 |
@@ -71,9 +73,9 @@ Items are filed by **seam**: the contract between components that would have to 
 | [Ontology from corpus to consumers](by-seam.md#ontology-pipeline) | visiongraph, ontomark, loom, visionclaw, agentbox | 3 | 15 |
 | [XR, presence and the code view](by-seam.md#xr-presence) | visionclaw, codescape, agentbox | 3 | 5 |
 | [Shared memory](by-seam.md#memory) | agentbox, visionclaw | 0 | 4 |
-| [Versions and pins across repositories](by-seam.md#release-pins) | estate | 4 | 15 |
+| [Versions and pins across repositories](by-seam.md#release-pins) | estate | 5 | 15 |
 | [The nightly cycle across repositories](by-seam.md#nightly-cycle) | dream-engine, agentbox, visionflow | 3 | 2 |
-| [Inside one component](by-seam.md#none) | one component | 51 | 102 |
+| [Inside one component](by-seam.md#none) | one component | 52 | 102 |
 
 ## By component
 
@@ -83,8 +85,8 @@ An item that touches two components is counted under both.
 |---|---|---|---|
 | visionclaw | 13 | 16 | 75 |
 | agentbox | 23 | 16 | 72 |
-| nostr-rust-forum | 16 | 5 | 28 |
-| dreamlab-ai-website | 2 | 1 | 8 |
+| nostr-rust-forum | 17 | 6 | 28 |
+| dreamlab-ai-website | 3 | 2 | 8 |
 | solid-pod-rs | 25 | 1 | 31 |
 | sidestr-rs | 2 | 1 | 11 |
 | loom | 3 | 2 | 10 |
@@ -96,15 +98,15 @@ An item that touches two components is counted under both.
 | visiontouch-rs | 0 | 1 | 1 |
 | wasmvowl | 0 | 2 | 1 |
 | visionflow | 1 | 7 | 3 |
-| estate | 0 | 0 | 5 |
+| estate | 1 | 0 | 5 |
 
 ## Live work by what blocks it
 
 | Blocked by | Items |
 |---|---|
-| Waiting on an owner decision | 15 |
+| Waiting on an owner decision | 17 |
 | Waiting on an owner act | 7 |
-| Ordinary engineering: can start now | 64 |
+| Ordinary engineering: can start now | 65 |
 | Needs a live deployment | 20 |
 | Needs a device | 4 |
 | Waiting on an external party | 6 |
