@@ -72,7 +72,7 @@ flowchart TD
 
 **What it shows.** `NggExplorer.setParam` silently drops unknown keys and has no getter, so the bundle's own `version()` is the only way the adapter can report truthfully what took effect.
 
-## OM-14.3 Release, test evidence and the first consumer
+## OM-14.3 Release, test evidence and consumers
 
 ```mermaid
 flowchart TD
@@ -86,6 +86,8 @@ flowchart TD
     CI --> SEP
     OBS["EXTERNAL: ontomark-obsidian 0.6.0 pins graph 0.4.0 and defaults its Graph layout settings<br/>to RECOMMENDED_LAYOUT_PARAMS, see OO-03.1 and OO-04.5<br/>ontomark-obsidian/package.json:25<br/>settings.ts:59,60,61,62"]
     SEP --> OBS
+    WVC["EXTERNAL: WasmVOWL pins graph 0.4.0 too, with collideRadius 23 over the recommended set,<br/>see WV-03.4"]
+    SEP --> WVC
     DRIFT["DOC-DRIFT: ADR-OM-002's graph addendum stops at package 0.3.0 and vowl-wasm 0.2.3<br/>ADR-OM-002-shared-graph-and-obsidian-boundary.md:60,66"]
     PKG --- DRIFT
 ```

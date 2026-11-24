@@ -86,7 +86,7 @@ flowchart TB
     EXISTS -->|no| NPM["npm publish of the same tarball, verbose log of the OIDC use<br/>release.yml:253-254"]
     SKIP --> SERVE
     NPM --> SERVE["poll the registry packument, cache bypassed, up to 180 s with backoff,<br/>fail unless its sha512 integrity equals the attached tarball<br/>release.yml:260-288"]
-    N1["CHANGED at 0779174 (0.3.0 and 1912cf3): every run from v0.1.1 to v0.2.3 failed npm publish with E404 because no Trusted Publisher entry existed,<br/>the entry was set on 2026-11-23 and v0.3.0 was the first version published through it, release.yml:19-27,37-45.<br/>The registry check was added after v0.3.0 failed on a 404 seconds after an accepted publish, release.yml:256-259"]
+    N1["CHANGED at 0779174 (0.3.0 and 1912cf3): every run from v0.1.1 to v0.2.3 failed npm publish with E404 because no Trusted Publisher entry existed,<br/>the entry was set on 2026-11-23 and v0.3.0 was the first version published through it, release.yml:19-27,37-45.<br/>EXTERNAL: that is the workflow runs, not the registry. npm view lists 0.1.2, published 2026-09-06 outside this path,<br/>so 0.3.0 is the first Trusted Publishing release, not the first npm version.<br/>The registry check was added after v0.3.0 failed on a 404 seconds after an accepted publish, release.yml:256-259"]
     TRUST --- N1
 ```
 - `id-token: write` permits the OIDC flow; the workflow supplies no explicit npm token (release.yml:28-30). The preflight job declares only `contents: read` and `id-token: write` and masks the exchanged token (release.yml:49-51, release.yml:62, release.yml:70).
