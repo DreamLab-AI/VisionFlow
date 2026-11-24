@@ -24,6 +24,7 @@ sources:
   - ../dream-engine/docs/adr/ADR-DE-009-candidates-are-formatted-before-the-gate.md
   - ../dream-engine/crates/dream-core/src/screen.rs
   - ../dream-engine/crates/dream-core/src/lib.rs
+  - ../dream-engine/CHANGELOG.md
   - ../project/agentbox/services/dream-engine/Cargo.toml
   - ../project/agentbox/services/dream-engine/src/engine.rs
   - ../project/agentbox/docs/adr/ADR-2141-extract-the-dream-engine-core-into-a-standalone-permissive-repo.md
@@ -31,12 +32,12 @@ sources:
   - scripts/generate-release-manifest.sh
   - tests/gates/release-manifest.test.sh
   - scripts/estate-browser-journeys.mjs
-verified_commit: {dream-engine: 881075377625a9e20e69e9137f679506e93f4b68, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
+verified_commit: {dream-engine: f438e031fbb5792274fb5f0dd73075ff771c0123, agentbox: 59b1aca1cc3541b767872ecbc161c89e65d6ebca, visionflow: 3ae784ed0b547b562e1f94d017996f8ad197f5cb}
 ---
 
 DE-01 to DE-06 are the estate's view of dream-engine. The repository's own corpus is DE-07 to DE-14 in this area (moved on 2026-11-05); DE-11 draws the same crate DAG and licence boundary from inside the repository.
 
-Current audit qualification, 1 November 2026: [candidate and evidence boundary review](../../estate-review/2026-11-01-dream-candidate-and-evidence.md). Package, repository and daemon observations dated below remain historical; this pass does not re-establish deployment or registry freshness. On that date, source at `815f963` matched the retained dream-engine pin for these declared inputs; the current stamp (`8810753`) is newer, and its effect on the pin is recorded in the Tension (source vs pinned version) below. The new DE-02 topic records reproduced formatter and evidence-boundary gaps. The repository's own corpus (eight topics in four areas: nightly, gate, crates, selection) lives at `../dream-engine/docs/diagrams/README.md` and is not duplicated here. This area records only the estate's view of it: the crate DAG, the licence fence, the consumer and the open items. The estate adapter is AB-23. State on 2026-10-16, each checked that day: `DreamLab-AI/dream-engine` is public with `main` at 5578a24; the five crates were published at 0.1.0; the TypeScript fork was renamed `DreamLab-AI/dream-machine` and archived; the adapter side was agentbox pull request 28, merged as aa9b094c3. State re-checked on 2026-10-29 against this stamp (`61581d3`): crates.io `max_version` reads `dream-core` 0.4.0, `dream-gate` 0.3.0, `dream-cli` 0.2.0, `pairwise-gate` 0.1.0 and `failure-fingerprint` 0.1.0 (crates.io API); `DreamLab-AI/dream-machine` is archived (`gh repo view`); `git ls-remote origin main` reads 59a3e21, which is not the stamped head. The workspace version is 0.4.0 (`../dream-engine/Cargo.toml:11`) while `dream-cli` is published at 0.2.0, so the shell crate is not released with the library crates. Three releases followed the extraction: 0.2.0 honours requested sources first (ADR-DE-008), 0.3.0 formats a candidate before the gate judges it (ADR-DE-009, `dream-gate` 0.3.0) and 0.4.0 adds opt-in hypothesis screening in `dream-core` (`../dream-engine/crates/dream-core/src/lib.rs:57`).
+Current audit qualification, 1 November 2026: [candidate and evidence boundary review](../../estate-review/2026-11-01-dream-candidate-and-evidence.md). Package, repository and daemon observations dated below remain historical; this pass does not re-establish deployment or registry freshness. On that date, source at `815f963` matched the retained dream-engine pin for these declared inputs; the current dream-engine stamp (`f438e03`) is newer. The version gap that frozen DE-01.2 recorded as the Tension (source vs pinned version) is closed by the dream-core 0.5.0 release drawn in DE-01.3; the agentbox citations in this topic stay at `59b1aca`, so DE-01.1's adapter pin node is that revision's, and the adapter's move to 0.5.0 is drawn in DE-04.4. The new DE-02 topic records reproduced formatter and evidence-boundary gaps. The repository's own corpus (eight topics in four areas: nightly, gate, crates, selection) lives at `../dream-engine/docs/diagrams/README.md` and is not duplicated here. This area records only the estate's view of it: the crate DAG, the licence fence, the consumer and the open items. The estate adapter is AB-23. State on 2026-10-16, each checked that day: `DreamLab-AI/dream-engine` is public with `main` at 5578a24; the five crates were published at 0.1.0; the TypeScript fork was renamed `DreamLab-AI/dream-machine` and archived; the adapter side was agentbox pull request 28, merged as aa9b094c3. State re-checked on 2026-10-29 against this stamp (`61581d3`): crates.io `max_version` reads `dream-core` 0.4.0, `dream-gate` 0.3.0, `dream-cli` 0.2.0, `pairwise-gate` 0.1.0 and `failure-fingerprint` 0.1.0 (crates.io API); `DreamLab-AI/dream-machine` is archived (`gh repo view`); `git ls-remote origin main` reads 59a3e21, which is not the stamped head. The workspace version is 0.4.0 (`../dream-engine/Cargo.toml:11`) while `dream-cli` is published at 0.2.0, so the shell crate is not released with the library crates. Three releases followed the extraction: 0.2.0 honours requested sources first (ADR-DE-008), 0.3.0 formats a candidate before the gate judges it (ADR-DE-009, `dream-gate` 0.3.0) and 0.4.0 adds opt-in hypothesis screening in `dream-core` (`../dream-engine/crates/dream-core/src/lib.rs:57`).
 
 ## DE-01.1 The crate DAG, the licence fence and the consumer
 
@@ -57,6 +58,8 @@ flowchart TB
 **Invariant (declared dependency boundary):** the five crates declare `MIT OR Apache-2.0`; the adapter is outside the workspace (`../dream-engine/Cargo.toml:8`, `../dream-engine/docs/adr/ADR-DE-002-licence-and-provenance.md:23-33`). The [migration/provenance audit](../../estate-review/2026-11-01-dream-migration-and-provenance.md) verifies the current dependency direction and consumed source identity. This does not prove authorship or enforce the adapter’s prohibition on publication; Cargo package lists also omit the repository NOTICE from the five crates.
 
 ## DE-01.2 What is open, and where the estate still says otherwise
+
+> **Superseded** by DE-01.3 at f438e03 (frozen at 8810753).
 
 ```mermaid
 flowchart TB
@@ -80,3 +83,21 @@ flowchart TB
 **Drift (autoMerge inert):** the permissive repository's option exists but the adapter publishes through `Forge::publish_draft` (`../project/agentbox/services/dream-engine/src/engine.rs:1869`), and the dream-engine README and ADR-DE-006 now say that path never merges, whatever `autoMerge` says (`../dream-engine/README.md:130-135`, `../dream-engine/docs/adr/ADR-DE-006-automerge-is-an-option.md:44-48`). See ES-05 and AB-23.6. **Invariant (darwin):** darwin entrypoints without the declared sandbox flag are refused by evaluator readiness as a safety check. `assess` only appends an `Unusable::DarwinSandboxMissing` problem for the report and changes nothing (`../dream-engine/crates/dream-core/src/readiness.rs:228-232`). **Open (candidate and evidence boundaries):** source-level checks do not establish formatter confinement or evidence integrity. DE-02 records an out-of-worktree formatter write, duplicate test-name collapse, receipt filename collisions and manifest archive replacement, reproduced against the same production source.
 
 **Tension (source vs pinned version):** dream-engine `main` adds a required `head_sha` field to `DraftPr` and a third parameter to `Forge::enable_automerge` (`../dream-engine/crates/dream-core/src/seams.rs:355`, `../dream-engine/crates/dream-core/src/seams.rs:406`) while `dream-core` still declares 0.4.1 (`../dream-engine/crates/dream-core/Cargo.toml:3`), the exact version the adapter pins (`../project/agentbox/services/dream-engine/Cargo.toml:26`). The adapter's `DraftPr` literal has no `head_sha` (`../project/agentbox/services/dream-engine/src/engine.rs:1869`), so it does not compile against `main`'s source; whether the registry's 0.4.1 carries the change is not checked here.
+
+## DE-01.3 dream-core 0.5.0: the head pin ships under a breaking version
+
+```mermaid
+flowchart TB
+    FIX["6b45ad4 added DraftPr.head_sha and a third enable_automerge parameter<br/>while dream-core still declared 0.4.1, already published<br/>../dream-engine/CHANGELOG.md:22-25"] --> REL["dream-core declares 0.5.0<br/>../dream-engine/crates/dream-core/Cargo.toml:3"]
+    REL --> BRK["Breaking: required head_sha field, three-argument enable_automerge<br/>../dream-engine/CHANGELOG.md:12<br/>../dream-engine/CHANGELOG.md:16"]
+    REL --> CLI["dream-cli requires dream-core 0.5.0, its own version stays 0.4.0<br/>../dream-engine/crates/dream-cli/Cargo.toml:25<br/>../dream-engine/Cargo.toml:11"]
+    REL --> MIG["Migration: whoever builds a DraftPr sets head_sha to the branch tip commit, never a tree hash<br/>../dream-engine/CHANGELOG.md:43-47"]
+    MIG --> HOST["The adapter's adoption of 0.5.0 is drawn in DE-04.4 and AB-23"]
+    REL --> LOG["DRIFT: the changelog heading still reads unreleased<br/>../dream-engine/CHANGELOG.md:8"]
+```
+
+**What it shows.** The head-pinned automerge change from `6b45ad4` now ships as `dream-core` 0.5.0, so a host pinned to `=0.4.1` keeps building against the published 0.4.1 without it (`../dream-engine/CHANGELOG.md:22-25`). crates.io lists `dream-core` 0.5.0, created 2026-11-23, as `max_version` (crates.io API, read 2026-11-24).
+
+**Why it is this way.** Commit `f438e03` (dream-engine PR 15) moved the version after cargo-semver-checks reported two major breaks against the published 0.4.1; `dream-gate`, `pairwise-gate` and `failure-fingerprint` needed no bump. This closes the Tension (source vs pinned version) frozen in DE-01.2: the source and the published version now agree.
+
+**Drift (CHANGELOG vs registry):** the changelog section is headed `dream-core 0.5.0 (unreleased)` (`../dream-engine/CHANGELOG.md:8`) while crates.io has served 0.5.0 since 2026-11-23.
