@@ -13,7 +13,7 @@ sources:
   - ../visionGraph/quartz/scripts/check-secrets.sh
   - ../visionGraph/quartz/scripts/check-urls.sh
   - ../ontomark/crates/ontomark-compile/src/build/mod.rs
-verified_commit: {visiongraph: 1df8eb49051b6e55f35ea493b3c42e79ffd77bb8, ontomark: fbe30244c6842879297883b571965f5bc1ce0441}
+verified_commit: {visiongraph: dbc50f2f1075cab9fe108d4dcf917c4917d6f454, ontomark: 8222170c5243f58f1f9a93ac800660dfe0197ac4}
 ---
 
 **Repair note — 2026-11-03:** selected counterexamples below have a [scoped successor verification](08-promoted-certificate-consumption.md). The successor states the repaired contracts and acceptance boundaries.
@@ -63,19 +63,20 @@ flowchart TB
 ```mermaid
 flowchart TB
     INPUT["Read built ontology, graph tiers and search index<br/>stage local preview copies"]
-    DEPS["npm ci, run earlier in the browser-prepare step<br/>ontomark-graph 0.2.0 and vowl-wasm 0.2.3 tarballs"]
+    DEPS["npm ci, run earlier in the browser-prepare step<br/>ontomark-graph 0.2.0 and vowl-wasm 0.4.0 tarballs<br/>CHANGED at 7808310: vowl-wasm 0.2.3 to 0.4.0"]
     CHECK["TypeScript, runtime-notices Rust checks<br/>unit tests, then Vite production build"]
     COPY["Copy shell and assets into www<br/>do not copy preview api or data trees"]
     ROUTES["Five static route shells with hash comparisons<br/>legacy explorer redirect"]
-    NOTICE["Require named notices, copy and hash-compare<br/>browser smoke against assembled www"]
+    NOTICE["Require named notices, copy and hash-compare<br/>browser smoke against assembled www<br/>CHANGED at 7808310: requires vowl-wasm-0.4.0.md"]
     INPUT --> DEPS --> CHECK --> COPY --> ROUTES --> NOTICE
     %% Source: .github/workflows/publish.yml:441
-    %% Source: publishing-tools/WasmVOWL/modern/package.json:24
+    %% Source: publishing-tools/WasmVOWL/modern/package.json:24-25
     %% Source: .github/workflows/publish.yml:338
     %% Source: .github/workflows/publish.yml:460
     %% Source: .github/workflows/publish.yml:474
     %% Source: .github/workflows/publish.yml:483
     %% Source: .github/workflows/publish.yml:496
+    %% Source: .github/workflows/publish.yml:500
     %% Source: .github/workflows/publish.yml:511
 ```
 
