@@ -23,7 +23,7 @@ Between: nostr-rust-forum, agentbox, visionclaw.
 | N-2 | Forum `vault propose` apply path | nostr-rust-forum, visionclaw | engineering | open | 2026-11-15 |
 | FORUM-KANBAN-APPROVAL-COL-CLIENT-ONLY | forum kanban: the approval-column gate is enforced only by the forum client; the relay admits a card version naming an approval column with no approved move | nostr-rust-forum | engineering | open | 2026-11-24 |
 | WEB-ADR-2012-FIRST-AGENT-BOARD (also ADR-2012 (dreamlab-ai-website)) | dreamlab ADR-2012 (proposed): first agent board is ontology review, activated only after the admin key split, ADR-2024 enforce, both forum findings closed, a probe agent and a named reviewer | dreamlab-ai-website, nostr-rust-forum | owner-decision | open | 2026-11-23 |
-| FORUM-ADR-2024-UNMERGED (also ADR-2024 (nostr-rust-forum)) | forum ADR-2024 (panel binding, warn/enforce rollout) is proposed on an unmerged branch with no PR, yet forum ADR-2035, dreamlab ADR-2012 and KF-12 depend on it running at enforce | nostr-rust-forum, dreamlab-ai-website | owner-decision | open | 2026-11-24 |
+| FORUM-ADR-2024-UNMERGED (also ADR-2024 (nostr-rust-forum)) | forum ADR-2024 (panel binding, warn/enforce rollout) re-verified and open as PR #104, held during the forum content cut-over; Decisions 1-4 unbuilt, yet forum ADR-2035, dreamlab ADR-2012 and KF-12 depend on it at enforce | nostr-rust-forum, dreamlab-ai-website | engineering | open | 2026-11-24 |
 
 <a id="governance-events"></a>
 
