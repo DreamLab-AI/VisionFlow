@@ -444,8 +444,20 @@ VisionClaw conforms. Each full VisionClaw sync now appends public corpus history
 provenance graph, checks the assert rebuild by digest, and serves `state-at?view=subjects`
 to a timeline overlay that now tints the graph. Losing concurrent writes (P5) is withdrawn
 until a multi-writer path exists. The `:assert` graph, GPU state and RuVector stay
-disposable. The record is accepted and complete, and staged until a deployed force_full sync
+disposable. The record is accepted and staged until a deployed force_full sync
 proves it. It changes none of the invariants above.
+
+**Amended 2026-11-25: `estate-temporal-v2`.** The contract moves to a single form,
+decided and being implemented (ontomark and VisionClaw branches, not merged): a
+version never carries an end; an end is a separate closure record naming the
+memory-ontology clock it closes (`memory:ValidTime` and/or `memory:RecordedTime`),
+with its own recorded time; version identity includes recorded time; federation
+tombstones are outside the contract. The v1 description above is what runs today,
+so ADR-2022's implementation status is now partial. A planned P2 amendment, not
+implemented, makes the corpus sync honour a page's authored clock (`corrected` and
+`withdrawn` close recorded time; merges and renames record no close). v2 goes live
+only after the operator's offline refit of the deployed store passes its verify
+step.
 
 ## Proposed estate closeout extension (2026-09-04)
 

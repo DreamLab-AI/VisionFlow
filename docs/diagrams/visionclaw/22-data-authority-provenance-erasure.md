@@ -273,6 +273,8 @@ sequenceDiagram
     Note over EMITTER,WRITER: PROPOSED ADR-2102: keep the append-only invariant and satisfy erasure by crypto-shredding the per-subject key so<br/>quad structure and hash chain survive while plaintext does not - the alternative is to declare provenance out of erasure<br/>scope explicitly - ADR-2102 exists to force that choice rather than leave it to omission
 ```
 
+**Decided, not implemented (2026-11-25):** the "Retraction only ADDS dl:validTo" note is what the cited code does. Under `estate-temporal-v2` (VisionFlow ADR-2022, amendment of 2026-11-25) a version never carries an end: an end becomes a separate closure record naming the clock it closes, and `dl:validTo` leaves the provenance graph. Restamp this diagram when VisionClaw's v2 writers merge.
+
 ## VC-22.5 Unified provenance trace read path (`GET /api/trace`)
 
 ```mermaid
@@ -555,6 +557,8 @@ sequenceDiagram
 **Invariant:** the corpus-history writer and the wire paths share one public test: `public_subgraph` keeps the nodes `NodeVisibility::of_node` calls public (`src/services/corpus_history.rs:144`, `crates/visionclaw-domain/src/utils/visibility_filter.rs:101`), so private content cannot enter the unerasable provenance graph by a second, diverging rule.
 
 **Open (risk):** the writer records nothing when no panel key is configured (`src/services/corpus_history.rs:474-477`), and surfaces that only as `SyncStatistics.corpus_history_not_recorded` and a warn. Any deployment without an ACSP panel key therefore keeps no corpus history.
+
+**Decided, not implemented (2026-11-25):** under `estate-temporal-v2` (VisionFlow ADR-2022, amendment of 2026-11-25) "open" means a version with no closure record, and `apply_history` closes a version by writing a closure linked to the sync's activity and agent, not by adding `dl:validTo`. A planned P2 amendment makes the sync honour a page's authored clock. The steps above describe the code at the cited revision; restamp when VisionClaw's v2 sync merges.
 
 ## VC-22.14 Graph shares: one durable store, outside erasure
 
