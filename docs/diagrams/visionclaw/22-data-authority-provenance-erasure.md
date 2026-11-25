@@ -273,7 +273,7 @@ sequenceDiagram
     Note over EMITTER,WRITER: PROPOSED ADR-2102: keep the append-only invariant and satisfy erasure by crypto-shredding the per-subject key so<br/>quad structure and hash chain survive while plaintext does not - the alternative is to declare provenance out of erasure<br/>scope explicitly - ADR-2102 exists to force that choice rather than leave it to omission
 ```
 
-**Decided, not implemented (2026-11-25):** the "Retraction only ADDS dl:validTo" note is what the cited code does. Under `estate-temporal-v2` (VisionFlow ADR-2022, amendment of 2026-11-25) a version never carries an end: an end becomes a separate closure record naming the clock it closes, and `dl:validTo` leaves the provenance graph. Restamp this diagram when VisionClaw's v2 writers merge.
+**Decided, not implemented (2026-11-25):** the "Retraction only ADDS dl:validTo" note is what the cited code does. Under `estate-temporal-v2` (VisionFlow ADR-2022, amendment of 2026-11-25) a version never carries an end: an end becomes a separate closure record naming the clock it closes, versions carry `temporal:validFrom` and `temporal:recordedFrom` in place of `dl:validFrom` and `prov:generatedAtTime`, and `dl:validTo` leaves the provenance graph. Restamp this diagram when VisionClaw's v2 writers merge.
 
 ## VC-22.5 Unified provenance trace read path (`GET /api/trace`)
 

@@ -449,7 +449,8 @@ proves it. It changes none of the invariants above.
 
 **Amended 2026-11-25: `estate-temporal-v2`.** The contract moves to a single form,
 decided and being implemented (ontomark and VisionClaw branches, not merged): a
-version never carries an end; an end is a separate closure record naming the
+version carries memory-ontology's `temporal:validFrom` and `temporal:recordedFrom`
+(in place of `dl:validFrom` and `prov:generatedAtTime`) and never an end; an end is a separate closure record naming the
 memory-ontology clock it closes (`memory:ValidTime` and/or `memory:RecordedTime`),
 with its own recorded time; version identity includes recorded time; federation
 tombstones are outside the contract. The v1 description above is what runs today,
